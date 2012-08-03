@@ -6,7 +6,7 @@ admin.autodiscover()
 
 urlpatterns = patterns('',
     # Examples:
-    # url(r'^$', 'hmslincs_server.views.home', name='home'),
+    #url(r'^$', 'hmslincs_server.views.home', name='home'),
     # url(r'^hmslincs_server/', include('hmslincs_server.foo.urls')),
 
     # Uncomment the admin/doc line below to enable admin documentation:
@@ -14,4 +14,6 @@ urlpatterns = patterns('',
 
     # url(r'^???/', include('???.urls')),
     url(r'^admin/', include(admin.site.urls)),
+    url(r'^example/$','example.views.index' ),
+    url(r'^example/sm/(?P<sm_id>\d+)/$', 'example.views.detail')
 )

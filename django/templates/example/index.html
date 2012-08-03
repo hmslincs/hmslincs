@@ -1,0 +1,9 @@
+{% if small_molecule_list %}
+    <ul>
+    {% for sm in small_molecule_list %}
+        <li><a href="/example/sm/{{ sm.id }}/">{{ sm.facility_id }}</a></li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No small molecules are available.</p>
+{% endif %}
