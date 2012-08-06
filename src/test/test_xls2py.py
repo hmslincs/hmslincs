@@ -82,14 +82,6 @@ INT,FLOAT,STRING,DATE,BOOLEAN
 1.0,3.3,ham,7/31/1999,N
 4.0,0.1,eggs,12/10/1985,Y
 1.0,0.002,foo,11/21/1963,Y
-readout,YN
-0.1,0.0
-2.3,0.0
-45.6,1.0
-789.1,0.0
-1.2,1.0
-22.3,1.0
-1088.8,1.0
 TIME,CONCENTRATION,NAME
 10.0,0.1,ABC
 0.0,0.01,DEF-1
@@ -98,10 +90,18 @@ TIME,CONCENTRATION,NAME
 120.0,1.01,NOPqr/4
 150.0,1.001,"s+T,Uv"
 180.0,10.1,W~x.yZ
+readout,YN
+0.1,0.0
+2.3,0.0
+45.6,1.0
+789.1,0.0
+1.2,1.0
+22.3,1.0
+1088.8,1.0
 """.lstrip()
 
         got = ''
-        for bn in os.listdir(hpp):
+        for bn in sorted(os.listdir(hpp)):
             got += open(op.join(hpp, bn)).read()
         self.assertEqual(expected, got)
                             
