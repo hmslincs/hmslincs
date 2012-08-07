@@ -86,10 +86,19 @@ class Test_happypath(ut.TestCase):
         lastsheet = wb[-1]
         self.assertEqual(lastsheet.name, u'iv')
         middlesheets = wb[1:-1]
-        self.assertEqual([s.name for s in middlesheets],
-                         u'2nd Tres'.split())
+        self.assertEqual([s.name for s in middlesheets], u'2nd Tres'.split())
         for sh in wb:
             self.assertEqual(sh, wb[sh.name])
+
+    def test_happypath__index(self):
+        wb = self._wb
+        for i, sh in enumerate(wb):
+            self.assertEqual(i, wb.index(sh.name))
+
+    def test_happypath__contains(self):
+        wb = self._wb
+        for sh in wb:
+            self.assertTrue(sh.name in wb)
 
     def test_happypath__items(self):
         wb = self._wb

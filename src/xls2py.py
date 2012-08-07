@@ -87,7 +87,7 @@ class _labeled_sequence(object):
         return self._len
 
     def _toindex(self, ii):
-        def __2i(i, seq=self._seq, lkp=self._name_2_index):
+        def __2i(i, seq=self._seq, lkp=self._label_2_index):
             try: seq[i:i]
             except TypeError, e:
                 if not ('slice indices must be integers or None or have an '
@@ -106,13 +106,16 @@ class _labeled_sequence(object):
         return self._seq[self._toindex(index_or_key)]
 
 
+    def index(self, label):
+        return self._label_2_index[label]
 
-BREAKPOINT = None
+    def __contains__(self, label):
+        return label in self._label_2_index
+
+
 class Cell(_encodable):
     def __init__(self, data, parent):
         self._value = data
-        self.parent = parent
-        self.fielddelimiter = parent.fielddelimiter
 
     def __unicode__(self):
         return unicode(self._value)
@@ -120,10 +123,11 @@ class Cell(_encodable):
 
 class Row(_encodable, _labeled_sequence):
     def __init__(self, data, parent):
-        self.parent = parent
         self.fielddelimiter = parent.fielddelimiter
-        self._cells = _c = tuple([Cell(c, parent= self) for c in data])
-        self._len = len(_c)
+        self._cells = cols = tuple([Cell(c, parent=self) for c in data])
+        self._len = len(cols)
+
+    _seq = property(lambda s: s._cells)
 
     def __iter__(self):
         return iter(self._cells)
@@ -134,7 +138,6 @@ class Row(_encodable, _labeled_sequence):
 
 class Worksheet(_encodable, _labeled_sequence):
     def __init__(self, data, parent, name=None):
-        self.parent = parent
         if name is None:
             if hasattr(data, 'name'):
                 name = data.name
@@ -157,13 +160,16 @@ class Worksheet(_encodable, _labeled_sequence):
         #                     type(self).__name__)
 
         _data = (data.row_values(i) for i in range(data.nrows))
-        self._rows = _rows = tuple([Row(r, parent=self) for r in _data])
-        self._len = self._height = _h = len(_rows)
-        self._width = _w = max(len(r) for r in _rows) if _h > 0 else 0
-        self._columns = zip(*_rows)
+        self._rows = rows = tuple([Row(r, parent=self) for r in _data])
+        self._height = _h = len(rows)
+        self._width = _w = max(len(r) for r in rows) if _h > 0 else 0
+        self._columns = zip(*rows)
         # _holder = object()
         # _padded_rows = tuple(tuple(r) +
         #                      tuple((holder,) * (_w - len(r))) for r in _rows)
+
+    _seq = property(lambda s: s._rows)
+    _len = property(lambda s: s._height)
 
     def __iter__(self):
         return iter(self._rows)
@@ -190,11 +196,11 @@ class Workbook(_labeled_sequence):
         wss = _all if keep_empty else [sh for sh in _all if sh.nrows > 0]
 
         self._len = self.nsheets = len(wss)
-        sheets = tuple([Worksheet(s, parent=self) for s in wss])
-        self._seq = self._sheets = sheets
+        self._sheets = sheets = tuple([Worksheet(s, parent=self) for s in wss])
         names = [sh.name for sh in sheets]
-        self._name_2_index = dict((v, i) for i, v in enumerate(names))
+        self._label_2_index = dict((v, i) for i, v in enumerate(names))
 
+    _seq = property(lambda s: s._sheets)
 
     def items(self):
         return tuple((s.name, s) for s in self._sheets)
