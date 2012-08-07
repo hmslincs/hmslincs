@@ -67,19 +67,22 @@ class Test_happypath(ut.TestCase):
     
     def test_happypath__len(self):
         wb = self._wb
-        self.assertEqual(len(wb), 4)
-        self.assertEqual([len(sh) for sh in wb], [5, 6, 8, 8])
+        self.assertEqual(len(wb), wb.nsheets)
+        for sh in wb:
+            self.assertEqual(len(sh), sh.nrows)
+            for row in sh:
+                self.assertEqual(len(row), row.ncells)
 
     def test_happypath__enum(self):
         wb = self._wb
-        nsheets = len(wb)
+        nsheets = wb.nsheets
         for i, sheet in enumerate(wb):
-            nrows = len(sheet)
+            nrows = sheet.nrows
             for j, row in enumerate(sheet):
                 if nsheets - i == 1 and nrows - j == 1:
                     self.assertEqual(str(row), '1088.8,1.0')
 
-    def test_happypath__getitem(self):
+    def test_happypath__wb_getitem(self):
         wb = self._wb
         firstsheet = wb[0]
         self.assertEqual(firstsheet.name, u'First')
@@ -87,6 +90,23 @@ class Test_happypath(ut.TestCase):
         self.assertEqual(lastsheet.name, u'iv')
         middlesheets = wb[1:-1]
         self.assertEqual([s.name for s in middlesheets], u'2nd Tres'.split())
+        for sh in wb:
+            self.assertEqual(sh, wb[sh.name])
+
+    def test_happypath__wb_getitem(self):
+        wb = self._wb
+
+        for i, sh in enumerate(wb):
+            self.assertEqual(wb[i], sh)
+            for j, ro in enumerate(sh):
+                self.assertEqual(sh[j], ro)
+                for k, ce in enumerate(ro):
+                    self.assertEqual(ro[k], ce)
+
+        self.assertEqual(wb[0].name, u'First')
+        self.assertEqual(wb[-1].name, u'iv')
+        self.assertEqual([s.name for s in wb[1:-1]], u'2nd Tres'.split())
+
         for sh in wb:
             self.assertEqual(sh, wb[sh.name])
 
