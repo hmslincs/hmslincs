@@ -82,10 +82,18 @@ class _encodable(object):
     def __str__(self):
         return self.__unicode__().encode(ENCODING)
 
-class _labeled_sequence(object):
+class _sequence(object):
     def __len__(self):
         return self._len
 
+    def __getitem__(self, index):
+        return self._seq[index]
+
+    def index(self, value):
+        return index(self._seq, value)
+
+
+class _labeled_sequence(_sequence):
     def _toindex(self, ii):
         def __2i(i, seq=self._seq, lkp=self._label_2_index):
             try: seq[i:i]
@@ -105,7 +113,8 @@ class _labeled_sequence(object):
     def __getitem__(self, index_or_key):
         return self._seq[self._toindex(index_or_key)]
 
-
+    # Note: the definition of index below has different *semantics* from
+    # that of, e.g., list.index, and of _sequence.index for that matter.
     def index(self, label):
         return self._label_2_index[label]
 
@@ -121,11 +130,11 @@ class Cell(_encodable):
         return unicode(self._value)
 
 
-class Row(_encodable, _labeled_sequence):
+class Row(_encodable, _sequence):
     def __init__(self, data, parent):
         self.fielddelimiter = parent.fielddelimiter
         self._cells = cols = tuple([Cell(c, parent=self) for c in data])
-        self._len = len(cols)
+        self.ncells = self._len = len(cols)
 
     _seq = property(lambda s: s._cells)
 
@@ -136,7 +145,7 @@ class Row(_encodable, _labeled_sequence):
         return self.fielddelimiter.join([unicode(s)
                                          for s in self._cells])
 
-class Worksheet(_encodable, _labeled_sequence):
+class Worksheet(_encodable, _sequence):
     def __init__(self, data, parent, name=None):
         if name is None:
             if hasattr(data, 'name'):
@@ -161,7 +170,7 @@ class Worksheet(_encodable, _labeled_sequence):
 
         _data = (data.row_values(i) for i in range(data.nrows))
         self._rows = rows = tuple([Row(r, parent=self) for r in _data])
-        self._height = _h = len(rows)
+        self.nrows = _h = len(rows)
         self._width = _w = max(len(r) for r in rows) if _h > 0 else 0
         self._columns = zip(*rows)
         # _holder = object()
@@ -169,7 +178,7 @@ class Worksheet(_encodable, _labeled_sequence):
         #                      tuple((holder,) * (_w - len(r))) for r in _rows)
 
     _seq = property(lambda s: s._rows)
-    _len = property(lambda s: s._height)
+    _len = property(lambda s: s.nrows)
 
     def __iter__(self):
         return iter(self._rows)
