@@ -5,7 +5,7 @@ import os
 import os.path as op
 import errno as er
 import csv
-# import functools as ft
+import functools as ft
 
 try:
     from typecheck import isstring, isiterable #, ismapping
@@ -82,6 +82,29 @@ class _encodable(object):
     def __str__(self):
         return self.__unicode__().encode(ENCODING)
 
+class _labeled_sequence(object):
+    def __len__(self):
+        return self._len
+
+    def _toindex(self, ii):
+        def __2i(i, seq=self._seq, lkp=self._name_2_index):
+            try: seq[i:i]
+            except TypeError, e:
+                if not ('slice indices must be integers or None or have an '
+                        '__index__ method' in str(e)): raise
+                return lkp[i]
+            else:
+                return i
+                    
+        if isinstance(ii, slice):
+            args = [__2i(i) for i in (ii.start, ii.stop)] + [ii.step]
+            return slice(*args)
+
+        return __2i(ii)
+
+    def __getitem__(self, index_or_key):
+        return self._seq[self._toindex(index_or_key)]
+
 
 
 BREAKPOINT = None
@@ -95,7 +118,7 @@ class Cell(_encodable):
         return unicode(self._value)
 
 
-class Row(_encodable):
+class Row(_encodable, _labeled_sequence):
     def __init__(self, data, parent):
         self.parent = parent
         self.fielddelimiter = parent.fielddelimiter
@@ -109,11 +132,7 @@ class Row(_encodable):
         return self.fielddelimiter.join([unicode(s)
                                          for s in self._cells])
 
-    def __len__(self):
-        return self._len
-
-
-class Worksheet(_encodable):
+class Worksheet(_encodable, _labeled_sequence):
     def __init__(self, data, parent, name=None):
         self.parent = parent
         if name is None:
@@ -139,7 +158,7 @@ class Worksheet(_encodable):
 
         _data = (data.row_values(i) for i in range(data.nrows))
         self._rows = _rows = tuple([Row(r, parent=self) for r in _data])
-        self._height = _h = len(_rows)
+        self._len = self._height = _h = len(_rows)
         self._width = _w = max(len(r) for r in _rows) if _h > 0 else 0
         self._columns = zip(*_rows)
         # _holder = object()
@@ -149,52 +168,33 @@ class Worksheet(_encodable):
     def __iter__(self):
         return iter(self._rows)
 
-    def __len__(self):
-        return self._height
-
     def __unicode__(self):
         return self.recorddelimiter.join([unicode(s)
                                           for s in self._rows])
 
-class Workbook(object):
+class Workbook(_labeled_sequence):
     def __init__(self, data,
-                 fielddelimiter=FIELDDELIMITER, recorddelimiter=RECORDDELIMITER,
-                 prefix=u'', suffix=u''):
+                 fielddelimiter=FIELDDELIMITER,
+                 recorddelimiter=RECORDDELIMITER,
+                 prefix=u'', suffix=u'', keep_empty=False):
 
-        _loc = locals()
-        _kws = dict((k, _loc[k]) for k in
-                   'fielddelimiter recorddelimiter prefix suffix'.split())
-        for k, v in _kws.items(): setattr(self, k, v)
+        loc = locals()
+        d = self.__dict__
+        for k in 'fielddelimiter recorddelimiter prefix suffix'.split():
+            d[k] = loc[k]
 
         assert isstring(data)
+        self._path = _path = data
 
-        _wss = xl.open_workbook(data).sheets()
-        self._len = len(_wss)
-        self._sheets = tuple([Worksheet(s, parent=self) for s in _wss])
+        _all = xl.open_workbook(_path).sheets()
+        wss = _all if keep_empty else [sh for sh in _all if sh.nrows > 0]
 
-        # if data is None:
-        #     self._sheets = []
-        #     return
+        self._len = self.nsheets = len(wss)
+        sheets = tuple([Worksheet(s, parent=self) for s in wss])
+        self._seq = self._sheets = sheets
+        names = [sh.name for sh in sheets]
+        self._name_2_index = dict((v, i) for i, v in enumerate(names))
 
-        # # (ASPIRATIONAL)
-        # _mksheet = ft.partial(Worksheet, parent=self, **_kws)
-        # del _kws
-
-        # _have_path = isstring(data)
-        # if _have_path or isinstance(data, xlrd.Book):
-        #     wb = xl.open_workbook(data) if _have_path else data
-        #     sheets = [_mksheet(s) for s in wb.sheets()]
-        # elif ismapping(data):
-        #     sheets = [_mksheet(v, name=k) for k, v in data.items()]
-        # elif isiterable(data):
-        #     sheets = [_mksheet(s, name=i) for i, s in enumerte(data)]
-        # else:
-        #     raise TypeError('invalid type for data argument to %s constructor' %
-        #                     type(self).__name__)
-
-        # del _have_path, _mksheet
-
-        # self._sheets = sheets
 
     def items(self):
         return tuple((s.name, s) for s in self._sheets)
@@ -202,32 +202,29 @@ class Workbook(object):
     def __iter__(self):
         return iter(self._sheets)
 
-    def __len__(self):
-        return self._len
+    def write(self, outdir=None, worksheet_to_outpath=None):
 
-    nsheets = property(__len__)
-
-    def write(self, path, worksheet_to_outpath=None):
+        if outdir is None:
+            outdir = op.splitext(self._path)[0]
 
         if worksheet_to_outpath is None:
-            outdir = op.splitext(path)[0]
             def _ws2pth(sh):
                 return op.join(outdir, '%s.csv' % sh.name)
             worksheet_to_outpath = _ws2pth
 
+        _wrtr = ft.partial(csv.writer,
+                           delimiter=self.fielddelimiter,
+                           lineterminator=self.recorddelimiter)
         for sh in self:
             outpath = worksheet_to_outpath(sh)
             _makedirs(op.dirname(outpath))
             with open(outpath, 'wb') as f:
-                (csv.writer(f,
-                            delimiter=self.fielddelimiter,
-                            lineterminator=self.recorddelimiter)
-                 .writerows(_tolist(sh)))
+                _wrtr(f).writerows(_tolist(sh))
 
 
 if __name__ == '__main__':
     for p in sys.argv[1:]:
-        xls2csv(p)
+        Workbook(p).write()
 
 
 
