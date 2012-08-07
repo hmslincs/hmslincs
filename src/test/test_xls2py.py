@@ -38,6 +38,19 @@ class Test_xls2py(ut.TestCase):
     def test_workbook_compiles(self):
         ignore = MOD.Workbook(FIXTURES['blank'])
 
+class Test_blank(ut.TestCase):
+    _path = FIXTURES['blank']
+
+    def test_blank__len(self, _path=_path):
+        wb = MOD.Workbook(_path)
+        self.assertEqual(len(wb), 0)
+
+    def test_blank__keep_empty(self, _path=_path):
+        wb = MOD.Workbook(_path, keep_empty=True)
+        self.assertEqual([len(sh) for sh in wb], [0, 0, 0])
+        self.assertEqual([sh.name for sh in wb],
+                         ['Sheet%d' % (i + 1) for i in range(3)])
+
 
 class Test_happypath(ut.TestCase):
     HP_PATH = op.join(SCRATCHDIR, 'happypath')
@@ -52,6 +65,11 @@ class Test_happypath(ut.TestCase):
             if e.errno != er.ENOENT:
                 raise
     
+    def test_happypath__len(self):
+        wb = self._wb
+        self.assertEqual(len(wb), 4)
+        self.assertEqual([len(sh) for sh in wb], [5, 6, 8, 8])
+
     def test_happypath__enum(self):
         wb = self._wb
         nsheets = len(wb)
@@ -60,6 +78,27 @@ class Test_happypath(ut.TestCase):
             for j, row in enumerate(sheet):
                 if nsheets - i == 1 and nrows - j == 1:
                     self.assertEqual(str(row), '1088.8,1.0')
+
+    def test_happypath__getitem(self):
+        wb = self._wb
+        firstsheet = wb[0]
+        self.assertEqual(firstsheet.name, u'First')
+        lastsheet = wb[-1]
+        self.assertEqual(lastsheet.name, u'iv')
+        middlesheets = wb[1:-1]
+        self.assertEqual([s.name for s in middlesheets], u'2nd Tres'.split())
+        for sh in wb:
+            self.assertEqual(sh, wb[sh.name])
+
+    def test_happypath__index(self):
+        wb = self._wb
+        for i, sh in enumerate(wb):
+            self.assertEqual(i, wb.index(sh.name))
+
+    def test_happypath__contains(self):
+        wb = self._wb
+        for sh in wb:
+            self.assertTrue(sh.name in wb)
 
     def test_happypath__items(self):
         wb = self._wb
@@ -107,4 +146,5 @@ readout,YN
                             
 if __name__ == "__main__":
     ts.run_unittest(Test_xls2py)
+    ts.run_unittest(Test_blank)
     ts.run_unittest(Test_happypath)
