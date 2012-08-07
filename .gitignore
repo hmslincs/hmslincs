@@ -4,3 +4,6 @@
 local_settings.py
 *.db
 src/test/scratch/*
+temp/*
+.project
+.pydevproject
