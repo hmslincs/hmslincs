@@ -81,7 +81,7 @@ class Test_happypath(ut.TestCase):
         for sh in wb:
             hdrs = sh[0]
             trs = sh[1:]
-            ta = MOD.Table(trs, sh.name, hdrs, **sh._format)
+            ta = MOD.Table(trs, hdrs, **sh._format)
 
     def test_happypath__enum(self):
         wb = self._wb
@@ -138,16 +138,16 @@ class Test_happypath(ut.TestCase):
     def test_happypath__colindexing(self):
         def _test_ta(sh, ta):
             self.assertEquals(sh.nrows - 1, ta.nrows)
-            self.assertEquals(sh[0], ta.labels)
-            hdrs = ta.labels
+            hdrs = ta._labels
+            self.assertEquals(sh[0], hdrs)
             for ro in ta:
                 for i, hdr in enumerate(hdrs):
                     self.assertEqual(ro[i], ro[hdr])
 
         first, rest = 0, slice(1, None)
         for sh in self._wb:
-            for ta in (MOD.Table(sh[rest], sh.name, sh[first], **sh._format),
-                       sh.astable(rest, first), sh.astable()):
+            for ta in (MOD.Table(sh[rest], sh[first], **sh._format),
+                       sh.as_table(rest, first), sh.as_table()):
                 _test_ta(sh, ta)
                 
 
