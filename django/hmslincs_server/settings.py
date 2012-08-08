@@ -130,9 +130,10 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     'south', #for schema migrations
     'django_tables2', # for UI tabling
+    'fts', # for full text search
     'example',
     # Uncomment the next line to enable admin documentation:
-    # 'django.contrib.admindocs',
+    'django.contrib.admindocs',
 )
 
 # A sample logging configuration. The only tangible logging
