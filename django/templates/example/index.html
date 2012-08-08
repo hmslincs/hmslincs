@@ -1,9 +1,7 @@
-{% if small_molecule_list %}
-    <ul>
-    {% for sm in small_molecule_list %}
-        <li><a href="/example/sm/{{ sm.id }}/">{{ sm.facility_id }}</a></li>
-    {% endfor %}
-    </ul>
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}django_tables2/themes/paleblue/css/screen.css" />
+{% if table %}
+	{% load render_table from django_tables2 %}
+	{% render_table table %}
 {% else %}
-    <p>No small molecules are available.</p>
+    <p>No records are available.</p>
 {% endif %}
