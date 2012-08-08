@@ -67,11 +67,21 @@ class Test_happypath(ut.TestCase):
     
     def test_happypath__len(self):
         wb = self._wb
+        self.assertEqual(wb._len, wb.nsheets)
         self.assertEqual(len(wb), wb.nsheets)
         for sh in wb:
+            self.assertEqual(sh._len, sh.nrows)
             self.assertEqual(len(sh), sh.nrows)
-            for row in sh:
-                self.assertEqual(len(row), row.ncells)
+            for ro in sh:
+                self.assertEqual(ro._len, ro.ncells)
+                self.assertEqual(len(ro), ro.ncells)
+
+    def test_happypath__table(self):
+        wb = self._wb
+        for sh in wb:
+            hdrs = sh[0]
+            trs = sh[1:]
+            ta = MOD.Table(trs, sh.name, hdrs, **sh._format)
 
     def test_happypath__enum(self):
         wb = self._wb
@@ -124,6 +134,22 @@ class Test_happypath(ut.TestCase):
         wb = self._wb
         for k, sheet in wb.items():
             self.assertEqual(k, sheet.name)
+
+    def test_happypath__colindexing(self):
+        def _test_ta(sh, ta):
+            self.assertEquals(sh.nrows - 1, ta.nrows)
+            self.assertEquals(sh[0], ta.labels)
+            hdrs = ta.labels
+            for ro in ta:
+                for i, hdr in enumerate(hdrs):
+                    self.assertEqual(ro[i], ro[hdr])
+
+        first, rest = 0, slice(1, None)
+        for sh in self._wb:
+            for ta in (MOD.Table(sh[rest], sh.name, sh[first], **sh._format),
+                       sh.astable(rest, first), sh.astable()):
+                _test_ta(sh, ta)
+                
 
     def test_happypath__write(self):
         wb = self._wb
