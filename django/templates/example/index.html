@@ -1,7 +1,12 @@
-<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}django_tables2/themes/paleblue/css/screen.css" />
-{% if table %}
-	{% load render_table from django_tables2 %}
-	{% render_table table %}
-{% else %}
-    <p>No records are available.</p>
-{% endif %}
+{% extends "example/base.html" %}
+{% block content %}
+		<div id="mainTab">
+			<div id="search">
+				<form action="#" method="post">
+				<p><label for="id_search">Search:</label>
+			    <input id="id_search" type="text" name="search" maxlength="100" /></p>
+				</form>
+			</div>
+		</div>
+{% endblock %}
+
