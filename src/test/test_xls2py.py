@@ -6,7 +6,7 @@ import xlrd as xl
 import os
 import os.path as op
 import script_path as sp
-import shutil as sh
+import shutil as shu
 import errno as er
 
 
@@ -60,7 +60,7 @@ class Test_happypath(ut.TestCase):
 
     def tearDown(self):
         try:
-            sh.rmtree(self.HP_PATH)
+            shu.rmtree(self.HP_PATH)
         except Exception, e:
             if e.errno != er.ENOENT:
                 raise
