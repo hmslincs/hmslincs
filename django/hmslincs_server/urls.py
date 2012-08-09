@@ -13,7 +13,11 @@ urlpatterns = patterns('',
     # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
 
     # url(r'^???/', include('???.urls')),
+    url(r'^admin/doc/', include('django.contrib.admindocs.urls')), 
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^example/$','example.views.index' ),
-    url(r'^example/sm/(?P<sm_id>\d+)/$', 'example.views.detail')
+    url(r'^example/$', 'example.views.main', name="home"),
+    url(r'^example/sm/$','example.views.smallMoleculeIndex', name="listSmallMolecules" ),
+    url(r'^example/sm/(?P<sm_id>\d+)/$', 'example.views.smallMoleculeDetail', name="sm_detail"),
+    url(r'^example/cells/$','example.views.cellIndex', name="listCells"),
+    url(r'^example/cells/(?P<cell_id>\d+)/$', 'example.views.cellDetail', name="cell_detail")
 )

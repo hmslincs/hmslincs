@@ -1,22 +1,21 @@
 """
-populate the database with dummy data
+populate the database Cell Data
 """
 
 import os.path as op
 from django.utils import timezone
 import script_path as sp
-from example.models import SmallMolecule
+from example.models import Cell
 import xls2py as xl
 import argparse
 
-DATADIR = op.join(sp.script_dir(), '..', 'sampledata')
 
-class ArbitraryGrouping:
+class ArbitraryGrouping(object):
     
     def populate(self,inputFile):
             
-        SmallMolecule.objects.all().delete()
-        wb = xl.Workbook(op.join(DATADIR, inputFile))
+        Cell.objects.all().delete()
+        wb = xl.Workbook(inputFile)
         print("processing: %s ", inputFile)
         
         for sheet in wb:
@@ -30,11 +29,11 @@ class ArbitraryGrouping:
         for row in rows:
             facilityId = str(list(row)[0])
             print("processing: " + facilityId)
-            sm = SmallMolecule(facility_id=facilityId, pub_date=timezone.now())
+            sm = Cell(facility_id=facilityId, pub_date=timezone.now())
             sm.save()
 
 
-parser = argparse.ArgumentParser(description='Import Small Molecule file')
+parser = argparse.ArgumentParser(description='Import Cell file')
 parser.add_argument('-f', action='store', dest='inputFile',
                     metavar='FILE', required=True,
                     help='input file path')

@@ -8,3 +8,5 @@ src/test/scratch/*
 temp/*
 .project
 .pydevproject
+.settings/*
+bak/*
