@@ -1,55 +1,30 @@
 # -*- coding: utf-8 -*-
 import xlrd as xl
-import platform as pl
 import os
 import os.path as op
 import errno as er
 import csv
+import platform as pl
 import functools as ft
 
-from typecheck import isstring, issequence #, isiterable , ismapping
-    
+from typecheck import isstring, issequence
 
-FIELDDELIMITER = u','
-RECORDDELIMITER = u'\r\n' if pl.system == 'Windows' else u'\n'
-PREFIX=u''
-SUFFIX=u''
-VERBOSE = False
-ENCODING = 'utf8'
+# ---------------------------------------------------------------------------
+import setglobals as _sg
+_params = dict(
+    FIELDDELIMITER = u',',
+    RECORDDELIMITER = u'\r\n' if pl.system == 'Windows' else u'\n',
+    PREFIX = u'',
+    SUFFIX = u'',
+    PROLOGUE = u'',
+    EPILOGUE = u'',
+    VERBOSE = False,
+    ENCODING = u'utf8',
+)
+_sg.setglobals(_params)
+del _sg, _params
 
-if __name__ == '__main__':
-    DEFAULTS = dict(
-        FIELDDELIMITER = u',',
-        RECORDDELIMITER = u'\r\n' if pl.system == 'Windows' else u'\n',
-        PREFIX = u'',
-        SUFFIX = u'',
-        VERBOSE = False,
-        ENCODING = 'utf8',
-    )
-
-    def _param(name, env=os.environ, defaults=DEFAULTS):
-        assert defaults.has_key(name)
-        return env.get(name, defaults[name])
-
-    def _update_globals(defaults=DEFAULTS, globs=globals(),
-                        _env=os.environ,
-                        _verbose=_param('VERBOSE'),
-                        _enc=_param('ENCODING')):
-
-        for k, v in defaults.items():
-            if k in _env:
-                val = unicode(_env[k])
-                if len(val):
-                    if _verbose:
-                        print (u'found: %s=%r' % (k, val)).encode(_enc)
-                    globs[k] = val
-                    continue
-            globs[k] = v
-
-    _update_globals()
-    del _param, _update_globals
-
-
+# ---------------------------------------------------------------------------
 assert len(FIELDDELIMITER) > 0
 assert len(RECORDDELIMITER) > 0
 
@@ -72,6 +47,8 @@ def _makedirs(path):
 def _subdict(d, keys):
     return dict((k, d[k]) for k in keys)
 
+# ---------------------------------------------------------------------------
+
 class _encodable(object):
     def __str__(self):
         return self.__unicode__().encode(ENCODING)
@@ -90,7 +67,6 @@ class _sequence(object):
 
     def __iter__(self):
         return iter(self._seq)
-
 
 class _labeled_sequence(_sequence):
     def _toindex(self, ii):
@@ -121,6 +97,8 @@ class _labeled_sequence(_sequence):
         return label in self._label_2_index
 
 
+# ---------------------------------------------------------------------------
+
 class Cell(_encodable):
     def __init__(self, data, parent):
         self._value = data
@@ -138,12 +116,11 @@ class Row(_encodable, _sequence):
         self._cells = cols = tuple([Cell(c, parent=self) for c in data])
 
     _seq = property(lambda s: s._cells) # (See comments on Workbook._seq below.)
+    ncells = _sequence._len
 
     def __unicode__(self):
         body = self.fielddelimiter.join([unicode(s) for s in self._cells])
         return '%s%s%s' % (self.prefix, body, self.suffix)
-
-Row.ncells = super(Row, Row)._len
 
 
 class Record(Row, _labeled_sequence):
@@ -154,12 +131,14 @@ class Record(Row, _labeled_sequence):
 
 
 class _Sequence_of_sequences(_encodable, _sequence):
-    _FORMATTING_ATTRS = Row._FORMATTING_ATTRS + ('recorddelimiter',)
+    _FORMATTING_ATTRS = (Row._FORMATTING_ATTRS +
+                         tuple('recorddelimiter prologue epilogue'.split()))
 
     def __init__(self, data=None,
                  fielddelimiter=FIELDDELIMITER,
                  recorddelimiter=RECORDDELIMITER,
-                 prefix=u'', suffix=u''):
+                 prefix=PREFIX, suffix=SUFFIX,
+                 prologue=PROLOGUE, epilogue=EPILOGUE):
 
         self._format = _subdict(locals(), self._FORMATTING_ATTRS)
         self.__dict__.update(self._format)
@@ -171,11 +150,11 @@ class _Sequence_of_sequences(_encodable, _sequence):
 
     _seq = property(lambda s: s._rows) # (See comments on Workbook._seq below.)
     _columns = property(lambda s: zip(*s._rows))
+    nrows = _sequence._len        
 
     def __unicode__(self):
-        return self.recorddelimiter.join([unicode(s) for s in self._rows])
-        
-_Sequence_of_sequences.nrows = super(_Sequence_of_sequences, _Sequence_of_sequences)._len
+        body = self.recorddelimiter.join([unicode(s) for s in self._rows])
+        return '%s%s%s' % (self.prologue, body, self.epilogue)
 
 
 class Worksheet(_Sequence_of_sequences):
@@ -197,17 +176,20 @@ class Worksheet(_Sequence_of_sequences):
     def _makerows(self, data):
         return tuple([Row(r, parent=self) for r in data])
 
-    def as_table(self, dataslice=slice(1, None), header_row_num=0):
+    def as_table(self, dataslice=slice(1, None), header_row_num=0,
+                 formatting=None):
         header_row = None if header_row_num is None else self[header_row_num]
-        return Table(self[dataslice], header_row, **self._format)
+        if formatting is None:
+            formatting = self._format
+        return Table(self[dataslice], header_row, **formatting)
 
 
 class Table(_Sequence_of_sequences, _labeled_sequence):
     def __init__(self, data=None, labels=None,
                  fielddelimiter=FIELDDELIMITER,
                  recorddelimiter=RECORDDELIMITER,
-                 prefix=u'', suffix=u''):
-
+                 prefix=PREFIX, suffix=SUFFIX,
+                 prologue=PROLOGUE, epilogue=EPILOGUE):
         self._labels = labels
         fmt = _subdict(locals(), self._FORMATTING_ATTRS)
         super(Table, self).__init__(data, **fmt)
@@ -220,7 +202,9 @@ class Workbook(_labeled_sequence):
     def __init__(self, data,
                  fielddelimiter=FIELDDELIMITER,
                  recorddelimiter=RECORDDELIMITER,
-                 prefix=u'', suffix=u'', keep_empty=False):
+                 prefix=PREFIX, suffix=SUFFIX,
+                 prologue=PROLOGUE, epilogue=EPILOGUE,
+                 keep_empty=False):
 
         self.__dict__.update(_subdict(locals(), Worksheet._FORMATTING_ATTRS))
 
@@ -238,6 +222,7 @@ class Workbook(_labeled_sequence):
     # than simply set _seq = self._sheets in __init__) is to keep _seq
     # in sync with self._sheets.
     _seq = property(lambda s: s._sheets)
+    nsheets = _labeled_sequence._len
 
     def items(self):
         return tuple((s.name, s) for s in self._sheets)
@@ -261,8 +246,8 @@ class Workbook(_labeled_sequence):
             with open(outpath, 'wb') as f:
                 _wrtr(f).writerows(_tolist(sh))
 
-Workbook.nsheets = super(Workbook, Workbook)._len
 
 if __name__ == '__main__':
+    import sys
     for p in sys.argv[1:]:
         Workbook(p).write()
