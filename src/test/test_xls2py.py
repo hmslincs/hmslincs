@@ -1,18 +1,14 @@
 # -*- coding: utf-8 -*-
-import unittest as ut
-import test.test_support as ts
-import xlrd as xl
-
 import os
 import os.path as op
-import script_path as sp
 import shutil as shu
 import errno as er
+import unittest as ut
 
 
 MODNAME = 'xls2py'
 MOD = __import__(MODNAME)
-DATADIR, SCRATCHDIR = [op.join(sp.script_dir(), d, MODNAME)
+DATADIR, SCRATCHDIR = [op.join(op.dirname(__file__), d, MODNAME)
                        for d in 'data scratch'.split()]
 FIXTURES = dict((n, op.join(DATADIR, '%s.xls' % n)) for n in
                 'blank ones happypath'.split())
@@ -191,6 +187,7 @@ readout,YN
         self.assertEqual(expected, got)
                             
 if __name__ == "__main__":
+    import test.test_support as ts
     ts.run_unittest(Test_xls2py)
     ts.run_unittest(Test_blank)
     ts.run_unittest(Test_happypath)
