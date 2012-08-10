@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 import re
 # ---------------------------------------------------------------------------
-# import setglobals as _sg
+# import setparams as _sg
 # _params = dict(
 #     VERBOSE = False,
 #     ENCODING = u'utf8',
 # )
-# _sg.setglobals(_params)
+# _sg.setparams(_params)
 # del _sg, _params
 
 # ---------------------------------------------------------------------------

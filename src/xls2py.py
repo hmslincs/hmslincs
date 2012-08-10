@@ -10,7 +10,7 @@ import functools as ft
 from typecheck import isstring, issequence
 
 # ---------------------------------------------------------------------------
-import setglobals as _sg
+import setparams as _sg
 _params = dict(
     FIELDDELIMITER = u',',
     RECORDDELIMITER = u'\r\n' if pl.system == 'Windows' else u'\n',
@@ -21,7 +21,7 @@ _params = dict(
     VERBOSE = False,
     ENCODING = u'utf8',
 )
-_sg.setglobals(_params)
+_sg.setparams(_params)
 del _sg, _params
 
 # ---------------------------------------------------------------------------

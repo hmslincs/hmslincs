@@ -1,16 +1,3 @@
-"""
-How can a function refer to itself?
-
-In the simplest case, a function can refer to itself by name, like this:
-
-    def myfunc():
-        print "I am %r" % myfunc
-
-But in Python the association between a name and an object is very mutable.  Is there more stable way in which a function can refer to itself?
-
-"""
-
-
 # -*- coding: utf-8 -*-
 import os.path as op
 import sys
@@ -22,10 +9,10 @@ import errno as er
 
 ENVIRON = os.environ
 ORIG_ENVIRON = dict(ENVIRON)
-TEST_PARAM_NAME = 'TEST_SETGLOBALS_PY__PARAM'
+TEST_PARAM_NAME = 'TEST_SETPARAMS_PY__PARAM'
 
 SCRIPTDIR = op.dirname(__file__)
-MODNAME = 'setglobals'
+MODNAME = 'setparams'
 DUMMYMOD = 'dummy'
 
 def run():
@@ -45,11 +32,11 @@ def run():
             print >> out, """
 GLOBS_BEFORE = dict(globals())
 import %s as themod
-themod.setglobals(dict(%s=u'default value'))
+themod.setparams(dict(%s=u'default value'))
 GLOBS_AFTER = dict(globals())
         """.lstrip() % (MODNAME, TEST_PARAM_NAME)
 
-        ts.run_unittest(Test_setglobals)
+        ts.run_unittest(Test_setparams)
     finally:
         sys.path.pop(0)
         sys.path.pop(0)
@@ -61,7 +48,7 @@ GLOBS_AFTER = dict(globals())
                 tb.print_exc()
 
 
-class Test_setglobals(ut.TestCase):
+class Test_setparams(ut.TestCase):
     globs = globals()
 
     def setUp(self):
@@ -80,7 +67,7 @@ class Test_setglobals(ut.TestCase):
         self.assertTrue(not TEST_PARAM_NAME in self.globs)
 
         mod = __import__(MODNAME)
-        mod.setglobals({})
+        mod.setparams({})
 
         self.assertTrue(not TEST_PARAM_NAME in self.globs)
 
@@ -89,7 +76,7 @@ class Test_setglobals(ut.TestCase):
 
         ENVIRON.pop(TEST_PARAM_NAME, None)
         mod = __import__(MODNAME)
-        mod.setglobals(self.params)
+        mod.setparams(self.params)
 
         self.assertTrue(TEST_PARAM_NAME in self.globs)
         self.assertEquals(self.globs[TEST_PARAM_NAME],
@@ -99,7 +86,7 @@ class Test_setglobals(ut.TestCase):
         self.assertTrue(not TEST_PARAM_NAME in self.globs)
 
         mod = __import__(MODNAME)
-        mod.setglobals(self.params)
+        mod.setparams(self.params)
 
         self.assertTrue(TEST_PARAM_NAME in self.globs)
         self.assertEquals(self.globs[TEST_PARAM_NAME],
