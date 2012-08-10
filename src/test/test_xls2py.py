@@ -57,7 +57,7 @@ class Test_happypath(ut.TestCase):
     def tearDown(self):
         try:
             shu.rmtree(self.HP_PATH)
-        except Exception, e:
+        except OSError, e:
             if e.errno != er.ENOENT:
                 raise
     
