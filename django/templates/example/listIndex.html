@@ -1,7 +1,7 @@
 {% extends "example/base.html" %}
 	{% block content %}
 	<div id="search">
-		<form action="#" method="post">
+		<form action="{{ request.get_full_path }}" method="post"> {% csrf_token %} 
 		<p><label for="id_search">Search:</label>
 	    <input id="id_search" type="text" name="search" maxlength="100" /></p>
 		</form>
