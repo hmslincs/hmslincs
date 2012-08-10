@@ -4,6 +4,7 @@ from django.shortcuts import render_to_response
 from django.shortcuts import render
 
 from example.models import SmallMolecule
+from example.models import Cell
 from django.http import Http404
 import django_tables2 as tables
 from django_tables2 import RequestConfig
@@ -16,18 +17,35 @@ class SmallMoleculeTable(tables.Table):
         model = SmallMolecule
         orderable = True
         attrs = {'class': 'paleblue'}
+
+class CellTable(tables.Table):
+    facility_id = tables.LinkColumn("cell_detail", args=[A('pk')])
+    class Meta:
+        model = SmallMolecule
+        orderable = True
+        attrs = {'class': 'paleblue'}
     
 def main(request):
     return render(request, 'example/index.html')
 
 def cellIndex(request):
-    sms = SmallMolecule.objects.all() #.order_by('-pub_date')
-    table = SmallMoleculeTable(sms)
+    search = request.POST.get('search','')
+    if(search != ''):
+        print("s: %s" % search)
+        sms = Cell.objects.filter(facility_id__icontains=search )
+    else:
+        sms = Cell.objects.all() #.order_by('-pub_date')
+    table = CellTable(sms)
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
     return render(request, 'example/listIndex.html', {'table': table })
     
 def smallMoleculeIndex(request):
-    sms = SmallMolecule.objects.all() #.order_by('-pub_date')
+    search = request.POST.get('search','')
+    if(search != ''):
+        print("s: %s" % search)
+        sms = SmallMolecule.objects.filter(facility_id__icontains=search )
+    else:
+        sms = SmallMolecule.objects.all() #.order_by('-pub_date')
     table = SmallMoleculeTable(sms)
     # table = SmallMoleculeTable(sms,order_by=('<any column name from Performance>',))
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
