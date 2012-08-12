@@ -6,14 +6,11 @@ _params= dict(
     SGDEBUG__ = False
 )
 
-def calling_frame(level=0):
-    return ins.stack()[level+2][0]
-
 def calling_module(level=0):
-    return ins.getmodule(calling_frame(1))
+    return ins.getmodule(ins.currentframe(level+2))
 
 def _setparams(defaults, globs, fromenv,
-                _environment=dict(os.environ)):
+               _environment=dict(os.environ)):
     globs.update(defaults)
     if not fromenv: return
     for key in defaults & _environment.viewkeys():
