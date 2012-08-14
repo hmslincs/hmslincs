@@ -190,12 +190,12 @@ class Table(_Sequence_of_sequences, _labeled_sequence):
                  recorddelimiter=RECORDDELIMITER,
                  prefix=PREFIX, suffix=SUFFIX,
                  prologue=PROLOGUE, epilogue=EPILOGUE):
-        self._labels = labels
+        self.labels = labels
         fmt = _subdict(locals(), self._FORMATTING_ATTRS)
         super(Table, self).__init__(data, **fmt)
     
     def _makerows(self, data):
-        return tuple([Record(r, parent=self, labels=self._labels) for r in data])
+        return tuple([Record(r, parent=self, labels=self.labels) for r in data])
 
 
 class Workbook(_labeled_sequence):

@@ -134,7 +134,7 @@ class Test_happypath(ut.TestCase):
     def test_happypath__colindexing(self):
         def _test_ta(sh, ta):
             self.assertEquals(sh.nrows - 1, ta.nrows)
-            hdrs = ta._labels
+            hdrs = ta.labels
             self.assertEquals(sh[0], hdrs)
             for ro in ta:
                 for i, hdr in enumerate(hdrs):
