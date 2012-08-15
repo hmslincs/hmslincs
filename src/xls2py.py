@@ -184,7 +184,7 @@ class Worksheet(_Sequence_of_sequences):
         return Table(self[dataslice], header_row, **formatting)
 
 
-class Table(_Sequence_of_sequences, _labeled_sequence):
+class Table(_Sequence_of_sequences):
     def __init__(self, data=None, labels=None,
                  fielddelimiter=FIELDDELIMITER,
                  recorddelimiter=RECORDDELIMITER,
