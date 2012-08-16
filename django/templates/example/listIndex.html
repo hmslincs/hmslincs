@@ -1,9 +1,9 @@
 {% extends "example/base.html" %}
-	{% block content %}
+{% block content %}
 	<div id="search">
-		<form action="{{ request.get_full_path }}" method="post"> {% csrf_token %} 
-		<p><label for="id_search">Search:</label>
-	    <input id="id_search" type="text" name="search" maxlength="100" /></p>
+		<form action="{{ request.get_full_path }}" method="get"> <!-- {% csrf_token %}  --> 
+			<p><label for="id_search">Search:</label>
+	    <input id="id_search" type="text" name="search" value="{{ search }}" maxlength="100" tabindex="1" /></p>
 		</form>
 	</div>
 	{% if table %}

@@ -1,1 +1,8 @@
-{{ small_molecule }}
+{% extends "example/base.html" %}
+{% block content %}
+<h2>Small Molecule Information</h2>
+	{% for field in object %}
+	    <li><b>{{ field.label }}:</b> {{ field.data }}</li>
+	{% endfor %}
+	<img src="{{ STATIC_URL }}/images/00001A01.png" />
+{% endblock %}
