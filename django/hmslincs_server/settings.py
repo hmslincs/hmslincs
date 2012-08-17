@@ -1,3 +1,7 @@
+import os.path as op
+_djangopath = op.abspath(op.dirname(op.dirname(__file__)))
+_sqlite3dbpath = op.join(_djangopath, 'hmslincs.db')
+
 # Django settings for hmslincs_server project.
 
 DEBUG = True
@@ -11,10 +15,12 @@ MANAGERS = ADMINS
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'hmslincs.db',           # Or path to database file if using sqlite3.
-        'USER': '',                      # Not used with sqlite3.
-        'PASSWORD': '',                  # Not used with sqlite3.
+        # 'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
+        # 'NAME': _sqlite3dbpath,          # Or path to database file if using sqlite3.
+
+        'ENGINE': 'django.db.backends.postgresql_psycopg2', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
+        'NAME': 'django',                # Or path to database file if using sqlite3.
+        'USER': 'django',                # Not used with sqlite3.
         'PASSWORD': '',                  # Not used with sqlite3.
         'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
         'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
@@ -128,12 +134,11 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.admin',
-    'south', #for schema migrations
-    'django_tables2', # for UI tabling
-    'fts', # for full text search
-    'example',
-    # Uncomment the next line to enable admin documentation:
     'django.contrib.admindocs',
+    'django_tables2', # for UI tabling
+    'example',
+    # # 'south', #for schema migrations
+    # # 'fts', # for full text search
 )
 
 # A sample logging configuration. The only tangible logging
