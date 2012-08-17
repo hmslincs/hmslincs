@@ -17,13 +17,16 @@ def parse_mol(data):
         key = tag[tag.find('<')+1:tag.rfind('>')]
         yield key, val.strip()
 
+def first_nonempty_line(preamble):
+    for txt in [line.strip() for line in preamble.splitlines()]:
+        if len(txt):
+            return txt
+
 def parse_sdf(data):
     """
-    import sdf2py
-    data = open('/path/to/data.sdf').read()
-    for mol_iter in sdf2py.parse_sdf(data):
+    for mol_iter in sdf2py.parse_sdf(sdf_data_as_a_string):
         _, preamble = next(mol_iter)
-        title = preamble[:preamble.find('\n')]
+        title = first_nonempty_line(preamble) or 'WARNING: NO TITLE FOUND'
         print title
         for tag, value in mol_iter:
             print '%s: %s' % (tag, value.strip())
@@ -41,7 +44,7 @@ if __name__ == '__main__':
 
         for mol_iter in parse_sdf(data):
             _, preamble = next(mol_iter)
-            title = preamble[:preamble.find('\n')]
+            title = first_nonempty_line(preamble) or 'WARNING: NO TITLE FOUND'
             print title
             for tag, value in mol_iter:
                 print '%s: %s' % (tag, value.strip())
