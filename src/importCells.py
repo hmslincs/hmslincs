@@ -16,7 +16,7 @@ class ArbitraryGrouping(object):
             
         Cell.objects.all().delete()
         wb = xl.Workbook(inputFile)
-        print("processing: %s ", inputFile)
+        print("processing: %s " % inputFile)
         
         for sheet in wb:
             if sheet.name == 'HMS-LINCS cell line metadata':
@@ -28,8 +28,15 @@ class ArbitraryGrouping(object):
         headers = [next(rows) for _ in (0, 1)]
         for row in rows:
             facilityId = str(list(row)[0])
-            print("processing: " + facilityId)
-            sm = Cell(facility_id=facilityId, pub_date=timezone.now())
+            print("processing: %s" % facilityId)
+            sm = Cell(facility_id=facilityId, 
+                      name= list(row)[1], 
+                      clo_id= list(row)[2], 
+                      alternate_name= list(row)[3], 
+                      alternate_id= list(row)[4], 
+                      center_name= list(row)[5], 
+                      center_specific_id= list(row)[6], 
+                      pub_date=timezone.now())
             sm.save()
 
 
