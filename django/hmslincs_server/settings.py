@@ -140,7 +140,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.admin',
-    'south', #for schema migrations
+    #'south', #for schema migrations
     'django_tables2', # for UI tabling
     # 'fts', # for full text search
     #'haystack',
