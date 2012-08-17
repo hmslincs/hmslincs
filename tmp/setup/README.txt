@@ -1,3 +1,4 @@
+# one-time setup
 HMSLINCSDIR=<INITIALIZE>
 
 DJANGODIR=$HMSLINCSDIR/django
@@ -17,3 +18,10 @@ createdb -U django -T django_init django
 
 rm $SETTINGS
 mv $SETTINGS.hold $SETTINGS
+
+
+######################################################################
+# after the setup above, do this to reset the database:
+
+psql -qc 'DROP DATABASE IF EXISTS django' postgres django
+createdb -U django -T django_init django
