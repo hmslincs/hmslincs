@@ -15,7 +15,7 @@ def parse_mol(data):
     yield (None, parts.pop(0))
     for tag, val in zip(*[iter(parts)] * 2):
         key = tag[tag.find('<')+1:tag.rfind('>')]
-        yield key, val
+        yield key, val.strip()
 
 def parse_sdf(data):
     """
