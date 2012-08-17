@@ -47,6 +47,10 @@ def _makedirs(path):
 def _subdict(d, keys):
     return dict((k, d[k]) for k in keys)
 
+def _cast(data, type_):
+    assert type_ is not None
+    return None if (data is None or data is '') else type_(data)
+
 # ---------------------------------------------------------------------------
 
 class _encodable(object):
@@ -100,8 +104,11 @@ class _labeled_sequence(_sequence):
 # ---------------------------------------------------------------------------
 
 class Cell(_encodable):
-    def __init__(self, data, parent):
-        self._value = data
+    def __init__(self, data, parent, type_=None):
+        while hasattr(data, '_value'):
+            data = data._value
+
+        self._value = data if type_ is None else _cast(data, type_)
 
     def __unicode__(self):
         return unicode(self._value)
@@ -110,10 +117,15 @@ class Cell(_encodable):
 class Row(_encodable, _sequence):
     _FORMATTING_ATTRS = tuple('fielddelimiter prefix suffix'.split())
 
-    def __init__(self, data, parent, labels=None):
+    def __init__(self, data, parent, labels=None, types=None):
         self.__dict__.update(_subdict(parent.__dict__, self._FORMATTING_ATTRS))
         self.parent = parent
-        self._cells = cols = tuple([Cell(c, parent=self) for c in data])
+        if types is None:
+            cols = tuple([Cell(c, parent=self) for c in data])
+        else:
+            cols = tuple([Cell(c, parent=self, type_=t)
+                          for c, t in zip(data, types)])
+        self._cells = cols
 
     _seq = property(lambda s: s._cells) # (See comments on Workbook._seq below.)
     ncells = _sequence._len
@@ -124,8 +136,8 @@ class Row(_encodable, _sequence):
 
 
 class Record(Row, _labeled_sequence):
-    def __init__(self, data, parent, labels=None):
-        super(Record, self).__init__(data, parent=parent)
+    def __init__(self, data, parent, labels=None, types=None):
+        super(Record, self).__init__(data, parent=parent, types=types)
         self._label_2_index = (dict() if labels is None else
                                dict((v, i) for i, v in enumerate(labels)))
 
@@ -134,7 +146,7 @@ class _Sequence_of_sequences(_encodable, _sequence):
     _FORMATTING_ATTRS = (Row._FORMATTING_ATTRS +
                          tuple('recorddelimiter prologue epilogue'.split()))
 
-    def __init__(self, data=None,
+    def __init__(self, data=None, types=None,
                  fielddelimiter=FIELDDELIMITER,
                  recorddelimiter=RECORDDELIMITER,
                  prefix=PREFIX, suffix=SUFFIX,
@@ -142,8 +154,10 @@ class _Sequence_of_sequences(_encodable, _sequence):
 
         self._format = _subdict(locals(), self._FORMATTING_ATTRS)
         self.__dict__.update(self._format)
-
-        self._rows = rows = self._makerows(data)
+        self._rows = rows = self._makerows(data,
+                                           (types if types is None else
+                                            tuple([None if (t is None or isstring(t()))
+                                                   else t for t in types])))
         _h = len(rows)
         self._width = _w = max(len(r) for r in rows) if _h > 0 else 0
 
@@ -158,7 +172,7 @@ class _Sequence_of_sequences(_encodable, _sequence):
 
 
 class Worksheet(_Sequence_of_sequences):
-    def __init__(self, data, parent, name=None):
+    def __init__(self, data, parent, name=None, types=None):
         if name is None:
             if hasattr(data, 'name'):
                 name = data.name
@@ -168,34 +182,49 @@ class Worksheet(_Sequence_of_sequences):
         self.name = name
 
         assert isinstance(data, xl.sheet.Sheet)
-        _data = (data.row_values(i) for i in range(data.nrows))
+
+        def _condition_cell(cell):
+            if type(cell) is not str: return cell
+            assert cell is ''
+
+        def _condition_row(row):
+            return (_condition_cell(cell) for cell in row)
+
+        _data = (_condition_row(data.row_values(i))
+                 for i in range(data.nrows))
 
         fmt = _subdict(parent.__dict__, self._FORMATTING_ATTRS)
-        super(Worksheet, self).__init__(data=_data, **fmt)
+        super(Worksheet, self).__init__(data=_data, types=types, **fmt)
 
-    def _makerows(self, data):
-        return tuple([Row(r, parent=self) for r in data])
+    def _makerows(self, data, types):
+        return tuple([Row(r, parent=self, types=types) for r in data])
 
-    def as_table(self, dataslice=slice(1, None), header_row_num=0,
-                 formatting=None):
-        header_row = None if header_row_num is None else self[header_row_num]
+    def as_table(self, dataslice=slice(1, None), header=0,
+                 types=None, formatting=None):
+        if header is None or issequence(header):
+            header_row = header
+        else:
+            header_row = self[header]
+
         if formatting is None:
             formatting = self._format
-        return Table(self[dataslice], header_row, **formatting)
+        return Table(self[dataslice], header_row, types=types, **formatting)
 
 
 class Table(_Sequence_of_sequences):
     def __init__(self, data=None, labels=None,
+                 types=None,
                  fielddelimiter=FIELDDELIMITER,
                  recorddelimiter=RECORDDELIMITER,
                  prefix=PREFIX, suffix=SUFFIX,
                  prologue=PROLOGUE, epilogue=EPILOGUE):
         self.labels = labels
         fmt = _subdict(locals(), self._FORMATTING_ATTRS)
-        super(Table, self).__init__(data, **fmt)
+        super(Table, self).__init__(data, types=types, **fmt)
     
-    def _makerows(self, data):
-        return tuple([Record(r, parent=self, labels=self.labels) for r in data])
+    def _makerows(self, data, types):
+        return tuple([Record(r, parent=self, labels=self.labels, types=types)
+                      for r in data])
 
 
 class Workbook(_labeled_sequence):
