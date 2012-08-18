@@ -2,12 +2,18 @@ import inspect as ins
 import sys
 import os
 
+import chdir as cd
+
 _params= dict(
     SGDEBUG__ = False
 )
 
+def _getiwd():
+    return os.environ['PWD']    # yes, this is totally lame
+
 def calling_module(level=0):
-    return ins.getmodule(ins.currentframe(level+2))
+    with cd.chdir(_getiwd()):
+        return(ins.getmodule(ins.currentframe(level+2)))
 
 def _setparams(defaults, globs, fromenv,
                _environment=dict(os.environ)):

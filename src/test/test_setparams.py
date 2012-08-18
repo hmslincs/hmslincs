@@ -15,20 +15,21 @@ SCRIPTDIR = op.dirname(__file__)
 MODNAME = 'setparams'
 DUMMYMOD = 'dummy'
 
+SCRATCHDIR = op.join(SCRIPTDIR, 'scratch', MODNAME)
+
 def run():
     import test.test_support as ts
 
-    scratchdir = op.join(SCRIPTDIR, 'scratch', MODNAME)
     sys.path.insert(0, op.join(SCRIPTDIR, 'src'))
-    sys.path.insert(0, scratchdir)
+    sys.path.insert(0, SCRATCHDIR)
 
     try:
         try:
-            os.makedirs(scratchdir)
+            os.makedirs(SCRATCHDIR)
         except OSError, e:
             if e.errno != er.EEXIST: raise
 
-        with open(op.join(scratchdir, DUMMYMOD + '.py'), 'w') as out:
+        with open(op.join(SCRATCHDIR, DUMMYMOD + '.py'), 'w') as out:
             print >> out, """
 GLOBS_BEFORE = dict(globals())
 import %s as themod
@@ -41,7 +42,7 @@ GLOBS_AFTER = dict(globals())
         sys.path.pop(0)
         sys.path.pop(0)
         try:
-            shu.rmtree(scratchdir)
+            shu.rmtree(SCRATCHDIR)
         except OSError, e:
             if e.errno != er.ENOENT:
                 import traceback as tb
@@ -105,6 +106,17 @@ class Test_setparams(ut.TestCase):
         self.assertNotEquals(mod.GLOBS_AFTER[TEST_PARAM_NAME],
                              ENVIRON[TEST_PARAM_NAME])
 
+
+    def test_calling_module(self):
+        mod = __import__(MODNAME)
+        self.assertEquals(mod.calling_module(-1).__name__, __name__)
+        cwd = os.getcwd()
+        try:
+            os.chdir(SCRATCHDIR)
+            calling_module = mod.calling_module(-1)
+        finally:
+            os.chdir(cwd)
+        self.assertEquals(calling_module.__name__, __name__)
 
 if __name__ == '__main__':
     run()
