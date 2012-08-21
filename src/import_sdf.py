@@ -19,6 +19,10 @@ del _sg, _params
 
 _MODEL = iu.mo.get_model(APPNAME, 'SmallMolecule')
 _LOOKUP = dict(
+     {
+       s2p.MOLDATAKEY: None,
+       s2p.COMMENTKEY: None,
+     },
      smiles='sm_smiles',
      cell_index=None,
      well=None,
@@ -83,8 +87,5 @@ if __name__ == '__main__':
     with open(path) as fh:
         data = fh.read()
 
-    for mol_iter in s2p.parse_sdf(data):
-        _, molfile = next(mol_iter)
-        kw = dict(mol_iter)
-        kw['molfile'] = molfile
-        add_record(_MODEL, **map_fields(**kw))
+    for mol_record in s2p.parse_sdf(data):
+        add_record(_MODEL, **map_fields(**mol_record))
