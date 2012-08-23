@@ -32,6 +32,14 @@ class populate_smallmolecule(iu.populate_from_sdf):
         sm_inchi='inchi',
     )
 
+    # def _init(this, path):
+    #     source = (path, 'HMS-LINCS cell line metadata', 1)
+    #     target = (APPNAME, 'Cell')
+
+    def _init(this, path):
+        target = (APPNAME, 'SmallMolecule')
+        super(populate_smallmolecule, this)._init(path, target)
+
     def mapfname(this, fname, _lookup=_LOOKUP):
         # RISKY!!!  this implementation acts as the identity map for
         # those fnames not specifically mentioned in the initializer of
@@ -51,8 +59,7 @@ class populate_smallmolecule(iu.populate_from_sdf):
 
 def main(argv=sys.argv[1:]):
     assert len(argv) == 1
-    populate_smallmolecule(appname=APPNAME, modelname='SmallMolecule',
-                           path=argv[0])
+    populate_smallmolecule(argv[0])
 
 if __name__ == '__main__':
     main()
