@@ -32,17 +32,18 @@ class populate_smallmolecule(iu.populate_from_sdf):
         sm_inchi='inchi',
     )
 
-    def mapkey(this, key, _lookup=_LOOKUP):
+    def mapfname(this, fname, _lookup=_LOOKUP):
         # RISKY!!!  this implementation acts as the identity map for
-        # those keys not specifically mentioned in the initializer of
+        # those fnames not specifically mentioned in the initializer of
         # _LOOKUP above; this is a convenient expedient for the time
         # being, but too risk-prone for permanent use
-        return _lookup.setdefault(key, key)
+        return _lookup.setdefault(fname, fname)
 
     def convertdata(this, field, value):
         fname = field.name
         if fname == 'JUST_AN_EXAMPLE_FOR_DOCUMENTATION_SLASH_ILLUSTRATION':
             return this.fancyschmancy(value)
+
         v = iu.populate.MISSINGDATA if value == u'n/a' else value
         return super(populate_smallmolecule, this).convertdata(field, v)
 

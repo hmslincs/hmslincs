@@ -131,7 +131,7 @@ class populate(object):
         if not _items:
             _items.extend(this._items)
             assert _items
-        mk = this.mapkey
+        mk = this.mapfname
         gv = this.getvalue
         cd = this.convertdata
         ret = {}
@@ -154,6 +154,8 @@ class populate(object):
 
         return value if t is None else t(value)
 
+    def mapfname(this, fname):
+        raise NotImplementedError()
 
 class populate_from_xls(populate):
 
@@ -169,11 +171,12 @@ class populate_from_xls(populate):
 
         return this
 
-    def mapkey(this, key, _lookup={}):
-        if not _lookup:
-            _lookup.update(this._keymap)
-            assert _lookup
-        return _lookup.get(key, populate.SKIP)
+    def mapfname(this, fname, _fnamelookup={}):
+        if not _fnamelookup:
+            # _fnamelookup.update(this._fnamelookup)
+            _fnamelookup.update(this._keymap)
+            assert _fnamelookup
+        return _fnamelookup.get(fname, populate.SKIP)
 
     def records(this):
         return this._records
