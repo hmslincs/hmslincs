@@ -57,6 +57,8 @@ def totype(field):
         return int
     if isinstance(field, fl.AutoField):
         return None
+    if isinstance(field, fl.related.ForeignKey):
+        return None
 
     assert False, ('(as yet) unsupported field class: %s (%s)'
                    % (type(field).__name__, type(field)))

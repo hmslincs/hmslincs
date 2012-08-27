@@ -24,6 +24,34 @@ _NULLOKSTR  = dict(null=True, blank=False)
 # definition
 # _NULLOKSTR  = dict(null=False, blank=True)
 
+class Screen(models.Model):
+    facility_id             = _CHAR(max_length=35, **_NULLOKSTR)
+    name                   = _TEXT(**_NULLOKSTR)
+
+class DataColumn(models.Model):
+    screen_key              = models.ForeignKey('Screen')
+    worksheet_column        = _TEXT(**_NOTNULLSTR)
+    name                    = _TEXT(**_NOTNULLSTR)
+    data_type               = _TEXT(**_NOTNULLSTR)
+    precision               = _INTEGER(null=True)
+    description             = _TEXT(**_NULLOKSTR)
+    replicate               = _INTEGER(null=True)
+    time_point              = _TEXT(**_NULLOKSTR)
+    readout_type            = _TEXT(**_NOTNULLSTR)
+    comments                = _TEXT(**_NULLOKSTR)
+
+class DataRecord(models.Model):
+    screen_key              = models.ForeignKey('Screen')
+    # small_molecule_key     = models.ForeignKey('Small_Molecule')
+    
+class DataPoint(models.Model):
+    data_column_key         = models.ForeignKey('DataColumn')
+    screen_key              = models.ForeignKey('Screen') # Note, Screen is being included here for convenience
+    record_key              = models.ForeignKey('DataRecord') 
+    int_value               = _INTEGER(null=True)
+    float_value             = models.FloatField(null=True)
+    text_value              = _TEXT(**_NULLOKSTR)
+    
 class SmallMolecule(models.Model):
 
     molfile                = _TEXT(**_NULLOKSTR)
@@ -61,7 +89,7 @@ class Cell(models.Model):
     cl_alternate_id                   = _CHAR(max_length=100, **_NULLOKSTR)    # COSMIC:687452
     cl_center_name                    = _CHAR(max_length=35, **_NOTNULLSTR)    # HMS
     cl_center_specific_id             = _CHAR(max_length=35, **_NOTNULLSTR)    # HMSL50001
-    mgh_id                            = _INTEGER(unique=True, null=True)       # 6
+    mgh_id                            = _INTEGER(null=True)       # 6
     assay                             = _TEXT(**_NULLOKSTR)                    # Mitchison Mitosis-apoptosis Img; Mitchison 
                                                                                # Prolif-Mitosis Img; Mitchison 2-3 color apo
                                                                                # pt Img

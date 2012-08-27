@@ -20,5 +20,6 @@ urlpatterns = patterns('',
     url(r'^example/sm/(?P<sm_id>\d+)/$', 'example.views.smallMoleculeDetail', name="sm_detail"),
     url(r'^example/cells/$','example.views.cellIndex', name="listCells"),
     url(r'^example/cells/(?P<cell_id>\d+)/$', 'example.views.cellDetail', name="cell_detail"),
+    url(r'^example/screen/$', 'example.views.screenResultIndex', name="screenResultIndex"),
     #url(r'^example/search/', include('haystack.urls'), name="haystackSearch"),
 )

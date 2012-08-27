@@ -13,15 +13,18 @@ import django_tables2 as tables
 from django_tables2 import RequestConfig
 #from django.template import RequestContext
 from django_tables2.utils import A  # alias for Accessor
+from django.db import connection
 
 class SmallMoleculeTable(tables.Table):
     facility_id = tables.LinkColumn("sm_detail", args=[A('pk')])
     rank = tables.Column()
     snippet = tables.Column()
+    snippet_def = ("coalesce(sm_name,'') || ' ' || coalesce(sm_provider,'')")
     class Meta:
         model = SmallMolecule
         orderable = True
         attrs = {'class': 'paleblue'}
+        exclude = ('id', 'molfile', 'plate', 'row', 'column', 'well_type') 
 
 class SmallMoleculeForm(ModelForm):
     class Meta:
@@ -31,10 +34,20 @@ class CellTable(tables.Table):
     facility_id = tables.LinkColumn("cell_detail", args=[A('pk')])
     rank = tables.Column()
     snippet = tables.Column()
+    cl_id = tables.Column(verbose_name='CLO Id')
+    snippet_def = ("coalesce(cl_name,'') || ' ' || coalesce(cl_id,'') || ' ' || coalesce(cl_alternate_name,'') || ' ' || " +  
+                   "coalesce(cl_alternate_id,'') || ' ' || coalesce(cl_center_name,'') || ' ' || coalesce(cl_center_specific_id,'') || ' ' || " +  
+                   "coalesce(assay,'') || ' ' || coalesce(cl_provider_name,'') || ' ' || coalesce(cl_provider_catalog_id,'') || ' ' || coalesce(cl_batch_id,'') || ' ' || " + 
+                   "coalesce(cl_organism,'') || ' ' || coalesce(cl_organ,'') || ' ' || coalesce(cl_tissue,'') || ' ' || coalesce(cl_cell_type,'') || ' ' ||  " +
+                   "coalesce(cl_cell_type_detail,'') || ' ' || coalesce(cl_disease,'') || ' ' || coalesce(cl_disease_detail,'') || ' ' ||  " +
+                   "coalesce(cl_growth_properties,'') || ' ' || coalesce(cl_genetic_modification,'') || ' ' || coalesce(cl_related_projects,'') || ' ' || " + 
+                   "coalesce(cl_recommended_culture_conditions)")
     class Meta:
         model = Cell
         orderable = True
         attrs = {'class': 'paleblue'}
+        sequence = ('facility_id', '...')
+        exclude = ('id','cl_recommended_culture_conditions', 'cl_verification_reference_profile', 'cl_mutations_explicit', 'cl_mutations_reference')
         
 class CellForm(ModelForm):
     class Meta:
@@ -42,34 +55,93 @@ class CellForm(ModelForm):
 
 class SiteSearchManager(models.Manager):
     
-    def dictfetchall(self,cursor):
-        "Returns all rows from a cursor as a dict"
-        desc = cursor.description
-        return [
-            dict(zip([col[0] for col in desc], row))
-            for row in cursor.fetchall()
-        ]
-    
     def search(self, queryString):
         from django.db import connection
         cursor = connection.cursor()
-        cursor.execute("""
-            SELECT id, facility_id, ts_headline(facility_id || ' ' || name || ' ' || alternate_name || ' ' || alternate_id, query1 ) as snippet, ts_rank_cd(search_vector, query1, 32) AS rank, 'cell_detail' as type FROM example_cell, to_tsquery(%s) as query1 WHERE search_vector @@ query1
-            UNION
-            SELECT id, facility_id, ts_headline(facility_id || ' ' || name || ' ' || alternate_names, query2 ) as snippet, ts_rank_cd(search_vector, query2, 32) AS rank, 'sm_detail' as type FROM example_smallmolecule, to_tsquery(%s) as query2 WHERE search_vector @@ query2
-            ORDER by rank DESC;""", [queryString + ":*", queryString + ":*"])
-        return self.dictfetchall(cursor)
+        cursor.execute(
+            "SELECT id, facility_id, ts_headline(" + CellTable.snippet_def + ", query1 ) as snippet, " +
+            " ts_rank_cd(search_vector, query1, 32) AS rank, 'cell_detail' as type FROM example_cell, to_tsquery(%s) as query1 WHERE search_vector @@ query1 " +
+            " UNION " +
+            " SELECT id, facility_id, ts_headline(" + SmallMoleculeTable.snippet_def + ", query2 ) as snippet, " +
+            " ts_rank_cd(search_vector, query2, 32) AS rank, 'sm_detail' as type FROM example_smallmolecule, to_tsquery(%s) as query2 WHERE search_vector @@ query2 " +
+            " ORDER by rank DESC;", [queryString + ":*", queryString + ":*"])
+        return dictfetchall(cursor)
 
 class SiteSearchTable(tables.Table):
     id = tables.Column(visible=False)
-    facility_id = tables.LinkColumn(A('type'), args=[A('id')])
+    #Note: using the expediency here: the "type" column holds the subdirectory for that to make the link for type, so "sm", "cell", etc., becomes "/example/sm", "/example/cell", etc.
+    facility_id = tables.LinkColumn(A('type'), args=[A('id')])  
     type = tables.Column(visible=False)
     rank = tables.Column()
     snippet = tables.Column()
     class Meta:
         orderable = True
         attrs = {'class': 'paleblue'}
+
+class ScreenResultSearchManager(models.Manager):
     
+    def search(self, queryString ): # TODO: pass the parameters for the SQL as well
+        cursor = connection.cursor()
+        print "queryString: ", queryString
+        cursor.execute(queryString)
+
+        return dictfetchall(cursor)
+        
+class ScreenResultTable(tables.Table):
+    id = tables.Column(visible=False)
+    facility_id = tables.LinkColumn('sm_detail', args=[A('id')])
+    
+    def __init__(self, queryset, names, *args, **kwargs):
+        super(ScreenResultTable, self).__init__(queryset, names, *args, **kwargs)
+        # print "queryset: ", queryset , " , names: " , names, ", args: " , args
+        for name,verbose_name in names.items():
+            self.base_columns[name] = tables.Column(verbose_name=verbose_name)
+        
+    class Meta:
+        orderable = True
+        attrs = {'class': 'paleblue'}
+
+def screenResultIndex(request): #, screen_id):
+    search = request.GET.get('search','')
+    
+    # Create a query on the fly that pivots the values from the datapoint table, making one column for each data_column type
+    # TODO: for the screen id passed in, query the datacolumn table,
+    screen_id = 1
+    # use the datacolumns to make a query on the fly (for the ScreenResultSearchManager), and make a ScreenResultSearchTable on the fly.
+    
+    cursor = connection.cursor()
+    cursor.execute("SELECT id, name, data_type, precision from example_datacolumn where screen_key_id = %s", [screen_id])
+    
+    # Need to construct something like this:
+    # select distinct (record_key_id), 
+    #        (select int_value as col1 from example_datapoint dp1 where dp1.data_column_key_id=2 and dp1.record_key_id = dp0.record_key_id) as col1, 
+    #        (select int_value as col2 from example_datapoint dp2 where dp2.record_key_id=dp0.record_key_id and dp2.data_column_key_id=3) as col2 
+    #        from example_datapoint dp0 where screen_key_id = 1 order by record_key_id;
+    queryString = "select distinct (record_key_id) " 
+    i = 0
+    names = {}
+    for id, name, datatype, precision in cursor.fetchall():
+        i += 1
+        alias = "dp"+str(i)
+        columnName = "col" + str(i)
+        names[columnName] = name
+        column_to_select = None
+        if(datatype == 'Numeric'):
+            if precision == 0:
+                column_to_select = "int_value"
+            else:
+                column_to_select = "float_value"
+        else:
+            column_to_select = "text_value"
+        # TODO: use params
+        queryString +=  (",(select " + column_to_select + " from example_datapoint " + alias + 
+                            " where " + alias + ".data_column_key_id="+str(id) + " and " + alias + ".record_key_id=dp0.record_key_id) as " + columnName )
+    queryString += " from example_datapoint dp0 where screen_key_id = " + str(screen_id) + " order by record_key_id"
+    queryset = ScreenResultSearchManager().search(queryString);
+    table = ScreenResultTable(queryset, names)
+    
+    return render(request, 'example/listIndex.html', {'table': table, 'search':search})
+        
     
 def main(request):
     search = request.GET.get('search','')
@@ -94,7 +166,7 @@ def cellIndex(request):
 # postgres fulltext search with rank and snippets
         queryset = Cell.objects.extra(
             select={
-                'snippet': "ts_headline(facility_id || ' ' || name || ' ' || alternate_name || ' ' || alternate_id, plainto_tsquery(%s))",
+                'snippet': "ts_headline(" + CellTable.snippet_def + ", plainto_tsquery(%s))",
                 'rank': "ts_rank_cd(search_vector, plainto_tsquery(%s), 32)",
                 },
             where=["search_vector @@ plainto_tsquery(%s)"],
@@ -102,7 +174,7 @@ def cellIndex(request):
             select_params=[search,search],
             order_by=('-rank',)
             )        
-        print("found: %s" % queryset)
+        print("found: %s" % CellTable.snippet_def)
     else:
         queryset = Cell.objects.all().order_by('facility_id')
     table = CellTable(queryset)
@@ -115,7 +187,7 @@ def smallMoleculeIndex(request):
         print("s: %s" % search)
         queryset = SmallMolecule.objects.extra(
             select={
-                'snippet': "ts_headline(facility_id || ' ' || name || ' ' || alternate_names, plainto_tsquery(%s))",
+                'snippet': "ts_headline(" + SmallMoleculeTable.snippet_def + ", plainto_tsquery(%s))",
                 'rank': "ts_rank_cd(search_vector, plainto_tsquery(%s), 32)",
                 },
             where=["search_vector @@ plainto_tsquery(%s)"],
@@ -129,8 +201,7 @@ def smallMoleculeIndex(request):
     table = SmallMoleculeTable(queryset)
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
     return render(request, 'example/listIndex.html', {'table': table, 'search':search })
-    
-
+ 
 def smallMoleculeDetail(request, sm_id):
     try:
         sm = SmallMolecule.objects.get(pk=sm_id)
@@ -144,3 +215,11 @@ def cellDetail(request, cell_id):
     except Cell.DoesNotExist:
         raise Http404
     return render(request, 'example/cellDetail.html', {'object': CellForm(data=model_to_dict(cell))})
+
+
+def dictfetchall(cursor):
+    "Returns all rows from a cursor as a dict"
+    desc = cursor.description
+    return [
+        dict(zip([col[0] for col in desc], row)) for row in cursor.fetchall()
+    ]
