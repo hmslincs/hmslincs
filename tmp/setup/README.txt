@@ -32,3 +32,8 @@ createdb -U django -T django_init django
 
 python $(pwd)/src/import_cells.py sampledata/LINCS_Cells_20120727.xls 'HMS-LINCS cell line metadata' Cell 1
 python $(pwd)/src/import_sdf.py sampledata/HMS_LINCS-1.sdf
+
+######################################################################
+# to run the database indexing for full text search
+# this script can be run at any time (either before or after import, running after the import process will be more performant)
+psql -U django -f django/example/create_indexes.sql
