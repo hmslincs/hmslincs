@@ -21,11 +21,31 @@ del _sg, _params
 
 def main(path):
     
+    # Read in the Screen
+    sheetname = 'Screen'
+    labels = {'Lead Screener First': 'lead_screener_firstname',
+              'Lead Screener Last': 'lead_screener_lastname',
+              'Lead Screener Email': 'lead_screener_email',
+              'Lab Head First': 'lab_head_firstname',
+              'Lab Head Last': 'lab_head_lastname',
+              'Lab Head Email': 'lab_head_email',
+              'Title': 'title',
+              'Facility ID': 'facility_id',
+              'Summary': 'summary'}
+    
+    table = iu.readtable(path, sheetname) # Note, skipping the header row by default
+    screenData = {}
+    for row in table:
+        rowAsUnicode = makeRow(row)
+        for key,value in labels.items():
+            if re.match(key, rowAsUnicode[0], re.M|re.I):
+                screenData[value] = rowAsUnicode[1]
+    assert len(screenData) == len(labels), 'Screen data sheet does not contain the necessary keys, expected: %s, read: %s' % [labels, screenData]            
     # TODO: look up the screen, read in the screens from a screen sheet, prior to this process...
-    screen = Screen(facility_id = 'test1',
-                    name = 'test1')
+    screen = Screen(**screenData)
     screen.save()
     
+    # Read in the DataColumn
     sheetname = 'Data Columns'
     #sheet = x2p.Workbook(path)[sheetname]
     table = iu.readtable(path, sheetname)

@@ -26,7 +26,14 @@ _NULLOKSTR  = dict(null=True, blank=False)
 
 class Screen(models.Model):
     facility_id             = _CHAR(max_length=35, **_NULLOKSTR)
-    name                   = _TEXT(**_NULLOKSTR)
+    title                   = _TEXT(**_NOTNULLSTR)
+    lead_screener_firstname = _TEXT(**_NOTNULLSTR)
+    lead_screener_lastname  = _TEXT(**_NOTNULLSTR)
+    lead_screener_email     = _TEXT(**_NOTNULLSTR)
+    lab_head_firstname      = _TEXT(**_NOTNULLSTR)
+    lab_head_lastname       = _TEXT(**_NOTNULLSTR)
+    lab_head_email          = _TEXT(**_NOTNULLSTR)
+    summary                 = _TEXT(**_NOTNULLSTR)
 
 class DataColumn(models.Model):
     screen_key              = models.ForeignKey('Screen')
