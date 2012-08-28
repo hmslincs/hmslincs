@@ -2,6 +2,8 @@
  * Create the full text search indexes with a postgresql database
  **/
 
+/** TODO: generate the index definitions automatically from the django model definitions **/
+
 BEGIN;
 
 /** Cell Table **/
@@ -54,5 +56,24 @@ update example_smallmolecule set search_vector = to_tsvector('pg_catalog.english
 	coalesce(sm_molecular_formula,'') || ' ' || coalesce(sm_inchi,'')|| ' ' || coalesce(sm_smiles,''));		
 
 create index example_smallmolecule_index on example_smallmolecule using gin(search_vector);
+
+/** Screen Table **/
+
+alter table example_screen drop column if exists search_vector;
+alter table example_screen add column search_vector tsvector;
+
+drop trigger if exists tsvectorupdate on example_screen;
+create trigger tsvectorupdate 
+	BEFORE INSERT OR UPDATE ON example_screen 
+	FOR EACH ROW EXECUTE PROCEDURE 
+	tsvector_update_trigger(search_vector, 'pg_catalog.english', facility_id,title,summary,lead_screener_firstname,lead_screener_lastname,lead_screener_email,lab_head_firstname,lab_head_lastname,lab_head_email);
+
+/** follows is only necessary if updating an already filled table **/
+update example_screen set search_vector = to_tsvector('pg_catalog.english',
+	coalesce(facility_id,'') || ' ' || coalesce(title,'') || ' ' || coalesce(summary,'') || ' ' ||	
+	coalesce(lead_screener_firstname,'') || ' ' || coalesce(lead_screener_lastname,'')|| ' ' || coalesce(lead_screener_email,'') || ' ' ||			
+	coalesce(lab_head_firstname,'') || ' ' || coalesce(lab_head_lastname,'')|| ' ' || coalesce(lab_head_email,''));		
+
+create index example_screen_index on example_screen using gin(search_vector);
 
 COMMIT;
