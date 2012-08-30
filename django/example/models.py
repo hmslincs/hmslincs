@@ -24,43 +24,7 @@ _NULLOKSTR  = dict(null=True, blank=False)
 # definition
 # _NULLOKSTR  = dict(null=False, blank=True)
 
-class Screen(models.Model):
-    facility_id             = _CHAR(max_length=35, **_NULLOKSTR)
-    title                   = _TEXT(**_NOTNULLSTR)
-    lead_screener_firstname = _TEXT(**_NOTNULLSTR)
-    lead_screener_lastname  = _TEXT(**_NOTNULLSTR)
-    lead_screener_email     = _TEXT(**_NOTNULLSTR)
-    lab_head_firstname      = _TEXT(**_NOTNULLSTR)
-    lab_head_lastname       = _TEXT(**_NOTNULLSTR)
-    lab_head_email          = _TEXT(**_NOTNULLSTR)
-    summary                 = _TEXT(**_NOTNULLSTR)
-
-class DataColumn(models.Model):
-    screen_key              = models.ForeignKey('Screen')
-    worksheet_column        = _TEXT(**_NOTNULLSTR)
-    name                    = _TEXT(**_NOTNULLSTR)
-    data_type               = _TEXT(**_NOTNULLSTR)
-    precision               = _INTEGER(null=True)
-    description             = _TEXT(**_NULLOKSTR)
-    replicate               = _INTEGER(null=True)
-    time_point              = _TEXT(**_NULLOKSTR)
-    readout_type            = _TEXT(**_NOTNULLSTR)
-    comments                = _TEXT(**_NULLOKSTR)
-
-class DataRecord(models.Model):
-    screen_key              = models.ForeignKey('Screen')
-    # small_molecule_key     = models.ForeignKey('Small_Molecule')
-    
-class DataPoint(models.Model):
-    data_column_key         = models.ForeignKey('DataColumn')
-    screen_key              = models.ForeignKey('Screen') # Note, Screen is being included here for convenience
-    record_key              = models.ForeignKey('DataRecord') 
-    int_value               = _INTEGER(null=True)
-    float_value             = models.FloatField(null=True)
-    text_value              = _TEXT(**_NULLOKSTR)
-    
 class SmallMolecule(models.Model):
-
     molfile                = _TEXT(**_NULLOKSTR)
     sm_smiles              = _TEXT(**_NULLOKSTR)
     plate                  = _INTEGER(null=True)
@@ -84,6 +48,51 @@ class SmallMolecule(models.Model):
     def __unicode__(self):
         return unicode(self.facility_id)
 
+
+class Screen(models.Model):
+    facility_id             = _CHAR(max_length=35, **_NULLOKSTR)
+    title                   = _TEXT(**_NOTNULLSTR)
+    lead_screener_firstname = _TEXT(**_NOTNULLSTR)
+    lead_screener_lastname  = _TEXT(**_NOTNULLSTR)
+    lead_screener_email     = _TEXT(**_NOTNULLSTR)
+    lab_head_firstname      = _TEXT(**_NOTNULLSTR)
+    lab_head_lastname       = _TEXT(**_NOTNULLSTR)
+    lab_head_email          = _TEXT(**_NOTNULLSTR)
+    summary                 = _TEXT(**_NOTNULLSTR)
+    protocol                = _TEXT(**_NULLOKSTR)
+    references              = _TEXT(**_NULLOKSTR)
+
+    def __unicode__(self):
+        return unicode(self.facility_id)
+
+class DataColumn(models.Model):
+    screen_key              = models.ForeignKey('Screen')
+    worksheet_column        = _TEXT(**_NOTNULLSTR)
+    name                    = _TEXT(**_NOTNULLSTR)
+    data_type               = _TEXT(**_NOTNULLSTR)
+    precision               = _INTEGER(null=True)
+    description             = _TEXT(**_NULLOKSTR)
+    replicate               = _INTEGER(null=True)
+    time_point              = _TEXT(**_NULLOKSTR)
+    readout_type            = _TEXT(**_NOTNULLSTR)
+    comments                = _TEXT(**_NULLOKSTR)
+
+    def __unicode__(self):
+        return unicode(self.name)
+
+class DataRecord(models.Model):
+    screen_key              = models.ForeignKey('Screen')
+    small_molecule_key      = models.ForeignKey('SmallMolecule')
+    
+class DataPoint(models.Model):
+    data_column_key         = models.ForeignKey('DataColumn')
+    screen_key              = models.ForeignKey('Screen') # Note, Screen is being included here for convenience
+    record_key              = models.ForeignKey('DataRecord') 
+    int_value               = _INTEGER(null=True)
+    float_value             = models.FloatField(null=True)
+    text_value              = _TEXT(**_NULLOKSTR)
+    omero_well_id           = _CHAR(max_length=35, **_NULLOKSTR) # this is the plate:well id for lookup on the omero system (NOTE:may need multiple of these)
+    
 class Cell(models.Model):
 
     # ----------------------------------------------------------------------------------------------------------------------

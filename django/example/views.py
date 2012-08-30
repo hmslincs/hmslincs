@@ -25,11 +25,14 @@ class SmallMoleculeTable(tables.Table):
         model = SmallMolecule
         orderable = True
         attrs = {'class': 'paleblue'}
+        sequence = ('facility_id', 'sm_salt', 'facility_batch_id', 'sm_name','...','sm_smiles','sm_inchi')
         exclude = ('id', 'molfile', 'plate', 'row', 'column', 'well_type') 
 
 class SmallMoleculeForm(ModelForm):
     class Meta:
         model = SmallMolecule        
+        order = ('facility_id', '...')
+        exclude = ('id', 'molfile', 'plate', 'row', 'column', 'well_type') 
 
 class CellTable(tables.Table):
     facility_id = tables.LinkColumn("cell_detail", args=[A('pk')])
@@ -85,7 +88,10 @@ class SiteSearchTable(tables.Table):
         attrs = {'class': 'paleblue'}
 
 class ScreenTable(tables.Table):
+    id = tables.Column(visible=False)
     facility_id = tables.LinkColumn("screen_detail", args=[A('pk')])
+    protocol = tables.Column(visible=False) # TODO: add to the index, well, build the index automatically...
+    references = tables.Column(visible=False)
     rank = tables.Column()
     snippet = tables.Column()
     snippet_def = ("coalesce(facility_id,'') || ' ' || coalesce(title,'') || ' ' || coalesce(summary,'') || ' ' || " +    
@@ -109,21 +115,28 @@ class ScreenResultSearchManager(models.Manager):
         cursor.execute(queryString)
 
         return dictfetchall(cursor)
-        
+  
+TEMPLATE = '''
+   <a href="#" onclick='window.open("https://lincs-omero.hms.harvard.edu/webclient/img_detail/{{ record.%s }}", "test","height=700,width=800")' >{{ record.%s }}</a>
+'''
+            
 class ScreenResultTable(tables.Table):
     id = tables.Column(visible=False)
-    facility_id = tables.LinkColumn('sm_detail', args=[A('id')])
+    facility_id = tables.LinkColumn('sm_detail', args=[A('small_molecule_key_id')]) 
     
-    def __init__(self, queryset, names, *args, **kwargs):
+    def __init__(self, queryset, names, omeroColumnNames, orderedNames, *args, **kwargs):
         super(ScreenResultTable, self).__init__(queryset, names, *args, **kwargs)
         # print "queryset: ", queryset , " , names: " , names, ", args: " , args
         for name,verbose_name in names.items():
-            self.base_columns[name] = tables.Column(verbose_name=verbose_name)
+            if name in omeroColumnNames:
+                self.base_columns[name] = tables.TemplateColumn(TEMPLATE % (omeroColumnNames[name],name),verbose_name=verbose_name)
+            else:
+                self.base_columns[name] = tables.Column(verbose_name=verbose_name)
+        self.sequence = orderedNames
         
     class Meta:
         orderable = True
         attrs = {'class': 'paleblue'}
-
     
 def main(request):
     search = request.GET.get('search','')
@@ -232,21 +245,28 @@ def screenDetail(request, screen_id):
     # use the datacolumns to make a query on the fly (for the ScreenResultSearchManager), and make a ScreenResultSearchTable on the fly.
     
     cursor = connection.cursor()
-    cursor.execute("SELECT id, name, data_type, precision from example_datacolumn where screen_key_id = %s", [screen_id])
+    cursor.execute("SELECT id, name, data_type, precision from example_datacolumn where screen_key_id = %s order by id asc", [screen_id])
     
     # Need to construct something like this:
-    # select distinct (record_key_id), 
+    # select distinct (record_key_id), small_molecule_key_id,small_molecule_key_id, sm.facility_id || '-' || sm.sm_salt as facility_id,
     #        (select int_value as col1 from example_datapoint dp1 where dp1.data_column_key_id=2 and dp1.record_key_id = dp0.record_key_id) as col1, 
     #        (select int_value as col2 from example_datapoint dp2 where dp2.record_key_id=dp0.record_key_id and dp2.data_column_key_id=3) as col2 
-    #        from example_datapoint dp0 where screen_key_id = 1 order by record_key_id;
-    queryString = "select distinct (record_key_id) " 
+    #        from example_datapoint dp0 join example_datarecord dr on(record_key_id=dr.id) join example_smallmolecule sm on(sm.id=dr.small_molecule_key_id) 
+    #        where dp0.screen_key_id = 1 order by record_key_id;
+    queryString = "select distinct (record_key_id), small_molecule_key_id, sm.facility_id || '-' || sm.sm_salt as facility_id " 
     i = 0
     names = {}
+    orderedNames = ['facility_id']
+    omeroColumnNames = {}
     for id, name, datatype, precision in cursor.fetchall():
         i += 1
         alias = "dp"+str(i)
+        omeroAlias = alias + "_ow" # somewhat messy way to associate the omero_well_id with the datapoint
         columnName = "col" + str(i)
         names[columnName] = name
+        orderedNames.append(columnName)
+        omeroColumnName = columnName + "_ow"
+        omeroColumnNames[columnName] = omeroColumnName
         column_to_select = None
         if(datatype == 'Numeric'):
             if precision == 0:
@@ -258,9 +278,14 @@ def screenDetail(request, screen_id):
         # TODO: use params
         queryString +=  (",(select " + column_to_select + " from example_datapoint " + alias + 
                             " where " + alias + ".data_column_key_id="+str(id) + " and " + alias + ".record_key_id=dp0.record_key_id) as " + columnName )
-    queryString += " from example_datapoint dp0 where screen_key_id = " + str(screen_id) + " order by record_key_id"
+        # add in the omero_well_id column
+        queryString +=  (",(select omero_well_id from example_datapoint " + omeroAlias + 
+                            " where " + omeroAlias + ".data_column_key_id="+str(id) + " and " + omeroAlias + ".record_key_id=dp0.record_key_id) as " + omeroColumnName )
+    queryString += " from example_datapoint dp0 join example_datarecord dr on(record_key_id=dr.id) join example_smallmolecule sm on(sm.id=dr.small_molecule_key_id) "
+    queryString += " where dp0.screen_key_id = " + str(screen_id) + " order by record_key_id"
+    orderedNames.append('...')
     queryset = ScreenResultSearchManager().search(queryString);
-    table = ScreenResultTable(queryset, names)
+    table = ScreenResultTable(queryset, names, omeroColumnNames, orderedNames)
     
     return render(request,'example/screenDetail.html', {'object': ScreenForm(data=model_to_dict(screen)),
                                                         'table': table})
