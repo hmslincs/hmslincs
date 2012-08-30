@@ -13,4 +13,7 @@ python src/populate_cell.py sampledata/LINCS_Cells_20120727.xls 'HMS-LINCS cell 
 #python src/import_sdf.py sampledata/HMS_LINCS-1.sdf 
 python src/populate_smallmolecule.py sampledata/HMS_LINCS-1.sdf
 
+python src/import_screen_result.py -f sampledata/moerke_2color_IA-LM.xls 
+python src/import_screen_result.py -f sampledata/tang_MitoApop2_5637.xls
+
 psql -Udjango -f django/example/create_indexes.sql 

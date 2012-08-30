@@ -3,7 +3,7 @@ import init_utils as iu
 import argparse
 import xls2py as x2p
 import re
-from example.models import Screen, DataColumn, DataRecord, DataPoint
+from example.models import Screen, DataColumn, DataRecord, DataPoint, SmallMolecule
 
 
 # ---------------------------------------------------------------------------
@@ -31,30 +31,27 @@ def main(path):
               'Lab Head Email': 'lab_head_email',
               'Title': 'title',
               'Facility ID': 'facility_id',
-              'Summary': 'summary'}
+              'Summary': 'summary',
+              'Protocol': 'protocol',
+              'References': 'references'}
     
-    table = iu.readtable(path, sheetname) # Note, skipping the header row by default
+    screenSheet = iu.readtable(path, sheetname) # Note, skipping the header row by default
     screenData = {}
-    for row in table:
+    for row in screenSheet:
         rowAsUnicode = makeRow(row)
         for key,value in labels.items():
             if re.match(key, rowAsUnicode[0], re.M|re.I):
                 screenData[value] = rowAsUnicode[1]
     assert len(screenData) == len(labels), 'Screen data sheet does not contain the necessary keys, expected: %s, read: %s' % [labels, screenData]            
-    # TODO: look up the screen, read in the screens from a screen sheet, prior to this process...
     screen = Screen(**screenData)
     screen.save()
     
-    # Read in the DataColumn
+    # Read in the DataColumn Sheet
     sheetname = 'Data Columns'
-    #sheet = x2p.Workbook(path)[sheetname]
-    table = iu.readtable(path, sheetname)
-    #values = tuple(unicode(cell) for cell in sheet[0][1:])
+    dataColumnSheet = iu.readtable(path, sheetname)
 
     _fields = getFields(DataColumn)
     _typelookup = dict((f.name, iu.totype(f)) for f in _fields)
-    
-    print "typeLookup: ", _typelookup
     
     labels = {'Worksheet Column':'worksheet_column',
               'Name':'name',
@@ -67,45 +64,62 @@ def main(path):
               'Comments':'comments'}
 
     # create an array of dict's, each dict defines a DataColumn    
-    array = []
-    # first put the label row in (only because it is distinct already)
-    for v in table.labels[1:]:
-        array.append({labels['Worksheet Column']:v})
-    # now, for each row, create the appropriate dictionary entry in the array
-    for row in table:
+    dataColumnDefinitions = []
+    # first put the label row in (it contains the worksheet column, and its unique)
+    for v in dataColumnSheet.labels[1:]:
+        dataColumnDefinitions.append({labels['Worksheet Column']:v})
+    # now, for each row, create the appropriate dictionary entry in the dataColumnDefinitions
+    for row in dataColumnSheet:
         rowAsUnicode = makeRow(row)
         keyRead = rowAsUnicode[0]
         for i,cellText in enumerate(rowAsUnicode[1:]):
             for key,fieldName in labels.items():
                 if re.match(key,keyRead,re.M|re.I): # if the row is one of the DataColumn fields, then add it to the dict
-                    array[i][fieldName] = convertdata(cellText,_typelookup.get(fieldName, None))
-    print "definitions: ", array
-
+                    dataColumnDefinitions[i][fieldName] = convertdata(cellText,_typelookup.get(fieldName, None)) # Note: convert the data to the model field type
+                else:
+                    print '"Data Column definition not used: ', cellText 
+    print "definitions: ", dataColumnDefinitions
+    
+    # now that the array of DataColumn dicts is created, use them to create the DataColumn instances
     dataColumns = {}
-    for dc in array:
+    for dc in dataColumnDefinitions:
         dc['screen_key'] = screen
         dataColumn = DataColumn(**dc)
         dataColumn.save()
         dataColumns[dataColumn.name] = dataColumn    
 
-    #TODO: next: read in the values sheet, create DataPoint values for each record
+    # Read in the Data sheet, create DataPoint values for each record
     sheetname = 'Data'
-    #sheet = x2p.Workbook(path)[sheetname]
-    table = iu.readtable(path, sheetname)
+    dataSheet = iu.readtable(path, sheetname)
     dataColumnList = {}
-    for i,label in enumerate(table.labels):
+    omeroWellColumnList = {}
+    # NOTE: this scheme is matching based on the labels between the "Data Column" sheet and the "Data" sheet
+    for i,label in enumerate(dataSheet.labels):  
         if label in dataColumns:
-            dataColumnList[i] = dataColumns[label]
+            dataColumnList[i] = dataColumns[label] # note here "i" is the index to the dict
+            #special clause here to determine if the next column is a "wellid" column - and therefore lists the omero wellid
+            if len(dataSheet.labels) >= i+2 and dataSheet.labels[i+1] == 'well_id':
+                omeroWellColumnList[i+1] = dataColumns[label]
+            
         else:
             #raise Exception("no datacolumn for the label: " + label)
             print "Note: no datacolumn for ", label
+    
+    #TODO: add in the image columns
+    # image id's will be converted to OMERO URLS of the form: https://lincs-omero.hms.harvard.edu/webclient/img_detail/128579/
     pointsSaved = 0
     rowsRead = 0
-    for row in table:
+    for row in dataSheet:
         r = makeRow(row)
-        dataRecord = DataRecord(screen_key=screen
-                   #, small_molecule_key=smallMolecule    # TODO: lookup small molecule
-                   )
+        try:
+            value = r[0]
+            facility = value.split("-")[0]
+            salt = value.split("-")[1]
+            sm = SmallMolecule.objects.get(facility_id=facility, sm_salt=salt)
+        except Exception, e:
+            print "Invalid facility id: ", value
+            raise    
+        dataRecord = DataRecord(screen_key=screen, small_molecule_key=sm )
         dataRecord.save()
         for i,value in enumerate(r):
             # NOTE: shall there be an "empty" datapoint? no, since non-existance of data in the worksheet does not mean "null" will mean "no value entered"
@@ -113,7 +127,6 @@ def main(path):
             if(value.strip()==''): continue  
             if i in dataColumnList:
                 dataColumn = dataColumnList[i]
-                print "dc: " , dataColumn.name , ', value: ', value
                 dataPoint = None
                 if (dataColumn.data_type == 'Numeric'): # TODO: define allowed "types" for the input sheet (this is listed in current SS code, but we may want to rework)
                     if (dataColumn.precision != 0): # float, TODO: set precision
@@ -131,6 +144,10 @@ def main(path):
                                           screen_key = screen,
                                           record_key = dataRecord,
                                           text_value=value)
+                
+                # special, messy clause here to add in the omero well id, hmmm, what would be a better way to enter omero well id's tied to the datapoints?
+                if (i+1) in omeroWellColumnList and len(r) >= (i+2):
+                    dataPoint.omero_well_id = r[i+1]
                 dataPoint.save()
                 pointsSaved += 1
         rowsRead += 1
@@ -138,7 +155,6 @@ def main(path):
     
     
 def convertdata(value, t):
-    print 'convert: value: ', value, ', type: ', t
     if value == 'None':  # todo: because all values are returned as unicode, and xls2py is converting empty values to "None", we need this clause
         return None
     if t is None:
