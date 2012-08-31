@@ -116,12 +116,13 @@ def main(argv=sys.argv[1:]):
     rows = readinput(argv[0])
     specs, data, lims = process(rows)
 
+    spd = sp.ScatterplotData
+
     for pair in it.product(data, data):
         ax, vs = zip(*pair)
         if ax[0] == ax[1]: continue
         output = outpath(ax)
-        spd = tuple(sp.ScatterplotData(*(k + (x, y)))
-                    for k, x, y in zip(specs, *vs))
+        spd = tuple(spd(*(k + (x, y))) for k, x, y in zip(specs, *vs))
         axis_labels = tuple(', '.join(l) for l in ax)
         write_scatterplot(output, spd, axis_labels, lims)
 
