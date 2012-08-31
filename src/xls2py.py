@@ -187,6 +187,12 @@ class Worksheet(_Sequence_of_sequences):
             if type(cell) is not str: return cell
             assert cell is ''
 
+            # if "return None" is the last line of a function, it can
+            # be omitted (since a function without an explicit return
+            # statement always returns None), but I include it here
+            # for clarity/sanity:
+            return None
+
         def _condition_row(row):
             return (_condition_cell(cell) for cell in row)
 
