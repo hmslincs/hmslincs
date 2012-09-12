@@ -71,9 +71,8 @@ def splitseq(seq, m, truncate=False):
         yield seq[i:j]
         i = j
 
-__DEFAULT=object()
-
-def spread(seq, N=__DEFAULT, K=1):
+_SENTINEL = object()
+def spread(seq, N=_SENTINEL, K=1):
     """Yield (at most N) successive seq subsequences of length at least K.
 
     seq    any object supporting len(...) and slice-indexing
@@ -121,7 +120,7 @@ def spread(seq, N=__DEFAULT, K=1):
     """
 
     L = len(seq)
-    if N is __DEFAULT: N = L
+    if N is _SENTINEL: N = L
     if not (type(N) == int and 0 < N):
         raise TypeError('N must be a positive integer')
     if not (type(K) == int and 0 < K):
@@ -152,6 +151,5 @@ def spread(seq, N=__DEFAULT, K=1):
 
 
 if __name__ == '__main__':
-    # spread('x', N=None)
     import doctest
     doctest.testmod()
