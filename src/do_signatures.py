@@ -1,5 +1,9 @@
 print "THIS SCRIPT IS NOT YET USABLE."
 exit(1)
+"""
+There's practically no data for this!
+"""
+
 import sys
 import os
 import os.path as op
