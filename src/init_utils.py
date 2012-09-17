@@ -140,14 +140,17 @@ class populate(st.Strategy):
     def _populate(this):
         mapr = this.maprecord
         mo = this.model
+        rowsRead = 0
         for r in this:
             dbrecord = mo(**mapr(r))
             try:
                 dbrecord.save()
+                rowsRead += 1
             except Exception, e:
                 # just a place-holder for a more intelligent handling
                 # of database-insert errors in the future
                 raise
+        print "Rows read: " , rowsRead
 
     def maprecord(this, record):
         mf = this.mapfname

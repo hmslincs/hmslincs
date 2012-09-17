@@ -5,6 +5,7 @@ from django.shortcuts import render
 from django.db import models
 from django.forms.models import model_to_dict
 from django.forms import ModelForm
+from django.utils.safestring import mark_safe
 
 from example.models import SmallMolecule, Cell, Screen, DataColumn, DataPoint, DataRecord
 from django.http import Http404
@@ -14,13 +15,32 @@ from django_tables2 import RequestConfig
 from django_tables2.utils import A  # alias for Accessor
 from django.db import connection
 
+from example.models import Cell
+
+class SnippetColumn(tables.Column):
+    def render(self, value):
+        return mark_safe(value)
+
+class TypeColumn(tables.Column):
+    def render(self, value):
+        if value == "cell_detail": return "Cell"
+        elif value == "sm_detail": return "Small Molecule"
+        elif value == "screen_detail": return "Screen"
+        else: raise Exception("Unknown type: "+value)
+        
+
+def getTextTypeFields(model):
+    # Only text or char fields considered, must add numeric fields manually
+    return filter(lambda x: isinstance(x, models.CharField) or isinstance(x, models.TextField), tuple(model._meta.fields))
+    
 class SmallMoleculeTable(tables.Table):
     facility_id = tables.LinkColumn("sm_detail", args=[A('pk')])
     rank = tables.Column()
     snippet = tables.Column()
     # TODO: define the snippet dynamically, using all the text fields from the model
     # TODO: add the facility_id
-    snippet_def = ("coalesce(sm_name,'') || ' ' || coalesce(sm_provider,'')")
+    # snippet_def = ("coalesce(sm_name,'') || ' ' || coalesce(sm_provider,'')")
+    snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce("+x.name+",'') ", getTextTypeFields(SmallMolecule))))
     class Meta:
         model = SmallMolecule
         orderable = True
@@ -30,24 +50,25 @@ class SmallMoleculeTable(tables.Table):
 
 class SmallMoleculeForm(ModelForm):
     class Meta:
-        model = SmallMolecule        
+        model = SmallMolecule           
         order = ('facility_id', '...')
         exclude = ('id', 'molfile', 'plate', 'row', 'column', 'well_type') 
 
 class CellTable(tables.Table):
     facility_id = tables.LinkColumn("cell_detail", args=[A('pk')])
     rank = tables.Column()
-    snippet = tables.Column()
+    snippet = SnippetColumn()
     cl_id = tables.Column(verbose_name='CLO Id')
     # TODO: define the snippet dynamically, using all the text fields from the model
     # TODO: add the facility_id
-    snippet_def = ("coalesce(cl_name,'') || ' ' || coalesce(cl_id,'') || ' ' || coalesce(cl_alternate_name,'') || ' ' || " +  
-                   "coalesce(cl_alternate_id,'') || ' ' || coalesce(cl_center_name,'') || ' ' || coalesce(cl_center_specific_id,'') || ' ' || " +  
-                   "coalesce(assay,'') || ' ' || coalesce(cl_provider_name,'') || ' ' || coalesce(cl_provider_catalog_id,'') || ' ' || coalesce(cl_batch_id,'') || ' ' || " + 
-                   "coalesce(cl_organism,'') || ' ' || coalesce(cl_organ,'') || ' ' || coalesce(cl_tissue,'') || ' ' || coalesce(cl_cell_type,'') || ' ' ||  " +
-                   "coalesce(cl_cell_type_detail,'') || ' ' || coalesce(cl_disease,'') || ' ' || coalesce(cl_disease_detail,'') || ' ' ||  " +
-                   "coalesce(cl_growth_properties,'') || ' ' || coalesce(cl_genetic_modification,'') || ' ' || coalesce(cl_related_projects,'') || ' ' || " + 
-                   "coalesce(cl_recommended_culture_conditions)")
+#    snippet_def = ("coalesce(cl_name,'') || ' ' || coalesce(cl_id,'') || ' ' || coalesce(cl_alternate_name,'') || ' ' || " +  
+#                   "coalesce(cl_alternate_id,'') || ' ' || coalesce(cl_center_name,'') || ' ' || coalesce(cl_center_specific_id,'') || ' ' || " +  
+#                   "coalesce(assay,'') || ' ' || coalesce(cl_provider_name,'') || ' ' || coalesce(cl_provider_catalog_id,'') || ' ' || coalesce(cl_batch_id,'') || ' ' || " + 
+#                   "coalesce(cl_organism,'') || ' ' || coalesce(cl_organ,'') || ' ' || coalesce(cl_tissue,'') || ' ' || coalesce(cl_cell_type,'') || ' ' ||  " +
+#                   "coalesce(cl_cell_type_detail,'') || ' ' || coalesce(cl_disease,'') || ' ' || coalesce(cl_disease_detail,'') || ' ' ||  " +
+#                   "coalesce(cl_growth_properties,'') || ' ' || coalesce(cl_genetic_modification,'') || ' ' || coalesce(cl_related_projects,'') || ' ' || " + 
+#                   "coalesce(cl_recommended_culture_conditions)")
+    snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce("+x.name+",'') ", getTextTypeFields(Cell))))
     class Meta:
         model = Cell
         orderable = True
@@ -65,13 +86,13 @@ class SiteSearchManager(models.Manager):
         cursor = connection.cursor()
         # TODO: build this dynamically, like the rest of the search
         cursor.execute(
-            "SELECT id, facility_id, ts_headline(" + CellTable.snippet_def + ", query1 ) as snippet, " +
+            "SELECT id, facility_id, ts_headline(" + CellTable.snippet_def + """, query1, 'MaxFragments=10, MinWords=1, MaxWords=20, FragmentDelimiter=" | "') as snippet, """ +
             " ts_rank_cd(search_vector, query1, 32) AS rank, 'cell_detail' as type FROM example_cell, to_tsquery(%s) as query1 WHERE search_vector @@ query1 " +
             " UNION " +
-            " SELECT id, facility_id, ts_headline(" + SmallMoleculeTable.snippet_def + ", query2 ) as snippet, " +
+            " SELECT id, facility_id, ts_headline(" + SmallMoleculeTable.snippet_def + """, query2, 'MaxFragments=10, MinWords=1, MaxWords=20, FragmentDelimiter=" | "') as snippet, """ +
             " ts_rank_cd(search_vector, query2, 32) AS rank, 'sm_detail' as type FROM example_smallmolecule, to_tsquery(%s) as query2 WHERE search_vector @@ query2 " +
             " UNION " +
-            " SELECT id, facility_id, ts_headline(" + ScreenTable.snippet_def + ", query3 ) as snippet, " +
+            " SELECT id, facility_id, ts_headline(" + ScreenTable.snippet_def + """, query3, 'MaxFragments=10, MinWords=1, MaxWords=20, FragmentDelimiter=" | "') as snippet, """ +
             " ts_rank_cd(search_vector, query3, 32) AS rank, 'screen_detail' as type FROM example_screen, to_tsquery(%s) as query3 WHERE search_vector @@ query3 " +
             " ORDER by rank DESC;", [queryString + ":*", queryString + ":*", queryString + ":*"])
         return dictfetchall(cursor)
@@ -80,12 +101,13 @@ class SiteSearchTable(tables.Table):
     id = tables.Column(visible=False)
     #Note: using the expediency here: the "type" column holds the subdirectory for that to make the link for type, so "sm", "cell", etc., becomes "/example/sm", "/example/cell", etc.
     facility_id = tables.LinkColumn(A('type'), args=[A('id')])  
-    type = tables.Column()
+    type = TypeColumn()
     rank = tables.Column()
-    snippet = tables.Column()
+    snippet = SnippetColumn()
     class Meta:
         orderable = True
         attrs = {'class': 'paleblue'}
+        exclude = {'rank'}
 
 class ScreenTable(tables.Table):
     id = tables.Column(visible=False)
@@ -93,10 +115,10 @@ class ScreenTable(tables.Table):
     protocol = tables.Column(visible=False) # TODO: add to the index, well, build the index automatically...
     references = tables.Column(visible=False)
     rank = tables.Column()
-    snippet = tables.Column()
-    snippet_def = ("coalesce(facility_id,'') || ' ' || coalesce(title,'') || ' ' || coalesce(summary,'') || ' ' || " +    
-                   "coalesce(lead_screener_firstname,'') || ' ' || coalesce(lead_screener_lastname,'')|| ' ' || coalesce(lead_screener_email,'') || ' ' || "  +           
-                   "coalesce(lab_head_firstname,'') || ' ' || coalesce(lab_head_lastname,'')|| ' ' || coalesce(lab_head_email,'')")
+    snippet = SnippetColumn()
+#    snippet_def = ("coalesce(facility_id,'') || ' ' || coalesce(title,'') || ' ' || coalesce(summary,'') || ' ' || coalesce(lead_screener_firstname,'') || ' ' || coalesce(lead_screener_lastname,'')|| ' ' || coalesce(lead_screener_email,'') || ' ' || "  +           
+#                   "coalesce(lab_head_firstname,'') || ' ' || coalesce(lab_head_lastname,'')|| ' ' || coalesce(lab_head_email,'')")
+    snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce("+x.name+",'') ", getTextTypeFields(Screen))))
     class Meta:
         model = Screen
         orderable = True
@@ -128,8 +150,8 @@ class ScreenResultTable(tables.Table):
         super(ScreenResultTable, self).__init__(queryset, names, *args, **kwargs)
         # print "queryset: ", queryset , " , names: " , names, ", args: " , args
         for name,verbose_name in names.items():
-            if name in omeroColumnNames:
-                self.base_columns[name] = tables.TemplateColumn(TEMPLATE % (omeroColumnNames[name],name),verbose_name=verbose_name)
+            if name in omeroColumnNames:  #TODO: all the columns are currently in omeroColumnNames, figure out a way to not have them here if there's no omero well_id for that column
+                self.base_columns[name] = tables.TemplateColumn(TEMPLATE % (omeroColumnNames[name],name), verbose_name=verbose_name)
             else:
                 self.base_columns[name] = tables.Column(verbose_name=verbose_name)
         self.sequence = orderedNames
@@ -141,7 +163,6 @@ class ScreenResultTable(tables.Table):
 def main(request):
     search = request.GET.get('search','')
     if(search != ''):
-        print("s: %s" % search)
         queryset = SiteSearchManager().search(search);
         table = SiteSearchTable(queryset)
         RequestConfig(request, paginate={"per_page": 25}).configure(table)
@@ -217,7 +238,7 @@ def screenIndex(request):
         print("s: %s" % search)
         queryset = Screen.objects.extra(
             select={
-                'snippet': "ts_headline(" + ScreenTable.snippet_def + ", plainto_tsquery(%s))",
+                'snippet': "ts_headline(" + ScreenTable.snippet_def + ", plainto_tsquery(%s) )",
                 'rank': "ts_rank_cd(search_vector, plainto_tsquery(%s), 32)",
                 },
             where=["search_vector @@ plainto_tsquery(%s)"],
