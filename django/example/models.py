@@ -60,7 +60,7 @@ class Screen(models.Model):
     lab_head_email          = _TEXT(**_NOTNULLSTR)
     summary                 = _TEXT(**_NOTNULLSTR)
     protocol                = _TEXT(**_NULLOKSTR)
-    references              = _TEXT(**_NULLOKSTR)
+    protocol_references              = _TEXT(**_NULLOKSTR)
 
     def __unicode__(self):
         return unicode(self.facility_id)
@@ -157,6 +157,33 @@ class Cell(models.Model):
     # ----------------------------------------------------------------------------------------------------------------------
     def __unicode__(self):
         return unicode(self.Facility_ID)
+
+class Protein(models.Model):
+    name                = _TEXT(**_NOTNULLSTR)
+    lincs_id            = _INTEGER(null=False)
+    uniprot_id          = _CHAR(max_length=6, **_NULLOKSTR)
+    alternate_name      = _TEXT(**_NULLOKSTR)
+    provider            = _TEXT(**_NULLOKSTR)
+    provider_catalog_id = _TEXT(**_NULLOKSTR)
+    batch_id            = _CHAR(max_length=10, **_NULLOKSTR)
+    amino_acid_sequence = _TEXT(**_NULLOKSTR)
+    gene_symbol         = _CHAR(max_length=35)
+    gene_id             = _CHAR(max_length=35)
+    protein_source      = _CHAR(max_length=35)
+    protein_form        = _TEXT(**_NULLOKSTR) #TODO: controlled vocabulary
+    protein_purity      = _TEXT(**_NULLOKSTR)
+    protein_complex     = _TEXT(**_NULLOKSTR)
+    isoform             = _CHAR(max_length=5) #TODO: Shall this be boolean?
+    protein_type        = _CHAR(max_length=35) #TODO: controlled vocabulary
+    source_organism     = _CHAR(max_length=35) #TODO: controlled vocabulary
+    reference           = _TEXT(**_NULLOKSTR)
+
+    def __unicode__(self):
+        return unicode(self.lincs_id)
+
+
+
+
 
 del _CHAR, _TEXT, _INTEGER
 del _NULLOKSTR, _NOTNULLSTR
