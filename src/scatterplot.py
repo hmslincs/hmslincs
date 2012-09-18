@@ -21,6 +21,7 @@ def scatterplot(points, axis_labels, lims=None):
     if lims is not None:
         plt.xlim(lims)
         plt.ylim(lims)
+    plt.axes().set_aspect('equal')
     plt.show()
 
 if __name__ == '__main__':
