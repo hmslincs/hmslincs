@@ -1,6 +1,8 @@
 import collections as co
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
+import matplotlib.patches as mpatches
+import matplotlib.transforms as mtransforms
 import numpy as np
 
 # ---------------------------------------------------------------------------
@@ -12,25 +14,37 @@ FORMAT = 'png'
 SignatureData = co.namedtuple('SignatureData',
                               'name isclinical isselective signature maxtested')
 
-size = 12
+radius = 0.2
 colors = ('red', 'yellow', 'magenta', 'blue', 'green', 'cyan')
-vshift = 0.1
+yscale = 0.5
+# The distance between the center of an edge of a unit-radius regular polygon
+# and its circumscribed circle is 1-sin(x/2) where x is the polygon's internal
+# angle. pi/3 is the angle of an equilateral triangle, and 1-sin(pi/6) = 0.5.
+y_top_padding = 0.5 * radius
 
 # the function below is currently only a placeholder for the real thing
 def signature(target_name, primary_compounds, nonprimary_compounds, cell_lines):
     num_compounds = len(primary_compounds)
-    baseline = np.zeros_like(primary_compounds[0].signature) + vshift
-    for i, sd in enumerate(primary_compounds):
-        plt.scatter(np.log10(sd.signature), baseline + i, marker='^', c=colors, s=size**2)
-    plt.yticks(range(num_compounds))
-    plt.ylim(num_compounds - vshift * 5, 0 - vshift)
-    ticklabels = [sd.name for sd in primary_compounds]
-    plt.gca().xaxis.set_major_locator(mticker.MultipleLocator(1.0))
-    plt.gca().xaxis.set_label_position('top')
-    plt.gca().yaxis.set_ticklabels(ticklabels)
-    plt.gca().yaxis.grid(True, 'major', linestyle='-')
-    plt.gca().tick_params(labeltop=True, labelbottom=False, left=False, right=False)
-    plt.gca().set_aspect(0.8 / num_compounds)
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.axis((-8, -3, -2 * radius, (num_compounds - 1) * yscale + y_top_padding))
+    for si, sd in enumerate(primary_compounds):
+        y = si * yscale
+        my = y - radius
+        ty = y - radius
+        for ci, value in enumerate(sd.signature):
+            x = np.log10(value)
+            marker = mpatches.RegularPolygon([x, my], 3, radius=radius,
+                                             facecolor=colors[ci],
+                                             edgecolor='black')
+            ax.add_patch(marker)
+        line = plt.Line2D([-8, -3], [y, y], color='black')
+        ax.add_line(line)
+        ax.text(-.01, ty, sd.name, transform=ax.get_yaxis_transform(),
+                  ha='right')
+    ax.set_aspect('equal')
+    ax.tick_params(labeltop=True, labelbottom=False, labelleft=False,
+                          left=False, right=False)
     plt.show()
 
 if __name__ == '__main__':
