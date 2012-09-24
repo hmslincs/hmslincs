@@ -3,162 +3,19 @@
 from django.shortcuts import render_to_response
 from django.shortcuts import render
 from django.db import models
+from django.db import connection
 from django.forms.models import model_to_dict
 from django.forms import ModelForm
+from django.http import Http404
 from django.utils.safestring import mark_safe
 
-from example.models import SmallMolecule, Cell, Screen, DataColumn, DataPoint, DataRecord
-from django.http import Http404
+#from django.template import RequestContext
 import django_tables2 as tables
 from django_tables2 import RequestConfig
-#from django.template import RequestContext
 from django_tables2.utils import A  # alias for Accessor
-from django.db import connection
 
-from example.models import Cell
-
-class SnippetColumn(tables.Column):
-    def render(self, value):
-        return mark_safe(value)
-
-class TypeColumn(tables.Column):
-    def render(self, value):
-        if value == "cell_detail": return "Cell"
-        elif value == "sm_detail": return "Small Molecule"
-        elif value == "screen_detail": return "Screen"
-        else: raise Exception("Unknown type: "+value)
-        
-
-def getTextTypeFields(model):
-    # Only text or char fields considered, must add numeric fields manually
-    return filter(lambda x: isinstance(x, models.CharField) or isinstance(x, models.TextField), tuple(model._meta.fields))
-    
-class SmallMoleculeTable(tables.Table):
-    facility_id = tables.LinkColumn("sm_detail", args=[A('pk')])
-    rank = tables.Column()
-    snippet = tables.Column()
-    # TODO: define the snippet dynamically, using all the text fields from the model
-    # TODO: add the facility_id
-    # snippet_def = ("coalesce(sm_name,'') || ' ' || coalesce(sm_provider,'')")
-    snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce("+x.name+",'') ", getTextTypeFields(SmallMolecule))))
-    class Meta:
-        model = SmallMolecule
-        orderable = True
-        attrs = {'class': 'paleblue'}
-        sequence = ('facility_id', 'sm_salt', 'facility_batch_id', 'sm_name','...','sm_smiles','sm_inchi')
-        exclude = ('id', 'molfile', 'plate', 'row', 'column', 'well_type') 
-
-class SmallMoleculeForm(ModelForm):
-    class Meta:
-        model = SmallMolecule           
-        order = ('facility_id', '...')
-        exclude = ('id', 'molfile', 'plate', 'row', 'column', 'well_type') 
-
-class CellTable(tables.Table):
-    facility_id = tables.LinkColumn("cell_detail", args=[A('pk')])
-    rank = tables.Column()
-    snippet = SnippetColumn()
-    cl_id = tables.Column(verbose_name='CLO Id')
-    # TODO: define the snippet dynamically, using all the text fields from the model
-    # TODO: add the facility_id
-#    snippet_def = ("coalesce(cl_name,'') || ' ' || coalesce(cl_id,'') || ' ' || coalesce(cl_alternate_name,'') || ' ' || " +  
-#                   "coalesce(cl_alternate_id,'') || ' ' || coalesce(cl_center_name,'') || ' ' || coalesce(cl_center_specific_id,'') || ' ' || " +  
-#                   "coalesce(assay,'') || ' ' || coalesce(cl_provider_name,'') || ' ' || coalesce(cl_provider_catalog_id,'') || ' ' || coalesce(cl_batch_id,'') || ' ' || " + 
-#                   "coalesce(cl_organism,'') || ' ' || coalesce(cl_organ,'') || ' ' || coalesce(cl_tissue,'') || ' ' || coalesce(cl_cell_type,'') || ' ' ||  " +
-#                   "coalesce(cl_cell_type_detail,'') || ' ' || coalesce(cl_disease,'') || ' ' || coalesce(cl_disease_detail,'') || ' ' ||  " +
-#                   "coalesce(cl_growth_properties,'') || ' ' || coalesce(cl_genetic_modification,'') || ' ' || coalesce(cl_related_projects,'') || ' ' || " + 
-#                   "coalesce(cl_recommended_culture_conditions)")
-    snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce("+x.name+",'') ", getTextTypeFields(Cell))))
-    class Meta:
-        model = Cell
-        orderable = True
-        attrs = {'class': 'paleblue'}
-        sequence = ('facility_id', '...')
-        exclude = ('id','cl_recommended_culture_conditions', 'cl_verification_reference_profile', 'cl_mutations_explicit', 'cl_mutations_reference')
-        
-class CellForm(ModelForm):
-    class Meta:
-        model = Cell        
-
-class SiteSearchManager(models.Manager):
-    
-    def search(self, queryString):
-        cursor = connection.cursor()
-        # TODO: build this dynamically, like the rest of the search
-        cursor.execute(
-            "SELECT id, facility_id, ts_headline(" + CellTable.snippet_def + """, query1, 'MaxFragments=10, MinWords=1, MaxWords=20, FragmentDelimiter=" | "') as snippet, """ +
-            " ts_rank_cd(search_vector, query1, 32) AS rank, 'cell_detail' as type FROM example_cell, to_tsquery(%s) as query1 WHERE search_vector @@ query1 " +
-            " UNION " +
-            " SELECT id, facility_id, ts_headline(" + SmallMoleculeTable.snippet_def + """, query2, 'MaxFragments=10, MinWords=1, MaxWords=20, FragmentDelimiter=" | "') as snippet, """ +
-            " ts_rank_cd(search_vector, query2, 32) AS rank, 'sm_detail' as type FROM example_smallmolecule, to_tsquery(%s) as query2 WHERE search_vector @@ query2 " +
-            " UNION " +
-            " SELECT id, facility_id, ts_headline(" + ScreenTable.snippet_def + """, query3, 'MaxFragments=10, MinWords=1, MaxWords=20, FragmentDelimiter=" | "') as snippet, """ +
-            " ts_rank_cd(search_vector, query3, 32) AS rank, 'screen_detail' as type FROM example_screen, to_tsquery(%s) as query3 WHERE search_vector @@ query3 " +
-            " ORDER by rank DESC;", [queryString + ":*", queryString + ":*", queryString + ":*"])
-        return dictfetchall(cursor)
-
-class SiteSearchTable(tables.Table):
-    id = tables.Column(visible=False)
-    #Note: using the expediency here: the "type" column holds the subdirectory for that to make the link for type, so "sm", "cell", etc., becomes "/example/sm", "/example/cell", etc.
-    facility_id = tables.LinkColumn(A('type'), args=[A('id')])  
-    type = TypeColumn()
-    rank = tables.Column()
-    snippet = SnippetColumn()
-    class Meta:
-        orderable = True
-        attrs = {'class': 'paleblue'}
-        exclude = {'rank'}
-
-class ScreenTable(tables.Table):
-    id = tables.Column(visible=False)
-    facility_id = tables.LinkColumn("screen_detail", args=[A('pk')])
-    protocol = tables.Column(visible=False) # TODO: add to the index, well, build the index automatically...
-    references = tables.Column(visible=False)
-    rank = tables.Column()
-    snippet = SnippetColumn()
-#    snippet_def = ("coalesce(facility_id,'') || ' ' || coalesce(title,'') || ' ' || coalesce(summary,'') || ' ' || coalesce(lead_screener_firstname,'') || ' ' || coalesce(lead_screener_lastname,'')|| ' ' || coalesce(lead_screener_email,'') || ' ' || "  +           
-#                   "coalesce(lab_head_firstname,'') || ' ' || coalesce(lab_head_lastname,'')|| ' ' || coalesce(lab_head_email,'')")
-    snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce("+x.name+",'') ", getTextTypeFields(Screen))))
-    class Meta:
-        model = Screen
-        orderable = True
-        attrs = {'class': 'paleblue'}
-        exclude = ('id') 
-
-class ScreenForm(ModelForm):
-    class Meta:
-        model = Screen  
-        
-class ScreenResultSearchManager(models.Manager):
-    
-    def search(self, queryString ): # TODO: pass the parameters for the SQL as well
-        cursor = connection.cursor()
-        print "queryString: ", queryString
-        cursor.execute(queryString)
-
-        return dictfetchall(cursor)
-  
-TEMPLATE = '''
-   <a href="#" onclick='window.open("https://lincs-omero.hms.harvard.edu/webclient/img_detail/{{ record.%s }}", "test","height=700,width=800")' >{{ record.%s }}</a>
-'''
-            
-class ScreenResultTable(tables.Table):
-    id = tables.Column(visible=False)
-    facility_id = tables.LinkColumn('sm_detail', args=[A('small_molecule_key_id')]) 
-    
-    def __init__(self, queryset, names, omeroColumnNames, orderedNames, *args, **kwargs):
-        super(ScreenResultTable, self).__init__(queryset, names, *args, **kwargs)
-        # print "queryset: ", queryset , " , names: " , names, ", args: " , args
-        for name,verbose_name in names.items():
-            if name in omeroColumnNames:  #TODO: all the columns are currently in omeroColumnNames, figure out a way to not have them here if there's no omero well_id for that column
-                self.base_columns[name] = tables.TemplateColumn(TEMPLATE % (omeroColumnNames[name],name), verbose_name=verbose_name)
-            else:
-                self.base_columns[name] = tables.Column(verbose_name=verbose_name)
-        self.sequence = orderedNames
-        
-    class Meta:
-        orderable = True
-        attrs = {'class': 'paleblue'}
+from example.models import SmallMolecule, Cell, DataSet, Library
+# --------------- View Functions -----------------------------------------------
     
 def main(request):
     search = request.GET.get('search','')
@@ -194,6 +51,11 @@ def cellIndex(request):
     else:
         queryset = Cell.objects.all().order_by('facility_id')
     table = CellTable(queryset)
+
+    outputType = request.GET.get('output_type','')
+    if(outputType != ''):
+        return send_to_file(outputType, 'cells', table, queryset, request )
+    
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
     return render(request, 'example/listIndex.html', {'table': table, 'search':search })
     
@@ -206,22 +68,13 @@ def cellDetail(request, cell_id):
 
 def smallMoleculeIndex(request):
     search = request.GET.get('search','')
-    if(search != ''):
-        print("s: %s" % search)
-        queryset = SmallMolecule.objects.extra(
-            select={
-                'snippet': "ts_headline(" + SmallMoleculeTable.snippet_def + ", plainto_tsquery(%s))",
-                'rank': "ts_rank_cd(search_vector, plainto_tsquery(%s), 32)",
-                },
-            where=["search_vector @@ plainto_tsquery(%s)"],
-            params=[search],
-            select_params=[search,search],
-            order_by=('-rank',)
-            )        
-        print("found: %s" % queryset)
-    else:
-        queryset = SmallMolecule.objects.all().order_by('facility_id')
+    queryset = SmallMoleculeSearchManager().search(search);
     table = SmallMoleculeTable(queryset)
+
+    outputType = request.GET.get('output_type','')
+    if(outputType != ''):
+        return send_to_file(outputType, 'small_molecule', table, queryset, request )
+    
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
     return render(request, 'example/listIndex.html', {'table': table, 'search':search })
  
@@ -232,13 +85,35 @@ def smallMoleculeDetail(request, sm_id):
         raise Http404
     return render(request,'example/smallMoleculeDetail.html', {'object': SmallMoleculeForm(data=model_to_dict(sm))})
 
+def libraryIndex(request):
+    search = request.GET.get('search','')
+    queryset = LibrarySearchManager().search(search);
+    table = LibraryTable(queryset)
+
+    outputType = request.GET.get('output_type','')
+    if(outputType != ''):
+        return send_to_file(outputType, 'libraries', table, queryset, request )
+    
+    RequestConfig(request, paginate={"per_page": 25}).configure(table)
+    return render(request, 'example/listIndex.html', {'table': table, 'search':search })
+
+def libraryDetail(request, library_id):
+    try:
+        library = Library.objects.get(pk=library_id)
+        queryset = SmallMoleculeSearchManager().search(library_id=library_id);
+        table = SmallMoleculeTable(queryset)
+    except Library.DoesNotExist:
+        raise Http404
+    return render(request,'example/libraryDetail.html', {'object': LibraryForm(data=model_to_dict(library)),
+                                                         'table': table})
+
 def screenIndex(request):
     search = request.GET.get('search','')
     if(search != ''):
         print("s: %s" % search)
-        queryset = Screen.objects.extra(
+        queryset = DataSet.objects.extra(
             select={
-                'snippet': "ts_headline(" + ScreenTable.snippet_def + ", plainto_tsquery(%s) )",
+                'snippet': "ts_headline(" + DataSetTable.snippet_def + ", plainto_tsquery(%s) )",
                 'rank': "ts_rank_cd(search_vector, plainto_tsquery(%s), 32)",
                 },
             where=["search_vector @@ plainto_tsquery(%s)"],
@@ -248,46 +123,67 @@ def screenIndex(request):
             )        
         print("found: %s" % queryset)
     else:
-        queryset = Screen.objects.all().order_by('facility_id')
-    table = ScreenTable(queryset)
+        queryset = DataSet.objects.all().order_by('facility_id')
+    table = DataSetTable(queryset)
+    
+    outputType = request.GET.get('output_type','')
+    if(outputType != ''):
+        return send_to_file(outputType, 'screenIndex', table, queryset, request )
+        
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
     return render(request, 'example/listIndex.html', {'table': table, 'search':search })
+
+def send_to_file(outputType, name, table, queryset, request):
+    columns = map(lambda (x,y): x, filter(lambda (x,y): x != 'rank' and x!= 'snippet' and y.visible, table.base_columns.items()))
+    print 'return as ', outputType, ", columns: ", columns 
+
+    if(outputType == 'csv'):
+        return export_as_csv(name,columns , request, queryset)
+    elif(outputType == 'xls'):
+        return export_as_xls(name, columns, request, queryset)
  
+# Follows is a messy way to differentiate each tab for the screen detail page (each tab calls it's respective method)
+def screenDetailMain(request, screen_id):
+    return render(request,'example/screenDetailMain.html', screenDetail(request,screen_id))
+def screenDetailCells(request, screen_id):
+    return render(request,'example/screenDetailCells.html', screenDetail(request,screen_id))
+def screenDetailResults(request, screen_id):
+    return render(request,'example/screenDetailResults.html', screenDetail(request,screen_id))
 def screenDetail(request, screen_id):
     try:
-        screen = Screen.objects.get(pk=screen_id)
-    except Screen.DoesNotExist:
+        dataset = DataSet.objects.get(pk=screen_id)
+    except DataSet.DoesNotExist:
         raise Http404
 
-    # TODO: are the screen results gonna be searchable?
-    search = request.GET.get('search','')
+    cell_queryset = cells_for_dataset(screen_id)
+    cellTable = CellTable(cell_queryset)
+    show_cells=len(cell_queryset)>0
+
+    # TODO: are the screen results gonna be searchable? (no, not for now, but if so, we would look at the search string here)
+    # search = request.GET.get('search','')
     
-    # Create a query on the fly that pivots the values from the datapoint table, making one column for each data_column type
-    # use the datacolumns to make a query on the fly (for the ScreenResultSearchManager), and make a ScreenResultSearchTable on the fly.
-    
-    cursor = connection.cursor()
-    cursor.execute("SELECT id, name, data_type, precision from example_datacolumn where screen_key_id = %s order by id asc", [screen_id])
+    # Create a query on the fly that pivots the values from the datapoint table, making one column for each datacolumn type
+    # use the datacolumns to make a query on the fly (for the DataSetResultSearchManager), and make a DataSetResultSearchTable on the fly.
+    dataColumnCursor = connection.cursor()
+    dataColumnCursor.execute("SELECT id, name, data_type, precision from example_datacolumn where dataset_id = %s order by id asc", [screen_id])
     
     # Need to construct something like this:
-    # select distinct (record_key_id), small_molecule_key_id,small_molecule_key_id, sm.facility_id || '-' || sm.sm_salt as facility_id,
-    #        (select int_value as col1 from example_datapoint dp1 where dp1.data_column_key_id=2 and dp1.record_key_id = dp0.record_key_id) as col1, 
-    #        (select int_value as col2 from example_datapoint dp2 where dp2.record_key_id=dp0.record_key_id and dp2.data_column_key_id=3) as col2 
-    #        from example_datapoint dp0 join example_datarecord dr on(record_key_id=dr.id) join example_smallmolecule sm on(sm.id=dr.small_molecule_key_id) 
-    #        where dp0.screen_key_id = 1 order by record_key_id;
-    queryString = "select distinct (record_key_id), small_molecule_key_id, sm.facility_id || '-' || sm.sm_salt as facility_id " 
+    # select distinct (datarecord_id), small_molecule_id,small_molecule_id, sm.facility_id || '-' || sm.sm_salt as facility_id,
+    #        (select int_value as col1 from example_datapoint dp1 where dp1.datacolumn_id=2 and dp1.datarecord_id = dp0.datarecord_id) as col1, 
+    #        (select int_value as col2 from example_datapoint dp2 where dp2.datarecord_id=dp0.datarecord_id and dp2.datacolumn_id=3) as col2 
+    #        from example_datapoint dp0 join example_datarecord dr on(datarecord_id=dr.id) join example_smallmolecule sm on(sm.id=dr.small_molecule_id) 
+    #        where dp0.screen_id = 1 order by datarecord_id;
+    queryString = "select distinct (datarecord_id), small_molecule_id, sm.facility_id || '-' || sm.sm_salt as facility_id "
+    if(show_cells): queryString += ", cell_id, cell.cl_name as cell_name " 
     i = 0
     names = {}
     orderedNames = ['facility_id']
-    omeroColumnNames = {}
-    for id, name, datatype, precision in cursor.fetchall():
+    for datacolumn_id, name, datatype, precision in dataColumnCursor.fetchall():
         i += 1
         alias = "dp"+str(i)
-        omeroAlias = alias + "_ow" # somewhat messy way to associate the omero_well_id with the datapoint
         columnName = "col" + str(i)
         names[columnName] = name
         orderedNames.append(columnName)
-        omeroColumnName = columnName + "_ow"
-        omeroColumnNames[columnName] = omeroColumnName
         column_to_select = None
         if(datatype == 'Numeric'):
             if precision == 0:
@@ -298,18 +194,252 @@ def screenDetail(request, screen_id):
             column_to_select = "text_value"
         # TODO: use params
         queryString +=  (",(select " + column_to_select + " from example_datapoint " + alias + 
-                            " where " + alias + ".data_column_key_id="+str(id) + " and " + alias + ".record_key_id=dp0.record_key_id) as " + columnName )
-        # add in the omero_well_id column
-        queryString +=  (",(select omero_well_id from example_datapoint " + omeroAlias + 
-                            " where " + omeroAlias + ".data_column_key_id="+str(id) + " and " + omeroAlias + ".record_key_id=dp0.record_key_id) as " + omeroColumnName )
-    queryString += " from example_datapoint dp0 join example_datarecord dr on(record_key_id=dr.id) join example_smallmolecule sm on(sm.id=dr.small_molecule_key_id) "
-    queryString += " where dp0.screen_key_id = " + str(screen_id) + " order by record_key_id"
+                            " where " + alias + ".datacolumn_id="+str(datacolumn_id) + " and " + alias + ".datarecord_id=dp0.datarecord_id) as " + columnName )
+    queryString += " from example_datapoint dp0 join example_datarecord dr on(datarecord_id=dr.id) join example_smallmolecule sm on(sm.id=dr.small_molecule_id) "
+    if(show_cells): 
+        queryString += " join example_cell cell on(cell.id=dr.cell_id) "
+        orderedNames.insert(1,'cell_name')
+    queryString += " where dp0.dataset_id = " + str(screen_id) + " order by datarecord_id"
     orderedNames.append('...')
-    queryset = ScreenResultSearchManager().search(queryString);
-    table = ScreenResultTable(queryset, names, omeroColumnNames, orderedNames)
     
-    return render(request,'example/screenDetail.html', {'object': ScreenForm(data=model_to_dict(screen)),
-                                                        'table': table})
+
+    queryset = DataSetResultSearchManager().search(queryString);
+    table = DataSetResultTable(queryset, names, orderedNames, show_cells)
+    
+    
+#    return render(request,'example/screenDetailMain.html', {'object': ScreenForm(data=model_to_dict(screen)),
+#                                                        'table': table,
+#                                                        'cellTable': cellTable,
+#                                                        'screenId': screen.id})
+    RequestConfig(request, paginate={"per_page": 25}).configure(table)
+    return {'object': DataSetForm(data=model_to_dict(dataset)),
+           'table': table,
+           'cellTable': cellTable,
+           'screenId': dataset.id}
+#---------------Supporting classes and functions--------------------------------
+
+def cells_for_dataset(dataset_id):
+    cursor = connection.cursor()
+    sql = 'select cell.* from example_cell cell where cell.id in (select distinct(cell_id) from example_datarecord dr where dr.dataset_id=%s) order by cell.cl_name'
+    cursor.execute(sql, [dataset_id])
+    return dictfetchall(cursor)
+
+class SnippetColumn(tables.Column):
+    def render(self, value):
+        return mark_safe(value)
+
+class TypeColumn(tables.Column):
+    def render(self, value):
+        if value == "cell_detail": return "Cell"
+        elif value == "sm_detail": return "Small Molecule"
+        elif value == "screen_detail": return "Screen"
+        else: raise Exception("Unknown type: "+value)
+        
+
+def get_text_fields(model):
+    # Only text or char fields considered, must add numeric fields manually
+    return filter(lambda x: isinstance(x, models.CharField) or isinstance(x, models.TextField), tuple(model._meta.fields))
+
+class SmallMoleculeSearchManager(models.Manager):
+    
+    def search(self, query_string='', library_id=None):
+        query_string = query_string.strip()
+        cursor = connection.cursor()
+        sql = ( "select l.short_name as library_name, l.id as library_id, sm.* " +
+            " from example_smallmolecule sm " + 
+            " left join example_librarymapping lm on(sm.id=lm.small_molecule_id) " + 
+            " join example_library l on(lm.library_id=l.id) ")
+        where = ''
+        if(query_string != '' ):
+            where = ", to_tsquery(%s) as query  where sm.search_vector @@ query "
+        if(library_id != None):
+            if(where != ''):
+                where += ', '
+            else:
+                where = ' where '
+            where += 'library_id='+ str(library_id)
+        sql += where
+        sql += " order by sm.facility_id, sm.sm_salt, sm.facility_batch_id "
+        
+        # TODO: the way we are separating query_string out here is a kludge
+        if(query_string != ''):
+            cursor.execute(sql, [query_string + ':*'])
+        else:
+            cursor.execute(sql)
+        v = dictfetchall(cursor)
+        return v
+    
+class SmallMoleculeTable(tables.Table):
+    facility_id = tables.LinkColumn("sm_detail", args=[A('id')])
+    rank = tables.Column()
+    snippet = tables.Column()
+    library_name = tables.LinkColumn('library_detail', args=[A('library_id')])
+    snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce("+x.name+",'') ", get_text_fields(SmallMolecule))))
+    class Meta:
+        model = SmallMolecule
+        orderable = True
+        attrs = {'class': 'paleblue'}
+        sequence = ('facility_id', 'sm_salt', 'facility_batch_id', 'sm_name','...','sm_smiles','sm_inchi')
+        exclude = ('id', 'molfile', 'plate', 'row', 'column', 'well_type') 
+
+class SmallMoleculeForm(ModelForm):
+    class Meta:
+        model = SmallMolecule           
+        order = ('facility_id', '...')
+        exclude = ('id', 'molfile', 'plate', 'row', 'column', 'well_type') 
+
+class CellTable(tables.Table):
+    facility_id = tables.LinkColumn("cell_detail", args=[A('id')])
+    rank = tables.Column()
+    snippet = SnippetColumn()
+    cl_id = tables.Column(verbose_name='CLO Id')
+    # TODO: define the snippet dynamically, using all the text fields from the model
+    # TODO: add the facility_id
+#    snippet_def = ("coalesce(cl_name,'') || ' ' || coalesce(cl_id,'') || ' ' || coalesce(cl_alternate_name,'') || ' ' || " +  
+#                   "coalesce(cl_alternate_id,'') || ' ' || coalesce(cl_center_name,'') || ' ' || coalesce(cl_center_specific_id,'') || ' ' || " +  
+#                   "coalesce(assay,'') || ' ' || coalesce(cl_provider_name,'') || ' ' || coalesce(cl_provider_catalog_id,'') || ' ' || coalesce(cl_batch_id,'') || ' ' || " + 
+#                   "coalesce(cl_organism,'') || ' ' || coalesce(cl_organ,'') || ' ' || coalesce(cl_tissue,'') || ' ' || coalesce(cl_cell_type,'') || ' ' ||  " +
+#                   "coalesce(cl_cell_type_detail,'') || ' ' || coalesce(cl_disease,'') || ' ' || coalesce(cl_disease_detail,'') || ' ' ||  " +
+#                   "coalesce(cl_growth_properties,'') || ' ' || coalesce(cl_genetic_modification,'') || ' ' || coalesce(cl_related_projects,'') || ' ' || " + 
+#                   "coalesce(cl_recommended_culture_conditions)")
+    snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce("+x.name+",'') ", get_text_fields(Cell))))
+    class Meta:
+        model = Cell
+        orderable = True
+        attrs = {'class': 'paleblue'}
+        sequence = ('facility_id', '...')
+        exclude = ('id','cl_recommended_culture_conditions', 'cl_verification_reference_profile', 'cl_mutations_explicit', 'cl_mutations_reference')
+        
+class CellForm(ModelForm):
+    class Meta:
+        model = Cell        
+        
+class LibrarySearchManager(models.Manager):
+    
+    def search(self, query_string):
+        query_string = query_string.strip()
+        cursor = connection.cursor()
+        sql = ( "SELECT count(well) as well_count , max(plate)-min(plate)+ 1 as plate_count, library.* " + 
+            " from example_library library left join example_librarymapping on(library_id=library.id) ")
+        if(query_string != '' ):
+            sql += ", to_tsquery(%s) as query  where library.search_vector @@ query " 
+        sql += " group by library.id"
+        
+        # TODO: the way we are separating query_string out here is a kludge
+        if(query_string != ''):
+            cursor.execute(sql, [query_string + ':*'])
+        else:
+            cursor.execute(sql)
+        v = dictfetchall(cursor)
+        print 'dict: ', v, ', query: ', query_string
+        return v
+    
+class LibraryTable(tables.Table):
+    id = tables.Column(visible=False)
+    name = tables.LinkColumn("library_detail", args=[A('id')])
+    well_count = tables.Column()
+    plate_count = tables.Column()
+    rank = tables.Column()
+    snippet = SnippetColumn()
+    
+    snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce("+x.name+",'') ", get_text_fields(Library))))
+    class Meta:
+        orderable = True
+        model = Library
+        attrs = {'class': 'paleblue'}
+        exclude = {'rank','snippet'}
+
+    
+class LibraryForm(ModelForm):
+    class Meta:
+        model = Library        
+            
+class SiteSearchManager(models.Manager):
+    
+    def search(self, queryString):
+        cursor = connection.cursor()
+        # TODO: build this dynamically, like the rest of the search
+        # Notes: MaxFragments=10 turns on fragment based headlines (context for search matches), with MaxWords=20
+        # ts_rank_cd(search_vector, query, 32): Normalization option 32 (rank/(rank+1)) can be applied to scale all 
+        # ranks into the range zero to one, but of course this is just a cosmetic change; it will not affect the ordering of the search results.
+        cursor.execute(
+            "SELECT id, facility_id, ts_headline(" + CellTable.snippet_def + """, query1, 'MaxFragments=10, MinWords=1, MaxWords=20, FragmentDelimiter=" | "') as snippet, """ +
+            " ts_rank_cd(search_vector, query1, 32) AS rank, 'cell_detail' as type FROM example_cell, to_tsquery(%s) as query1 WHERE search_vector @@ query1 " +
+            " UNION " +
+            " SELECT id, facility_id, ts_headline(" + SmallMoleculeTable.snippet_def + """, query2, 'MaxFragments=10, MinWords=1, MaxWords=20, FragmentDelimiter=" | "') as snippet, """ +
+            " ts_rank_cd(search_vector, query2, 32) AS rank, 'sm_detail' as type FROM example_smallmolecule, to_tsquery(%s) as query2 WHERE search_vector @@ query2 " +
+            " UNION " +
+            " SELECT id, facility_id, ts_headline(" + DataSetTable.snippet_def + """, query3, 'MaxFragments=10, MinWords=1, MaxWords=20, FragmentDelimiter=" | "') as snippet, """ +
+            " ts_rank_cd(search_vector, query3, 32) AS rank, 'screen_detail' as type FROM example_screen, to_tsquery(%s) as query3 WHERE search_vector @@ query3 " +
+            " ORDER by rank DESC;", [queryString + ":*", queryString + ":*", queryString + ":*"])
+        return dictfetchall(cursor)
+
+class SiteSearchTable(tables.Table):
+    id = tables.Column(visible=False)
+    #Note: using the expediency here: the "type" column holds the subdirectory for that to make the link for type, so "sm", "cell", etc., becomes "/example/sm", "/example/cell", etc.
+    facility_id = tables.LinkColumn(A('type'), args=[A('id')])  
+    type = TypeColumn()
+    rank = tables.Column()
+    snippet = SnippetColumn()
+    class Meta:
+        orderable = True
+        attrs = {'class': 'paleblue'}
+        exclude = {'rank'}
+
+class DataSetTable(tables.Table):
+    id = tables.Column(visible=False)
+    facility_id = tables.LinkColumn("screen_detail", args=[A('pk')])
+    protocol = tables.Column(visible=False) 
+    references = tables.Column(visible=False)
+    rank = tables.Column()
+    snippet = SnippetColumn()
+#    snippet_def = ("coalesce(facility_id,'') || ' ' || coalesce(title,'') || ' ' || coalesce(summary,'') || ' ' || coalesce(lead_screener_firstname,'') || ' ' || coalesce(lead_screener_lastname,'')|| ' ' || coalesce(lead_screener_email,'') || ' ' || "  +           
+#                   "coalesce(lab_head_firstname,'') || ' ' || coalesce(lab_head_lastname,'')|| ' ' || coalesce(lab_head_email,'')")
+    snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce("+x.name+",'') ", get_text_fields(DataSet))))
+    class Meta:
+        model = DataSet
+        orderable = True
+        attrs = {'class': 'paleblue'}
+        exclude = ('id') 
+
+class DataSetForm(ModelForm):
+    class Meta:
+        model = DataSet  
+        
+class DataSetResultSearchManager(models.Manager):
+    
+    def search(self, queryString ): # TODO: pass the parameters for the SQL as well
+        cursor = connection.cursor()
+        print "queryString: ", queryString
+        cursor.execute(queryString)
+
+        return dictfetchall(cursor)
+  
+TEMPLATE = '''
+   <a href="#" onclick='window.open("https://lincs-omero.hms.harvard.edu/webclient/img_detail/{{ record.%s }}", "test","height=700,width=800")' >{{ record.%s }}</a>
+'''
+            
+class DataSetResultTable(tables.Table):
+    id = tables.Column(visible=False)
+    facility_id = tables.LinkColumn('sm_detail', args=[A('small_molecule_id')]) 
+    cell_name = tables.LinkColumn('cell_detail',args=[A('cell_id')], visible=False)
+    
+    def __init__(self, queryset, names, orderedNames, show_cells, *args, **kwargs):
+        super(DataSetResultTable, self).__init__(queryset, names, *args, **kwargs)
+        # print "queryset: ", queryset , " , names: " , names, ", args: " , args
+        for name,verbose_name in names.items():
+        #    if name in omeroColumnNames:  #TODO: all the columns are currently in omeroColumnNames, figure out a way to not have them here if there's no omero well_id for that column
+        #        self.base_columns[name] = tables.TemplateColumn(TEMPLATE % (omeroColumnNames[name],name), verbose_name=verbose_name)
+        #    else:
+            self.base_columns[name] = tables.Column(verbose_name=verbose_name)
+        self.sequence = orderedNames
+        if(show_cells):
+            print '=====show cells!'
+            self.base_columns['cell_name'].visible = True
+        
+    class Meta:
+        orderable = True
+        attrs = {'class': 'paleblue'}
 
 def dictfetchall(cursor):
     "Returns all rows from a cursor as a dict"
@@ -317,3 +447,48 @@ def dictfetchall(cursor):
     return [
         dict(zip([col[0] for col in desc], row)) for row in cursor.fetchall()
     ]
+
+import csv
+import xlwt
+
+from django.http import HttpResponse
+
+def export_as_xls(name,columnNames, request, queryset):
+    """
+    Generic xls export admin action.
+    """
+    response = HttpResponse(mimetype='application/Excel')
+    response['Content-Disposition'] = 'attachment; filename=%s.xls' % unicode(name).replace('.', '_')
+    
+    wbk = xlwt.Workbook()
+    sheet = wbk.add_sheet('sheet 1')    # Write a first row with header information
+    for i, column in enumerate(columnNames):
+        sheet.write(0, i, columnNames[i])
+    # Write data rows
+    for row,obj in enumerate(queryset):
+        if isinstance(obj, dict):
+            vals = [obj[field] for field in columnNames]
+        else:
+            vals = [getattr(obj, field) for field in columnNames]
+        
+        for i,column in enumerate(vals):
+            sheet.write(row+1, i, column )
+    wbk.save(response)
+    return response
+
+def export_as_csv(name,columnNames, request, queryset):
+    """
+    Generic csv export admin action.
+    """
+    response = HttpResponse(mimetype='text/csv')
+    response['Content-Disposition'] = 'attachment; filename=%s.csv' % unicode(name).replace('.', '_')
+    writer = csv.writer(response)
+    # Write a first row with header information
+    writer.writerow(columnNames)
+    # Write data rows
+    for obj in queryset:
+        if isinstance(obj, dict):
+            writer.writerow([obj[field] for field in columnNames])
+        else:
+            writer.writerow([getattr(obj, field) for field in columnNames])
+    return response

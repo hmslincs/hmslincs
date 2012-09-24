@@ -2,7 +2,7 @@
 import sys
 import init_utils as iu
 
-from example.models import Cell, Screen, SmallMolecule
+from example.models import Cell, DataSet, SmallMolecule, Library
 from django.db import models
 
 # ---------------------------------------------------------------------------
@@ -22,8 +22,10 @@ def main():
     createTableIndex('example_cell', Cell)
     print '/** creating index definitions for Small Molecule **/'
     createTableIndex('example_smallmolecule', SmallMolecule)
-    print '/** creating index definitions for Screen **/'
-    createTableIndex('example_screen', Screen)
+    print '/** creating index definitions for DataSet **/'
+    createTableIndex('example_dataset', DataSet)
+    print '/** creating index definitions for Library **/'
+    createTableIndex('example_library', Library)
     print "\n"
 
 def createTableIndex(tableName, model):

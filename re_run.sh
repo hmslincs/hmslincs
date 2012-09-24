@@ -30,10 +30,13 @@ python src/populate_smallmolecule.py sampledata/HMS_LINCS-1.sdf
 check_errs $? "import sdf fails"
 
 echo 'import screen results...'
-python src/import_screen_result.py -f sampledata/moerke_2color_IA-LM.xls 
-check_errs $? "import screen result fails"
-python src/import_screen_result.py -f sampledata/tang_MitoApop2_5637.xls
-check_errs $? "import screen result fails"
+python src/import_dataset.py -f sampledata/moerke_2color_IA-LM.xls 
+check_errs $? "import dataset fails"
+python src/import_dataset.py -f sampledata/tang_MitoApop2_5637.xls
+check_errs $? "import dataset result fails"
+
+python src/import_libraries.py -f sampledata/libraries.xls
+check_errs $? "import library fails"
 
 python src/create_indexes.py | psql -Udjango django  -v ON_ERROR_STOP=1
 check_errs $? "create indexes fails"

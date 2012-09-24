@@ -1,0 +1,15 @@
+{% extends "example/base.html" %}
+{% block content %}
+<h2>Library Information</h2>
+	{% for field in object %}
+	    <li><b>{{ field.label }}:</b> {{ field.data }}</li>
+	{% endfor %}
+
+	{% if table %}
+		<p>Small Molecule Reagents</p>
+		{% load render_table from django_tables2 %}
+		{% render_table table %}
+	{% else %}
+	    <p>Library contents not defined</p>
+	{% endif %}
+{% endblock %}

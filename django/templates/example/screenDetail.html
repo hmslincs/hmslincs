@@ -1,9 +1,22 @@
 {% extends "example/base.html" %}
 {% block content %}
 <h2>Screen Information</h2>
+
+	<ul class="basictab">
+		<li class='{% selectedTag request "^/example/screens/\d+/detail$" %}'><a  href="{% url screenDetailMain %}">Detail</a></li>
+		<li class='{% selectedTag request "^/example/screens/\d+/cells$" %}'><a  href="{% url screenDetailCells %}">Cells Studied</a></li>
+		<li class='{% selectedTag request "^/example/screens/\d+/results$" %}'><a  href="{% url screenDetailResults %}">Results</a></li>
+	</ul>
+
 	{% for field in object %}
 	    <li><b>{{ field.label }}:</b> {{ field.data }}</li>
 	{% endfor %}
+	{% if cellTable %}
+<h2>Cells Studied</h2>
+		{% load render_table from django_tables2 %}
+		{% render_table cellTable %}
+	{% endif %}
+		
 	{% if table %}
 <h2>Screen Results</h2>
 		{% load render_table from django_tables2 %}

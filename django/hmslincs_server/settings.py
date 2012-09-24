@@ -148,6 +148,7 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.admindocs',
     'django_tables2', # for UI tabling
+    'tastypie', # manual says this is "not necessary, but useful"
     'example',
     # # 'south', #for schema migrations
     # # 'fts', # for full text search

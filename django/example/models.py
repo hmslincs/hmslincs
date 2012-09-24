@@ -48,53 +48,7 @@ class SmallMolecule(models.Model):
     def __unicode__(self):
         return unicode(self.facility_id)
 
-
-class Screen(models.Model):
-    facility_id             = _CHAR(max_length=35, **_NULLOKSTR)
-    title                   = _TEXT(**_NOTNULLSTR)
-    lead_screener_firstname = _TEXT(**_NOTNULLSTR)
-    lead_screener_lastname  = _TEXT(**_NOTNULLSTR)
-    lead_screener_email     = _TEXT(**_NOTNULLSTR)
-    lab_head_firstname      = _TEXT(**_NOTNULLSTR)
-    lab_head_lastname       = _TEXT(**_NOTNULLSTR)
-    lab_head_email          = _TEXT(**_NOTNULLSTR)
-    summary                 = _TEXT(**_NOTNULLSTR)
-    protocol                = _TEXT(**_NULLOKSTR)
-    protocol_references              = _TEXT(**_NULLOKSTR)
-
-    def __unicode__(self):
-        return unicode(self.facility_id)
-
-class DataColumn(models.Model):
-    screen_key              = models.ForeignKey('Screen')
-    worksheet_column        = _TEXT(**_NOTNULLSTR)
-    name                    = _TEXT(**_NOTNULLSTR)
-    data_type               = _TEXT(**_NOTNULLSTR)
-    precision               = _INTEGER(null=True)
-    description             = _TEXT(**_NULLOKSTR)
-    replicate               = _INTEGER(null=True)
-    time_point              = _TEXT(**_NULLOKSTR)
-    readout_type            = _TEXT(**_NOTNULLSTR)
-    comments                = _TEXT(**_NULLOKSTR)
-
-    def __unicode__(self):
-        return unicode(self.name)
-
-class DataRecord(models.Model):
-    screen_key              = models.ForeignKey('Screen')
-    small_molecule_key      = models.ForeignKey('SmallMolecule')
-    
-class DataPoint(models.Model):
-    data_column_key         = models.ForeignKey('DataColumn')
-    screen_key              = models.ForeignKey('Screen') # Note, Screen is being included here for convenience
-    record_key              = models.ForeignKey('DataRecord') 
-    int_value               = _INTEGER(null=True)
-    float_value             = models.FloatField(null=True)
-    text_value              = _TEXT(**_NULLOKSTR)
-    omero_well_id           = _CHAR(max_length=35, **_NULLOKSTR) # this is the plate:well id for lookup on the omero system (NOTE:may need multiple of these)
-    
 class Cell(models.Model):
-
     # ----------------------------------------------------------------------------------------------------------------------
     #                                                                          EXAMPLE VALUES:
     # ----------------------------------------------------------------------------------------------------------------------
@@ -181,6 +135,84 @@ class Protein(models.Model):
     def __unicode__(self):
         return unicode(self.lincs_id)
 
+class DataSet(models.Model):
+    #cells                   = models.ManyToManyField(Cell, verbose_name="Cells screened")
+    facility_id             = _CHAR(max_length=35, **_NOTNULLSTR)
+    title                   = _TEXT(**_NOTNULLSTR)
+    lead_screener_firstname = _TEXT(**_NULLOKSTR)
+    lead_screener_lastname  = _TEXT(**_NULLOKSTR)
+    lead_screener_email     = _TEXT(**_NULLOKSTR)
+    lab_head_firstname      = _TEXT(**_NULLOKSTR)
+    lab_head_lastname       = _TEXT(**_NULLOKSTR)
+    lab_head_email          = _TEXT(**_NULLOKSTR)
+    summary                 = _TEXT(**_NOTNULLSTR)
+    protocol                = _TEXT(**_NULLOKSTR)
+    protocol_references              = _TEXT(**_NULLOKSTR)
+
+    def __unicode__(self):
+        return unicode(self.facility_id)
+
+class Library(models.Model):
+    name                    = _TEXT(**_NOTNULLSTR)
+    short_name              = _CHAR(max_length=35, **_NOTNULLSTR)
+    date_first_plated       = models.DateField(null=True,blank=True)
+    date_data_received      = models.DateField(null=True,blank=True)
+    date_loaded             = models.DateField(null=True,blank=True)
+    date_publicly_available = models.DateField(null=True,blank=True)
+
+    def __unicode__(self):
+        return unicode(self.short_name)
+    
+CONCENTRATION_NM = 'nM'
+CONCENTRATION_UM = 'uM'
+CONCENTRATION_MM = 'mM'    
+CONCENTRATION_CHOICES = ((CONCENTRATION_NM,'nM'),
+                         (CONCENTRATION_UM,'uM'),
+                         (CONCENTRATION_MM,'mM'))
+class LibraryMapping(models.Model):
+    library                 = models.ForeignKey('Library')
+    small_molecule          = models.ForeignKey('SmallMolecule')
+    plate                   = _INTEGER(null=True)
+    well                    = _CHAR(max_length=4, **_NULLOKSTR) # AA99
+    concentration           = models.DecimalField(max_digits=4, decimal_places=2)
+    concentration_unit      = models.CharField(max_length=2,
+                                      choices=CONCENTRATION_CHOICES,
+                                      default=CONCENTRATION_UM)
+    
+class DataColumn(models.Model):
+    dataset                 = models.ForeignKey('DataSet')
+    worksheet_column        = _TEXT(**_NOTNULLSTR)
+    name                    = _TEXT(**_NOTNULLSTR)
+    data_type               = _TEXT(**_NOTNULLSTR)
+    precision               = _INTEGER(null=True)
+    description             = _TEXT(**_NULLOKSTR)
+    replicate               = _INTEGER(null=True)
+    time_point              = _TEXT(**_NULLOKSTR)
+    readout_type            = _TEXT(**_NOTNULLSTR)
+    comments                = _TEXT(**_NULLOKSTR)
+
+    def __unicode__(self):
+        return unicode(self.name)
+
+class DataRecord(models.Model):
+    dataset                 = models.ForeignKey('DataSet')
+    small_molecule          = models.ForeignKey('SmallMolecule', null=True)
+    cell                    = models.ForeignKey('Cell', null=True)
+    protein                 = models.ForeignKey('Protein', null=True)
+    plate                   = _INTEGER(null=True)
+    well                    = _CHAR(max_length=4, **_NULLOKSTR) # AA99
+    control_type            = _CHAR(max_length=35, **_NULLOKSTR) # TODO: controlled vocabulary
+    
+class DataPoint(models.Model):
+    datacolumn              = models.ForeignKey('DataColumn')
+    dataset                 = models.ForeignKey('DataSet') # TODO: are we using this? Note, Screen is being included here for convenience
+    datarecord              = models.ForeignKey('DataRecord') 
+    int_value               = _INTEGER(null=True)
+    float_value             = models.FloatField(null=True)
+    text_value              = _TEXT(**_NULLOKSTR)
+    omero_well_id           = _CHAR(max_length=35, **_NULLOKSTR) # this is the plate:well id for lookup on the omero system (NOTE:may need multiple of these)
+class Meta:
+    unique_together = ('datacolumn', 'datarecord',)    
 
 
 

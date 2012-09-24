@@ -13,13 +13,13 @@
 
 	<ul class="basictab">
 		<li class='{% selectedTag request "^/example/$" %}'><a  href="{% url home %}">Home</a></li>
+		<li class='{% selectedTag request "^/example/libraries/" %}'><a " href="{% url listLibraries %}">Libraries</a></li>
 		<li class='{% selectedTag request "^/example/sm/" %}'><a  href="{% url listSmallMolecules %}">Small Molecules</a></li>
 		<li class='{% selectedTag request "^/example/cells/" %}'><a " href="{% url listCells %}">Cells</a></li>
 		<li class='{% selectedTag request "^/example/screens/" %}'><a " href="{% url listScreens %}">Screens</a></li>
 	</ul>
 
-		<div id="content">
-		    {% block content %}{% endblock %}
-		</div>
+	<div id="content">
+	    {% block content %}{% endblock %}
 	</div>
 </body>

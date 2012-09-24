@@ -1,0 +1,10 @@
+{% extends "example/screenDetailBase.html" %}
+{% block screenContent %}
+	{% if table %}
+		{% load render_table from django_tables2 %}
+		{% render_table table %}
+	{% else %}
+	    <p>Screen Result not loaded.</p>
+	{% endif %}
+{% endblock %}
+	

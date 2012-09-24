@@ -19,7 +19,7 @@ padding: 3px 7px;
 margin-right: 3px;
 border: 1px solid gray;
 border-bottom: none;
-background-color: #f6ffd5;
+background-color: #81DAF5;
 color: #2d2b2b;
 }
 
@@ -28,7 +28,7 @@ color: #2d2b2b;
 }
 
 .basictab li a:hover{
-background-color: #DBFF6C;
+background-color: #0174DF;
 color: black;
 }
 
@@ -40,6 +40,6 @@ color: black;
 position: relative;
 top: 1px;
 padding-top: 4px;
-background-color: #DBFF6C;
+background-color: #0174DF;
 color: black;
 }
