@@ -2,7 +2,7 @@
 import sys
 import init_utils as iu
 
-from example.models import Cell, DataSet, SmallMolecule, Library
+from example.models import Cell, DataSet, SmallMolecule, Library, Protein
 from django.db import models
 
 # ---------------------------------------------------------------------------
@@ -26,6 +26,8 @@ def main():
     createTableIndex('example_dataset', DataSet)
     print '/** creating index definitions for Library **/'
     createTableIndex('example_library', Library)
+    print '/** creating index definitions for Protein **/'
+    createTableIndex('example_library', Protein)
     print "\n"
 
 def createTableIndex(tableName, model):
