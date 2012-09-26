@@ -9,12 +9,14 @@ from django.forms import ModelForm
 from django.http import Http404
 from django.utils.safestring import mark_safe
 
+from logging import Logger
+
 #from django.template import RequestContext
 import django_tables2 as tables
 from django_tables2 import RequestConfig
 from django_tables2.utils import A  # alias for Accessor
 
-from example.models import SmallMolecule, Cell, DataSet, Library
+from example.models import SmallMolecule, Cell, Protein, DataSet, Library
 # --------------- View Functions -----------------------------------------------
     
 def main(request):
@@ -66,6 +68,40 @@ def cellDetail(request, cell_id):
         raise Http404
     return render(request, 'example/cellDetail.html', {'object': CellForm(data=model_to_dict(cell))})
 
+# TODO REFACTOR, DRY... 
+def proteinIndex(request):
+    search = request.GET.get('search','')
+    if(search != ''):
+        print("s: %s" % search)
+        queryset = Protein.objects.extra(
+            select={
+                'snippet': "ts_headline(" + ProteinTable.snippet_def + ", plainto_tsquery(%s))",
+                'rank': "ts_rank_cd(search_vector, plainto_tsquery(%s), 32)",
+                },
+            where=["search_vector @@ plainto_tsquery(%s)"],
+            params=[search],
+            select_params=[search,search],
+            order_by=('-rank',)
+            )        
+        print("found: %s" % ProteinTable.snippet_def)
+    else:
+        queryset = Protein.objects.all().order_by('lincs_id')
+    table = ProteinTable(queryset)
+
+    outputType = request.GET.get('output_type','')
+    if(outputType != ''):
+        return send_to_file(outputType, 'proteins', table, queryset, request )
+    
+    RequestConfig(request, paginate={"per_page": 25}).configure(table)
+    return render(request, 'example/listIndex.html', {'table': table, 'search':search })
+    
+def proteinDetail(request, protein_id):
+    try:
+        protein = Protein.objects.get(pk=protein_id) # todo: cell here
+    except Protein.DoesNotExist:
+        raise Http404
+    return render(request, 'example/proteinDetail.html', {'object': ProteinForm(data=model_to_dict(protein))})
+
 def smallMoleculeIndex(request):
     search = request.GET.get('search','')
     queryset = SmallMoleculeSearchManager().search(search);
@@ -107,7 +143,10 @@ def libraryDetail(request, library_id):
     return render(request,'example/libraryDetail.html', {'object': LibraryForm(data=model_to_dict(library)),
                                                          'table': table})
 
-def screenIndex(request):
+def studyIndex(request):
+    return screenIndex(request, '3')
+
+def screenIndex(request, facility_id_filter='1'):
     search = request.GET.get('search','')
     if(search != ''):
         print("s: %s" % search)
@@ -116,15 +155,17 @@ def screenIndex(request):
                 'snippet': "ts_headline(" + DataSetTable.snippet_def + ", plainto_tsquery(%s) )",
                 'rank': "ts_rank_cd(search_vector, plainto_tsquery(%s), 32)",
                 },
-            where=["search_vector @@ plainto_tsquery(%s)"],
-            params=[search],
+            where=["search_vector @@ plainto_tsquery(%s)", "facility_id  like '%s%%'"], # TODO: purge 'HMSL'
+            params=[search, facility_id_filter],
             select_params=[search,search],
             order_by=('-rank',)
             )        
-        print("found: %s" % queryset)
+        print 'queryset: ', queryset
     else:
-        queryset = DataSet.objects.all().order_by('facility_id')
-    table = DataSetTable(queryset)
+        queryset = DataSet.objects.all().order_by('facility_id').filter(facility_id__startswith=facility_id_filter)
+    print 'queryset size: ' + str(len(queryset))
+    if(facility_id_filter=='3'): table = DataSetTable(queryset,'study') # TODO: get rid of the magic value "3" for 300000 series == studies
+    else: table = DataSetTable(queryset)
     
     outputType = request.GET.get('output_type','')
     if(outputType != ''):
@@ -143,12 +184,55 @@ def send_to_file(outputType, name, table, queryset, request):
         return export_as_xls(name, columns, request, queryset)
  
 # Follows is a messy way to differentiate each tab for the screen detail page (each tab calls it's respective method)
+detail_pages_study = { 'main':'study_detail_main',
+                       'cells':'study_detail_cells',
+                       'proteins':'study_detail_proteins',
+                       'results':'study_detain_results'}
+detail_pages_screen = {'main':'screen_detail_main',
+                       'cells':'screen_detail_cells',
+                       'proteins':'screen_detail_proteins',
+                       'results':'screen_detain_results'}
+def studyDetailMain(request, screen_id):
+    details = screenDetail(request,screen_id)
+    details.setdefault('type','main')
+    details.setdefault('sub_pages',detail_pages_study)
+    return render(request,'example/screenDetailMain.html', details)
+def studyDetailCells(request, screen_id):
+    details = screenDetail(request,screen_id)
+    details.setdefault('type','cells')
+    details.setdefault('sub_pages',detail_pages_study)
+    return render(request,'example/screenDetailCells.html', details)
+def studyDetailProteins(request, screen_id):
+    details = screenDetail(request,screen_id)
+    details.setdefault('type','proteins')
+    details.setdefault('sub_pages',detail_pages_study)
+    return render(request,'example/screenDetailProteins.html', details)
+def studyDetailResults(request, screen_id):
+    details = screenDetail(request,screen_id)
+    details.setdefault('type','results')
+    details.setdefault('sub_pages',detail_pages_study)
+    return render(request,'example/screenDetailResults.html', details)
+# Follows is a messy way to differentiate each tab for the screen detail page (each tab calls it's respective method)
 def screenDetailMain(request, screen_id):
-    return render(request,'example/screenDetailMain.html', screenDetail(request,screen_id))
+    details = screenDetail(request,screen_id)
+    details.setdefault('type','main')
+    details.setdefault('sub_pages',detail_pages_screen)
+    return render(request,'example/screenDetailMain.html', details )
 def screenDetailCells(request, screen_id):
-    return render(request,'example/screenDetailCells.html', screenDetail(request,screen_id))
+    details = screenDetail(request,screen_id)
+    details.setdefault('type','cells')
+    details.setdefault('sub_pages',detail_pages_screen)
+    return render(request,'example/screenDetailCells.html', details)
+def screenDetailProteins(request, screen_id):
+    details = screenDetail(request,screen_id)
+    details.setdefault('type','proteins')
+    details.setdefault('sub_pages',detail_pages_screen)
+    return render(request,'example/screenDetailProteins.html', details)
 def screenDetailResults(request, screen_id):
-    return render(request,'example/screenDetailResults.html', screenDetail(request,screen_id))
+    details = screenDetail(request,screen_id)
+    details.setdefault('type','results')
+    details.setdefault('sub_pages',detail_pages_screen)
+    return render(request,'example/screenDetailResults.html', details)
 def screenDetail(request, screen_id):
     try:
         dataset = DataSet.objects.get(pk=screen_id)
@@ -157,7 +241,11 @@ def screenDetail(request, screen_id):
 
     cell_queryset = cells_for_dataset(screen_id)
     cellTable = CellTable(cell_queryset)
-    show_cells=len(cell_queryset)>0
+    show_cells=len(cell_queryset)>0  # TODO pass in show_cells!
+
+    protein_queryset = proteins_for_dataset(screen_id)
+    proteinTable = ProteinTable(protein_queryset)
+    show_proteins=len(protein_queryset)>0 # TODO pass in show_proteins!
 
     # TODO: are the screen results gonna be searchable? (no, not for now, but if so, we would look at the search string here)
     # search = request.GET.get('search','')
@@ -175,6 +263,7 @@ def screenDetail(request, screen_id):
     #        where dp0.screen_id = 1 order by datarecord_id;
     queryString = "select distinct (datarecord_id), small_molecule_id, sm.facility_id || '-' || sm.sm_salt as facility_id "
     if(show_cells): queryString += ", cell_id, cell.cl_name as cell_name " 
+    if(show_proteins): queryString += ", protein_id, protein.name as protein_name " 
     i = 0
     names = {}
     orderedNames = ['facility_id']
@@ -199,12 +288,15 @@ def screenDetail(request, screen_id):
     if(show_cells): 
         queryString += " join example_cell cell on(cell.id=dr.cell_id) "
         orderedNames.insert(1,'cell_name')
+    if(show_proteins): 
+        queryString += " join example_protein protein on(protein.id=dr.protein_id) "
+        orderedNames.insert(1,'protein_name')
     queryString += " where dp0.dataset_id = " + str(screen_id) + " order by datarecord_id"
     orderedNames.append('...')
     
 
     queryset = DataSetResultSearchManager().search(queryString);
-    table = DataSetResultTable(queryset, names, orderedNames, show_cells)
+    table = DataSetResultTable(queryset, names, orderedNames, show_cells, show_proteins)
     
     
 #    return render(request,'example/screenDetailMain.html', {'object': ScreenForm(data=model_to_dict(screen)),
@@ -212,15 +304,25 @@ def screenDetail(request, screen_id):
 #                                                        'cellTable': cellTable,
 #                                                        'screenId': screen.id})
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
+    RequestConfig(request, paginate={"per_page": 25}).configure(cellTable)
+    RequestConfig(request, paginate={"per_page": 25}).configure(proteinTable)
     return {'object': DataSetForm(data=model_to_dict(dataset)),
            'table': table,
            'cellTable': cellTable,
+           'proteinTable': proteinTable,
            'screenId': dataset.id}
+    
 #---------------Supporting classes and functions--------------------------------
 
 def cells_for_dataset(dataset_id):
     cursor = connection.cursor()
     sql = 'select cell.* from example_cell cell where cell.id in (select distinct(cell_id) from example_datarecord dr where dr.dataset_id=%s) order by cell.cl_name'
+    cursor.execute(sql, [dataset_id])
+    return dictfetchall(cursor)
+
+def proteins_for_dataset(dataset_id):
+    cursor = connection.cursor()
+    sql = 'select protein.* from example_protein protein where protein.id in (select distinct(protein_id) from example_datarecord dr where dr.dataset_id=%s) order by protein.name'
     cursor.execute(sql, [dataset_id])
     return dictfetchall(cursor)
 
@@ -233,6 +335,7 @@ class TypeColumn(tables.Column):
         if value == "cell_detail": return "Cell"
         elif value == "sm_detail": return "Small Molecule"
         elif value == "screen_detail": return "Screen"
+        elif value == "protein_detail": return "Protein"
         else: raise Exception("Unknown type: "+value)
         
 
@@ -312,7 +415,23 @@ class CellTable(tables.Table):
         
 class CellForm(ModelForm):
     class Meta:
-        model = Cell        
+        model = Cell  
+        
+class ProteinTable(tables.Table):
+    lincs_id = tables.LinkColumn("protein_detail", args=[A('id')])
+    rank = tables.Column()
+    snippet = SnippetColumn()
+    snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce("+x.name+",'') ", get_text_fields(Protein))))
+    class Meta:
+        model = Protein
+        orderable = True
+        attrs = {'class': 'paleblue'}
+        sequence = ('lincs_id', '...')
+        exclude = ('id')
+        
+class ProteinForm(ModelForm):
+    class Meta:
+        model = Protein        
         
 class LibrarySearchManager(models.Manager):
     
@@ -370,8 +489,11 @@ class SiteSearchManager(models.Manager):
             " ts_rank_cd(search_vector, query2, 32) AS rank, 'sm_detail' as type FROM example_smallmolecule, to_tsquery(%s) as query2 WHERE search_vector @@ query2 " +
             " UNION " +
             " SELECT id, facility_id, ts_headline(" + DataSetTable.snippet_def + """, query3, 'MaxFragments=10, MinWords=1, MaxWords=20, FragmentDelimiter=" | "') as snippet, """ +
-            " ts_rank_cd(search_vector, query3, 32) AS rank, 'screen_detail' as type FROM example_screen, to_tsquery(%s) as query3 WHERE search_vector @@ query3 " +
-            " ORDER by rank DESC;", [queryString + ":*", queryString + ":*", queryString + ":*"])
+            " ts_rank_cd(search_vector, query3, 32) AS rank, 'screen_detail' as type FROM example_dataset, to_tsquery(%s) as query3 WHERE search_vector @@ query3 " +
+            " UNION " +
+            " SELECT id, lincs_id::text as facility_id, ts_headline(" + ProteinTable.snippet_def + """, query4, 'MaxFragments=10, MinWords=1, MaxWords=20, FragmentDelimiter=" | "') as snippet, """ +
+            " ts_rank_cd(search_vector, query4, 32) AS rank, 'protein_detail' as type FROM example_protein, to_tsquery(%s) as query4 WHERE search_vector @@ query4 " +
+            " ORDER by rank DESC;", [queryString + ":*", queryString + ":*", queryString + ":*", queryString + ":*"])
         return dictfetchall(cursor)
 
 class SiteSearchTable(tables.Table):
@@ -402,6 +524,12 @@ class DataSetTable(tables.Table):
         attrs = {'class': 'paleblue'}
         exclude = ('id') 
 
+    def __init__(self, table, dataset_type='screen'):
+        super(DataSetTable, self).__init__(table)
+        print 'dataset_type: ', dataset_type
+        if(dataset_type=='study'):
+            self.base_columns['facility_id'] = tables.LinkColumn("study_detail", args=[A('pk')])
+
 class DataSetForm(ModelForm):
     class Meta:
         model = DataSet  
@@ -423,8 +551,9 @@ class DataSetResultTable(tables.Table):
     id = tables.Column(visible=False)
     facility_id = tables.LinkColumn('sm_detail', args=[A('small_molecule_id')]) 
     cell_name = tables.LinkColumn('cell_detail',args=[A('cell_id')], visible=False)
+    protein_name = tables.LinkColumn('protein_detail',args=[A('protein_id')], visible=False)
     
-    def __init__(self, queryset, names, orderedNames, show_cells, *args, **kwargs):
+    def __init__(self, queryset, names, orderedNames, show_cells, show_proteins, *args, **kwargs):
         super(DataSetResultTable, self).__init__(queryset, names, *args, **kwargs)
         # print "queryset: ", queryset , " , names: " , names, ", args: " , args
         for name,verbose_name in names.items():
@@ -436,6 +565,9 @@ class DataSetResultTable(tables.Table):
         if(show_cells):
             print '=====show cells!'
             self.base_columns['cell_name'].visible = True
+        if(show_proteins):
+            print '=====show proteins!'
+            self.base_columns['protein_name'].visible = True
         
     class Meta:
         orderable = True

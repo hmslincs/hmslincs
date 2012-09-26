@@ -9,7 +9,7 @@
 	</ul>
 
 	{% for field in object %}
-	    <li><b>{{ field.label }}:</b> {{ field.data }}</li>
+	    <li><b>{{ field.label }}:</b> {{ field.data|safe }}</li>
 	{% endfor %}
 	{% if cellTable %}
 <h2>Cells Studied</h2>

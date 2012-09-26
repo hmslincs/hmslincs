@@ -186,7 +186,7 @@ def main(path):
                 value = util.convertdata(r[map_column].strip())
                 if(value != None and value != '' ):
                     facility_id = r[map_column]
-                    dataRecord.protein = Protein.objects.get(lincs_id=facility_id)
+                    dataRecord.protein = Protein.objects.get(lincs_id=facility_id[facility_id.index('HMSL')+4:]) #TODO: purge "HMSL"
                     mapped = True
             except Exception, e:
                 print "Invalid Protein facility id: ", value
@@ -195,9 +195,9 @@ def main(path):
         if(not mapped):
             raise Exception('at least one of: ' + str(mappingColumnDict.keys()) + ' must be defined, missing for row: ' + str(rowsRead+2))
                 
-        dataRecord.plate = util.convertdata(r[metaColumnDict['Plate']],int)
-        dataRecord.well = util.convertdata(r[metaColumnDict['Well']])
-        dataRecord.control_type = util.convertdata(r[metaColumnDict['Control Type']])
+        if metaColumnDict['Plate'] > -1 : dataRecord.plate = util.convertdata(r[metaColumnDict['Plate']],int)
+        if metaColumnDict['Well'] > -1 : dataRecord.well = util.convertdata(r[metaColumnDict['Well']])
+        if metaColumnDict['Control Type'] > -1: dataRecord.control_type = util.convertdata(r[metaColumnDict['Control Type']])
         dataRecord.save()
         for i,value in enumerate(r):
             # NOTE: shall there be an "empty" datapoint? no, since non-existance of data in the worksheet does not mean "null" will mean "no value entered"

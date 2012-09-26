@@ -1,5 +1,4 @@
 #!/bin/bash
-# note: if using virtualenv, set that up before running this script
 
 check_errs()
 {
@@ -12,11 +11,11 @@ check_errs()
 }
 
 
-dropdb -U django django 
+#/home/sde4/sql/drop-all.pl devlincs
+./generate_drop_all.sh devlincsweb devlincs dev.pgsql.orchestra | psql -Udevlincsweb devlincs -h dev.pgsql.orchestra 
 check_errs $? "dropdb fails"
 
-createdb -Udjango -T django_init django
-check_errs $? "createdb fails"
+source /www/dev.lincs.hms.harvard.edu/support/virtualenv/bin/activate
 
 django/manage.py syncdb
 check_errs $? "syncdb fails"
@@ -29,22 +28,14 @@ echo 'import small molecule...'
 python src/populate_smallmolecule.py sampledata/HMS_LINCS-1.sdf
 check_errs $? "import sdf fails"
 
-python src/import_libraries.py -f sampledata/libraries.xls
-check_errs $? "import library fails"
-
-echo 'import kinases...'
-python src/import_protein.py -f sampledata/HMS-LINCS_KinaseReagents_MetaData_20120906_DRAFT.xls
-check_errs $? 'import kinases fails'
-
 echo 'import screen results...'
 python src/import_dataset.py -f sampledata/moerke_2color_IA-LM.xls 
 check_errs $? "import dataset fails"
 python src/import_dataset.py -f sampledata/tang_MitoApop2_5637.xls
 check_errs $? "import dataset result fails"
 
-echo 'import studies'
-python ./src/import_dataset.py -f sampledata/Study300002_HMSL10008_sorafenib_ambit.xls
-check_errs $? "import study dataset fails"
+python src/import_libraries.py -f sampledata/libraries.xls
+check_errs $? "import library fails"
 
-python src/create_indexes.py | psql -Udjango django  -v ON_ERROR_STOP=1
-check_errs $? "create indexes fails"
+python src/create_indexes.py | psql -U devlincsweb devlincs -h dev.pgsql.orchestra -v ON_ERROR_STOP=1
+#check_errs $? "create indexes fails"

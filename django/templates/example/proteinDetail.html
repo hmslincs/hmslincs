@@ -1,5 +1,6 @@
-{% extends "example/screenDetailBase.html" %}
-{% block screenContent %}
+{% extends "example/base.html" %}
+{% block content %}
+<h2>Protein Information</h2>
 	{% for field in object %}
 	    <li><b>{{ field.label }}:</b> {{ field.data|safe }}</li>
 	{% endfor %}

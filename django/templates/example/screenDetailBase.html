@@ -3,9 +3,10 @@
 {% block content %}
 <h2>Screen {{ object.facility_id.value }} - {{ object.title.value }}</h2>
 	<ul class="basictab">
-		<li class='{% selectedTag request "^/example/screens/\d+/main$"%}{%selectedTag request "^/example/screens/\d+/$" %}'><a  href="{% url screen_detail_main screen_id=screenId%}">Detail</a></li>
-		<li class='{% selectedTag request "^/example/screens/\d+/cells$" %}'><a  href="{% url screen_detail_cells  screen_id=screenId%}">Cells Studied</a></li>
-		<li class='{% selectedTag request "^/example/screens/\d+/results$" %}'><a  href="{% url screen_detail_results screen_id=screenId%}">Results</a></li>
+		<li class='{% if type == "main" %}selected{% endif %}'><a  href="{% url screen_detail_main screen_id=screenId%}">Detail</a></li>
+		<li class='{% if type == "cells" %}selected{% endif %}'><a  href="{% url screen_detail_cells  screen_id=screenId%}">Cells Studied</a></li>
+		<li class='{% if type == "proteins" %}selected{% endif %}'><a  href="{% url screen_detail_proteins  screen_id=screenId%}">Proteins Studied</a></li>
+		<li class='{% if type == "results" %}selected{% endif %}'><a  href="{% url screen_detail_results screen_id=screenId%}">Results</a></li>
 	</ul>
 	<div id="screencontent">
 	    {% block screenContent %}{% endblock %}

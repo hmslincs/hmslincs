@@ -29,9 +29,9 @@ def main():
     print "\n"
 
 def createTableIndex(tableName, model):
-    print 'alter table ', tableName, ' drop column if exists search_vector;'
+    #print 'alter table ', tableName, ' drop column search_vector;'
     print 'alter table ', tableName, ' add column search_vector tsvector;' 
-    print 'drop trigger if exists tsvectorupdate on ', tableName, ';'   
+    #print 'drop trigger tsvectorupdate on ', tableName, ';'   
     createTableIndexTrigger(tableName, model)
     createTableIndexUpdate(tableName, model)
     print 'create index ', tableName +'_index on ', tableName, ' using gin(search_vector);'
