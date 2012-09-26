@@ -27,7 +27,7 @@ def main():
     print '/** creating index definitions for Library **/'
     createTableIndex('example_library', Library)
     print '/** creating index definitions for Protein **/'
-    createTableIndex('example_library', Protein)
+    createTableIndex('example_protein', Protein)
     print "\n"
 
 def createTableIndex(tableName, model):
