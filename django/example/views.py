@@ -420,11 +420,11 @@ class LibrarySearchManager(models.Manager):
     def search(self, query_string):
         query_string = query_string.strip()
         cursor = connection.cursor()
-        sql = ( "SELECT count(well) as well_count , max(plate)-min(plate)+ 1 as plate_count, library.* " + 
+        sql = ( "select a.*, library.* from ( SELECT count(well) as well_count , max(plate)-min(plate)+ 1 as plate_count, library.id " + 
             " from example_library library left join example_librarymapping on(library_id=library.id) ")
         if(query_string != '' ):
             sql += ", to_tsquery(%s) as query  where library.search_vector @@ query " 
-        sql += " group by library.id"
+        sql += " group by library.id) a join example_library library on(a.id=library.id)"
         
         # TODO: the way we are separating query_string out here is a kludge
         if(query_string != ''):
