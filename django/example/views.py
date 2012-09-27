@@ -9,7 +9,7 @@ from django.forms import ModelForm
 from django.http import Http404
 from django.utils.safestring import mark_safe
 
-from logging import Logger
+import logging
 
 #from django.template import RequestContext
 import django_tables2 as tables
@@ -18,7 +18,9 @@ from django_tables2.utils import A  # alias for Accessor
 
 from example.models import SmallMolecule, Cell, Protein, DataSet, Library
 # --------------- View Functions -----------------------------------------------
-    
+
+logger = logging.getLogger('view_log')
+
 def main(request):
     search = request.GET.get('search','')
     if(search != ''):
@@ -32,7 +34,7 @@ def main(request):
 def cellIndex(request):
     search = request.GET.get('search','')
     if(search != ''):
-        print("s: %s" % search)
+        logger.info("s: %s" % search)
 # basic postgres fulltext search        
 #        queryset = Cell.objects.extra(
 #            where=['search_vector @@ plainto_tsquery(%s)'], 
@@ -49,7 +51,7 @@ def cellIndex(request):
             select_params=[search,search],
             order_by=('-rank',)
             )        
-        print("found: %s" % CellTable.snippet_def)
+        logger.info("found: %s" % CellTable.snippet_def)
     else:
         queryset = Cell.objects.all().order_by('facility_id')
     table = CellTable(queryset)
@@ -72,7 +74,7 @@ def cellDetail(request, cell_id):
 def proteinIndex(request):
     search = request.GET.get('search','')
     if(search != ''):
-        print("s: %s" % search)
+        logger.info("s: %s" % search)
         queryset = Protein.objects.extra(
             select={
                 'snippet': "ts_headline(" + ProteinTable.snippet_def + ", plainto_tsquery(%s))",
@@ -83,7 +85,7 @@ def proteinIndex(request):
             select_params=[search,search],
             order_by=('-rank',)
             )        
-        print("found: %s" % ProteinTable.snippet_def)
+        logger.info("found: %s" % ProteinTable.snippet_def)
     else:
         queryset = Protein.objects.all().order_by('lincs_id')
     table = ProteinTable(queryset)
@@ -149,7 +151,7 @@ def studyIndex(request):
 def screenIndex(request, facility_id_filter='1'):
     search = request.GET.get('search','')
     if(search != ''):
-        print("s: %s" % search)
+        logger.info("s: %s" % search)
         queryset = DataSet.objects.extra(
             select={
                 'snippet': "ts_headline(" + DataSetTable.snippet_def + ", plainto_tsquery(%s) )",
@@ -160,10 +162,10 @@ def screenIndex(request, facility_id_filter='1'):
             select_params=[search,search],
             order_by=('-rank',)
             )        
-        print 'queryset: ', queryset
+        #logger.info( 'queryset: ' queryset
     else:
         queryset = DataSet.objects.all().order_by('facility_id').filter(facility_id__startswith=facility_id_filter)
-    print 'queryset size: ' + str(len(queryset))
+    #print 'queryset size: ' + str(len(queryset))
     #if(facility_id_filter=='3'): table = DataSetTable(queryset,'study') # TODO: get rid of the magic value "3" for 300000 series == studies
     table = DataSetTable(queryset)
     
@@ -181,7 +183,7 @@ def screenIndex(request, facility_id_filter='1'):
 
 def send_to_file(outputType, name, table, queryset, request):
     columns = map(lambda (x,y): x, filter(lambda (x,y): x != 'rank' and x!= 'snippet' and y.visible, table.base_columns.items()))
-    print 'return as ', outputType, ", columns: ", columns 
+    #print 'return as ', outputType, ", columns: ", columns 
 
     if(outputType == 'csv'):
         return export_as_csv(name,columns , request, queryset)
@@ -430,7 +432,7 @@ class LibrarySearchManager(models.Manager):
         else:
             cursor.execute(sql)
         v = dictfetchall(cursor)
-        print 'dict: ', v, ', query: ', query_string
+        #print 'dict: ', v, ', query: ', query_string
         return v
     
 class LibraryTable(tables.Table):
@@ -515,7 +517,7 @@ class DataSetResultSearchManager(models.Manager):
     
     def search(self, queryString ): # TODO: pass the parameters for the SQL as well
         cursor = connection.cursor()
-        print "queryString: ", queryString
+        logger.info( "queryString: "+ queryString)
         cursor.execute(queryString)
 
         return dictfetchall(cursor)
@@ -540,10 +542,8 @@ class DataSetResultTable(tables.Table):
             self.base_columns[name] = tables.Column(verbose_name=verbose_name)
         self.sequence = orderedNames
         if(show_cells):
-            print '=====show cells!'
             self.base_columns['cell_name'].visible = True
         if(show_proteins):
-            print '=====show proteins!'
             self.base_columns['protein_name'].visible = True
         
     class Meta:
