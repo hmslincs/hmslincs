@@ -10,6 +10,7 @@ check_errs()
   fi
 }
 PGUSER=devlincsweb
+DATADIR=/groups/pharmacoresponse/data/dev
 
 #/home/sde4/sql/drop-all.pl devlincs
 ./generate_drop_all.sh devlincsweb devlincs dev.pgsql.orchestra | psql -Udevlincsweb devlincs -h dev.pgsql.orchestra 
@@ -25,7 +26,9 @@ python src/populate_cell.py sampledata/LINCS_Cells_20120727.xls 'HMS-LINCS cell 
 check_errs $? "populate cell fails"
 
 echo 'import small molecule...'
-python src/populate_smallmolecule.py sampledata/HMS_LINCS-1.sdf
+python src/populate_smallmolecule.py $DATADIR/HMS_LINCS-1.sdf
+check_errs $? "import sdf fails"
+python src/populate_smallmolecule.py $DATADIR/HMS_LINCS-2.sdf
 check_errs $? "import sdf fails"
 
 echo 'import kinases...'
