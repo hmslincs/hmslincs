@@ -21,6 +21,7 @@ source /www/dev.lincs.hms.harvard.edu/support/virtualenv/bin/activate
 django/manage.py syncdb
 check_errs $? "syncdb fails"
 
+
 echo 'import cell table ...'
 python src/populate_cell.py sampledata/LINCS_Cells_20120727.xls 'HMS-LINCS cell line metadata'
 check_errs $? "populate cell fails"
