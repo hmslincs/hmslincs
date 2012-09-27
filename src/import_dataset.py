@@ -162,9 +162,12 @@ def main(path):
             try:
                 value = util.convertdata(r[map_column].strip())
                 if(value != None and value != '' ):
-                    facility = value.split("-")[0] # TODO: purge "HMSL" from the db
-                    salt = value.split("-")[1]
-                    dataRecord.small_molecule = SmallMolecule.objects.get(facility_id=facility, sm_salt=salt)
+                    value = value.split("-")
+                    if len(value) != 3: raise Exception('Small Molecule format is HMSL#####-###-#')
+                    facility = value[0] # TODO: purge "HMSL" from the db
+                    salt = value[1]
+                    batch = value[2]
+                    dataRecord.small_molecule = SmallMolecule.objects.get(facility_id=facility, sm_salt=salt, facility_batch_id=batch)
                     mapped = True
             except Exception, e:
                 print "Invalid Small Molecule facility id: ", value
