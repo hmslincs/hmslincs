@@ -164,15 +164,20 @@ def screenIndex(request, facility_id_filter='1'):
     else:
         queryset = DataSet.objects.all().order_by('facility_id').filter(facility_id__startswith=facility_id_filter)
     print 'queryset size: ' + str(len(queryset))
-    if(facility_id_filter=='3'): table = DataSetTable(queryset,'study') # TODO: get rid of the magic value "3" for 300000 series == studies
-    else: table = DataSetTable(queryset)
+    #if(facility_id_filter=='3'): table = DataSetTable(queryset,'study') # TODO: get rid of the magic value "3" for 300000 series == studies
+    table = DataSetTable(queryset)
     
     outputType = request.GET.get('output_type','')
     if(outputType != ''):
         return send_to_file(outputType, 'screenIndex', table, queryset, request )
         
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
-    return render(request, 'example/listIndex.html', {'table': table, 'search':search })
+    
+    if(facility_id_filter=='3'): type='study'
+    elif(facility_id_filter=='1'): type='screen'
+    else:
+        raise Exception('unknown facility_id_filter: ' + str(facility_id_filter))
+    return render(request, 'example/listIndex.html', {'table': table, 'search':search, 'type': type })
 
 def send_to_file(outputType, name, table, queryset, request):
     columns = map(lambda (x,y): x, filter(lambda (x,y): x != 'rank' and x!= 'snippet' and y.visible, table.base_columns.items()))
@@ -184,54 +189,29 @@ def send_to_file(outputType, name, table, queryset, request):
         return export_as_xls(name, columns, request, queryset)
  
 # Follows is a messy way to differentiate each tab for the screen detail page (each tab calls it's respective method)
-detail_pages_study = { 'main':'study_detail_main',
-                       'cells':'study_detail_cells',
-                       'proteins':'study_detail_proteins',
-                       'results':'study_detain_results'}
-detail_pages_screen = {'main':'screen_detail_main',
-                       'cells':'screen_detail_cells',
-                       'proteins':'screen_detail_proteins',
-                       'results':'screen_detain_results'}
-def studyDetailMain(request, screen_id):
-    details = screenDetail(request,screen_id)
-    details.setdefault('type','main')
-    details.setdefault('sub_pages',detail_pages_study)
-    return render(request,'example/screenDetailMain.html', details)
-def studyDetailCells(request, screen_id):
-    details = screenDetail(request,screen_id)
-    details.setdefault('type','cells')
-    details.setdefault('sub_pages',detail_pages_study)
-    return render(request,'example/screenDetailCells.html', details)
-def studyDetailProteins(request, screen_id):
-    details = screenDetail(request,screen_id)
-    details.setdefault('type','proteins')
-    details.setdefault('sub_pages',detail_pages_study)
-    return render(request,'example/screenDetailProteins.html', details)
-def studyDetailResults(request, screen_id):
-    details = screenDetail(request,screen_id)
-    details.setdefault('type','results')
-    details.setdefault('sub_pages',detail_pages_study)
-    return render(request,'example/screenDetailResults.html', details)
-# Follows is a messy way to differentiate each tab for the screen detail page (each tab calls it's respective method)
+def getDatasetType(facility_id):
+    if(facility_id.find('1') == 0):
+        return 'screen'
+    elif(facility_id.find('3') == 0):
+        return 'study'
+    else:
+        raise Exception('unknown facility id range: ' + str(facility_id))
+    
 def screenDetailMain(request, screen_id):
     details = screenDetail(request,screen_id)
-    details.setdefault('type','main')
-    details.setdefault('sub_pages',detail_pages_screen)
+    details.setdefault('type',getDatasetType(screen_id))
     return render(request,'example/screenDetailMain.html', details )
 def screenDetailCells(request, screen_id):
     details = screenDetail(request,screen_id)
-    details.setdefault('type','cells')
-    details.setdefault('sub_pages',detail_pages_screen)
+    details.setdefault('type',getDatasetType(screen_id))
     return render(request,'example/screenDetailCells.html', details)
 def screenDetailProteins(request, screen_id):
     details = screenDetail(request,screen_id)
-    details.setdefault('type','proteins')
-    details.setdefault('sub_pages',detail_pages_screen)
+    details.setdefault('type',getDatasetType(screen_id))
     return render(request,'example/screenDetailProteins.html', details)
 def screenDetailResults(request, screen_id):
     details = screenDetail(request,screen_id)
-    details.setdefault('type','results')
-    details.setdefault('sub_pages',detail_pages_screen)
+    details.setdefault('type',getDatasetType(screen_id))
     return render(request,'example/screenDetailResults.html', details)
 def screenDetail(request, screen_id):
     try:
@@ -524,11 +504,8 @@ class DataSetTable(tables.Table):
         attrs = {'class': 'paleblue'}
         exclude = ('id') 
 
-    def __init__(self, table, dataset_type='screen'):
+    def __init__(self, table):
         super(DataSetTable, self).__init__(table)
-        print 'dataset_type: ', dataset_type
-        if(dataset_type=='study'):
-            self.base_columns['facility_id'] = tables.LinkColumn("study_detail", args=[A('pk')])
 
 class DataSetForm(ModelForm):
     class Meta:
