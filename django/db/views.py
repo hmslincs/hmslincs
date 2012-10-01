@@ -18,7 +18,7 @@ import django_tables2 as tables
 from django_tables2 import RequestConfig
 from django_tables2.utils import A  # alias for Accessor
 
-from example.models import SmallMolecule, Cell, Protein, DataSet, Library
+from db.models import SmallMolecule, Cell, Protein, DataSet, Library
 # --------------- View Functions -----------------------------------------------
 
 logger = logging.getLogger(__name__)
@@ -29,9 +29,9 @@ def main(request):
         queryset = SiteSearchManager().search(search);
         table = SiteSearchTable(queryset)
         RequestConfig(request, paginate={"per_page": 25}).configure(table)
-        return render(request, 'example/index.html', {'table': table, 'search':search })
+        return render(request, 'db/index.html', {'table': table, 'search':search })
     else:
-        return render(request, 'example/index.html')
+        return render(request, 'db/index.html')
 
 def cellIndex(request):
     search = request.GET.get('search','')
@@ -63,14 +63,14 @@ def cellIndex(request):
         return send_to_file(outputType, 'cells', table, queryset, request )
     
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
-    return render(request, 'example/listIndex.html', {'table': table, 'search':search })
+    return render(request, 'db/listIndex.html', {'table': table, 'search':search })
     
 def cellDetail(request, cell_id):
     try:
         cell = Cell.objects.get(pk=cell_id) # todo: cell here
     except Cell.DoesNotExist:
         raise Http404
-    return render(request, 'example/cellDetail.html', {'object': CellForm(data=model_to_dict(cell))})
+    return render(request, 'db/cellDetail.html', {'object': CellForm(data=model_to_dict(cell))})
 
 # TODO REFACTOR, DRY... 
 def proteinIndex(request):
@@ -97,14 +97,14 @@ def proteinIndex(request):
         return send_to_file(outputType, 'proteins', table, queryset, request )
     
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
-    return render(request, 'example/listIndex.html', {'table': table, 'search':search })
+    return render(request, 'db/listIndex.html', {'table': table, 'search':search })
     
 def proteinDetail(request, protein_id):
     try:
         protein = Protein.objects.get(pk=protein_id) # todo: cell here
     except Protein.DoesNotExist:
         raise Http404
-    return render(request, 'example/proteinDetail.html', {'object': ProteinForm(data=model_to_dict(protein))})
+    return render(request, 'db/proteinDetail.html', {'object': ProteinForm(data=model_to_dict(protein))})
 
 def smallMoleculeIndex(request):
     search = request.GET.get('search','')
@@ -116,14 +116,14 @@ def smallMoleculeIndex(request):
         return send_to_file(outputType, 'small_molecule', table, queryset, request )
     
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
-    return render(request, 'example/listIndex.html', {'table': table, 'search':search })
+    return render(request, 'db/listIndex.html', {'table': table, 'search':search })
  
 def smallMoleculeDetail(request, sm_id):
     try:
         sm = SmallMolecule.objects.get(pk=sm_id)
     except SmallMolecule.DoesNotExist:
         raise Http404
-    return render(request,'example/smallMoleculeDetail.html', {'object': SmallMoleculeForm(data=model_to_dict(sm))})
+    return render(request,'db/smallMoleculeDetail.html', {'object': SmallMoleculeForm(data=model_to_dict(sm))})
 
 def libraryIndex(request):
     search = request.GET.get('search','')
@@ -135,7 +135,7 @@ def libraryIndex(request):
         return send_to_file(outputType, 'libraries', table, queryset, request )
     
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
-    return render(request, 'example/listIndex.html', {'table': table, 'search':search })
+    return render(request, 'db/listIndex.html', {'table': table, 'search':search })
 
 def libraryDetail(request, library_id):
     try:
@@ -144,7 +144,7 @@ def libraryDetail(request, library_id):
         table = SmallMoleculeTable(queryset)
     except Library.DoesNotExist:
         raise Http404
-    return render(request,'example/libraryDetail.html', {'object': LibraryForm(data=model_to_dict(library)),
+    return render(request,'db/libraryDetail.html', {'object': LibraryForm(data=model_to_dict(library)),
                                                          'table': table})
 
 def studyIndex(request):
@@ -181,7 +181,7 @@ def screenIndex(request, facility_id_filter='1'):
     elif(facility_id_filter=='1'): type='screen'
     else:
         raise Exception('unknown facility_id_filter: ' + str(facility_id_filter))
-    return render(request, 'example/listIndex.html', {'table': table, 'search':search, 'type': type })
+    return render(request, 'db/listIndex.html', {'table': table, 'search':search, 'type': type })
 
 def send_to_file(outputType, name, table, queryset, request):
     columns = map(lambda (x,y): x, filter(lambda (x,y): x != 'rank' and x!= 'snippet' and y.visible, table.base_columns.items()))
@@ -204,19 +204,19 @@ def getDatasetType(facility_id):
 def screenDetailMain(request, screen_id):
     details = screenDetail(request,screen_id)
     details.setdefault('type',getDatasetType(screen_id))
-    return render(request,'example/screenDetailMain.html', details )
+    return render(request,'db/screenDetailMain.html', details )
 def screenDetailCells(request, screen_id):
     details = screenDetail(request,screen_id)
     details.setdefault('type',getDatasetType(screen_id))
-    return render(request,'example/screenDetailCells.html', details)
+    return render(request,'db/screenDetailCells.html', details)
 def screenDetailProteins(request, screen_id):
     details = screenDetail(request,screen_id)
     details.setdefault('type',getDatasetType(screen_id))
-    return render(request,'example/screenDetailProteins.html', details)
+    return render(request,'db/screenDetailProteins.html', details)
 def screenDetailResults(request, screen_id):
     details = screenDetail(request,screen_id)
     details.setdefault('type',getDatasetType(screen_id))
-    return render(request,'example/screenDetailResults.html', details)
+    return render(request,'db/screenDetailResults.html', details)
 def screenDetail(request, screen_id):
     try:
         dataset = DataSet.objects.get(pk=screen_id)
@@ -237,13 +237,13 @@ def screenDetail(request, screen_id):
     # Create a query on the fly that pivots the values from the datapoint table, making one column for each datacolumn type
     # use the datacolumns to make a query on the fly (for the DataSetResultSearchManager), and make a DataSetResultSearchTable on the fly.
     dataColumnCursor = connection.cursor()
-    dataColumnCursor.execute("SELECT id, name, data_type, precision from example_datacolumn where dataset_id = %s order by id asc", [screen_id])
+    dataColumnCursor.execute("SELECT id, name, data_type, precision from db_datacolumn where dataset_id = %s order by id asc", [screen_id])
     
     # Need to construct something like this:
     # select distinct (datarecord_id), small_molecule_id,small_molecule_id, sm.facility_id || '-' || sm.sm_salt as facility_id,
-    #        (select int_value as col1 from example_datapoint dp1 where dp1.datacolumn_id=2 and dp1.datarecord_id = dp0.datarecord_id) as col1, 
-    #        (select int_value as col2 from example_datapoint dp2 where dp2.datarecord_id=dp0.datarecord_id and dp2.datacolumn_id=3) as col2 
-    #        from example_datapoint dp0 join example_datarecord dr on(datarecord_id=dr.id) join example_smallmolecule sm on(sm.id=dr.small_molecule_id) 
+    #        (select int_value as col1 from db_datapoint dp1 where dp1.datacolumn_id=2 and dp1.datarecord_id = dp0.datarecord_id) as col1, 
+    #        (select int_value as col2 from db_datapoint dp2 where dp2.datarecord_id=dp0.datarecord_id and dp2.datacolumn_id=3) as col2 
+    #        from db_datapoint dp0 join db_datarecord dr on(datarecord_id=dr.id) join db_smallmolecule sm on(sm.id=dr.small_molecule_id) 
     #        where dp0.screen_id = 1 order by datarecord_id;
     queryString = "select distinct (datarecord_id), small_molecule_id, sm.facility_id || '-' || sm.sm_salt as facility_id "
     if(show_cells): queryString += ", cell_id, cell.cl_name as cell_name " 
@@ -266,14 +266,14 @@ def screenDetail(request, screen_id):
         else:
             column_to_select = "text_value"
         # TODO: use params
-        queryString +=  (",(select " + column_to_select + " from example_datapoint " + alias + 
+        queryString +=  (",(select " + column_to_select + " from db_datapoint " + alias + 
                             " where " + alias + ".datacolumn_id="+str(datacolumn_id) + " and " + alias + ".datarecord_id=dp0.datarecord_id) as " + columnName )
-    queryString += " from example_datapoint dp0 join example_datarecord dr on(datarecord_id=dr.id) join example_smallmolecule sm on(sm.id=dr.small_molecule_id) "
+    queryString += " from db_datapoint dp0 join db_datarecord dr on(datarecord_id=dr.id) join db_smallmolecule sm on(sm.id=dr.small_molecule_id) "
     if(show_cells): 
-        queryString += " join example_cell cell on(cell.id=dr.cell_id) "
+        queryString += " join db_cell cell on(cell.id=dr.cell_id) "
         orderedNames.insert(1,'cell_name')
     if(show_proteins): 
-        queryString += " join example_protein protein on(protein.id=dr.protein_id) "
+        queryString += " join db_protein protein on(protein.id=dr.protein_id) "
         orderedNames.insert(1,'protein_name')
     queryString += " where dp0.dataset_id = " + str(screen_id) + " order by datarecord_id"
     orderedNames.append('...')
@@ -283,7 +283,7 @@ def screenDetail(request, screen_id):
     table = DataSetResultTable(queryset, names, orderedNames, show_cells, show_proteins)
     
     
-#    return render(request,'example/screenDetailMain.html', {'object': ScreenForm(data=model_to_dict(screen)),
+#    return render(request,'db/screenDetailMain.html', {'object': ScreenForm(data=model_to_dict(screen)),
 #                                                        'table': table,
 #                                                        'cellTable': cellTable,
 #                                                        'screenId': screen.id})
@@ -300,13 +300,13 @@ def screenDetail(request, screen_id):
 
 def cells_for_dataset(dataset_id):
     cursor = connection.cursor()
-    sql = 'select cell.* from example_cell cell where cell.id in (select distinct(cell_id) from example_datarecord dr where dr.dataset_id=%s) order by cell.cl_name'
+    sql = 'select cell.* from db_cell cell where cell.id in (select distinct(cell_id) from db_datarecord dr where dr.dataset_id=%s) order by cell.cl_name'
     cursor.execute(sql, [dataset_id])
     return dictfetchall(cursor)
 
 def proteins_for_dataset(dataset_id):
     cursor = connection.cursor()
-    sql = 'select protein.* from example_protein protein where protein.id in (select distinct(protein_id) from example_datarecord dr where dr.dataset_id=%s) order by protein.name'
+    sql = 'select protein.* from db_protein protein where protein.id in (select distinct(protein_id) from db_datarecord dr where dr.dataset_id=%s) order by protein.name'
     cursor.execute(sql, [dataset_id])
     return dictfetchall(cursor)
 
@@ -333,9 +333,9 @@ class SmallMoleculeSearchManager(models.Manager):
         query_string = query_string.strip()
         cursor = connection.cursor()
         sql = ( "select l.short_name as library_name, l.id as library_id, sm.* " +
-            " from example_smallmolecule sm " + 
-            " left join example_librarymapping lm on(sm.id=lm.small_molecule_id) " + 
-            " join example_library l on(lm.library_id=l.id) ")
+            " from db_smallmolecule sm " + 
+            " left join db_librarymapping lm on(sm.id=lm.small_molecule_id) " + 
+            " join db_library l on(lm.library_id=l.id) ")
         where = ''
         if(query_string != '' ):
             where = ", to_tsquery(%s) as query  where sm.search_vector @@ query "
@@ -423,10 +423,10 @@ class LibrarySearchManager(models.Manager):
         query_string = query_string.strip()
         cursor = connection.cursor()
         sql = ( "select a.*, library.* from ( SELECT count(well) as well_count , max(plate)-min(plate)+ 1 as plate_count, library.id " + 
-            " from example_library library left join example_librarymapping on(library_id=library.id) ")
+            " from db_library library left join db_librarymapping on(library_id=library.id) ")
         if(query_string != '' ):
             sql += ", to_tsquery(%s) as query  where library.search_vector @@ query " 
-        sql += " group by library.id) a join example_library library on(a.id=library.id)"
+        sql += " group by library.id) a join db_library library on(a.id=library.id)"
         
         # TODO: the way we are separating query_string out here is a kludge
         if(query_string != ''):
@@ -467,22 +467,22 @@ class SiteSearchManager(models.Manager):
         # ranks into the range zero to one, but of course this is just a cosmetic change; it will not affect the ordering of the search results.
         cursor.execute(
             "SELECT id, facility_id, ts_headline(" + CellTable.snippet_def + """, query1, 'MaxFragments=10, MinWords=1, MaxWords=20, FragmentDelimiter=" | "') as snippet, """ +
-            " ts_rank_cd(search_vector, query1, 32) AS rank, 'cell_detail' as type FROM example_cell, to_tsquery(%s) as query1 WHERE search_vector @@ query1 " +
+            " ts_rank_cd(search_vector, query1, 32) AS rank, 'cell_detail' as type FROM db_cell, to_tsquery(%s) as query1 WHERE search_vector @@ query1 " +
             " UNION " +
             " SELECT id, facility_id, ts_headline(" + SmallMoleculeTable.snippet_def + """, query2, 'MaxFragments=10, MinWords=1, MaxWords=20, FragmentDelimiter=" | "') as snippet, """ +
-            " ts_rank_cd(search_vector, query2, 32) AS rank, 'sm_detail' as type FROM example_smallmolecule, to_tsquery(%s) as query2 WHERE search_vector @@ query2 " +
+            " ts_rank_cd(search_vector, query2, 32) AS rank, 'sm_detail' as type FROM db_smallmolecule, to_tsquery(%s) as query2 WHERE search_vector @@ query2 " +
             " UNION " +
             " SELECT id, facility_id, ts_headline(" + DataSetTable.snippet_def + """, query3, 'MaxFragments=10, MinWords=1, MaxWords=20, FragmentDelimiter=" | "') as snippet, """ +
-            " ts_rank_cd(search_vector, query3, 32) AS rank, 'screen_detail' as type FROM example_dataset, to_tsquery(%s) as query3 WHERE search_vector @@ query3 " +
+            " ts_rank_cd(search_vector, query3, 32) AS rank, 'screen_detail' as type FROM db_dataset, to_tsquery(%s) as query3 WHERE search_vector @@ query3 " +
             " UNION " +
             " SELECT id, lincs_id::text as facility_id, ts_headline(" + ProteinTable.snippet_def + """, query4, 'MaxFragments=10, MinWords=1, MaxWords=20, FragmentDelimiter=" | "') as snippet, """ +
-            " ts_rank_cd(search_vector, query4, 32) AS rank, 'protein_detail' as type FROM example_protein, to_tsquery(%s) as query4 WHERE search_vector @@ query4 " +
+            " ts_rank_cd(search_vector, query4, 32) AS rank, 'protein_detail' as type FROM db_protein, to_tsquery(%s) as query4 WHERE search_vector @@ query4 " +
             " ORDER by rank DESC;", [queryString + ":*", queryString + ":*", queryString + ":*", queryString + ":*"])
         return dictfetchall(cursor)
 
 class SiteSearchTable(tables.Table):
     id = tables.Column(visible=False)
-    #Note: using the expediency here: the "type" column holds the subdirectory for that to make the link for type, so "sm", "cell", etc., becomes "/example/sm", "/example/cell", etc.
+    #Note: using the expediency here: the "type" column holds the subdirectory for that to make the link for type, so "sm", "cell", etc., becomes "/db/sm", "/db/cell", etc.
     facility_id = tables.LinkColumn(A('type'), args=[A('id')])  
     type = TypeColumn()
     rank = tables.Column()

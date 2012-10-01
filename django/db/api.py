@@ -1,9 +1,9 @@
 # this file is for the tastypie REST api
-# example/api.py - tastypie resources
+# db/api.py - tastypie resources
 from tastypie.resources import ModelResource
 from tastypie import fields
 
-from example.models import SmallMolecule,DataSet,Cell 
+from db.models import SmallMolecule,DataSet,Cell 
 
 class SmallMoleculeResource(ModelResource):
     class Meta:

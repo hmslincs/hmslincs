@@ -10,7 +10,7 @@ DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
-    # ('Your Name', 'your_email@example.com'),
+    ('Sean Erickson', 'sean_erickson@hms.harvard.edu'),
 )
 
 MANAGERS = ADMINS
@@ -134,6 +134,9 @@ MIDDLEWARE_CLASSES = (
 
 ROOT_URLCONF = 'hmslincs_server.urls'
 
+# URL of the login page.
+LOGIN_URL = '/login/'
+
 # Python dotted path to the WSGI application used by Django's runserver.
 WSGI_APPLICATION = 'hmslincs_server.wsgi.application'
 
@@ -155,7 +158,7 @@ INSTALLED_APPS = (
     'django.contrib.admindocs',
     'django_tables2', # for UI tabling
     'tastypie', # manual says this is "not necessary, but useful"
-    'example',
+    'db',
     # # 'south', #for schema migrations
     # # 'fts', # for full text search
 )

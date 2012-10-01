@@ -1,11 +1,11 @@
-{% extends "example/base.html" %}
+{% extends "db/base.html" %}
 {% block content %}
 <h2>Screen Information</h2>
 
 	<ul class="basictab">
-		<li class='{% selectedTag request "^/example/screens/\d+/detail$" %}'><a  href="{% url screenDetailMain %}">Detail</a></li>
-		<li class='{% selectedTag request "^/example/screens/\d+/cells$" %}'><a  href="{% url screenDetailCells %}">Cells Studied</a></li>
-		<li class='{% selectedTag request "^/example/screens/\d+/results$" %}'><a  href="{% url screenDetailResults %}">Results</a></li>
+		<li class='{% selectedTag request "^/db/screens/\d+/detail$" %}'><a  href="{% url screenDetailMain %}">Detail</a></li>
+		<li class='{% selectedTag request "^/db/screens/\d+/cells$" %}'><a  href="{% url screenDetailCells %}">Cells Studied</a></li>
+		<li class='{% selectedTag request "^/db/screens/\d+/results$" %}'><a  href="{% url screenDetailResults %}">Results</a></li>
 	</ul>
 
 	{% for field in object %}

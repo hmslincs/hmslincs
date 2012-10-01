@@ -1,4 +1,4 @@
-{% extends "example/screenDetailBase.html" %}
+{% extends "db/screenDetailBase.html" %}
 {% block screenContent %}
 	{% for field in object %}
 	    <li><b>{{ field.label }}:</b> {{ field.data|safe }}</li>

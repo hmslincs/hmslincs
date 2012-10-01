@@ -2,7 +2,7 @@
 from django.conf.urls.defaults import *
 
 from tastypie.api import Api
-from example.api import SmallMoleculeResource,CellResource,DataSetResource
+from db.api import SmallMoleculeResource,CellResource,DataSetResource
 
 smallmolecule_resource = SmallMoleculeResource()
 v1_api = Api(api_name='v1') 
@@ -14,10 +14,13 @@ v1_api.register(DataSetResource())
 from django.contrib import admin
 admin.autodiscover()
 
+from hmslincs_server.views import *
+
 urlpatterns = patterns('',
-    # Examples:
-    #url(r'^$', 'hmslincs_server.views.home', name='home'),
-    # url(r'^hmslincs_server/', include('hmslincs_server.foo.urls')),
+
+     # Login / logout.
+    (r'^login/$', 'django.contrib.auth.views.login'),
+    (r'^logout/$', logout_page),
 
     # Uncomment the admin/doc line below to enable admin documentation:
     # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
@@ -25,23 +28,23 @@ urlpatterns = patterns('',
     # url(r'^???/', include('???.urls')),
     url(r'^admin/doc/', include('django.contrib.admindocs.urls')), 
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^example/$', 'example.views.main', name="home"),
-    url(r'^example/sm/$','example.views.smallMoleculeIndex', name="listSmallMolecules" ),
-    url(r'^example/sm/(?P<sm_id>\d+)/$', 'example.views.smallMoleculeDetail', name="sm_detail"),
-    url(r'^example/cells/$','example.views.cellIndex', name="listCells"),
-    url(r'^example/cells/(?P<cell_id>\d+)/$', 'example.views.cellDetail', name="cell_detail"),
-    url(r'^example/proteins/$','example.views.proteinIndex', name="listProteins"),
-    url(r'^example/proteins/(?P<protein_id>\d+)/$', 'example.views.proteinDetail', name="protein_detail"),
-    url(r'^example/libraries/$','example.views.libraryIndex', name="listLibraries"),
-    url(r'^example/libraries/(?P<library_id>\d+)/$', 'example.views.libraryDetail', name="library_detail"),
-    url(r'^example/screen/$','example.views.screenIndex', name="listScreens"),
-    url(r'^example/screen/(?P<screen_id>\d+)/$', 'example.views.screenDetailMain', name="screen_detail"),
-    url(r'^example/screen/(?P<screen_id>\d+)/main$', 'example.views.screenDetailMain', name="screen_detail_main"),
-    url(r'^example/screen/(?P<screen_id>\d+)/cells$', 'example.views.screenDetailCells', name="screen_detail_cells"),
-    url(r'^example/screen/(?P<screen_id>\d+)/proteins$', 'example.views.screenDetailProteins', name="screen_detail_proteins"),
-    url(r'^example/screen/(?P<screen_id>\d+)/results$', 'example.views.screenDetailResults', name="screen_detail_results"),
-    url(r'^example/study/$','example.views.studyIndex', name="listStudies"),
-    #url(r'^example/search/', include('haystack.urls'), name="haystackSearch"),
+    url(r'^db/$', 'db.views.main', name="home"),
+    url(r'^db/sm/$','db.views.smallMoleculeIndex', name="listSmallMolecules" ),
+    url(r'^db/sm/(?P<sm_id>\d+)/$', 'db.views.smallMoleculeDetail', name="sm_detail"),
+    url(r'^db/cells/$','db.views.cellIndex', name="listCells"),
+    url(r'^db/cells/(?P<cell_id>\d+)/$', 'db.views.cellDetail', name="cell_detail"),
+    url(r'^db/proteins/$','db.views.proteinIndex', name="listProteins"),
+    url(r'^db/proteins/(?P<protein_id>\d+)/$', 'db.views.proteinDetail', name="protein_detail"),
+    url(r'^db/libraries/$','db.views.libraryIndex', name="listLibraries"),
+    url(r'^db/libraries/(?P<library_id>\d+)/$', 'db.views.libraryDetail', name="library_detail"),
+    url(r'^db/screen/$','db.views.screenIndex', name="listScreens"),
+    url(r'^db/screen/(?P<screen_id>\d+)/$', 'db.views.screenDetailMain', name="screen_detail"),
+    url(r'^db/screen/(?P<screen_id>\d+)/main$', 'db.views.screenDetailMain', name="screen_detail_main"),
+    url(r'^db/screen/(?P<screen_id>\d+)/cells$', 'db.views.screenDetailCells', name="screen_detail_cells"),
+    url(r'^db/screen/(?P<screen_id>\d+)/proteins$', 'db.views.screenDetailProteins', name="screen_detail_proteins"),
+    url(r'^db/screen/(?P<screen_id>\d+)/results$', 'db.views.screenDetailResults', name="screen_detail_results"),
+    url(r'^db/study/$','db.views.studyIndex', name="listStudies"),
+    #url(r'^db/search/', include('haystack.urls'), name="haystackSearch"),
     
-    (r'^example/api/', include(v1_api.urls)),
+    (r'^db/api/', include(v1_api.urls)),
 )

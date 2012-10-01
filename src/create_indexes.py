@@ -2,7 +2,7 @@
 import sys
 import init_utils as iu
 
-from example.models import Cell, DataSet, SmallMolecule, Library, Protein
+from db.models import Cell, DataSet, SmallMolecule, Library, Protein
 from django.db import models
 
 # ---------------------------------------------------------------------------
@@ -10,7 +10,7 @@ from django.db import models
 import setparams as _sg
 _params = dict(
     VERBOSE = False,
-    APPNAME = 'example',
+    APPNAME = 'db',
 )
 _sg.setparams(_params)
 del _sg, _params
@@ -19,15 +19,15 @@ del _sg, _params
 
 def main():
     print '/** creating index definitions for Cell **/'
-    createTableIndex('example_cell', Cell)
+    createTableIndex('db_cell', Cell)
     print '/** creating index definitions for Small Molecule **/'
-    createTableIndex('example_smallmolecule', SmallMolecule)
+    createTableIndex('db_smallmolecule', SmallMolecule)
     print '/** creating index definitions for DataSet **/'
-    createTableIndex('example_dataset', DataSet)
+    createTableIndex('db_dataset', DataSet)
     print '/** creating index definitions for Library **/'
-    createTableIndex('example_library', Library)
+    createTableIndex('db_library', Library)
     print '/** creating index definitions for Protein **/'
-    createTableIndex('example_protein', Protein)
+    createTableIndex('db_protein', Protein)
     print "\n"
 
 def createTableIndex(tableName, model):

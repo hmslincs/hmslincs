@@ -12,11 +12,11 @@
 	<p style="font-size: 1.3em; line-height: 1.5; margin: 1em 0; width: 50%;">This database is part of the <a href="http://lincs.hms.harvard.edu/">HMS LINCS Project</a>.</p>
 	<!-- selectedTag is a custom templatetag -->
 	<ul class="basictab">
-		<li class='{% selectedTag request "^/example/$" %}'><a  href="{% url home %}">Home</a></li>
-		<li class='{% selectedTag request "^/example/libraries/" %}'><a " href="{% url listLibraries %}">Libraries</a></li>
-		<li class='{% selectedTag request "^/example/sm/" %}'><a  href="{% url listSmallMolecules %}">Small Molecules</a></li>
-		<li class='{% selectedTag request "^/example/cells/" %}'><a " href="{% url listCells %}">Cells</a></li>
-		<li class='{% selectedTag request "^/example/proteins/" %}'><a " href="{% url listProteins %}">Proteins</a></li>
+		<li class='{% selectedTag request "^/db/$" %}'><a  href="{% url home %}">Home</a></li>
+		<li class='{% selectedTag request "^/db/libraries/" %}'><a " href="{% url listLibraries %}">Libraries</a></li>
+		<li class='{% selectedTag request "^/db/sm/" %}'><a  href="{% url listSmallMolecules %}">Small Molecules</a></li>
+		<li class='{% selectedTag request "^/db/cells/" %}'><a " href="{% url listCells %}">Cells</a></li>
+		<li class='{% selectedTag request "^/db/proteins/" %}'><a " href="{% url listProteins %}">Proteins</a></li>
 		<li class='{% if type == "screen" %}selected{% endif %}'><a " href="{% url listScreens %}">Screens</a></li>
 		<li class='{% if type == "study" %}selected{% endif %}'><a " href="{% url listStudies %}">Studies</a></li>
 	</ul>

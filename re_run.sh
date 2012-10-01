@@ -9,14 +9,14 @@ check_errs()
     exit ${1}
   fi
 }
-PGUSER=devlincsweb
+
 DATADIR=
 VIRTUALENV=
 DIR=/groups/pharmacoresponse/
 
 if [[ $# -lt 1 ]]
 then 
-  echo "Usage: $0 { [local | dev | stage | prod] <local data dir> }"
+  echo "Usage: $0 <required: [local | dev | stage | prod] > [optional: local data dir] [optional: virtual env dir]"
   exit $WRONG_ARGS
 fi
 
@@ -42,7 +42,7 @@ then
   DB=django
   DB_USER=django
   PGHOST=localhost
-  VIRTUALENV=/home/sde4/workspace/hmslincs/myvirtualenv/bin/activate
+  VIRTUALENV=${3:-/home/sde4/workspace/hmslincs/myvirtualenv/bin/activate}
 else
   echo "Unknown option: \"$SERVER\""
   exit 1

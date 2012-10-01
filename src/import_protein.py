@@ -6,7 +6,7 @@ from datetime import date
 
 import init_utils as iu
 import import_utils as util
-from example.models import Protein
+from db.models import Protein
 
 __version__ = "$Revision: 24d02504e664 $"
 # $Source$
@@ -16,7 +16,7 @@ __version__ = "$Revision: 24d02504e664 $"
 import setparams as _sg
 _params = dict(
     VERBOSE = False,
-    APPNAME = 'example',
+    APPNAME = 'db',
 )
 _sg.setparams(_params)
 del _sg, _params

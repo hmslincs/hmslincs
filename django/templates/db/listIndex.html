@@ -1,4 +1,4 @@
-{% extends "example/base.html" %}
+{% extends "db/base.html" %}
 {% block content %}
 	<div id="search">
 		<form action="{{ request.get_full_path }}" method="get"> <!-- only needed with post requests: {% csrf_token %}  --> 

@@ -5,7 +5,7 @@ import re
 
 import init_utils as iu
 import import_utils as util
-from example.models import DataSet, DataColumn, DataRecord, DataPoint, SmallMolecule, Cell, Protein
+from db.models import DataSet, DataColumn, DataRecord, DataPoint, SmallMolecule, Cell, Protein
 
 
 # ---------------------------------------------------------------------------
@@ -13,7 +13,7 @@ from example.models import DataSet, DataColumn, DataRecord, DataPoint, SmallMole
 import setparams as _sg
 _params = dict(
     VERBOSE = False,
-    APPNAME = 'example',
+    APPNAME = 'db',
 )
 _sg.setparams(_params)
 del _sg, _params

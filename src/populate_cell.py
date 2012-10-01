@@ -6,7 +6,7 @@ import init_utils as iu
 import setparams as _sg
 _params = dict(
     VERBOSE = False,
-    APPNAME = 'example',
+    APPNAME = 'db',
 )
 _sg.setparams(_params)
 del _sg, _params
