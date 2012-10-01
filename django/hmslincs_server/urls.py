@@ -18,9 +18,10 @@ from hmslincs_server.views import *
 
 urlpatterns = patterns('',
 
-     # Login / logout.
-    (r'^login/$', 'django.contrib.auth.views.login'),
-    (r'^logout/$', logout_page),
+    # Login / logout.
+    # Note: the name "login_url" name is set to the request by the registered hmslincs.context_procesor.login_url_with_redirect
+    (r'^login/$', 'django.contrib.auth.views.login', {'template_name': 'db/login.html'}),
+    url(r'^logout/$', logout_page, name='logout'),
 
     # Uncomment the admin/doc line below to enable admin documentation:
     # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),

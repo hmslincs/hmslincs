@@ -3,12 +3,24 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8">
-	<title>HMS LINCS DB</title>
-		<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}django_tables2/themes/paleblue/css/screen.css" />
-		<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/basic_tabs.css" />
+	<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}django_tables2/themes/paleblue/css/screen.css" />
+	<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/basic_tabs.css" />
+	<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/hmslincs.css" />
+	{% block head %}
+	<title>HMS LINCS DB</title>{% endblock %}	
 </head>
 <body>
-<h1>HMS LINCS Database 2.0</h1>
+{% block nav%}
+	<div id=loginmsg>
+	{% if user.is_authenticated %}
+	  logged in as: {{ user }}<br/>
+	  <a href="{% url logout %}">Log out</a>
+	{% else %}
+	  <a href="{{ login_url }}">Log in</a>
+	{% endif %}
+	</div>
+
+	<h1>HMS LINCS Database 2.0</h1>
 	<p style="font-size: 1.3em; line-height: 1.5; margin: 1em 0; width: 50%;">This database is part of the <a href="http://lincs.hms.harvard.edu/">HMS LINCS Project</a>.</p>
 	<!-- selectedTag is a custom templatetag -->
 	<ul class="basictab">
@@ -20,6 +32,8 @@
 		<li class='{% if type == "screen" %}selected{% endif %}'><a " href="{% url listScreens %}">Screens</a></li>
 		<li class='{% if type == "study" %}selected{% endif %}'><a " href="{% url listStudies %}">Studies</a></li>
 	</ul>
+
+{% endblock %}
 
 	<div id="content">
 	    {% block content %}{% endblock %}

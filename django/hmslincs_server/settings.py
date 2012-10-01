@@ -120,6 +120,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     "django.core.context_processors.static",
     "django.contrib.messages.context_processors.messages",
     "django.core.context_processors.request",
+    "hmslincs_server.context_processors.login_url_with_redirect",
 )
 
 MIDDLEWARE_CLASSES = (
