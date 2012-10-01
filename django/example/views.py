@@ -8,9 +8,11 @@ from django.forms.models import model_to_dict
 from django.forms import ModelForm
 from django.http import Http404
 from django.utils.safestring import mark_safe
+from django.http import HttpResponse
 
+import csv
+import xlwt
 import logging
-
 #from django.template import RequestContext
 import django_tables2 as tables
 from django_tables2 import RequestConfig
@@ -19,7 +21,7 @@ from django_tables2.utils import A  # alias for Accessor
 from example.models import SmallMolecule, Cell, Protein, DataSet, Library
 # --------------- View Functions -----------------------------------------------
 
-logger = logging.getLogger('view_log')
+logger = logging.getLogger(__name__)
 
 def main(request):
     search = request.GET.get('search','')
@@ -34,7 +36,7 @@ def main(request):
 def cellIndex(request):
     search = request.GET.get('search','')
     if(search != ''):
-        logger.info("s: %s" % search)
+        logger.error("s: %s" % search)
 # basic postgres fulltext search        
 #        queryset = Cell.objects.extra(
 #            where=['search_vector @@ plainto_tsquery(%s)'], 
@@ -556,11 +558,6 @@ def dictfetchall(cursor):
     return [
         dict(zip([col[0] for col in desc], row)) for row in cursor.fetchall()
     ]
-
-import csv
-import xlwt
-
-from django.http import HttpResponse
 
 def export_as_xls(name,columnNames, request, queryset):
     """
