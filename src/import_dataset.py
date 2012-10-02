@@ -2,6 +2,7 @@ import sys
 import argparse
 import xls2py as x2p
 import re
+import logging
 
 import init_utils as iu
 import import_utils as util
@@ -20,14 +21,19 @@ del _sg, _params
 
 # ---------------------------------------------------------------------------
 
+logger = logging.getLogger(__name__)
+
 def read_metadata(path):
     """
     Read in the DataSets, Datacolumns, and Data sheets.  In the Data sheet, rows are DataRecords, and columns are DataPoints
     """
     # Read in the DataSet
     sheetname = 'Meta'
+    metaSheet = iu.readtable([path, sheetname]) # Note, skipping the header row by default
+
     # Define the Column Names -> model fields mapping
-    labels = {'Lead Screener First': 'lead_screener_firstname',
+    properties = ('model_field','required','default','converter')
+    field_definitions = {'Lead Screener First': 'lead_screener_firstname',
               'Lead Screener Last': 'lead_screener_lastname',
               'Lead Screener Email': 'lead_screener_email',
               'Lab Head First': 'lab_head_firstname',
@@ -37,29 +43,55 @@ def read_metadata(path):
               'Facility ID': 'facility_id',
               'Summary': 'summary',
               'Protocol': 'protocol',
-              'References': 'protocol_references'}
+              'References': 'protocol_references',
+              'Is Restricted':('is_restricted',False,False)}
     
-    metaSheet = iu.readtable([path, sheetname]) # Note, skipping the header row by default
-    metaData = {}
+    sheet_labels = []
     for row in metaSheet:
         rowAsUnicode = util.make_row(row)
-        for key,value in labels.items():
-            if re.match(key, rowAsUnicode[0], re.M|re.I):
-                if key == 'Facility ID':
-                    metaData[value] = util.convertdata(rowAsUnicode[1],int)
-                else:
-                    metaData[value] = rowAsUnicode[1]
-    assert len(metaData) == len(labels), 'Meta data sheet does not contain the necessary keys, expected: %s, read: %s' % [labels, metaData]
+        sheet_labels.append(rowAsUnicode[0])
+
+    # convert the definitions to fleshed out dict's, with strategies for optional, default and converter
+    field_definitions = util.fill_in_column_definitions(properties,field_definitions)
+    # create a dict mapping the column/row ordinal to the proper definition dict
+    cols = util.find_columns(field_definitions, sheet_labels)
+
     
-    return metaData            
+    initializer = {}
+    for i,row in enumerate(metaSheet):
+        rowAsUnicode = util.make_row(row)
+        properties = cols[i]
+        value = rowAsUnicode[1]
+        
+        logger.debug(str(('read col: ', i, ', ', properties)))
+        required = properties['required']
+        default = properties['default']
+        converter = properties['converter']
+        model_field = properties['model_field']
+
+        # Todo, refactor to a method
+        logger.debug(str(('raw value', value)))
+        if(converter != None):
+            value = converter(value)
+        if(value == None ):
+            if( default != None ):
+                value = default
+        if(value == None and  required == True):
+            raise Exception('Field is required: %s, record: %d' % (properties['column_label'],rows))
+        logger.debug(str(('model_field: ' , model_field, ', value: ', value)))
+        initializer[model_field] = value
+
+    return initializer            
 
 def readDataColumns(path):
-        # Read in the DataColumn Sheet
+    # Read in the DataColumn Sheet
     sheetname = 'Data Columns'
     dataColumnSheet = iu.readtable([path, sheetname])
 
     _fields = util.get_fields(DataColumn)
     _typelookup = dict((f.name, iu.totype(f)) for f in _fields)
+    
+    # TODO: Use the import_utils methods here
     
     labels = {'Worksheet Column':'worksheet_column',
               'Name':'name',
@@ -85,9 +117,9 @@ def readDataColumns(path):
                 if re.match(key,keyRead,re.M|re.I): # if the row is one of the DataColumn fields, then add it to the dict
                     dataColumnDefinitions[i][fieldName] = util.convertdata(cellText,_typelookup.get(fieldName, None)) # Note: convert the data to the model field type
                 else:
+                    logger.debug(str(( '"Data Column definition not used: ', cellText)) ) 
                     pass
-                    # print '"Data Column definition not used: ', cellText 
-    print "definitions: ", dataColumnDefinitions
+    logger.info(str(("definitions: ", dataColumnDefinitions)) )
     
     return dataColumnDefinitions
 
@@ -96,6 +128,7 @@ def main(path):
     
     # read in the two columns of the meta sheet to a dict that defines a DataSet
     metadata = read_metadata(path)
+    logger.info(str(('create dataset: ', metadata)))
     dataset = DataSet(**metadata)
     dataset.save()
     
@@ -140,8 +173,7 @@ def main(path):
                     findError = False
                     break
             if findError:    
-                print "Error: no datacolumn for ", label
-                sys.exit(-1)
+                raise Exception(str(( "Error: no datacolumn for ", label)))
     
     found=False
     for key,value in mappingColumnDict.items():
@@ -170,7 +202,7 @@ def main(path):
                     dataRecord.small_molecule = SmallMolecule.objects.get(facility_id=facility, sm_salt=salt, facility_batch_id=batch)
                     mapped = True
             except Exception, e:
-                print "Invalid Small Molecule facility id: ", value
+                logger.error(str(("Invalid Small Molecule facility id: ", value)))
                 raise    
         map_column = mappingColumnDict['Cell']
         if(map_column > -1):
@@ -181,7 +213,7 @@ def main(path):
                     dataRecord.cell = Cell.objects.get(facility_id=facility_id) # TODO: purge "HMSL" from the db
                     mapped = True
             except Exception, e:
-                print "Invalid Cell facility id: ", facility_id
+                logger.error(str(("Invalid Cell facility id: ", facility_id)))
                 raise    
         map_column = mappingColumnDict['Protein']
         if(map_column > -1):
@@ -192,7 +224,7 @@ def main(path):
                     dataRecord.protein = Protein.objects.get(lincs_id=facility_id[facility_id.index('HMSL')+4:]) #TODO: purge "HMSL"
                     mapped = True
             except Exception, e:
-                print "Invalid Protein facility id: ", value
+                logger.error(str(("Invalid Protein facility id: ", value)))
                 raise
             
         if(not mapped):
@@ -208,7 +240,6 @@ def main(path):
             if(value.strip()==''): continue  
             if i in dataColumnList:
                 dataColumn = dataColumnList[i]
-                #print 'i, value, datacolumn: ', i, value, dataColumn
                 dataPoint = None
                 if (dataColumn.data_type == 'Numeric'): # TODO: define allowed "types" for the input sheet (this is listed in current SS code, but we may want to rework)
                     if (dataColumn.precision != 0): # float, TODO: set precision
@@ -237,13 +268,22 @@ parser = argparse.ArgumentParser(description='Import file')
 parser.add_argument('-f', action='store', dest='inputFile',
                     metavar='FILE', required=True,
                     help='input file path')
-    
+parser.add_argument('-v', '--verbose', dest='verbose', action='count',
+                help="Increase verbosity (specify multiple times for more)")    
+
 if __name__ == "__main__":
     args = parser.parse_args()
     if(args.inputFile is None):
         parser.print_help();
         parser.exit(0, "\nMust define the FILE param.\n")
-        
+
+    log_level = logging.WARNING # default
+    if args.verbose == 1:
+        log_level = logging.INFO
+    elif args.verbose >= 2:
+        log_level = logging.DEBUG
+    logging.basicConfig(level=log_level, format='%(msecs)d:%(module)s:%(lineno)d:%(levelname)s: %(message)s')        
+
     print 'importing ', args.inputFile
     main(args.inputFile)
     

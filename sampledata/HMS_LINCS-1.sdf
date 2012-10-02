@@ -84,6 +84,9 @@ experimental
 > <facility_reagent_id>
 HMSL10001
 
+> <is_restricted>
+true
+
 > <salt_form_id>
 101
 

@@ -57,6 +57,8 @@ def totype(field):
         return unicode
     if isinstance(field, fl.IntegerField):
         return int
+    if isinstance(field, fl.BooleanField):
+        return bool
     if isinstance(field, fl.AutoField):
         return None
     if isinstance(field, fl.related.ForeignKey):

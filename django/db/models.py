@@ -44,6 +44,7 @@ class SmallMolecule(models.Model):
     sm_molecular_mass      = _CHAR(max_length=35, **_NULLOKSTR)
     sm_molecular_formula   = _TEXT(**_NULLOKSTR)
     concentration          = _CHAR(max_length=35, **_NULLOKSTR)
+    is_restricted          = models.BooleanField(default=False) # Note: default=False are not set at the db level, only at the Db-api level
 
     def __unicode__(self):
         return unicode(self.facility_id)
@@ -52,31 +53,31 @@ class Cell(models.Model):
     # ----------------------------------------------------------------------------------------------------------------------
     #                                                                          EXAMPLE VALUES:
     # ----------------------------------------------------------------------------------------------------------------------
-    facility_id                       = _CHAR(max_length=35, **_NOTNULLSTR)    # HMSL50001
-    cl_name                           = _CHAR(max_length=35, **_NOTNULLSTR)    # 5637
-    cl_id                             = _CHAR(max_length=35, **_NULLOKSTR)     # CLO_0003703
-    cl_alternate_name                 = _CHAR(max_length=35, **_NULLOKSTR)     # CaSki
-    cl_alternate_id                   = _CHAR(max_length=100, **_NULLOKSTR)    # COSMIC:687452
-    cl_center_name                    = _CHAR(max_length=35, **_NOTNULLSTR)    # HMS
-    cl_center_specific_id             = _CHAR(max_length=35, **_NOTNULLSTR)    # HMSL50001
-    mgh_id                            = _INTEGER(null=True)       # 6
-    assay                             = _TEXT(**_NULLOKSTR)                    # Mitchison Mitosis-apoptosis Img; Mitchison 
+    facility_id                    = _CHAR(max_length=35, unique=True, **_NOTNULLSTR)    # HMSL50001
+    name                           = _CHAR(max_length=35, unique=True, **_NOTNULLSTR)    # 5637
+    cl_id                          = _CHAR(max_length=35, **_NULLOKSTR)     # CLO_0003703
+    alternate_name                 = _CHAR(max_length=35, **_NULLOKSTR)     # CaSki
+    alternate_id                   = _CHAR(max_length=100, **_NULLOKSTR)    # COSMIC:687452
+    center_name                    = _CHAR(max_length=35, **_NOTNULLSTR)    # HMS
+    center_specific_id             = _CHAR(max_length=35, **_NOTNULLSTR)    # HMSL50001
+    mgh_id                         = _INTEGER(null=True)       # 6
+    assay                          = _TEXT(**_NULLOKSTR)                    # Mitchison Mitosis-apoptosis Img; Mitchison 
                                                                                # Prolif-Mitosis Img; Mitchison 2-3 color apo
                                                                                # pt Img
-    cl_provider_name                  = _CHAR(max_length=35, **_NOTNULLSTR)    # ATCC
-    cl_provider_catalog_id            = _CHAR(max_length=35, **_NOTNULLSTR)    # HTB-9
-    cl_batch_id                       = _CHAR(max_length=35, **_NULLOKSTR)     #
-    cl_organism                       = _CHAR(max_length=35, **_NOTNULLSTR)    # Homo sapiens
-    cl_organ                          = _CHAR(max_length=35, **_NOTNULLSTR)    # urinary bladder
-    cl_tissue                         = _CHAR(max_length=35, **_NULLOKSTR)     #
-    cl_cell_type                      = _CHAR(max_length=35, **_NULLOKSTR)     # epithelial
-    cl_cell_type_detail               = _CHAR(max_length=35, **_NULLOKSTR)     # epithelial immortalized with hTERT
-    cl_disease                        = _TEXT(**_NOTNULLSTR)                   # transitional cell carcinoma
-    cl_disease_detail                 = _TEXT(**_NULLOKSTR)                    #
-    cl_growth_properties              = _TEXT(**_NOTNULLSTR)                   # adherent
-    cl_genetic_modification           = _CHAR(max_length=35, **_NULLOKSTR)     # none
-    cl_related_projects               = _CHAR(max_length=35, **_NULLOKSTR)     #
-    cl_recommended_culture_conditions = _TEXT(**_NULLOKSTR)                    # From MGH/CMT as specified by cell provider:
+    provider_name                  = _CHAR(max_length=35, **_NOTNULLSTR)    # ATCC
+    provider_catalog_id            = _CHAR(max_length=35, **_NOTNULLSTR)    # HTB-9
+    batch_id                       = _CHAR(max_length=35, **_NULLOKSTR)     #
+    organism                       = _CHAR(max_length=35, **_NOTNULLSTR)    # Homo sapiens
+    organ                          = _CHAR(max_length=35, **_NOTNULLSTR)    # urinary bladder
+    tissue                         = _CHAR(max_length=35, **_NULLOKSTR)     #
+    cell_type                      = _CHAR(max_length=35, **_NULLOKSTR)     # epithelial
+    cell_type_detail               = _CHAR(max_length=35, **_NULLOKSTR)     # epithelial immortalized with hTERT
+    disease                        = _TEXT(**_NOTNULLSTR)                   # transitional cell carcinoma
+    disease_detail                 = _TEXT(**_NULLOKSTR)                    #
+    growth_properties              = _TEXT(**_NOTNULLSTR)                   # adherent
+    genetic_modification           = _CHAR(max_length=35, **_NULLOKSTR)     # none
+    related_projects               = _CHAR(max_length=35, **_NULLOKSTR)     #
+    recommended_culture_conditions = _TEXT(**_NULLOKSTR)                    # From MGH/CMT as specified by cell provider:
                                                                                # RPMI 1640 medium with 2 mM L-glutamine adju
                                                                                # sted to contain 1.5 g/L sodium bicarbonate,
                                                                                #  4.5 g/L glucose, 10 mM HEPES, and 1.0 mM s
@@ -91,22 +92,23 @@ class Cell(models.Model):
                                                                                # flasks.\012Subcultivation ratio: A subculti
                                                                                # vation ratio of 1:4 to 1:8 is recommended
                                                                                # \012\012
-    cl_verification_profile           = _CHAR(max_length=35, **_NULLOKSTR)     #
-    cl_verification_reference_profile = _TEXT(**_NULLOKSTR)                    # DNA Profile (STR, source: ATCC):\012Ameloge
+    verification_profile           = _CHAR(max_length=35, **_NULLOKSTR)     #
+    verification_reference_profile = _TEXT(**_NULLOKSTR)                    # DNA Profile (STR, source: ATCC):\012Ameloge
                                                                                # nin: X,Y \012CSF1PO: 11 \012D13S317: 11 \01
                                                                                # 2D16S539: 9 \012D5S818: 11,12 \012D7S820: 1
                                                                                # 0,11 \012THO1: 7,9 \012TPOX: 8,9 \012vWA: 1
                                                                                # 6,18
-    cl_mutations_reference            = _TEXT(**_NULLOKSTR)                    # http://www.sanger.ac.uk/perl/genetics/CGP/c
+    mutations_reference            = _TEXT(**_NULLOKSTR)                    # http://www.sanger.ac.uk/perl/genetics/CGP/c
                                                                                # ore_line_viewer?action=sample&id=687452
-    cl_mutations_explicit             = _TEXT(**_NULLOKSTR)                    # Mutation data source: Sanger, Catalogue Of 
+    mutations_explicit             = _TEXT(**_NULLOKSTR)                    # Mutation data source: Sanger, Catalogue Of 
                                                                                # Somatic Mutations In Cancer: Gene: RB1, \012
                                                                                # AA mutation: p.Y325* (Substitution - Nonsen
                                                                                # se), \012CDS mutation: c.975T>A (Substituti
                                                                                # on); \012\012Gene: TP53, \012AA mutation: p
                                                                                # .R280T (Substitution - Missense), \012CDS m
                                                                                # utation: c.839G>C (Substitution)
-    cl_organism_gender                = _CHAR(max_length=35, **_NULLOKSTR)     # male
+    organism_gender                = _CHAR(max_length=35, **_NULLOKSTR)     # male
+    is_restricted                     = models.BooleanField()
 
     # ----------------------------------------------------------------------------------------------------------------------
     def __unicode__(self):
@@ -117,20 +119,22 @@ class Protein(models.Model):
     lincs_id            = _INTEGER(null=False)
     uniprot_id          = _CHAR(max_length=6, **_NULLOKSTR)
     alternate_name      = _TEXT(**_NULLOKSTR)
+    alternate_name_2    = _TEXT(**_NULLOKSTR)
     provider            = _TEXT(**_NULLOKSTR)
     provider_catalog_id = _TEXT(**_NULLOKSTR)
     batch_id            = _CHAR(max_length=10, **_NULLOKSTR)
     amino_acid_sequence = _TEXT(**_NULLOKSTR)
-    gene_symbol         = _CHAR(max_length=35)
-    gene_id             = _CHAR(max_length=35)
-    protein_source      = _CHAR(max_length=35)
+    gene_symbol         = _CHAR(max_length=35, **_NULLOKSTR)
+    gene_id             = _CHAR(max_length=35, **_NULLOKSTR)
+    protein_source      = _CHAR(max_length=35, **_NULLOKSTR)
     protein_form        = _TEXT(**_NULLOKSTR) #TODO: controlled vocabulary
     protein_purity      = _TEXT(**_NULLOKSTR)
     protein_complex     = _TEXT(**_NULLOKSTR)
-    isoform             = _CHAR(max_length=5) #TODO: Shall this be boolean?
-    protein_type        = _CHAR(max_length=35) #TODO: controlled vocabulary
-    source_organism     = _CHAR(max_length=35) #TODO: controlled vocabulary
+    isoform             = _CHAR(max_length=5, **_NULLOKSTR) #TODO: Shall this be boolean?
+    protein_type        = _CHAR(max_length=35, **_NULLOKSTR) #TODO: controlled vocabulary
+    source_organism     = _CHAR(max_length=35, **_NULLOKSTR) #TODO: controlled vocabulary
     reference           = _TEXT(**_NULLOKSTR)
+    is_restricted       = models.BooleanField()
 
     def __unicode__(self):
         return unicode(self.lincs_id)
@@ -147,18 +151,20 @@ class DataSet(models.Model):
     lab_head_email          = _TEXT(**_NULLOKSTR)
     summary                 = _TEXT(**_NOTNULLSTR)
     protocol                = _TEXT(**_NULLOKSTR)
-    protocol_references              = _TEXT(**_NULLOKSTR)
+    protocol_references     = _TEXT(**_NULLOKSTR)
+    is_restricted           = models.BooleanField()
 
     def __unicode__(self):
         return unicode(self.facility_id)
 
 class Library(models.Model):
-    name                    = _TEXT(**_NOTNULLSTR)
-    short_name              = _CHAR(max_length=35, **_NOTNULLSTR)
+    name                    = _TEXT(unique=True,**_NOTNULLSTR)
+    short_name              = _CHAR(max_length=35,unique=True, **_NOTNULLSTR)
     date_first_plated       = models.DateField(null=True,blank=True)
     date_data_received      = models.DateField(null=True,blank=True)
     date_loaded             = models.DateField(null=True,blank=True)
     date_publicly_available = models.DateField(null=True,blank=True)
+    is_restricted           = models.BooleanField()
 
     def __unicode__(self):
         return unicode(self.short_name)

@@ -7,7 +7,7 @@ import logging
 
 import init_utils as iu
 import import_utils as util
-from db.models import Protein
+from db.models import Cell
 
 __version__ = "$Revision: 24d02504e664 $"
 # $Source$
@@ -28,42 +28,51 @@ logger = logging.getLogger(__name__)
 
 def main(path):
     """
-    Read in the Protein
+    Read in the Cell
     """
-    sheet_name = 'HMS-LINCS Kinases'
+    sheet_name = 'HMS-LINCS cell line metadata'
     sheet = iu.readtable([path, sheet_name, 1]) # Note, skipping the header row by default
-    
+
     properties = ('model_field','required','default','converter')
-    column_definitions = { 'PP_Name':('name',True), 
-              'PP_LINCS_ID':('lincs_id',True,None,lambda x: x[x.index('HMSL')+4:]), 
-              'PP_UniProt_ID':'uniprot_id', 
-              'PP_Alternate_Name':'alternate_name',
-              'PP_Alternate_Name[2]':'alternate_name_2',
-              'PP_Provider':'provider',
-              'PP_Provider_Catalog_ID':'provider_catalog_id',
-              'PP_Batch_ID':'batch_id', 
-              'PP_Amino_Acid_Sequence':'amino_acid_sequence',
-              'PP_Gene_Symbol':'gene_symbol', 
-              'PP_Gene_ID':'gene_id',
-              'PP_Protein_Source':'protein_source',
-              'PP_Protein_Form':'protein_form', 
-              'PP_Protein_Purity':'protein_purity', 
-              'PP_Protein_Complex':'protein_complex', 
-              'PP_Isoform':'isoform', 
-              'PP_Protein_Type':'protein_type', 
-              'PP_Source_Organism':'source_organism', 
-              'PP_Reference':'reference'}
+    column_definitions = {'Facility ID':('facility_id',True),
+              'CL_Name':('name',True),
+              'CL_ID':'cl_id',
+              'CL_Alternate_Name':'alternate_name',
+              'CL_Alternate_ID':'alternate_id',
+              'CL_Center_Name':'center_name',
+              'CL_Center_Specific_ID':'center_specific_id',
+              'MGH_ID':('mgh_id',False,None,lambda x:util.convertdata(x,int)),
+              'Assay':'assay',
+              'CL_Provider_Name':'provider_name',
+              'CL_Provider_Catalog_ID':'provider_catalog_id',
+              'CL_Batch_ID':'batch_id',
+              'CL_Organism':'organism',
+              'CL_Organ':'organ',
+              'CL_Tissue':'tissue',
+              'CL_Cell_Type':'cell_type',
+              'CL_Cell_Type_Detail':'cell_type_detail',
+              'CL_Disease':'disease',
+              'CL_Disease_Detail':'disease_detail',
+              'CL_Growth_Properties':'growth_properties',
+              'CL_Genetic_Modification':'genetic_modification',
+              'CL_Related_Projects':'related_projects',
+              'CL_Recommended_Culture_Conditions':'recommended_culture_conditions',
+              'CL_Verification_Profile':'verification_profile',
+              'CL_Verification_Reference_Profile':'verification_reference_profile',
+              'CL_Mutations_Reference':'mutations_reference',
+              'CL_Mutations_Explicit':'mutations_explicit',
+              'CL_Organism_Gender':'organism_gender',
+              'Is Restricted':('is_restricted',False,False)}
     # convert the labels to fleshed out dict's, with strategies for optional, default and converter
     column_definitions = util.fill_in_column_definitions(properties,column_definitions)
     
     # create a dict mapping the column ordinal to the proper column definition dict
     cols = util.find_columns(column_definitions, sheet.labels)
-
+            
     rows = 0    
     logger.info(str(('cols: ' , cols)))
     for row in sheet:
         r = util.make_row(row)
-        dict = {}
         initializer = {}
         for i,value in enumerate(r):
             if i not in cols: continue
@@ -86,16 +95,17 @@ def main(path):
                 raise Exception('Field is required: %s, record: %d' % (properties['column_label'],rows))
             logger.debug(str(('model_field: ' , model_field, ', value: ', value)))
             initializer[model_field] = value
+
         try:
             logger.debug(str(('initializer: ', initializer)))
-            protein = Protein(**initializer)
-            protein.save()
+            cell = Cell(**initializer)
+            cell.save()
             rows += 1
         except Exception, e:
-            print "Invalid Protein, name: ", r[0]
-            raise
+            print "Invalid Cell, name: ", r[0]
+            raise e
         
-    print "Rows read: ", rows
+    print "Cells read: ", rows
     
     
 
@@ -117,7 +127,7 @@ if __name__ == "__main__":
         log_level = logging.INFO
     elif args.verbose >= 2:
         log_level = logging.DEBUG
-    logging.basicConfig(level=log_level, format='%(msecs)d:%(module)s:%(lineno)d:%(levelname)s: %(message)s')        
-
+    logging.basicConfig(level=log_level, format='%(msecs)d:%(lineno)d:%(levelname)s: %(message)s')        
+        
     print 'importing ', args.inputFile
     main(args.inputFile)

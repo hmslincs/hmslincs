@@ -74,6 +74,7 @@ def cellDetail(request, cell_id):
 
 # TODO REFACTOR, DRY... 
 def proteinIndex(request):
+    logger.info("user: " , request.user, ", is authenticated: ", request.user.is_authenticated())
     search = request.GET.get('search','')
     if(search != ''):
         logger.info("s: %s" % search)
@@ -246,7 +247,7 @@ def screenDetail(request, screen_id):
     #        from db_datapoint dp0 join db_datarecord dr on(datarecord_id=dr.id) join db_smallmolecule sm on(sm.id=dr.small_molecule_id) 
     #        where dp0.screen_id = 1 order by datarecord_id;
     queryString = "select distinct (datarecord_id), small_molecule_id, sm.facility_id || '-' || sm.sm_salt as facility_id "
-    if(show_cells): queryString += ", cell_id, cell.cl_name as cell_name " 
+    if(show_cells): queryString += ", cell_id, cell.name as cell_name " 
     if(show_proteins): queryString += ", protein_id, protein.name as protein_name " 
     i = 0
     names = {}
@@ -300,7 +301,7 @@ def screenDetail(request, screen_id):
 
 def cells_for_dataset(dataset_id):
     cursor = connection.cursor()
-    sql = 'select cell.* from db_cell cell where cell.id in (select distinct(cell_id) from db_datarecord dr where dr.dataset_id=%s) order by cell.cl_name'
+    sql = 'select cell.* from db_cell cell where cell.id in (select distinct(cell_id) from db_datarecord dr where dr.dataset_id=%s) order by cell.name'
     cursor.execute(sql, [dataset_id])
     return dictfetchall(cursor)
 
@@ -379,23 +380,23 @@ class CellTable(tables.Table):
     facility_id = tables.LinkColumn("cell_detail", args=[A('id')])
     rank = tables.Column()
     snippet = SnippetColumn()
-    cl_id = tables.Column(verbose_name='CLO Id')
+    id = tables.Column(verbose_name='CLO Id')
     # TODO: define the snippet dynamically, using all the text fields from the model
     # TODO: add the facility_id
-#    snippet_def = ("coalesce(cl_name,'') || ' ' || coalesce(cl_id,'') || ' ' || coalesce(cl_alternate_name,'') || ' ' || " +  
-#                   "coalesce(cl_alternate_id,'') || ' ' || coalesce(cl_center_name,'') || ' ' || coalesce(cl_center_specific_id,'') || ' ' || " +  
-#                   "coalesce(assay,'') || ' ' || coalesce(cl_provider_name,'') || ' ' || coalesce(cl_provider_catalog_id,'') || ' ' || coalesce(cl_batch_id,'') || ' ' || " + 
-#                   "coalesce(cl_organism,'') || ' ' || coalesce(cl_organ,'') || ' ' || coalesce(cl_tissue,'') || ' ' || coalesce(cl_cell_type,'') || ' ' ||  " +
-#                   "coalesce(cl_cell_type_detail,'') || ' ' || coalesce(cl_disease,'') || ' ' || coalesce(cl_disease_detail,'') || ' ' ||  " +
-#                   "coalesce(cl_growth_properties,'') || ' ' || coalesce(cl_genetic_modification,'') || ' ' || coalesce(cl_related_projects,'') || ' ' || " + 
-#                   "coalesce(cl_recommended_culture_conditions)")
+#    snippet_def = ("coalesce(name,'') || ' ' || coalesce(id,'') || ' ' || coalesce(alternate_name,'') || ' ' || " +  
+#                   "coalesce(alternate_id,'') || ' ' || coalesce(center_name,'') || ' ' || coalesce(center_specific_id,'') || ' ' || " +  
+#                   "coalesce(assay,'') || ' ' || coalesce(provider_name,'') || ' ' || coalesce(provider_catalog_id,'') || ' ' || coalesce(batch_id,'') || ' ' || " + 
+#                   "coalesce(organism,'') || ' ' || coalesce(organ,'') || ' ' || coalesce(tissue,'') || ' ' || coalesce(cell_type,'') || ' ' ||  " +
+#                   "coalesce(cell_type_detail,'') || ' ' || coalesce(disease,'') || ' ' || coalesce(disease_detail,'') || ' ' ||  " +
+#                   "coalesce(growth_properties,'') || ' ' || coalesce(genetic_modification,'') || ' ' || coalesce(related_projects,'') || ' ' || " + 
+#                   "coalesce(recommended_culture_conditions)")
     snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce("+x.name+",'') ", get_text_fields(Cell))))
     class Meta:
         model = Cell
         orderable = True
         attrs = {'class': 'paleblue'}
         sequence = ('facility_id', '...')
-        exclude = ('id','cl_recommended_culture_conditions', 'cl_verification_reference_profile', 'cl_mutations_explicit', 'cl_mutations_reference')
+        exclude = ('id','recommended_culture_conditions', 'verification_reference_profile', 'mutations_explicit', 'mutations_reference')
         
 class CellForm(ModelForm):
     class Meta:
