@@ -1,0 +1,27 @@
+<table>
+  <tr>
+    <td colspan="4">
+      <h1>Target: {{ target_name }}</h1>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="4">
+      <h2>Primary inhibitors</h2>
+    </td>
+  </tr>
+
+  {% with compounds=primary_compounds %}
+    {% include "compound_table.html" %}
+  {% endwith %}
+  
+  <tr>
+    <td colspan="4">
+      <h2>Other inhibitors</h2>
+    </td>
+  </tr>
+
+  {% with compounds=nonprimary_compounds %}
+    {% include "compound_table.html" %}
+  {% endwith %}
+
+</table>

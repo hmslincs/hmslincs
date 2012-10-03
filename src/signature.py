@@ -5,7 +5,12 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.patches import RegularPolygon
 from matplotlib.gridspec import GridSpec
 from matplotlib.ticker import MultipleLocator
+from django.template import Template, Context
+from django.template.loader import render_to_string
+import django.conf
 import numpy as np
+import os
+import sys
 
 # ---------------------------------------------------------------------------
 
@@ -34,8 +39,9 @@ fig_y_scale = 0.65  # scaling for figure height (manually tweaked, derivation un
 spine_y_offset = 0.25  # spacing from topmost line to x-axis spine
 colors = ('red', 'yellow', 'magenta', 'blue', 'green', 'cyan')  # cell line marker colors
 
-def signature(target_name, primary_compounds, nonprimary_compounds, cell_lines,
-              basename):
+main_template = 'signature.html'
+
+def signature(target_name, primary_compounds, nonprimary_compounds, cell_lines):
     """Render a figure depicting "signatures" for one or more compounds.
 
     Saves output to a PNG file, whose filename (sans .png extension) is
@@ -43,6 +49,16 @@ def signature(target_name, primary_compounds, nonprimary_compounds, cell_lines,
 
     """
 
+    ctx = {
+        'target_name': target_name,
+        'primary_compounds': primary_compounds,
+        'nonprimary_compounds': nonprimary_compounds,
+        }
+    #out_file = open('signature-%s.html' % target_name, 'w')
+    out_file = sys.stdout  # temp
+    out_file.write(render_to_string(main_template, ctx))
+
+    """
     num_compounds = len(primary_compounds)
 
     # set width to fixed value, use arbitrary value for height to be
@@ -146,9 +162,21 @@ def signature(target_name, primary_compounds, nonprimary_compounds, cell_lines,
     canvas = FigureCanvasAgg(fig)
     # 72 dpi produces perfect 1-pixel lines for 1-pt figure lines
     canvas.print_figure('%s.png' % basename, dpi=72)
+    """
 
 
 if __name__ == '__main__':
+    if not django.conf.settings.configured:
+        django.conf.settings.configure(
+            TEMPLATE_LOADERS=(
+                'django.template.loaders.filesystem.Loader',
+                ),
+            TEMPLATE_DIRS=(
+                os.path.abspath(os.path.join(os.path.dirname(__file__), '..')),
+                ),
+            TEMPLATE_DEBUG=True,
+            )
+
     target_name = 'EGFR'
 
     primary_compounds = (SignatureData(drug='Neratinib',
