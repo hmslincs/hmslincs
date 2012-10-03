@@ -32,10 +32,10 @@ def main(path):
     """
     sheet_name = 'HMS-LINCS Kinases'
     sheet = iu.readtable([path, sheet_name, 1]) # Note, skipping the header row by default
-    
+
     properties = ('model_field','required','default','converter')
     column_definitions = { 'PP_Name':('name',True), 
-              'PP_LINCS_ID':('lincs_id',True,None,lambda x: x[x.index('HMSL')+4:]), 
+              'PP_LINCS_ID':('lincs_id',True,None,lambda x: util.convertdata(x[x.index('HMSL')+4:]),int), 
               'PP_UniProt_ID':'uniprot_id', 
               'PP_Alternate_Name':'alternate_name',
               'PP_Alternate_Name[2]':'alternate_name_2',

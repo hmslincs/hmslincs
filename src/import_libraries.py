@@ -61,7 +61,7 @@ def main(path):
         for field in small_molecule_lookup:
             dict[field] = util.convertdata(r[cols[field]],int)
         try:
-            dict['facility_id'] = 'HMSL' + str(dict['facility_id']) # TODO: convert all hmsl id's to integers!!
+            dict['facility_id'] = dict['facility_id']
             sm = SmallMolecule.objects.get(**dict)
         except Exception, e:
             print "Invalid small molecule identifiers: ", dict

@@ -25,15 +25,11 @@ _NULLOKSTR  = dict(null=True, blank=False)
 # _NULLOKSTR  = dict(null=False, blank=True)
 
 class SmallMolecule(models.Model):
-    molfile                = _TEXT(**_NULLOKSTR)
-    sm_smiles              = _TEXT(**_NULLOKSTR)
-    plate                  = _INTEGER(null=True)
-    row                    = _CHAR(max_length=1, **_NULLOKSTR)
-    column                 = _INTEGER(null=True)
-    well_type              = _CHAR(max_length=35, **_NULLOKSTR)
-    facility_id            = _CHAR(max_length=35, **_NULLOKSTR)
+    facility_id            = _INTEGER(null=False)
     sm_salt                = _INTEGER(null=True)
     facility_batch_id      = _INTEGER(null=True)
+    molfile                = _TEXT(**_NULLOKSTR)
+    sm_smiles              = _TEXT(**_NULLOKSTR)
     sm_name                = _TEXT(**_NULLOKSTR)
     sm_inchi               = _TEXT(**_NULLOKSTR)
     sm_provider            = _TEXT(**_NULLOKSTR)
@@ -44,6 +40,10 @@ class SmallMolecule(models.Model):
     sm_molecular_mass      = _CHAR(max_length=35, **_NULLOKSTR)
     sm_molecular_formula   = _TEXT(**_NULLOKSTR)
     concentration          = _CHAR(max_length=35, **_NULLOKSTR)
+    plate                  = _INTEGER(null=True)
+    row                    = _CHAR(max_length=1, **_NULLOKSTR)
+    column                 = _INTEGER(null=True)
+    well_type              = _CHAR(max_length=35, **_NULLOKSTR)
     is_restricted          = models.BooleanField(default=False) # Note: default=False are not set at the db level, only at the Db-api level
 
     def __unicode__(self):
@@ -53,7 +53,7 @@ class Cell(models.Model):
     # ----------------------------------------------------------------------------------------------------------------------
     #                                                                          EXAMPLE VALUES:
     # ----------------------------------------------------------------------------------------------------------------------
-    facility_id                    = _CHAR(max_length=35, unique=True, **_NOTNULLSTR)    # HMSL50001
+    facility_id                    = _INTEGER(null=False)
     name                           = _CHAR(max_length=35, unique=True, **_NOTNULLSTR)    # 5637
     cl_id                          = _CHAR(max_length=35, **_NULLOKSTR)     # CLO_0003703
     alternate_name                 = _CHAR(max_length=35, **_NULLOKSTR)     # CaSki
@@ -141,7 +141,7 @@ class Protein(models.Model):
 
 class DataSet(models.Model):
     #cells                   = models.ManyToManyField(Cell, verbose_name="Cells screened")
-    facility_id             = _CHAR(max_length=35, **_NOTNULLSTR)
+    facility_id             = _INTEGER(null=False)
     title                   = _TEXT(**_NOTNULLSTR)
     lead_screener_firstname = _TEXT(**_NULLOKSTR)
     lead_screener_lastname  = _TEXT(**_NULLOKSTR)

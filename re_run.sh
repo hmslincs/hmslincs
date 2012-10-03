@@ -27,6 +27,7 @@ then
   DATADIR=${DIR}/data/prod
   DB=lincs
   DB_USER=lincsweb
+  LINCS_PGSQL_USER=lincsweb
   PGHOST=pgsql.orchestra
   VIRTUALENV=/www/dev.lincs.hms.harvard.edu/support/virtualenv/bin/activate
 elif [[ "$SERVER" == "DEV" ]] || [[ "$SERVER" == "dev" ]] 
@@ -34,6 +35,7 @@ then
   DATADIR=${DIR}/data/dev
   DB=devlincs
   DB_USER=devlincsweb
+  LINCS_PGSQL_USER=devlincsweb
   PGHOST=dev.pgsql.orchestra
   VIRTUALENV=/www/dev.lincs.hms.harvard.edu/support/virtualenv/bin/activate
 elif [[ "$SERVER" == "LOCAL" ]] || [[ "$SERVER" == "local" ]] 

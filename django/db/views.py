@@ -65,9 +65,9 @@ def cellIndex(request):
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
     return render(request, 'db/listIndex.html', {'table': table, 'search':search })
     
-def cellDetail(request, cell_id):
+def cellDetail(request, facility_id):
     try:
-        cell = Cell.objects.get(pk=cell_id) # todo: cell here
+        cell = Cell.objects.get(facility_id=facility_id) # todo: cell here
     except Cell.DoesNotExist:
         raise Http404
     return render(request, 'db/cellDetail.html', {'object': CellForm(data=model_to_dict(cell))})
@@ -100,9 +100,9 @@ def proteinIndex(request):
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
     return render(request, 'db/listIndex.html', {'table': table, 'search':search })
     
-def proteinDetail(request, protein_id):
+def proteinDetail(request, lincs_id):
     try:
-        protein = Protein.objects.get(pk=protein_id) # todo: cell here
+        protein = Protein.objects.get(lincs_id=lincs_id) # todo: cell here
     except Protein.DoesNotExist:
         raise Http404
     return render(request, 'db/proteinDetail.html', {'object': ProteinForm(data=model_to_dict(protein))})
@@ -121,7 +121,7 @@ def smallMoleculeIndex(request):
  
 def smallMoleculeDetail(request, sm_id):
     try:
-        sm = SmallMolecule.objects.get(pk=sm_id)
+        sm = SmallMolecule.objects.get(pk=sm_id) # TODO: create a sm detail link from facilty-salt-batch id
     except SmallMolecule.DoesNotExist:
         raise Http404
     return render(request,'db/smallMoleculeDetail.html', {'object': SmallMoleculeForm(data=model_to_dict(sm))})
@@ -138,10 +138,10 @@ def libraryIndex(request):
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
     return render(request, 'db/listIndex.html', {'table': table, 'search':search })
 
-def libraryDetail(request, library_id):
+def libraryDetail(request, short_name):
     try:
-        library = Library.objects.get(pk=library_id)
-        queryset = SmallMoleculeSearchManager().search(library_id=library_id);
+        library = Library.objects.get(short_name=short_name)
+        queryset = SmallMoleculeSearchManager().search(library_id=library.id);
         table = SmallMoleculeTable(queryset)
     except Library.DoesNotExist:
         raise Http404
@@ -184,15 +184,6 @@ def screenIndex(request, facility_id_filter='1'):
         raise Exception('unknown facility_id_filter: ' + str(facility_id_filter))
     return render(request, 'db/listIndex.html', {'table': table, 'search':search, 'type': type })
 
-def send_to_file(outputType, name, table, queryset, request):
-    columns = map(lambda (x,y): x, filter(lambda (x,y): x != 'rank' and x!= 'snippet' and y.visible, table.base_columns.items()))
-    #print 'return as ', outputType, ", columns: ", columns 
-
-    if(outputType == 'csv'):
-        return export_as_csv(name,columns , request, queryset)
-    elif(outputType == 'xls'):
-        return export_as_xls(name, columns, request, queryset)
- 
 # Follows is a messy way to differentiate each tab for the screen detail page (each tab calls it's respective method)
 def getDatasetType(facility_id):
     if(facility_id.find('1') == 0):
@@ -202,33 +193,35 @@ def getDatasetType(facility_id):
     else:
         raise Exception('unknown facility id range: ' + str(facility_id))
     
-def screenDetailMain(request, screen_id):
-    details = screenDetail(request,screen_id)
-    details.setdefault('type',getDatasetType(screen_id))
+def screenDetailMain(request, facility_id):
+    details = screenDetail(request,facility_id)
+    details.setdefault('type',getDatasetType(facility_id))
     return render(request,'db/screenDetailMain.html', details )
-def screenDetailCells(request, screen_id):
-    details = screenDetail(request,screen_id)
-    details.setdefault('type',getDatasetType(screen_id))
+def screenDetailCells(request, facility_id):
+    details = screenDetail(request,facility_id)
+    details.setdefault('type',getDatasetType(facility_id))
     return render(request,'db/screenDetailCells.html', details)
-def screenDetailProteins(request, screen_id):
-    details = screenDetail(request,screen_id)
-    details.setdefault('type',getDatasetType(screen_id))
+def screenDetailProteins(request, facility_id):
+    details = screenDetail(request,facility_id)
+    details.setdefault('type',getDatasetType(facility_id))
     return render(request,'db/screenDetailProteins.html', details)
-def screenDetailResults(request, screen_id):
-    details = screenDetail(request,screen_id)
-    details.setdefault('type',getDatasetType(screen_id))
+def screenDetailResults(request, facility_id):
+    details = screenDetail(request,facility_id)
+    details.setdefault('type',getDatasetType(facility_id))
     return render(request,'db/screenDetailResults.html', details)
-def screenDetail(request, screen_id):
+def screenDetail(request, facility_id):
     try:
-        dataset = DataSet.objects.get(pk=screen_id)
+        dataset = DataSet.objects.get(facility_id=facility_id)
     except DataSet.DoesNotExist:
         raise Http404
 
-    cell_queryset = cells_for_dataset(screen_id)
+    dataset_id = dataset.id
+    
+    cell_queryset = cells_for_dataset(dataset_id)
     cellTable = CellTable(cell_queryset)
     show_cells=len(cell_queryset)>0  # TODO pass in show_cells!
 
-    protein_queryset = proteins_for_dataset(screen_id)
+    protein_queryset = proteins_for_dataset(dataset_id)
     proteinTable = ProteinTable(protein_queryset)
     show_proteins=len(protein_queryset)>0 # TODO pass in show_proteins!
 
@@ -238,14 +231,14 @@ def screenDetail(request, screen_id):
     # Create a query on the fly that pivots the values from the datapoint table, making one column for each datacolumn type
     # use the datacolumns to make a query on the fly (for the DataSetResultSearchManager), and make a DataSetResultSearchTable on the fly.
     dataColumnCursor = connection.cursor()
-    dataColumnCursor.execute("SELECT id, name, data_type, precision from db_datacolumn where dataset_id = %s order by id asc", [screen_id])
+    dataColumnCursor.execute("SELECT id, name, data_type, precision from db_datacolumn where dataset_id = %s order by id asc", [dataset_id])
     
     # Need to construct something like this:
     # select distinct (datarecord_id), small_molecule_id,small_molecule_id, sm.facility_id || '-' || sm.sm_salt as facility_id,
     #        (select int_value as col1 from db_datapoint dp1 where dp1.datacolumn_id=2 and dp1.datarecord_id = dp0.datarecord_id) as col1, 
     #        (select int_value as col2 from db_datapoint dp2 where dp2.datarecord_id=dp0.datarecord_id and dp2.datacolumn_id=3) as col2 
     #        from db_datapoint dp0 join db_datarecord dr on(datarecord_id=dr.id) join db_smallmolecule sm on(sm.id=dr.small_molecule_id) 
-    #        where dp0.screen_id = 1 order by datarecord_id;
+    #        where dp0.dataset_id = 1 order by datarecord_id;
     queryString = "select distinct (datarecord_id), small_molecule_id, sm.facility_id || '-' || sm.sm_salt as facility_id "
     if(show_cells): queryString += ", cell_id, cell.name as cell_name " 
     if(show_proteins): queryString += ", protein_id, protein.name as protein_name " 
@@ -276,7 +269,7 @@ def screenDetail(request, screen_id):
     if(show_proteins): 
         queryString += " join db_protein protein on(protein.id=dr.protein_id) "
         orderedNames.insert(1,'protein_name')
-    queryString += " where dp0.dataset_id = " + str(screen_id) + " order by datarecord_id"
+    queryString += " where dp0.dataset_id = " + str(dataset_id) + " order by datarecord_id"
     orderedNames.append('...')
     
 
@@ -295,7 +288,7 @@ def screenDetail(request, screen_id):
            'table': table,
            'cellTable': cellTable,
            'proteinTable': proteinTable,
-           'screenId': dataset.id}
+           'facilityId': facility_id}
     
 #---------------Supporting classes and functions--------------------------------
 
@@ -358,7 +351,7 @@ class SmallMoleculeSearchManager(models.Manager):
         return v
     
 class SmallMoleculeTable(tables.Table):
-    facility_id = tables.LinkColumn("sm_detail", args=[A('id')])
+    facility_id = tables.LinkColumn("sm_detail", args=[A('id')]) # TODO: create a molecule link for facility/salt/batch ids
     rank = tables.Column()
     snippet = tables.Column()
     library_name = tables.LinkColumn('library_detail', args=[A('library_id')])
@@ -377,7 +370,7 @@ class SmallMoleculeForm(ModelForm):
         exclude = ('id', 'molfile', 'plate', 'row', 'column', 'well_type') 
 
 class CellTable(tables.Table):
-    facility_id = tables.LinkColumn("cell_detail", args=[A('id')])
+    facility_id = tables.LinkColumn("cell_detail", args=[A('facility_id')])
     rank = tables.Column()
     snippet = SnippetColumn()
     id = tables.Column(verbose_name='CLO Id')
@@ -403,7 +396,7 @@ class CellForm(ModelForm):
         model = Cell  
         
 class ProteinTable(tables.Table):
-    lincs_id = tables.LinkColumn("protein_detail", args=[A('id')])
+    lincs_id = tables.LinkColumn("protein_detail", args=[A('lincs_id')])
     rank = tables.Column()
     snippet = SnippetColumn()
     snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce("+x.name+",'') ", get_text_fields(Protein))))
@@ -440,7 +433,7 @@ class LibrarySearchManager(models.Manager):
     
 class LibraryTable(tables.Table):
     id = tables.Column(visible=False)
-    name = tables.LinkColumn("library_detail", args=[A('id')])
+    name = tables.LinkColumn("library_detail", args=[A('short_name')])
     well_count = tables.Column()
     plate_count = tables.Column()
     rank = tables.Column()
@@ -476,7 +469,7 @@ class SiteSearchManager(models.Manager):
             " SELECT id, facility_id, ts_headline(" + DataSetTable.snippet_def + """, query3, 'MaxFragments=10, MinWords=1, MaxWords=20, FragmentDelimiter=" | "') as snippet, """ +
             " ts_rank_cd(search_vector, query3, 32) AS rank, 'screen_detail' as type FROM db_dataset, to_tsquery(%s) as query3 WHERE search_vector @@ query3 " +
             " UNION " +
-            " SELECT id, lincs_id::text as facility_id, ts_headline(" + ProteinTable.snippet_def + """, query4, 'MaxFragments=10, MinWords=1, MaxWords=20, FragmentDelimiter=" | "') as snippet, """ +
+            " SELECT id, lincs_id as facility_id, ts_headline(" + ProteinTable.snippet_def + """, query4, 'MaxFragments=10, MinWords=1, MaxWords=20, FragmentDelimiter=" | "') as snippet, """ +
             " ts_rank_cd(search_vector, query4, 32) AS rank, 'protein_detail' as type FROM db_protein, to_tsquery(%s) as query4 WHERE search_vector @@ query4 " +
             " ORDER by rank DESC;", [queryString + ":*", queryString + ":*", queryString + ":*", queryString + ":*"])
         return dictfetchall(cursor)
@@ -484,7 +477,7 @@ class SiteSearchManager(models.Manager):
 class SiteSearchTable(tables.Table):
     id = tables.Column(visible=False)
     #Note: using the expediency here: the "type" column holds the subdirectory for that to make the link for type, so "sm", "cell", etc., becomes "/db/sm", "/db/cell", etc.
-    facility_id = tables.LinkColumn(A('type'), args=[A('id')])  
+    facility_id = tables.LinkColumn(A('type'), args=[A('facility_id')])  
     type = TypeColumn()
     rank = tables.Column()
     snippet = SnippetColumn()
@@ -495,7 +488,7 @@ class SiteSearchTable(tables.Table):
 
 class DataSetTable(tables.Table):
     id = tables.Column(visible=False)
-    facility_id = tables.LinkColumn("screen_detail", args=[A('pk')])
+    facility_id = tables.LinkColumn("screen_detail", args=[A('facility_id')])
     protocol = tables.Column(visible=False) 
     references = tables.Column(visible=False)
     rank = tables.Column()
@@ -560,6 +553,15 @@ def dictfetchall(cursor):
         dict(zip([col[0] for col in desc], row)) for row in cursor.fetchall()
     ]
 
+def send_to_file(outputType, name, table, queryset, request):
+    columns = map(lambda (x,y): x, filter(lambda (x,y): x != 'rank' and x!= 'snippet' and y.visible, table.base_columns.items()))
+    #print 'return as ', outputType, ", columns: ", columns 
+
+    if(outputType == 'csv'):
+        return export_as_csv(name,columns , request, queryset)
+    elif(outputType == 'xls'):
+        return export_as_xls(name, columns, request, queryset)
+ 
 def export_as_xls(name,columnNames, request, queryset):
     """
     Generic xls export admin action.

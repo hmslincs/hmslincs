@@ -40,7 +40,7 @@ def read_metadata(path):
               'Lab Head Last': 'lab_head_lastname',
               'Lab Head Email': 'lab_head_email',
               'Title': 'title',
-              'Facility ID': 'facility_id',
+              'Facility ID': ('facility_id',True,None, lambda x: util.convertdata(x,int)),
               'Summary': 'summary',
               'Protocol': 'protocol',
               'References': 'protocol_references',
@@ -196,7 +196,8 @@ def main(path):
                 if(value != None and value != '' ):
                     value = value.split("-")
                     if len(value) != 3: raise Exception('Small Molecule format is HMSL#####-###-#')
-                    facility = value[0] # TODO: purge "HMSL" from the db
+                    x = value[0]
+                    facility = util.convertdata(x[x.index('HMSL')+4:],int) # TODO: purge "HMSL" from the db
                     salt = value[1]
                     batch = value[2]
                     dataRecord.small_molecule = SmallMolecule.objects.get(facility_id=facility, sm_salt=salt, facility_batch_id=batch)
@@ -209,7 +210,7 @@ def main(path):
             try:
                 value = util.convertdata(r[map_column].strip())
                 if(value != None and value != '' ):
-                    facility_id = value
+                    facility_id = util.convertdata(value[value.index('HMSL')+4:],int) # TODO: purge "HMSL" from the db
                     dataRecord.cell = Cell.objects.get(facility_id=facility_id) # TODO: purge "HMSL" from the db
                     mapped = True
             except Exception, e:
@@ -221,7 +222,8 @@ def main(path):
                 value = util.convertdata(r[map_column].strip())
                 if(value != None and value != '' ):
                     facility_id = r[map_column]
-                    dataRecord.protein = Protein.objects.get(lincs_id=facility_id[facility_id.index('HMSL')+4:]) #TODO: purge "HMSL"
+                    facility_id = util.convertdata(facility_id[facility_id.index('HMSL')+4:],int) # TODO: purge "HMSL" from the db
+                    dataRecord.protein = Protein.objects.get(lincs_id=facility_id) #TODO: purge "HMSL"
                     mapped = True
             except Exception, e:
                 logger.error(str(("Invalid Protein facility id: ", value)))

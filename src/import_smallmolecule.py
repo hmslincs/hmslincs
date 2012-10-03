@@ -37,7 +37,7 @@ def main(path):
     properties = ('model_field','required','default','converter')
     labels = { s2p.MOLDATAKEY:('molfile',True),
                'smiles': ('sm_smiles',True),
-               'facility_reagent_id': ('facility_id',True),
+               'facility_reagent_id': ('facility_id',True,None, lambda x: util.convertdata(x[x.index('HMSL')+4:],int)),
                'vendor': ('sm_provider',True),
                'salt_form_id': ('sm_salt',True),
                'facility_batch_id':('facility_batch_id',True),
