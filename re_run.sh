@@ -30,13 +30,27 @@ then
   LINCS_PGSQL_USER=lincsweb
   PGHOST=pgsql.orchestra
   VIRTUALENV=/www/dev.lincs.hms.harvard.edu/support/virtualenv/bin/activate
+elif [[ "$SERVER" == "DEVTEST" ]] || [[ "$SERVER" == "devtest" ]] 
+then
+  DATADIR=${DIR}/data/dev
+  DB=devlincs
+  DB_USER=devlincsweb
+  PGHOST=dev.pgsql.orchestra
+  export LINCS_PGSQL_USER=$DB_USER
+  export LINCS_PGSQL_DB=$DB
+  export LINCS_PGSQL_SERVER=$PGHOST
+  export LINCS_PGSQL_PASSWORD=`cat ~/.pgpass |grep devlincsweb| nawk -F ':' '{print $5}'`
+  VIRTUALENV=/www/dev.lincs.hms.harvard.edu/support/virtualenv/bin/activate
 elif [[ "$SERVER" == "DEV" ]] || [[ "$SERVER" == "dev" ]] 
 then
   DATADIR=${DIR}/data/dev
   DB=devlincs
   DB_USER=devlincsweb
-  LINCS_PGSQL_USER=devlincsweb
   PGHOST=dev.pgsql.orchestra
+  export LINCS_PGSQL_USER=$DB_USER
+  export LINCS_PGSQL_DB=$DB
+  export LINCS_PGSQL_SERVER=$PGHOST
+  export LINCS_PGSQL_PASSWORD=`cat ~/.pgpass |grep devlincsweb| nawk -F ':' '{print $5}'`
   VIRTUALENV=/www/dev.lincs.hms.harvard.edu/support/virtualenv/bin/activate
 elif [[ "$SERVER" == "LOCAL" ]] || [[ "$SERVER" == "local" ]] 
 then
@@ -68,7 +82,7 @@ django/manage.py syncdb
 check_errs $? "syncdb fails"
 
 
-if [[ "$SERVER" == "TEST" ]] || [[ "$SERVER" == "test" ]] 
+if [[ "$SERVER" == "TEST" ]] || [[ "$SERVER" == "test" ]] || [[ "$SERVER" == "DEVTEST" ]] || [[ "$SERVER" == "devtest" ]] 
 then
  
   #============ Here is where the test data imports go =========================
@@ -80,6 +94,8 @@ then
 	
 	echo 'import small molecule tables...'
 	python src/import_smallmolecule.py -f  sampledata/HMS_LINCS-1.sdf
+	check_errs $? "import sdf fails"
+	python src/import_smallmolecule.py -f  sampledata/HMS_LINCS-2.sdf
 	check_errs $? "import sdf fails"
 	
 	echo 'import library mapping tables...'
