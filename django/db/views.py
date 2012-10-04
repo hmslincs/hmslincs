@@ -292,8 +292,8 @@ def screenDetail(request, facility_id):
     #        from db_datapoint dp0 join db_datarecord dr on(datarecord_id=dr.id) join db_smallmolecule sm on(sm.id=dr.small_molecule_id) 
     #        where dp0.dataset_id = 1 order by datarecord_id;
     queryString = "select distinct (datarecord_id), small_molecule_id, 'HMSL' || sm.facility_id || '-' || sm.salt_id || '-' || sm.facility_batch_id as facility_id "
-    if(show_cells): queryString += ", cell_id, cell.name as cell_name " 
-    if(show_proteins): queryString += ", protein_id, protein.name as protein_name " 
+    if(show_cells): queryString += ", cell_id, cell.name as cell_name, cell.facility_id as cell_facility_id " 
+    if(show_proteins): queryString += ", protein_id, protein.name as protein_name, protein.lincs_id as protein_lincs_id " 
     i = 0
     names = {}
     orderedNames = ['facility_id']
@@ -588,9 +588,9 @@ TEMPLATE = '''
             
 class DataSetResultTable(tables.Table):
     id = tables.Column(visible=False)
-    facility_id = tables.LinkColumn('sm_detail', args=[A('small_molecule_id')]) 
-    cell_name = tables.LinkColumn('cell_detail',args=[A('cell_id')], visible=False)
-    protein_name = tables.LinkColumn('protein_detail',args=[A('protein_id')], visible=False)
+    facility_id = tables.LinkColumn('sm_detail', args=[A('small_molecule_id')]) #TODO: broken! must use facilty_id
+    cell_name = tables.LinkColumn('cell_detail',args=[A('cell_facility_id')], visible=False) #TODO: broken! must use facility_id
+    protein_name = tables.LinkColumn('protein_detail',args=[A('protein_lincs_id')], visible=False) #TODO: broken! must use facilty_id
     
     def __init__(self, queryset, names, orderedNames, show_cells, show_proteins, *args, **kwargs):
         super(DataSetResultTable, self).__init__(queryset, names, *args, **kwargs)
