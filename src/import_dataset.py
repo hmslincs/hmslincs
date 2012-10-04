@@ -200,7 +200,7 @@ def main(path):
                     facility = util.convertdata(x[x.index('HMSL')+4:],int) # TODO: purge "HMSL" from the db
                     salt = value[1]
                     batch = value[2]
-                    dataRecord.small_molecule = SmallMolecule.objects.get(facility_id=facility, sm_salt=salt, facility_batch_id=batch)
+                    dataRecord.small_molecule = SmallMolecule.objects.get(facility_id=facility, salt_id=salt, facility_batch_id=batch)
                     mapped = True
             except Exception, e:
                 logger.error(str(("Invalid Small Molecule facility id: ", value)))

@@ -36,18 +36,18 @@ def main(path):
     # map field labels to model fields
     properties = ('model_field','required','default','converter')
     labels = { s2p.MOLDATAKEY:('molfile',True),
-               'smiles': ('sm_smiles',True),
+               'smiles': ('smiles',True),
                'facility_reagent_id': ('facility_id',True,None, lambda x: util.convertdata(x[x.index('HMSL')+4:],int)),
-               'vendor': ('sm_provider',True),
-               'salt_form_id': ('sm_salt',True),
+               'vendor': ('provider',True),
+               'salt_form_id': ('salt_id',True),
                'facility_batch_id':('facility_batch_id',True),
-               'vendor_reagent_id':'sm_provider_catalog_id',
-               'chemical_name':('sm_name',True),
-               'pubchem_cid':'sm_pubchem_cid',
-               'molecular_formula':'sm_molecular_formula',
-               'molecular_mass':'sm_molecular_mass',
-               'vendor_batch_id':'sm_provider_sample_id',
-               'inchi':'sm_inchi',
+               'vendor_reagent_id':'provider_catalog_id',
+               'chemical_name':('name',True),
+               'pubchem_cid':'pubchem_cid',
+               'molecular_formula':'molecular_formula',
+               'molecular_mass':'molecular_mass',
+               'vendor_batch_id':'provider_sample_id',
+               'inchi':'inchi',
                'chembl':'chembl_id',
                'concentration':'concentration',
                'well_type':('well_type',False,'experimental'),
@@ -90,6 +90,8 @@ def main(path):
         sm.save()
         count += 1
     print 'small molecule definitions read: ', count
+    
+    # TODO - integrity checks: no differing smiles between different batches for same facility id
             
 parser = argparse.ArgumentParser(description='Import file')
 parser.add_argument('-f', action='store', dest='inputFile',

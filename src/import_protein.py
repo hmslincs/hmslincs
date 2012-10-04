@@ -52,7 +52,8 @@ def main(path):
               'PP_Isoform':'isoform', 
               'PP_Protein_Type':'protein_type', 
               'PP_Source_Organism':'source_organism', 
-              'PP_Reference':'reference'}
+              'PP_Reference':'reference',
+              'Is Restricted':('is_restricted',False,False)}
     # convert the labels to fleshed out dict's, with strategies for optional, default and converter
     column_definitions = util.fill_in_column_definitions(properties,column_definitions)
     

@@ -174,10 +174,10 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
-            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
+            'format': '%(levelname)s %(asctime)s %(module)s:%(lineno)d %(process)d %(thread)d %(message)s'
         },
         'simple': {
-            'format': '%(levelname)s %(message)s'
+            'format': '%(module)s:%(lineno)d:%(levelname)s: %(message)s'
         },
     },
     'filters': {
@@ -203,10 +203,15 @@ LOGGING = {
             'level': 'ERROR',
             'propagate': True,
         },
-        'example': {
+        'db': {
             'handlers': ['console'],
             'propagate': True,
-            'level': 'INFO',
+            'level': 'DEBUG',
+        },
+        '': {  # if you want to see how django makes sql, use this one
+            'handlers': ['console'],
+            'propagate': True,
+            'level': 'DEBUG',
         },
     }
 }

@@ -29,6 +29,10 @@ then
   DB_USER=lincsweb
   LINCS_PGSQL_USER=lincsweb
   PGHOST=pgsql.orchestra
+  export LINCS_PGSQL_USER=$DB_USER
+  export LINCS_PGSQL_DB=$DB
+  export LINCS_PGSQL_SERVER=$PGHOST
+  export LINCS_PGSQL_PASSWORD=`cat ~/.pgpass |grep $DB_USER| nawk -F ':' '{print $5}'`
   VIRTUALENV=/www/dev.lincs.hms.harvard.edu/support/virtualenv/bin/activate
 elif [[ "$SERVER" == "DEVTEST" ]] || [[ "$SERVER" == "devtest" ]] 
 then
@@ -39,7 +43,7 @@ then
   export LINCS_PGSQL_USER=$DB_USER
   export LINCS_PGSQL_DB=$DB
   export LINCS_PGSQL_SERVER=$PGHOST
-  export LINCS_PGSQL_PASSWORD=`cat ~/.pgpass |grep devlincsweb| nawk -F ':' '{print $5}'`
+  export LINCS_PGSQL_PASSWORD=`cat ~/.pgpass |grep $DB_USER| nawk -F ':' '{print $5}'`
   VIRTUALENV=/www/dev.lincs.hms.harvard.edu/support/virtualenv/bin/activate
 elif [[ "$SERVER" == "DEV" ]] || [[ "$SERVER" == "dev" ]] 
 then
@@ -50,7 +54,7 @@ then
   export LINCS_PGSQL_USER=$DB_USER
   export LINCS_PGSQL_DB=$DB
   export LINCS_PGSQL_SERVER=$PGHOST
-  export LINCS_PGSQL_PASSWORD=`cat ~/.pgpass |grep devlincsweb| nawk -F ':' '{print $5}'`
+  export LINCS_PGSQL_PASSWORD=`cat ~/.pgpass |grep $DB_USER| nawk -F ':' '{print $5}'`
   VIRTUALENV=/www/dev.lincs.hms.harvard.edu/support/virtualenv/bin/activate
 elif [[ "$SERVER" == "LOCAL" ]] || [[ "$SERVER" == "local" ]] 
 then
@@ -88,14 +92,11 @@ then
   #============ Here is where the test data imports go =========================
   
 	echo 'import cell tables ...'
-	#python src/populate_cell.py sampledata/LINCS_Cells_20120727.xls 'HMS-LINCS cell line metadata'
 	python src/import_cell.py -f sampledata/LINCS_Cells_20120727.xls
-	check_errs $? "populate cell fails"
+	check_errs $? "import cell fails"
 	
 	echo 'import small molecule tables...'
 	python src/import_smallmolecule.py -f  sampledata/HMS_LINCS-1.sdf
-	check_errs $? "import sdf fails"
-	python src/import_smallmolecule.py -f  sampledata/HMS_LINCS-2.sdf
 	check_errs $? "import sdf fails"
 	
 	echo 'import library mapping tables...'

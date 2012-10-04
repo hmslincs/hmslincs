@@ -84,9 +84,6 @@ experimental
 > <facility_reagent_id>
 HMSL10001
 
-> <is_restricted>
-true
-
 > <salt_form_id>
 101
 
@@ -28435,6 +28432,9 @@ HMSL10225
 
 > <facility_batch_id>
 1
+
+> <is_restricted>
+true
 
 > <chemical_name>
 Regorafenib; BAY 73-4506

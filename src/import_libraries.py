@@ -33,7 +33,7 @@ def main(path):
     libraries = readLibraries(path,'Library')
     
     labels = { 'Facility':'facility_id',
-               'Salt':'sm_salt',
+               'Salt':'salt_id',
                'Batch':'facility_batch_id',
                'Plate':'plate',
                'Well':'well',
@@ -42,7 +42,7 @@ def main(path):
                'Concentration Unit':'concentration_unit'
                }
     
-    small_molecule_lookup = ('facility_id', 'sm_salt', 'facility_batch_id')
+    small_molecule_lookup = ('facility_id', 'salt_id', 'facility_batch_id')
     sheet = iu.readtable([path, 'LibraryMapping'])
     
     #dict to map spreadsheet fields to terms
@@ -77,9 +77,13 @@ def main(path):
         lm['well'] = r[cols['well']]
         lm['small_molecule'] = sm
         lm['library'] = libraries[short_name]
-        lm = LibraryMapping(**lm)
-        lm.save()
-        rows += 1
+        try:
+            lm = LibraryMapping(**lm)
+            lm.save()
+            rows += 1
+        except Exception, e:
+            logger.error(str(("library mapping error: library:",short_name, 'sm', sm.facility_id, e)))
+            raise
 
     print 'library mappings read in: ', rows
 

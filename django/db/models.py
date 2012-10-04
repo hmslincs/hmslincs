@@ -26,19 +26,19 @@ _NULLOKSTR  = dict(null=True, blank=False)
 
 class SmallMolecule(models.Model):
     facility_id            = _INTEGER(null=False)
-    sm_salt                = _INTEGER(null=True)
+    salt_id                = _INTEGER(null=True)
     facility_batch_id      = _INTEGER(null=True)
     molfile                = _TEXT(**_NULLOKSTR)
-    sm_smiles              = _TEXT(**_NULLOKSTR)
-    sm_name                = _TEXT(**_NULLOKSTR)
-    sm_inchi               = _TEXT(**_NULLOKSTR)
-    sm_provider            = _TEXT(**_NULLOKSTR)
-    sm_provider_catalog_id = _CHAR(max_length=35, **_NULLOKSTR)
-    sm_provider_sample_id  = _CHAR(max_length=35, **_NULLOKSTR)
-    sm_pubchem_cid         = _INTEGER(null=True)
+    smiles              = _TEXT(**_NULLOKSTR)
+    name                = _TEXT(**_NULLOKSTR)
+    inchi               = _TEXT(**_NULLOKSTR)
+    provider            = _TEXT(**_NULLOKSTR)
+    provider_catalog_id = _CHAR(max_length=35, **_NULLOKSTR)
+    provider_sample_id  = _CHAR(max_length=35, **_NULLOKSTR)
+    pubchem_cid         = _INTEGER(null=True)
     chembl_id              = _INTEGER(null=True)
-    sm_molecular_mass      = _CHAR(max_length=35, **_NULLOKSTR)
-    sm_molecular_formula   = _TEXT(**_NULLOKSTR)
+    molecular_mass      = _CHAR(max_length=35, **_NULLOKSTR)
+    molecular_formula   = _TEXT(**_NULLOKSTR)
     concentration          = _CHAR(max_length=35, **_NULLOKSTR)
     plate                  = _INTEGER(null=True)
     row                    = _CHAR(max_length=1, **_NULLOKSTR)
@@ -46,8 +46,20 @@ class SmallMolecule(models.Model):
     well_type              = _CHAR(max_length=35, **_NULLOKSTR)
     is_restricted          = models.BooleanField(default=False) # Note: default=False are not set at the db level, only at the Db-api level
 
+    class Meta:
+        unique_together = ('facility_id', 'salt_id', 'facility_batch_id',)    
+
     def __unicode__(self):
         return unicode(self.facility_id)
+
+class SmallMoleculeBatch(models.Model):
+    facility_id            = _INTEGER(null=False)
+    salt_id                = _INTEGER(null=True)
+    facility_batch_id      = _INTEGER(null=True)
+
+    class Meta:
+        unique_together = ('facility_id', 'salt_id', 'facility_batch_id',)    
+
 
 class Cell(models.Model):
     # ----------------------------------------------------------------------------------------------------------------------
@@ -184,6 +196,8 @@ class LibraryMapping(models.Model):
     concentration_unit      = models.CharField(max_length=2,
                                       choices=CONCENTRATION_CHOICES,
                                       default=CONCENTRATION_UM)
+    class Meta:
+        unique_together = ('library', 'small_molecule',)    
     
 class DataColumn(models.Model):
     dataset                 = models.ForeignKey('DataSet')
@@ -217,8 +231,9 @@ class DataPoint(models.Model):
     float_value             = models.FloatField(null=True)
     text_value              = _TEXT(**_NULLOKSTR)
     omero_well_id           = _CHAR(max_length=35, **_NULLOKSTR) # this is the plate:well id for lookup on the omero system (NOTE:may need multiple of these)
-class Meta:
-    unique_together = ('datacolumn', 'datarecord',)    
+    
+    class Meta:
+        unique_together = ('datacolumn', 'datarecord',)    
 
 
 
