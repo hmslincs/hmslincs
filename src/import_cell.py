@@ -70,7 +70,7 @@ def main(path):
     cols = util.find_columns(column_definitions, sheet.labels)
             
     rows = 0    
-    logger.info(str(('cols: ' , cols)))
+    logger.debug(str(('cols: ' , cols)))
     for row in sheet:
         r = util.make_row(row)
         initializer = {}
@@ -100,6 +100,7 @@ def main(path):
             logger.debug(str(('initializer: ', initializer)))
             cell = Cell(**initializer)
             cell.save()
+            logger.info(str(('cell created:', cell)))
             rows += 1
         except Exception, e:
             print "Invalid Cell, name: ", r[0]
@@ -127,7 +128,9 @@ if __name__ == "__main__":
         log_level = logging.INFO
     elif args.verbose >= 2:
         log_level = logging.DEBUG
-    logging.basicConfig(level=log_level, format='%(msecs)d:%(lineno)d:%(levelname)s: %(message)s')        
+    # NOTE this doesn't work because the config is being set by the included settings.py, and you can only set the config once
+    # logging.basicConfig(level=log_level, format='%(msecs)d:%(module)s:%(lineno)d:%(levelname)s: %(message)s')        
+    logger.setLevel(log_level)
         
     print 'importing ', args.inputFile
     main(args.inputFile)

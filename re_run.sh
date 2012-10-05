@@ -98,6 +98,10 @@ then
 	echo 'import small molecule tables...'
 	python src/import_smallmolecule.py -f  sampledata/HMS_LINCS-1.sdf
 	check_errs $? "import sdf fails"
+
+	echo 'import small molecule batch tables...'
+	python src/import_smallmolecule_batch.py -f sampledata/small_molecule_batch-HMS_LINCS-1.xls
+	check_errs $? "import smallmolecule batch fails"
 	
 	echo 'import library mapping tables...'
 	python src/import_libraries.py -f sampledata/libraries.xls

@@ -24,41 +24,76 @@ _NULLOKSTR  = dict(null=True, blank=False)
 # definition
 # _NULLOKSTR  = dict(null=False, blank=True)
 
+# proposed class to capture all of the DWG information - and to map fields to these database tables
+class LincsFieldInformation(models.Model):
+    table                   = _CHAR(max_length=35, **_NOTNULLSTR)
+    field                   = _CHAR(max_length=35, **_NOTNULLSTR)
+    unique_id               = _CHAR(max_length=35, **_NOTNULLSTR)
+    lincs_field_name        = _CHAR(max_length=35, **_NOTNULLSTR)
+    related_to              = _TEXT(**_NULLOKSTR)
+    description             = _TEXT(**_NULLOKSTR)
+    importance              = _TEXT(**_NULLOKSTR)
+    comments                = _TEXT(**_NULLOKSTR)
+
 class SmallMolecule(models.Model):
-    facility_id            = _INTEGER(null=False)
-    salt_id                = _INTEGER(null=True)
-    facility_batch_id      = _INTEGER(null=True)
-    molfile                = _TEXT(**_NULLOKSTR)
-    smiles              = _TEXT(**_NULLOKSTR)
-    name                = _TEXT(**_NULLOKSTR)
-    inchi               = _TEXT(**_NULLOKSTR)
-    provider            = _TEXT(**_NULLOKSTR)
-    provider_catalog_id = _CHAR(max_length=35, **_NULLOKSTR)
-    provider_sample_id  = _CHAR(max_length=35, **_NULLOKSTR)
-    pubchem_cid         = _INTEGER(null=True)
-    chembl_id              = _INTEGER(null=True)
-    molecular_mass      = _CHAR(max_length=35, **_NULLOKSTR)
-    molecular_formula   = _TEXT(**_NULLOKSTR)
-    concentration          = _CHAR(max_length=35, **_NULLOKSTR)
-    plate                  = _INTEGER(null=True)
-    row                    = _CHAR(max_length=1, **_NULLOKSTR)
-    column                 = _INTEGER(null=True)
-    well_type              = _CHAR(max_length=35, **_NULLOKSTR)
-    is_restricted          = models.BooleanField(default=False) # Note: default=False are not set at the db level, only at the Db-api level
+    facility_id             = _INTEGER(unique=True, null=False) # center compound id
+    lincs_id                = _INTEGER(null=True)
+    name                    = _TEXT(**_NULLOKSTR) # all names in one, including alternate names
+    #salt_id                 = _INTEGER(null=True)
+    #facility_batch_id       = _INTEGER(null=True)
+    molfile                 = _TEXT(**_NULLOKSTR)
+    pubchem_cid             = _INTEGER(null=True)
+    chembl_id               = _INTEGER(null=True)
+    chebi_id                = _INTEGER(null=True)
+    inchi                   = _TEXT(**_NULLOKSTR)
+    inchi_key               = _TEXT(**_NULLOKSTR)
+    smiles                  = _TEXT(**_NULLOKSTR)
+    # Following fields not listed for the canonical information in the DWG, but per HMS policy will be - sde4
+    molecular_mass          = _CHAR(max_length=35, **_NULLOKSTR)
+    molecular_formula       = _TEXT(**_NULLOKSTR)
+    # concentration          = _CHAR(max_length=35, **_NULLOKSTR)
+    #plate                   = _INTEGER(null=True)
+    #row                     = _CHAR(max_length=1, **_NULLOKSTR)
+    #column                  = _INTEGER(null=True)
+    #well_type               = _CHAR(max_length=35, **_NULLOKSTR)
+    is_restricted           = models.BooleanField(default=False) # Note: default=False are not set at the db level, only at the Db-api level
 
-    class Meta:
-        unique_together = ('facility_id', 'salt_id', 'facility_batch_id',)    
-
+    #class Meta:
+    #    unique_together = ('facility_id', 'salt_id', 'facility_batch_id',)    
     def __unicode__(self):
         return unicode(self.facility_id)
 
-class SmallMoleculeBatch(models.Model):
-    facility_id            = _INTEGER(null=False)
-    salt_id                = _INTEGER(null=True)
-    facility_batch_id      = _INTEGER(null=True)
+CONCENTRATION_GL = 'g/L'
+CONCENTRATION_MGML = 'mg/mL'
+CONCENTRATION_WEIGHT_VOLUME_CHOICES = ((CONCENTRATION_GL,CONCENTRATION_GL),
+                                       (CONCENTRATION_MGML,CONCENTRATION_MGML))
 
+class SmallMoleculeBatch(models.Model):
+    smallmolecule           = models.ForeignKey('SmallMolecule')
+    salt_id                 = _INTEGER(null=True)
+    facility_batch_id       = _INTEGER(null=True)
+    provider                = _TEXT(**_NULLOKSTR)
+    provider_catalog_id     = _CHAR(max_length=35, **_NULLOKSTR)
+    provider_sample_id      = _CHAR(max_length=35, **_NULLOKSTR)
+    chemical_synthesis_reference = _TEXT(**_NULLOKSTR)
+    purity                  = _TEXT(**_NULLOKSTR)
+    purity_method           = _TEXT(**_NULLOKSTR)
+    aqueous_solubility      = models.DecimalField(max_digits=4, decimal_places=2, null=True)
+    aqueous_solubility_unit = models.CharField(null=True,
+                                               max_length=2,
+                                      choices=CONCENTRATION_WEIGHT_VOLUME_CHOICES,
+                                      default=CONCENTRATION_MGML)
+    ## following fields probably not used with batch, per HMS policy - sde4
+    inchi                   = _TEXT(**_NULLOKSTR)
+    inchi_key               = _TEXT(**_NULLOKSTR)
+    smiles                  = _TEXT(**_NULLOKSTR)
+    molecular_mass          = _CHAR(max_length=35, **_NULLOKSTR)
+    molecular_formula       = _TEXT(**_NULLOKSTR)
+
+    def __unicode__(self):
+        return unicode(str((self.smallmolecule,self.salt_id,self.facility_batch_id)))
     class Meta:
-        unique_together = ('facility_id', 'salt_id', 'facility_batch_id',)    
+        unique_together = ('smallmolecule', 'salt_id', 'facility_batch_id',)    
 
 
 class Cell(models.Model):
@@ -124,7 +159,7 @@ class Cell(models.Model):
 
     # ----------------------------------------------------------------------------------------------------------------------
     def __unicode__(self):
-        return unicode(self.Facility_ID)
+        return unicode(self.facility_id)
 
 class Protein(models.Model):
     name                = _TEXT(**_NOTNULLSTR)
@@ -184,20 +219,22 @@ class Library(models.Model):
 CONCENTRATION_NM = 'nM'
 CONCENTRATION_UM = 'uM'
 CONCENTRATION_MM = 'mM'    
-CONCENTRATION_CHOICES = ((CONCENTRATION_NM,'nM'),
-                         (CONCENTRATION_UM,'uM'),
-                         (CONCENTRATION_MM,'mM'))
+CONCENTRATION_CHOICES = ((CONCENTRATION_NM,CONCENTRATION_NM),
+                         (CONCENTRATION_UM,CONCENTRATION_UM),
+                         (CONCENTRATION_MM,CONCENTRATION_MM))
 class LibraryMapping(models.Model):
     library                 = models.ForeignKey('Library')
-    small_molecule          = models.ForeignKey('SmallMolecule')
+    smallmolecule_batch     = models.ForeignKey('SmallMoleculeBatch')
     plate                   = _INTEGER(null=True)
     well                    = _CHAR(max_length=4, **_NULLOKSTR) # AA99
     concentration           = models.DecimalField(max_digits=4, decimal_places=2)
-    concentration_unit      = models.CharField(max_length=2,
+    concentration_unit      = models.CharField(null=True, max_length=2,
                                       choices=CONCENTRATION_CHOICES,
                                       default=CONCENTRATION_UM)
+    def __unicode__(self):
+        return unicode(str((self.library,self.smallmolecule_batch)))
     class Meta:
-        unique_together = ('library', 'small_molecule',)    
+        unique_together = ('library', 'smallmolecule_batch',)    
     
 class DataColumn(models.Model):
     dataset                 = models.ForeignKey('DataSet')
@@ -212,16 +249,18 @@ class DataColumn(models.Model):
     comments                = _TEXT(**_NULLOKSTR)
 
     def __unicode__(self):
-        return unicode(self.name)
+        return unicode(str((self.dataset,self.name,self.data_type)))
 
 class DataRecord(models.Model):
     dataset                 = models.ForeignKey('DataSet')
-    small_molecule          = models.ForeignKey('SmallMolecule', null=True)
+    smallmolecule_batch     = models.ForeignKey('SmallMoleculeBatch', null=True)
     cell                    = models.ForeignKey('Cell', null=True)
     protein                 = models.ForeignKey('Protein', null=True)
     plate                   = _INTEGER(null=True)
     well                    = _CHAR(max_length=4, **_NULLOKSTR) # AA99
     control_type            = _CHAR(max_length=35, **_NULLOKSTR) # TODO: controlled vocabulary
+    def __unicode__(self):
+        return unicode(str((self.dataset,self.smallmolecule_batch,self.cell,self.protein,self.plate,self.well)))
     
 class DataPoint(models.Model):
     datacolumn              = models.ForeignKey('DataColumn')
@@ -232,6 +271,8 @@ class DataPoint(models.Model):
     text_value              = _TEXT(**_NULLOKSTR)
     omero_well_id           = _CHAR(max_length=35, **_NULLOKSTR) # this is the plate:well id for lookup on the omero system (NOTE:may need multiple of these)
     
+    def __unicode__(self):
+        return unicode(str((self.datarecord,self.datacolumn,self.int_value,self.float_value,self.text_value)))
     class Meta:
         unique_together = ('datacolumn', 'datarecord',)    
 

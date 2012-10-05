@@ -6,7 +6,7 @@ import logging
 
 import init_utils as iu
 import import_utils as util
-from db.models import DataSet, DataColumn, DataRecord, DataPoint, SmallMolecule, Cell, Protein
+from db.models import DataSet, DataColumn, DataRecord, DataPoint, SmallMolecule, SmallMoleculeBatch, Cell, Protein
 
 
 # ---------------------------------------------------------------------------
@@ -119,7 +119,7 @@ def readDataColumns(path):
                 else:
                     logger.debug(str(( '"Data Column definition not used: ', cellText)) ) 
                     pass
-    logger.info(str(("definitions: ", dataColumnDefinitions)) )
+    logger.debug(str(("definitions: ", dataColumnDefinitions)) )
     
     return dataColumnDefinitions
 
@@ -128,9 +128,9 @@ def main(path):
     
     # read in the two columns of the meta sheet to a dict that defines a DataSet
     metadata = read_metadata(path)
-    logger.info(str(('create dataset: ', metadata)))
     dataset = DataSet(**metadata)
     dataset.save()
+    logger.info(str(('dataset created: ', metadata)))
     
     # read in the data columns sheet to an array of dict's, each dict defines a DataColumn    
     dataColumnDefinitions = readDataColumns(path)
@@ -141,6 +141,7 @@ def main(path):
         dc['dataset'] = dataset
         dataColumn = DataColumn(**dc)
         dataColumn.save()
+        logger.info(str(('datacolumn created:', dataColumn)))
         dataColumns[dataColumn.name] = dataColumn    
 
     # read the Data sheet
@@ -150,7 +151,7 @@ def main(path):
     # First, map the sheet column indices to the DataColumns that were created
     dataColumnList = {}
     metaColumnDict = {'Well':-1, 'Plate':-1, 'Control Type':-1} # meta columns contain forensic information
-    mappingColumnDict = {'Small Molecule':-1, 'Cell':-1, 'Protein':-1} # what is being studied - at least one is required
+    mappingColumnDict = {'Small Molecule Batch':-1, 'Cell':-1, 'Protein':-1} # what is being studied - at least one is required
     # NOTE: this scheme is matching based on the labels between the "Data Column" sheet and the "Data" sheet
     for i,label in enumerate(dataSheet.labels):
         if(label == 'None' or label == 'well_id' or label.strip()=='' or label == 'Exclude' ): continue  
@@ -188,22 +189,27 @@ def main(path):
     for row in dataSheet:
         r = util.make_row(row)
         dataRecord = DataRecord(dataset=dataset )
-        map_column = mappingColumnDict['Small Molecule']
+        map_column = mappingColumnDict['Small Molecule Batch']
         mapped = False
         if(map_column > -1):
             try:
                 value = util.convertdata(r[map_column].strip())
                 if(value != None and value != '' ):
                     value = value.split("-")
-                    if len(value) != 3: raise Exception('Small Molecule format is HMSL#####-###-#')
+                    if len(value) != 3: raise Exception('Small Molecule Batch format is HMSL#####-###-#')
                     x = value[0]
                     facility = util.convertdata(x[x.index('HMSL')+4:],int) # TODO: purge "HMSL" from the db
                     salt = value[1]
                     batch = value[2]
-                    dataRecord.small_molecule = SmallMolecule.objects.get(facility_id=facility, salt_id=salt, facility_batch_id=batch)
+                    try:
+                        sm = SmallMolecule.objects.get(facility_id=facility);
+                    except Exception, e:
+                        logger.error(str(('could not locate small molecule:', facility)))
+                        raise
+                    dataRecord.smallmolecule_batch = SmallMoleculeBatch.objects.get(smallmolecule=sm, salt_id=salt, facility_batch_id=batch)
                     mapped = True
             except Exception, e:
-                logger.error(str(("Invalid Small Molecule facility id: ", value)))
+                logger.error(str(("Invalid Small Molecule Batch identifiers: ", value)))
                 raise    
         map_column = mappingColumnDict['Cell']
         if(map_column > -1):
@@ -236,6 +242,7 @@ def main(path):
         if metaColumnDict['Well'] > -1 : dataRecord.well = util.convertdata(r[metaColumnDict['Well']])
         if metaColumnDict['Control Type'] > -1: dataRecord.control_type = util.convertdata(r[metaColumnDict['Control Type']])
         dataRecord.save()
+        logger.info(str(('datarecord created:', dataRecord)))
         for i,value in enumerate(r):
             # NOTE: shall there be an "empty" datapoint? no, since non-existance of data in the worksheet does not mean "null" will mean "no value entered"
             # TODO: verify/read existing code, ask Dave
@@ -261,6 +268,7 @@ def main(path):
                                           text_value=util.convertdata(value))
                 
                 dataPoint.save()
+                if(logger.isEnabledFor(logging.DEBUG)): logger.debug(str(('datapoint created:', dataPoint)))
                 pointsSaved += 1
         rowsRead += 1
     print 'Finished reading, rowsRead: ', rowsRead, ', points Saved: ', pointsSaved
@@ -284,7 +292,9 @@ if __name__ == "__main__":
         log_level = logging.INFO
     elif args.verbose >= 2:
         log_level = logging.DEBUG
-    logging.basicConfig(level=log_level, format='%(msecs)d:%(module)s:%(lineno)d:%(levelname)s: %(message)s')        
+    # NOTE this doesn't work because the config is being set by the included settings.py, and you can only set the config once
+    # logging.basicConfig(level=log_level, format='%(msecs)d:%(module)s:%(lineno)d:%(levelname)s: %(message)s')        
+    logger.setLevel(log_level)
 
     print 'importing ', args.inputFile
     main(args.inputFile)

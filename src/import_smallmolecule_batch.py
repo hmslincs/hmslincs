@@ -1,3 +1,4 @@
+
 import sys
 import argparse
 import xls2py as x2p
@@ -7,7 +8,7 @@ import logging
 
 import init_utils as iu
 import import_utils as util
-from db.models import Protein
+from db.models import SmallMolecule,SmallMoleculeBatch
 
 __version__ = "$Revision: 24d02504e664 $"
 # $Source$
@@ -28,32 +29,25 @@ logger = logging.getLogger(__name__)
 
 def main(path):
     """
-    Read in the Protein
+    Read in the smallmolecule batch info
     """
-    sheet_name = 'HMS-LINCS Kinases'
+    sheet_name = 'sheet 1'
     sheet = iu.readtable([path, sheet_name, 1]) # Note, skipping the header row by default
 
     properties = ('model_field','required','default','converter')
-    column_definitions = { 'PP_Name':('name',True), 
-              'PP_LINCS_ID':('lincs_id',True,None,lambda x: util.convertdata(x[x.index('HMSL')+4:]),int), 
-              'PP_UniProt_ID':'uniprot_id', 
-              'PP_Alternate_Name':'alternate_name',
-              'PP_Alternate_Name[2]':'alternate_name_2',
-              'PP_Provider':'provider',
-              'PP_Provider_Catalog_ID':'provider_catalog_id',
-              'PP_Batch_ID':'batch_id', 
-              'PP_Amino_Acid_Sequence':'amino_acid_sequence',
-              'PP_Gene_Symbol':'gene_symbol', 
-              'PP_Gene_ID':'gene_id',
-              'PP_Protein_Source':'protein_source',
-              'PP_Protein_Form':'protein_form', 
-              'PP_Protein_Purity':'protein_purity', 
-              'PP_Protein_Complex':'protein_complex', 
-              'PP_Isoform':'isoform', 
-              'PP_Protein_Type':'protein_type', 
-              'PP_Source_Organism':'source_organism', 
-              'PP_Reference':'reference',
-              'Is Restricted':('is_restricted',False,False)}
+    column_definitions = { 
+                          'facility_id': ('facility_id',True,None, lambda x: util.convertdata(x,int)),
+                          'salt_form_id': ('salt_id',True,None, lambda x: util.convertdata(x,int)),
+                          'facility_batch_id':('facility_batch_id',True,None, lambda x: util.convertdata(x,int)),
+                          'provider': ('provider',True),
+                          'provider_catalog_id':'provider_catalog_id',
+                          'provider_sample_id':'provider_sample_id',
+                          'chemical_synthesis_reference':'chemical_synthesis_reference',
+                          'purity':'purity',
+                          'purity_method':'purity_method',
+                          'aqueous_solubility':'aqueous_solubility',
+                          'aqueous_solubility_unit':'aqueous_solubility_unit'    
+                          }
     # convert the labels to fleshed out dict's, with strategies for optional, default and converter
     column_definitions = util.fill_in_column_definitions(properties,column_definitions)
     
@@ -61,10 +55,9 @@ def main(path):
     cols = util.find_columns(column_definitions, sheet.labels)
 
     rows = 0    
-    logger.debug(str(('cols: ' , cols)))
+    logger.info(str(('cols: ' , cols)))
     for row in sheet:
         r = util.make_row(row)
-        dict = {}
         initializer = {}
         for i,value in enumerate(r):
             if i not in cols: continue
@@ -86,15 +79,24 @@ def main(path):
             if(value == None and  required == True):
                 raise Exception('Field is required: %s, record: %d' % (properties['column_label'],rows))
             logger.debug(str(('model_field: ' , model_field, ', value: ', value)))
-            initializer[model_field] = value
+            
+            if(model_field == 'facility_id'):
+                try:
+                    sm = SmallMolecule.objects.get(facility_id=value)
+                    initializer['smallmolecule'] = sm
+                except Exception, e:
+                    logger.error(str(('sm facility id not found', value)))
+                    raise
+            else:
+                initializer[model_field] = value
         try:
             logger.debug(str(('initializer: ', initializer)))
-            protein = Protein(**initializer)
-            protein.save()
-            logger.info(str(('protein created: ', protein)))
+            smb = SmallMoleculeBatch(**initializer)
+            smb.save()
+            logger.info(str(('smb created:', smb)))
             rows += 1
         except Exception, e:
-            logger.error(str(( "Invalid protein initializer: ", initializer)))
+            logger.error(str(( "Invalid smallmolecule batch initializer: ", initializer)))
             raise
         
     print "Rows read: ", rows
@@ -119,9 +121,7 @@ if __name__ == "__main__":
         log_level = logging.INFO
     elif args.verbose >= 2:
         log_level = logging.DEBUG
-    # NOTE this doesn't work because the config is being set by the included settings.py, and you can only set the config once
-    # logging.basicConfig(level=log_level, format='%(msecs)d:%(module)s:%(lineno)d:%(levelname)s: %(message)s')        
-    logger.setLevel(log_level)
+    logging.basicConfig(level=log_level, format='%(msecs)d:%(module)s:%(lineno)d:%(levelname)s: %(message)s')        
 
     print 'importing ', args.inputFile
     main(args.inputFile)

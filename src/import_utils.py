@@ -44,21 +44,28 @@ def find_columns(column_definitions, sheet_labels, all_column_definitions_requir
     logger.debug(str(('cols:', cols)))
     return cols
 
+
 def convertdata(value, t=None):
+    """
+    All values are read as strings from the input files, so this function converts them as directed.
+    """
     #print 'convert: ', value, 'type: ', t
     # todo: because all values are returned as unicode, and xls2py is converting empty values to "None", we need this clause
     # also, by convention, empty values in the sdf file can be indicated as 'n/a'
-    if value == None or value == 'None' or value == u'None' or value == u'n/a':  
-        return None
-    if t is None:
-        return value
-    elif t is int: # todo: this is a kludge, since we want an integer from values like "5.0"
-        return int(float(value))
-    elif t is date:
-        return dateutil.parser.parse(value)
-    else:
-        return t(value)
-
+    try:
+        if value == None or value== '' or value == 'None' or value == u'None' or value == u'n/a':  
+            return None
+        if t is None:
+            return value
+        elif t is int: # todo: this is a kludge, since we want an integer from values like "5.0"
+            return int(float(value))
+        elif t is date:
+            return dateutil.parser.parse(value)
+        else:
+            return t(value)
+    except Exception, e:
+        logger.error(str(('value', value)))
+        raise
 def get_fields(model):
     return tuple(model._meta.fields)
         
