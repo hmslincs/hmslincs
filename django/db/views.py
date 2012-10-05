@@ -18,7 +18,7 @@ import django_tables2 as tables
 from django_tables2 import RequestConfig
 from django_tables2.utils import A  # alias for Accessor
 
-from db.models import SmallMolecule, Cell, Protein, DataSet, Library
+from db.models import SmallMolecule, SmallMoleculeBatch, Cell, Protein, DataSet, Library
 # --------------- View Functions -----------------------------------------------
 
 logger = logging.getLogger(__name__)
@@ -286,12 +286,12 @@ def screenDetail(request, facility_id):
     dataColumnCursor.execute("SELECT id, name, data_type, precision from db_datacolumn where dataset_id = %s order by id asc", [dataset_id])
     
     # Need to construct something like this:
-    # select distinct (datarecord_id), small_molecule_id,small_molecule_id, sm.facility_id || '-' || sm.salt_id as facility_id,
+    # select distinct (datarecord_id), smallmolecule_id, sm.facility_id || '-' || sm.salt_id as facility_id,
     #        (select int_value as col1 from db_datapoint dp1 where dp1.datacolumn_id=2 and dp1.datarecord_id = dp0.datarecord_id) as col1, 
     #        (select int_value as col2 from db_datapoint dp2 where dp2.datarecord_id=dp0.datarecord_id and dp2.datacolumn_id=3) as col2 
-    #        from db_datapoint dp0 join db_datarecord dr on(datarecord_id=dr.id) join db_smallmolecule sm on(sm.id=dr.small_molecule_id) 
+    #        from db_datapoint dp0 join db_datarecord dr on(datarecord_id=dr.id) join db_smallmoleculebatch smb on(smb.id=dr.smallmolecule_batch_id) join db_smallmolecule sm on(sm.id=smb.smallmolecule_id) 
     #        where dp0.dataset_id = 1 order by datarecord_id;
-    queryString = "select distinct (datarecord_id), small_molecule_id, 'HMSL' || sm.facility_id || '-' || sm.salt_id || '-' || sm.facility_batch_id as facility_id "
+    queryString = "select distinct (datarecord_id), sm.id as smallmolecule_id , 'HMSL' || sm.facility_id || '-' || smb.salt_id || '-' || smb.facility_batch_id as facility_id "
     if(show_cells): queryString += ", cell_id, cell.name as cell_name, cell.facility_id as cell_facility_id " 
     if(show_proteins): queryString += ", protein_id, protein.name as protein_name, protein.lincs_id as protein_lincs_id " 
     i = 0
@@ -314,7 +314,8 @@ def screenDetail(request, facility_id):
         # TODO: use params
         queryString +=  (",(select " + column_to_select + " from db_datapoint " + alias + 
                             " where " + alias + ".datacolumn_id="+str(datacolumn_id) + " and " + alias + ".datarecord_id=dp0.datarecord_id) as " + columnName )
-    queryString += " from db_datapoint dp0 join db_datarecord dr on(datarecord_id=dr.id) join db_smallmolecule sm on(sm.id=dr.small_molecule_id) "
+    queryString += " from db_datapoint dp0 join db_datarecord dr on(datarecord_id=dr.id) join db_smallmoleculebatch smb on(smb.id=dr.smallmolecule_batch_id) "
+    queryString += " join db_smallmolecule sm on(smb.smallmolecule_id = sm.id) "
     if(show_cells): 
         queryString += " join db_cell cell on(cell.id=dr.cell_id) "
         orderedNames.insert(1,'cell_name')
@@ -374,12 +375,14 @@ class SmallMoleculeSearchManager(models.Manager):
     def search(self, query_string='', is_authenticated=False, library_id=None):
         query_string = query_string.strip()
         cursor = connection.cursor()
-        sql = ( "select l.short_name as library_name, l.id as library_id, sm.* " +
-            " from db_smallmolecule sm " + 
-            " left join db_librarymapping lm on(sm.id=lm.small_molecule_id) " + 
+        sql = ( "select l.short_name as library_name, l.id as library_id, sm.id as sm_id, sm.*, smb.id as smb_id, smb.* " +
+            " from db_smallmolecule sm " +
+            " left join db_smallmoleculebatch smb on(smb.smallmolecule_id=sm.id)" 
+            " left join db_librarymapping lm on(smb.id=lm.smallmolecule_batch_id) " + 
             " left join db_library l on(lm.library_id=l.id) ")
         where = ''
         if(query_string != '' ):
+            # TODO: how to include the smb snippet (once it's created)
             where = " sm.search_vector @@ query "
             if(get_integer(query_string) != None):
                 where = '(' + where + ' OR sm.facility_id='+str(get_integer(query_string)) + ')' # TODO: seems messy here
@@ -399,7 +402,7 @@ class SmallMoleculeSearchManager(models.Manager):
             where += 'not sm.is_restricted' # TODO: NOTE, not including: ' and not l.is_restricted'; library restriction will only apply to viewing the library explicitly (the meta data, and selection of compounds)
             
         sql += where
-        sql += " order by sm.facility_id, sm.salt_id, sm.facility_batch_id "
+        sql += " order by sm.facility_id, smb.salt_id, smb.facility_batch_id "
         
         # TODO: the way we are separating query_string out here is a kludge
         if(query_string != ''):
@@ -410,23 +413,38 @@ class SmallMoleculeSearchManager(models.Manager):
         return v
     
 class SmallMoleculeTable(tables.Table):
-    facility_id = tables.LinkColumn("sm_detail", args=[A('id')]) # TODO: create a molecule link for facility/salt/batch ids
+    facility_id = tables.LinkColumn("sm_detail", args=[A('sm_id')]) # TODO: create a molecule link for facility/salt/batch ids
     rank = tables.Column()
     snippet = tables.Column()
     library_name = tables.LinkColumn('library_detail', args=[A('library_id')])
+    
+    salt_id = tables.Column()
+    facility_batch_id = tables.Column()
+    
+    provider = tables.Column()
+    provider_catalog_id = tables.Column()
+    provider_sample_id = tables.Column()
+    
+    # TODO:
+    # chemical_synthesis_reference = tables.Column()
+    # purity = tables.Column()
+    # purity_method = tables.Column()
+    
+    
     snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce("+x.name+",'') ", get_text_fields(SmallMolecule))))
+    
     class Meta:
-        model = SmallMolecule
+        model = SmallMolecule #[SmallMolecule, SmallMoleculeBatch]
         orderable = True
         attrs = {'class': 'paleblue'}
-        sequence = ('facility_id', 'salt_id', 'facility_batch_id', 'name','...','smiles','inchi')
-        exclude = ('id', 'molfile', 'plate', 'row', 'column', 'well_type') 
+        sequence = ('facility_id', 'salt_id', 'facility_batch_id', 'name','library_name','...','smiles','inchi')
+        exclude = ('id', 'smallmolecule_id','smallmolecule_batch_id','molfile','rank','snippet','is_restricted','lincs_id') 
 
 class SmallMoleculeForm(ModelForm):
     class Meta:
         model = SmallMolecule           
         order = ('facility_id', '...')
-        exclude = ('id', 'molfile', 'plate', 'row', 'column', 'well_type') 
+        exclude = ('id', 'molfile') 
 
 class CellTable(tables.Table):
     facility_id = tables.LinkColumn("cell_detail", args=[A('facility_id')])
@@ -588,7 +606,7 @@ TEMPLATE = '''
             
 class DataSetResultTable(tables.Table):
     id = tables.Column(visible=False)
-    facility_id = tables.LinkColumn('sm_detail', args=[A('small_molecule_id')]) #TODO: broken! must use facilty_id
+    facility_id = tables.LinkColumn('sm_detail', args=[A('smallmolecule_id')]) #TODO: broken! must use facilty_id
     cell_name = tables.LinkColumn('cell_detail',args=[A('cell_facility_id')], visible=False) #TODO: broken! must use facility_id
     protein_name = tables.LinkColumn('protein_detail',args=[A('protein_lincs_id')], visible=False) #TODO: broken! must use facilty_id
     
