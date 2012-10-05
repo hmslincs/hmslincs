@@ -36,7 +36,7 @@ then
   VIRTUALENV=/www/dev.lincs.hms.harvard.edu/support/virtualenv/bin/activate
 elif [[ "$SERVER" == "DEVTEST" ]] || [[ "$SERVER" == "devtest" ]] 
 then
-  DATADIR=${DIR}/data/dev
+  DATADIR=${DIR}/data/dev2
   DB=devlincs
   DB_USER=devlincsweb
   PGHOST=dev.pgsql.orchestra
