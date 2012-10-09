@@ -7,7 +7,7 @@ Replace this with more appropriate tests for your application.
 
 from django.test import TestCase
 from django.utils import timezone
-from example.models import SmallMolecule
+from db.models import SmallMolecule
 
 class SimpleTest(TestCase):
     def test_basic_addition(self):

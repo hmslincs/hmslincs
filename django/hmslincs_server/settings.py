@@ -1,4 +1,6 @@
+import socket
 import os.path as op
+from os import environ
 _djangopath = op.abspath(op.dirname(op.dirname(__file__)))
 _sqlite3dbpath = op.join(_djangopath, 'hmslincs.db')
 
@@ -8,36 +10,40 @@ DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
-    # ('Your Name', 'your_email@example.com'),
+    ('Sean Erickson', 'sean_erickson@hms.harvard.edu'),
 )
 
 MANAGERS = ADMINS
 
 DATABASES = {
+    # for local developer workstation testing
     'default': {
-        # 'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        # 'NAME': _sqlite3dbpath,          # Or path to database file if using sqlite3.
-
-        'ENGINE': 'django.db.backends.postgresql_psycopg2', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'django',                # Or path to database file if using sqlite3.
-        'USER': 'django',                # Not used with sqlite3.
-        'PASSWORD': '',                  # Not used with sqlite3.
-        'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
-        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'django',
+        'USER': 'django',
     }
 }
 
-#DATABASES = {
-#    'default': {
-#        'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-#        'NAME': 'hmslincs.db',           # Or path to database file if using sqlite3.
-#        'USER': '',                      # Not used with sqlite3.
-#        'PASSWORD': '',                  # Not used with sqlite3.
-#        'PASSWORD': '',                  # Not used with sqlite3.
-#        'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
-#        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
-#    }
-#}
+if 'LINCS_PGSQL_DB' in environ:
+    # for the wsgi environment running on the web server, or command line usage
+    # on orchestra
+    DATABASES['default']['NAME'] = environ['LINCS_PGSQL_DB']
+    DATABASES['default']['HOST'] = environ['LINCS_PGSQL_SERVER']
+    DATABASES['default']['USER'] = environ['LINCS_PGSQL_USER']
+    DATABASES['default']['PASSWORD'] = environ['LINCS_PGSQL_PASSWORD']
+elif socket.getfqdn().endswith('.orchestra'):
+    if op.abspath(__file__).startswith('/www/dev.'):
+        dbname = 'devlincs'
+        dbhost = 'dev.pgsql.orchestra'
+    elif op.abspath(__file__).startswith('/www/'):
+        dbname = 'lincs'
+        dbhost = 'pgsql.orchestra'
+    else:
+        raise RuntimeError("Please only run this from a website directory.")
+    DATABASES['default']['NAME'] = dbname
+    DATABASES['default']['HOST'] = dbhost
+    del DATABASES['default']['USER']
+    del dbname, dbhost
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
@@ -75,11 +81,11 @@ MEDIA_URL = ''
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/home/media/media.lawrence.com/static/"
-STATIC_ROOT = ''
+STATIC_ROOT = op.join(_djangopath, '..', '..', '..', 'docroot', '_static')
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
-STATIC_URL = '/static/'
+STATIC_URL = '/_static/'
 
 # Additional locations of static files
 STATICFILES_DIRS = (
@@ -114,6 +120,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     "django.core.context_processors.static",
     "django.contrib.messages.context_processors.messages",
     "django.core.context_processors.request",
+    "hmslincs_server.context_processors.login_url_with_redirect",
 )
 
 MIDDLEWARE_CLASSES = (
@@ -128,6 +135,9 @@ MIDDLEWARE_CLASSES = (
 
 ROOT_URLCONF = 'hmslincs_server.urls'
 
+# URL of the login page.
+LOGIN_URL = '/login/'
+
 # Python dotted path to the WSGI application used by Django's runserver.
 WSGI_APPLICATION = 'hmslincs_server.wsgi.application'
 
@@ -135,7 +145,7 @@ TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    'templates'
+    op.join(_djangopath, 'templates')
 )
 
 INSTALLED_APPS = (
@@ -148,7 +158,8 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.admindocs',
     'django_tables2', # for UI tabling
-    'example',
+    'tastypie', # manual says this is "not necessary, but useful"
+    'db',
     # # 'south', #for schema migrations
     # # 'fts', # for full text search
 )
@@ -161,6 +172,14 @@ INSTALLED_APPS = (
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(module)s:%(lineno)d %(process)d %(thread)d %(message)s'
+        },
+        'simple': {
+            'format': '%(module)s:%(lineno)d:%(levelname)s: %(message)s'
+        },
+    },
     'filters': {
         'require_debug_false': {
             '()': 'django.utils.log.RequireDebugFalse'
@@ -171,6 +190,11 @@ LOGGING = {
             'level': 'ERROR',
             'filters': ['require_debug_false'],
             'class': 'django.utils.log.AdminEmailHandler'
+        },
+        'console':{
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple'
         }
     },
     'loggers': {
@@ -178,6 +202,16 @@ LOGGING = {
             'handlers': ['mail_admins'],
             'level': 'ERROR',
             'propagate': True,
+        },
+        'db': {
+            'handlers': ['console'],
+            'propagate': True,
+            'level': 'DEBUG',
+        },
+        '': {  # if you want to see how django makes sql, use this one
+            'handlers': ['console'],
+            'propagate': True,
+            'level': 'WARN',
         },
     }
 }
