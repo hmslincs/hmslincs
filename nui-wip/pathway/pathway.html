@@ -1,0 +1,37 @@
+<html>
+
+<head>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.min.js"></script>
+  <script src="pathway.js"></script>
+  <style>
+    .signature-popup {
+	border: 1px solid red;
+	background-color: #f0f0f0;
+	display: none;
+	position: absolute;
+	top: 0px;
+	left: 0px;
+    }
+    #pathwayimg {
+        border: 1px solid black;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="signature-popup" id="signature-ERK">
+  <p>[ERK signature goes here]</p>
+</div>
+<div class="signature-popup" id="signature-MEK">
+  <p>[MEK signature goes here]</p>
+</div>
+
+<map name="GraffleExport" id="pathwaymap">
+  <area id="ERK" shape=poly coords="170,219,170,244,131,244,131,219,170,219" href="http://en.wikipedia.org/wiki/Extracellular_signal-regulated_kinases"/>
+  <area id="MEK" shape=poly coords="162,100,162,125,123,125,123,100,162,100" href="http://en.wikipedia.org/wiki/Mitogen-activated_protein_kinase_kinase"/>
+</map>
+<img border=0 src="pathway.png" usemap="#GraffleExport" id="pathwayimg">
+
+</body>
+</html>

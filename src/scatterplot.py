@@ -1,5 +1,5 @@
 import collections as co
-
+import matplotlib.pyplot as plt
 # ---------------------------------------------------------------------------
 
 FORMAT = 'png'
@@ -8,16 +8,21 @@ FORMAT = 'png'
 
 ScatterplotData = co.namedtuple('ScatterplotData', 'label shape level x y')
 
-# the function below is currently only a placeholder for the real thing
-def scatterplot(points, axis_labels, lims=None):
-    # see example below for what the various arguments are expected to
-    # be
-    ret = []
-    ret.append('# lims: %s' % str(lims))
-    ret.append('\t'.join('cell_line shape level'.split() + list(axis_labels)))
-    ret.extend(['\t'.join(str(x) for x in p) for p in points])
-    return ''.join('%s\n' % l for l in ret)
+marker_map = {
+              'triangle': '^',
+              'circle': 'o',
+              'square': 's',
+              }
 
+def scatterplot(points, axis_labels, lims=None):
+    for p in points:
+        plt.scatter(p.x, p.y, c=p.level, vmin=0, vmax=1,
+                    marker=marker_map[p.shape], s=200, cmap=plt.cm.RdBu_r)
+    if lims is not None:
+        plt.xlim(lims)
+        plt.ylim(lims)
+    plt.axes().set_aspect('equal')
+    plt.show()
 
 if __name__ == '__main__':
     points = (ScatterplotData('AU-565', 'triangle', 0.554, 4.308, 4.311),
@@ -52,5 +57,4 @@ if __name__ == '__main__':
     axis_labels = ('pErk, EGF', 'pErk, EPR')
     lims = (1.518, 4.395)
 
-    import sys
-    sys.stdout.write(scatterplot(points, axis_labels, lims))
+    scatterplot(points, axis_labels, lims)
