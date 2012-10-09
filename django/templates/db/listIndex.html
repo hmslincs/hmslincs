@@ -1,0 +1,27 @@
+{% extends "db/base.html" %}
+{% block content %}
+	<div id="search">
+		<form action="{{ request.get_full_path }}" method="get"> <!-- only needed with post requests: {% csrf_token %}  --> 
+			<table>
+				<tr>
+					<td><label for="id_search">Search:</label>
+	    				<input id="id_search" type="text" name="search" value="{{ search }}" maxlength="100" tabindex="1" />
+	    		</td><td>
+	    			Export as: <select name='output_type' onchange='this.form.submit()'>
+									    	<option value=''></option>
+									    	<option value='csv'>comma separated</option>
+									    	<option value='xls'>Excel File</option>
+									    </select>
+					</td></tr>
+	    </table>
+		</form>
+	</div>
+	{% if table %}
+		{% load render_table from django_tables2 %}
+		{% render_table table %}
+	{% else %}
+	    <p>No records are available.</p>
+	{% endif %}
+{% endblock %}
+
+
