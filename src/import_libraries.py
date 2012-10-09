@@ -49,13 +49,14 @@ def main(path):
     # create a dict mapping the column ordinal to the proper column definition dict
     cols = util.find_columns(column_definitions, sheet.labels)
     
-    small_molecule_batch_lookup = ('smallmolecule', 'salt_id', 'facility_batch_id')
+    small_molecule_batch_lookup = ('smallmolecule', 'facility_batch_id')
     library_mapping_lookup = ('smallmolecule_batch','library','plate','well','concentration','concentration_unit')
     rows = 0    
     logger.debug(str(('cols: ' , cols)))
     for row in sheet:
         r = util.make_row(row)
         initializer = {}
+        small_molecule_lookup = {'facility_id':None, 'salt_id':None}
         for i,value in enumerate(r):
             if i not in cols: continue
             properties = cols[i]
@@ -78,13 +79,16 @@ def main(path):
             logger.debug(str(('model_field: ' , model_field, ', value: ', value)))
             
             initializer[model_field] = value
-            if(model_field == 'facility_id'):
-                try:
-                    sm = SmallMolecule.objects.get(facility_id=value)
-                    initializer['smallmolecule'] = sm
-                except Exception, e:
-                    logger.error(str(('sm facility id not found', value)))
-                    raise
+            
+            if(model_field in small_molecule_lookup):
+                small_molecule_lookup[model_field]=value
+                if( None not in small_molecule_lookup.values()):
+                    try:
+                        sm = SmallMolecule.objects.get(**small_molecule_lookup)
+                        initializer['smallmolecule'] = sm
+                    except Exception, e:
+                        logger.error(str(('sm facility id not found', value)))
+                        raise
             elif(model_field == 'short_name'):
                 try:
                     library = libraries[value]

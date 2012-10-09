@@ -202,11 +202,11 @@ def main(path):
                     salt = value[1]
                     batch = value[2]
                     try:
-                        sm = SmallMolecule.objects.get(facility_id=facility);
+                        sm = SmallMolecule.objects.get(facility_id=facility, salt_id=salt);
                     except Exception, e:
                         logger.error(str(('could not locate small molecule:', facility)))
                         raise
-                    dataRecord.smallmolecule_batch = SmallMoleculeBatch.objects.get(smallmolecule=sm, salt_id=salt, facility_batch_id=batch)
+                    dataRecord.smallmolecule_batch = SmallMoleculeBatch.objects.get(smallmolecule=sm, facility_batch_id=batch)
                     mapped = True
             except Exception, e:
                 logger.error(str(("Invalid Small Molecule Batch identifiers: ", value)))
