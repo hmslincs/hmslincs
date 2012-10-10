@@ -1,6 +1,6 @@
 {% for sd in compounds %}
   <tr>
-    <td>{{ sd.name }}</td>
+    <td>{{ sd.drug }}</td>
     <td>
       {% if sd.isclinical %}
         <div style="background: #000000; color: #ffffff;">C</div>
@@ -12,7 +12,7 @@
       {% endif %}
     </td>
     <td>
-      (data plot goes here)
+      <img src="{{ sd.drug|slugify }}.png">
     </td>
   </tr>
 {% endfor %}

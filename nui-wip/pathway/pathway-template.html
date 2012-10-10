@@ -1,3 +1,5 @@
+<!DOCTYPE html>
+
 <html>
 
 <head>
@@ -20,18 +22,11 @@
 
 <body>
 
-<div class="signature-popup" id="signature-ERK">
-  <p>[ERK signature goes here]</p>
-</div>
-<div class="signature-popup" id="signature-MEK">
-  <p>[MEK signature goes here]</p>
-</div>
+{% for signature in signatures %}
+  {% include "signature.html" %}
+{% endfor %}
 
-<map name="GraffleExport" id="pathwaymap">
-  <area id="ERK" shape=poly coords="170,219,170,244,131,244,131,219,170,219" href="http://en.wikipedia.org/wiki/Extracellular_signal-regulated_kinases"/>
-  <area id="MEK" shape=poly coords="162,100,162,125,123,125,123,100,162,100" href="http://en.wikipedia.org/wiki/Mitogen-activated_protein_kinase_kinase"/>
-</map>
-<img border=0 src="pathway.png" usemap="#GraffleExport" id="pathwayimg">
+{{ pathway_source|safe }}
 
 </body>
 </html>
