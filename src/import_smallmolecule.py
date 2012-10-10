@@ -37,6 +37,7 @@ def main(path):
     properties = ('model_field','required','default','converter')
     labels = { s2p.MOLDATAKEY:('molfile',True),
                'facility_reagent_id': ('facility_id',True,None, lambda x: util.convertdata(x[x.index('HMSL')+4:],int)),
+               'salt_id': ('salt_id',True,None, lambda x: util.convertdata(x,int)),
                'lincs_id':('lincs_id',False,False,lambda x:util.convertdata(x,int)),
                'chemical_name':('name',True),
                'pubchem_cid':'pubchem_cid',
@@ -79,7 +80,7 @@ def main(path):
                 if( default != None ):
                     value = default
             if(value == None and  required == True):
-                raise Exception('Field is required: %s, record: %d' % (properties['column_label'],rows))
+                raise Exception(str(('Field is required: ', key, initializer, 'record:', count)))
             logger.debug(str(('model_field: ' , model_field, ', value: ', value)))
             initializer[model_field] = value
             

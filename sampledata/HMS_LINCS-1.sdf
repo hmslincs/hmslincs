@@ -63,6 +63,9 @@ CC(N1C=NC2=C1N=C(N[C@H](CC)CO)N=C2NCC3=CC=CC=C3)C
 > <facility_reagent_id>
 HMSL10001
 
+> <salt_id>
+101
+
 > <chemical_name>
 (R)- Roscovitine; CYC202; Seliciclib
 
@@ -170,6 +173,9 @@ CC(N=C1)=CN1C2=CC(C(NC3=CC=C(C)C(NC(C4=CC=NO4)=O)=C3)=O)=CC(C(F)(F)F)=C2
 > <facility_reagent_id>
 HMSL10002
 
+> <salt_id>
+101
+
 > <chemical_name>
 ALW-II-38-3
 
@@ -268,6 +274,9 @@ O=C(NC1=CC=CC(C(F)(F)F)=C1)C2=CC=C(C)C(NC3=CN=CC(C(N)=O)=C3)=C2
 > <facility_reagent_id>
 HMSL10003
 
+> <salt_id>
+101
+
 > <chemical_name>
 ALW-II-49-7
 
@@ -355,6 +364,9 @@ O=C(C1=NNC=C1NC(C2=C(Cl)C=CC=C2Cl)=O)NC3CCNCC3
 
 > <facility_reagent_id>
 HMSL10004
+
+> <salt_id>
+101
 
 > <chemical_name>
 AT-7519
@@ -459,6 +471,9 @@ ClC1=C(NC(NC4=NOC(C)=C4)=O)C=CC(OC2=CC=NC3=C2C=C(OC)C(OC)=C3)=C1
 > <facility_reagent_id>
 HMSL10005
 
+> <salt_id>
+101
+
 > <chemical_name>
 AV-951; Tivozanib
 
@@ -546,6 +561,9 @@ NC(NC1=C(C(N[C@H]2CNCCC2)=O)SC(C3=CC(F)=CC=C3)=C1)=O
 
 > <facility_reagent_id>
 HMSL10006
+
+> <salt_id>
+101
 
 > <chemical_name>
 AZD7762
@@ -655,6 +673,9 @@ OCC1=C(OC)C=CC(C2=CC=C(C(N3[C@@H](C)COCC3)=NC(N4[C@@H](C)COCC4)=N5)C5=N2)=C1
 > <facility_reagent_id>
 HMSL10007
 
+> <salt_id>
+101
+
 > <chemical_name>
 AZD8055
 
@@ -757,6 +778,9 @@ O=C(C1=NC(OC2=CC=C(C=C2)NC(NC3=CC(C(F)(F)F)=C(C=C3)Cl)=O)=CC=C1)NC
 > <facility_reagent_id>
 HMSL10008
 
+> <salt_id>
+101
+
 > <chemical_name>
 BAY-439006; Sorafenib
 
@@ -847,6 +871,9 @@ NC1=NC(C2=NC=CC=C2)=NN1C3=C4C=C(OC)C(OC)=CC4=NC=N3
 
 > <facility_reagent_id>
 HMSL10009
+
+> <salt_id>
+101
 
 > <chemical_name>
 CP466722
@@ -957,6 +984,9 @@ CC1=CC(NC2=NC=NC3=CC=C(/C=C/CNC(COC)=O)C=C32)=CC=C1OC4=CC=C(C)N=C4
 > <facility_reagent_id>
 HMSL10010
 
+> <salt_id>
+101
+
 > <chemical_name>
 CP724714
 
@@ -1051,6 +1081,9 @@ O=C1C=C(C2=CC=CC=C2Cl)OC3=C1C(O)=CC(O)=[C@@]3[C@@H]4[C@H](O)CN(C)CC4
 
 > <facility_reagent_id>
 HMSL10011
+
+> <salt_id>
+101
 
 > <chemical_name>
 Flavopiridol; Alvocidib; HMR-1275; L868275
@@ -1152,6 +1185,9 @@ O=C(C(C(C1=CC=C(C(F)(F)F)C=C1)C2)=C(C)NC2=O)NC3=CC4=C(NN=C4)C=C3F
 
 > <facility_reagent_id>
 HMSL10012
+
+> <salt_id>
+101
 
 > <chemical_name>
 GSK429286A
@@ -1269,6 +1305,9 @@ O=C(C1=C(O[C@@H](C2=CC=CC=C2C(F)(F)F)C)C=C(N3C4=CC(CN5CCN(C)CC5)=CC=C4N=C3)S1)N
 > <facility_reagent_id>
 HMSL10013
 
+> <salt_id>
+101
+
 > <chemical_name>
 GSK461364
 
@@ -1374,6 +1413,9 @@ O=C(C1=C(OCC2=CC=CC=C2C(F)(F)F)C=C(N3C4=CC(OC)=C(OC)C=C4N=C3)S1)N
 > <facility_reagent_id>
 HMSL10014
 
+> <salt_id>
+101
+
 > <chemical_name>
 GW843682
 
@@ -1478,6 +1520,9 @@ CC(C)S(C(C=CC=C1)=C1NC2=C(C=CN3)C3=NC(NC4=CC=C(C(NC)=O)C=N4)=C2)(=O)=O
 
 > <facility_reagent_id>
 HMSL10015
+
+> <salt_id>
+101
 
 > <chemical_name>
 HG-5-113-01
@@ -1595,6 +1640,9 @@ CC(C)S(C(C=CC=C1)=C1NC2=C(Cl)C(N)=NC(NC3=C(OC)C=C(N4CCC(C(N)=O)CC4)C=C3)=N2)(=O)
 
 > <facility_reagent_id>
 HMSL10016
+
+> <salt_id>
+101
 
 > <chemical_name>
 HG-5-88-01
@@ -1720,6 +1768,9 @@ CC1=CC=C(C(NC2=CC=C(CN3CCN(CC)CC3)C(C(F)(F)F)=C2)=O)C=C1/C=C/C4=C(OC)C5=C(NC=C5)
 > <facility_reagent_id>
 HMSL10017
 
+> <salt_id>
+101
+
 > <chemical_name>
 HG-6-64-01; KIN001-206
 
@@ -1839,6 +1890,9 @@ ClC1=C(OCC4=NC=CC=C4)C=CC(NC3=C(C#N)C=NC2=CC(OCC)=C(NC(/C=C/CN(C)C)=O)C=C23)=C1
 
 > <facility_reagent_id>
 HMSL10018
+
+> <salt_id>
+101
 
 > <chemical_name>
 HKI-272; Neratinib
@@ -1964,6 +2018,9 @@ O=C(N3C4=CC(C(F)(F)F)=C(N6CCNCC6)C=C4)C=CC2=C3C1=CC(C5=CC(OC)=CC(OC)=C5)=CC=C1N=
 > <facility_reagent_id>
 HMSL10019
 
+> <salt_id>
+101
+
 > <chemical_name>
 JW-7-24-1
 
@@ -2068,6 +2125,9 @@ O=C(NC4=C(Cl)C=CC=C4C)C(S2)=CN=C2NC1=CC(N3CCN(CCO)CC3)=NC(C)=N1
 
 > <facility_reagent_id>
 HMSL10020
+
+> <salt_id>
+101
 
 > <chemical_name>
 Dasatinib; BMS-354825; Sprycel
@@ -2175,6 +2235,9 @@ CC1=NNC(NC2=NC(SC4=CC=C(NC(C5CC5)=O)C=C4)=NC(N3CCN(C)CC3)=C2)=C1
 > <facility_reagent_id>
 HMSL10021
 
+> <salt_id>
+101
+
 > <chemical_name>
 VX680; Tozasertib; MK-0457
 
@@ -2266,6 +2329,9 @@ O=C(N)C1=CC(C2=CC(NC3=CC=C(OC(F)(F)F)C=C3)=NC=N2)=CC=C1
 
 > <facility_reagent_id>
 HMSL10022
+
+> <salt_id>
+101
 
 > <chemical_name>
 GNF2
@@ -2389,6 +2455,9 @@ CC1=C(NC2=NC=CC(C3=CC=CN=C3)=N2)C=C(NC(C4=CC=C(C=C4)CN5CCN(CC5)C)=O)C=C1.CS(=O)(
 
 > <facility_reagent_id>
 HMSL10023
+
+> <salt_id>
+101
 
 > <chemical_name>
 Imatinib; Gleevec; Glivec; CGP-57148B; STI-571
@@ -2515,6 +2584,9 @@ COC1=C(NC2=NC(NC3=C(S(=O)(C(C)C)=O)C=CC=C3)=C(Cl)C=N2)C=CC(N4CCC(N5CCN(CC5)C)CC4
 > <facility_reagent_id>
 HMSL10024
 
+> <salt_id>
+101
+
 > <chemical_name>
 NVP-TAE684
 
@@ -2602,6 +2674,9 @@ ClC1=CC(NC2=NC=CC(C3=CC=NC(NCCCO)=C3)=N2)=CC=C1
 
 > <facility_reagent_id>
 HMSL10025
+
+> <salt_id>
+101
 
 > <chemical_name>
 CGP60474; MLS000911536; SMR000463552
@@ -2717,6 +2792,9 @@ CCN(CC)CCCCNC2=NC1=C(C=N2)C=C(C3=CC(OC)=CC(OC)=C3)C(NC(NC(C)(C)C)=O)=N1
 > <facility_reagent_id>
 HMSL10026
 
+> <salt_id>
+101
+
 > <chemical_name>
 PD173074
 
@@ -2816,6 +2894,9 @@ C[C@H](C2=C(Cl)C(F)=CC=C2Cl)OC1=CC(C3=CN(C4CCNCC4)N=C3)=CN=C1N
 > <facility_reagent_id>
 HMSL10027
 
+> <salt_id>
+101
+
 > <chemical_name>
 PF02341066; Crizotinib
 
@@ -2896,6 +2977,9 @@ M  END
 
 > <facility_reagent_id>
 HMSL10028
+
+> <salt_id>
+101
 
 > <chemical_name>
 BMS345541
@@ -2981,6 +3065,9 @@ C1=C(C=CC2=C1C(C(=O)N2[H])=CC3=CC(=C(C(=C3)Br)O[H])Br)I
 > <facility_reagent_id>
 HMSL10029
 
+> <salt_id>
+101
+
 > <chemical_name>
 GW-5074
 
@@ -3058,6 +3145,9 @@ C1(=CC=NC=C1)C2=NN=C(O2)SCC3=CC(=CC=C3)I
 
 > <facility_reagent_id>
 HMSL10030
+
+> <salt_id>
+101
 
 > <chemical_name>
 KIN001-042
@@ -3147,6 +3237,9 @@ C1=CC=CC2=C1C(\C(N2[H])=C4/C3=C(C=C(C=C3)Br)N(C4=O)[H])=NO[H]
 
 > <facility_reagent_id>
 HMSL10031
+
+> <salt_id>
+101
 
 > <chemical_name>
 KIN001-043
@@ -3265,6 +3358,9 @@ ClC(C=CC4=C3OCO4)=C3NC2=NC=NC1=CC(OCCN6CCN(C)CC6)=CC(OC5CCOCC5)=C12
 > <facility_reagent_id>
 HMSL10032
 
+> <salt_id>
+101
+
 > <chemical_name>
 AZD0530; Saracatinib
 
@@ -3350,6 +3446,9 @@ BrC1=CC(NC2=NC=NC3=CC(OC)=C(OC)C=C32)=CC(Br)=C1O
 
 > <facility_reagent_id>
 HMSL10033
+
+> <salt_id>
+101
 
 > <chemical_name>
 KIN001-055
@@ -3443,6 +3542,9 @@ N#CC(C1=NC2=CC=CC=C2S1)C3=CC=NC(NCCC4=CC=CN=C4)=N3
 
 > <facility_reagent_id>
 HMSL10034
+
+> <salt_id>
+101
 
 > <chemical_name>
 AS601245
@@ -3571,6 +3673,9 @@ O=C1NC2=CC=CC=C2N1C3CCN(CC3)CC4=CC=C(C=C4)C5=NC6=CC7=C(C=C6N=C5C8=CC=CC=C8)N=CN7
 > <facility_reagent_id>
 HMSL10035
 
+> <salt_id>
+101
+
 > <chemical_name>
 KIN001-102
 
@@ -3664,6 +3769,9 @@ COC1=NC=CC(=N1)C2=C(N=CN2[C@H]3CC[C@H](O)CC3)C4=CC=C(F)C=C4
 
 > <facility_reagent_id>
 HMSL10036
+
+> <salt_id>
+101
 
 > <chemical_name>
 SB 239063
@@ -3785,6 +3893,9 @@ O=C(NC1=CC=C(C=C1)C2=CN3C(SC4=C3C=CC(OCCN5CCOCC5)=C4)=N2)NC6=NOC(C(C)(C)C)=C6
 
 > <facility_reagent_id>
 HMSL10037
+
+> <salt_id>
+101
 
 > <chemical_name>
 AC220
@@ -3909,6 +4020,9 @@ O=C(OC1=C(C)C=CC=C1C)N(C2=CC=C(OC)C=C2OC)C3=NC(NC4=CC=C(N5CCN(C)CC5)C=C4)=NC=C3
 
 > <facility_reagent_id>
 HMSL10038
+
+> <salt_id>
+101
 
 > <chemical_name>
 WH-4-023
@@ -4059,6 +4173,9 @@ O=C(OC1=CC(C(NC2=CC=CC(C(F)(F)F)=C2)=O)=CC=C1C)N(C3=CC=C(OC)C=C3OC)C4=NC(NC5=CC=
 > <facility_reagent_id>
 HMSL10039
 
+> <salt_id>
+101
+
 > <chemical_name>
 WH-4-025
 
@@ -4166,6 +4283,9 @@ FC(C(NC1=CC=C(OC(C)(C)C(N2)=O)C2=N1)=N3)=CN=C3NC4=CC(OC)=C(OC)C(OC)=C4
 
 > <facility_reagent_id>
 HMSL10040
+
+> <salt_id>
+101
 
 > <chemical_name>
 R406
@@ -4283,6 +4403,9 @@ CN(C1=C(N(C2CCCC2)[C@@H]3CC)N=C(NC4=C(OC)C=C(C(NC5CCN(C)CC5)=O)C=C4)N=C1)C3=O
 > <facility_reagent_id>
 HMSL10041
 
+> <salt_id>
+101
+
 > <chemical_name>
 BI-2536; NPK33-1-98-1
 
@@ -4378,6 +4501,9 @@ O=C(NC1=CC=C(C(C)(C)CN2)C2=C1)C3=C(NCC4=CC=NC=C4)N=CC=C3
 
 > <facility_reagent_id>
 HMSL10042
+
+> <salt_id>
+101
 
 > <chemical_name>
 AMG706; Motesanib
@@ -4501,6 +4627,9 @@ CC(C(C)C)NCC1=CC=C(C(NC2=NC=C(SC3=CC(C(N4CCN(C(C)=O)CC4)=O)=C(OC)C=C3C)S2)=O)C=C
 
 > <facility_reagent_id>
 HMSL10043
+
+> <salt_id>
+101
 
 > <chemical_name>
 KIN001-127
@@ -4643,6 +4772,9 @@ NC1=C2C(N(CCCNCCOC)C(C(CF)=O)=C2C3=CC=C(C)C=C3)=NC=N1.CC4=CC=C(S(=O)(O)=O)C=C4.C
 > <facility_reagent_id>
 HMSL10044
 
+> <salt_id>
+101
+
 > <chemical_name>
 KIN001-242; FMK
 
@@ -4743,6 +4875,9 @@ N[C@H](COC1=CN=CC(C2=CC(C(C)=NN3)=C3C=C2)=C1)CC4=CNC5=CC=CC=C54
 
 > <facility_reagent_id>
 HMSL10045
+
+> <salt_id>
+101
 
 > <chemical_name>
 A443654
@@ -4851,6 +4986,9 @@ O/N=C1CCC2=C/1C=CC(C(NC(C3=CC=C(OCCN(C)C)C=C3)=N4)=C4C5=CC=NC=C5)=C2
 
 > <facility_reagent_id>
 HMSL10046
+
+> <salt_id>
+101
 
 > <chemical_name>
 SB590885; GSK2118436
@@ -4963,6 +5101,9 @@ O=S(N1CCN(CC2=CC3=NC(C4=CC=CC5=C4C=NN5)=NC(N6CCOCC6)=C3S2)CC1)(C)=O
 > <facility_reagent_id>
 HMSL10047
 
+> <salt_id>
+101
+
 > <chemical_name>
 GDC-0941
 
@@ -5050,6 +5191,9 @@ O=C(NOCC1CC1)C2=CC=C(F)C(F)=C2NC3=CC=C(I)C=C3Cl
 
 > <facility_reagent_id>
 HMSL10048
+
+> <salt_id>
+101
 
 > <chemical_name>
 PD184352; CI-1040
@@ -5142,6 +5286,9 @@ ClC1=CN=C(NC=C2C(C3=C(F)C(NS(CCC)(=O)=O)=CC=C3F)=O)C2=C1
 
 > <facility_reagent_id>
 HMSL10049
+
+> <salt_id>
+101
 
 > <chemical_name>
 PLX-4720
@@ -5249,6 +5396,9 @@ O=C(N(C)C=N1)C2=C1C=CC(NC3=C(C)C=CC(NC(C4=CC(C(C)(C)C#N)=CC=C4)=O)=C3)=C2
 
 > <facility_reagent_id>
 HMSL10050
+
+> <salt_id>
+101
 
 > <chemical_name>
 AZ-628
@@ -5413,6 +5563,9 @@ CS(=O)(CCNCC1=CC=C(O1)C2=CC3=C(C=C2)N=CN=C3NC4=CC(Cl)=C(C=C4)OCC5=CC(F)=CC=C5)=O
 
 > <facility_reagent_id>
 HMSL10051
+
+> <salt_id>
+101
 
 > <chemical_name>
 GW-572016; Lapatinib; Tykerb
@@ -5584,6 +5737,9 @@ CC1CCC2CC(C(=CC=CC=CC(CC(C(=O)C(C(C(=CC(C(=O)CC(OC(=O)C3CCCCN3C(=O)C(=O)C1(O2)O)
 > <facility_reagent_id>
 HMSL10052
 
+> <salt_id>
+101
+
 > <chemical_name>
 Rapamycin; Sirolimus
 
@@ -5685,6 +5841,9 @@ FC(F)C1=NC2=C(C=CC=C2)N1C3=NC(N4CCOCC4)=NC(N5CCOCC5)=N3
 > <facility_reagent_id>
 HMSL10053
 
+> <salt_id>
+101
+
 > <chemical_name>
 ZSTK474
 
@@ -5760,6 +5919,9 @@ M  END
 
 > <facility_reagent_id>
 HMSL10054
+
+> <salt_id>
+101
 
 > <chemical_name>
 AS605240
@@ -5860,6 +6022,9 @@ BrC1=C(NCCC2=CNC=N2)N=C(NC3=CC(NC(N4CCCC4)=O)=CC=C3)N=C1
 > <facility_reagent_id>
 HMSL10055
 
+> <salt_id>
+101
+
 > <chemical_name>
 BX-912
 
@@ -5951,6 +6116,9 @@ O=C(NOCCO)C1=C(NC2=CC=C(Br)C=C2Cl)C(F)=C3C(N(C)C=N3)=C1
 
 > <facility_reagent_id>
 HMSL10056
+
+> <salt_id>
+101
 
 > <chemical_name>
 AZD6244; Selumetinib; Array142886
@@ -6057,6 +6225,9 @@ O=C1N(C=CC2=C3C=C(C(C4=CC=C(C=C4)C5(CCC5)N)=N2)C6=CC=CC=C6)C3=NN1.Cl.Cl
 > <facility_reagent_id>
 HMSL10057
 
+> <salt_id>
+101
+
 > <chemical_name>
 MK2206
 
@@ -6161,6 +6332,9 @@ FC1=CC(F)=CC(F)=C1NC2=NC3=CN=C(N[C@H]4CC[C@@H](O)CC4)N=C3N2[C@H]5COCC5
 > <facility_reagent_id>
 HMSL10058
 
+> <salt_id>
+101
+
 > <chemical_name>
 CG-930; JNK930
 
@@ -6260,6 +6434,9 @@ CC(C=C2[C@@H](C)NC3=C(C(O)=O)C=CC=C3)=CN1C2=NC(N4CCOCC4)=CC1=O
 > <facility_reagent_id>
 HMSL10059
 
+> <salt_id>
+101
+
 > <chemical_name>
 AZD-6482; KIN001-193
 
@@ -6356,6 +6533,9 @@ O=C(C1=CC=CC=C1)NC2=CC(C3=C(C4=CC(C)=CC=C4)N=C(CC)S3)=CC=N2
 
 > <facility_reagent_id>
 HMSL10060
+
+> <salt_id>
+101
 
 > <chemical_name>
 TAK-715
@@ -6457,6 +6637,9 @@ O=C1C=C(N2CCOCC2)OC3=C1C=CC=C3C4=C5C(C6=CC=CC=C6S5)=CC=C4
 
 > <facility_reagent_id>
 HMSL10061
+
+> <salt_id>
+101
 
 > <chemical_name>
 NU7441; KU 57788
@@ -6574,6 +6757,9 @@ CN(CC1=CC(C2=CC3=C(C4=CN(CC)N=C4C5=CC=C(NC(N(C)C)=O)C=C5)C=CN=C3N2)=CC=C1)C
 > <facility_reagent_id>
 HMSL10062
 
+> <salt_id>
+101
+
 > <chemical_name>
 GSK1070916
 
@@ -6674,6 +6860,9 @@ COC1=CC=CC2=C1NC(C3=C4C(N)=NC=NN4[C@]([C@H]5CC[C@@H]([C@](O)=O)CC5)=N3)=C2.Cl
 
 > <facility_reagent_id>
 HMSL10063
+
+> <salt_id>
+101
 
 > <chemical_name>
 OSI-027
@@ -6792,6 +6981,9 @@ O=C(NC7=CC=C(C=C7)C1=NC(N3CC2OC(C3)CC2)=C6C(N(N=C6)C4CCC5(OCCO5)CC4)=N1)NC
 
 > <facility_reagent_id>
 HMSL10064
+
+> <salt_id>
+101
 
 > <chemical_name>
 WYE-125132
@@ -6917,6 +7109,9 @@ O=C(NC1=CC=CC=C1Cl)C2=CC=C(NC3=NC(NC4=CC=C(CC(N5CCN(CC)CC5)=O)C=C4)=NC=C3F)C=C2
 > <facility_reagent_id>
 HMSL10065
 
+> <salt_id>
+101
+
 > <chemical_name>
 KIN001-220
 
@@ -7025,6 +7220,9 @@ O=C(O)C1=CC=C(NC2=NC=C3CN=C(C4=C(F)C=CC=C4F)C5=CC(Cl)=CC=C5C3=N2)C=C1
 
 > <facility_reagent_id>
 HMSL10066
+
+> <salt_id>
+101
 
 > <chemical_name>
 MLN8054
@@ -7139,6 +7337,9 @@ O=C(NC1=CC=CC(F)=C1)CC2=NNC(NC3=C4C=CC(OCCCN(CC)CCO)=CC4=NC=N3)=C2
 > <facility_reagent_id>
 HMSL10067
 
+> <salt_id>
+101
+
 > <chemical_name>
 AZD1152-HQPA; Barasertib
 
@@ -7244,6 +7445,9 @@ ClC(C=C3)=CC=C3C1=CN=C(NC=C2C(C4=C(F)C(NS(CCC)(=O)=O)=CC=C4F)=O)C2=C1
 
 > <facility_reagent_id>
 HMSL10068
+
+> <salt_id>
+101
 
 > <chemical_name>
 PLX4032; RG7204; R7204; RO5185426
@@ -7365,6 +7569,9 @@ CN1C7=C(C=CC=C7)C(C6=C(C(NC6=O)=O)C3=CN(C4CCN(CC5=NC=CC=C5)CC4)C2=CC=CC=C23)=C1
 > <facility_reagent_id>
 HMSL10069
 
+> <salt_id>
+101
+
 > <chemical_name>
 LY317615; Enzastaurin
 
@@ -7481,6 +7688,9 @@ CN1C2=CN=C(N=C2N(C(CC1=O)C)C3CCCC3)NC4=C(C=C(C=C4)C(NC5CCN(CC5)C)=O)OC
 > <facility_reagent_id>
 HMSL10070
 
+> <salt_id>
+101
+
 > <chemical_name>
 NPK76-II-72-1
 
@@ -7586,6 +7796,9 @@ O=C1C(C(C)=O)=C(C)C2=CN=C(NC3=NC=C(N4CCNCC4)C=C3)N=C2N1C5CCCC5
 
 > <facility_reagent_id>
 HMSL10071
+
+> <salt_id>
+101
 
 > <chemical_name>
 PD0332991
@@ -7696,6 +7909,9 @@ O=C(N1)CC2=C1C=CC(NC3=NC=C(C(F)(F)F)C(NCC4=CC=CN=C4N(S(=O)(C)=O)C)=N3)=C2
 > <facility_reagent_id>
 HMSL10072
 
+> <salt_id>
+101
+
 > <chemical_name>
 PF562271; KIN001-205
 
@@ -7785,6 +8001,9 @@ CC(C)CC(NC1=NNC2=C1CN(C(C3CCN(C)CC3)=O)C2(C)C)=O
 
 > <facility_reagent_id>
 HMSL10073
+
+> <salt_id>
+101
 
 > <chemical_name>
 PHA-793887
@@ -7879,6 +8098,9 @@ O=C(C=C(N1CCOCC1)O2)C=C2C3=CC=CC(S4)=C3SC5=C4C=CC=C5
 
 > <facility_reagent_id>
 HMSL10074
+
+> <salt_id>
+101
 
 > <chemical_name>
 KU55933
@@ -7984,6 +8206,9 @@ O=C(N1C2=CC(NC(C=C)=O)=C(C)C=C2)C=CC3=C1C4=CC(C5=CNN=C5)=CC=C4N=C3
 > <facility_reagent_id>
 HMSL10075
 
+> <salt_id>
+101
+
 > <chemical_name>
 QL-X-138
 
@@ -8087,6 +8312,9 @@ O=C(C1=CC(NC(C2=CC=NO2)=O)=C(C)C=C1)NC3=CC(NC(C=C)=O)=CC(C(F)(F)F)=C3
 
 > <facility_reagent_id>
 HMSL10076
+
+> <salt_id>
+101
 
 > <chemical_name>
 QL-XI-92
@@ -8196,6 +8424,9 @@ O=C(N3C4=CC(N(C(C=C)=O)CC6)=C6C=C4)C=CC2=C3C1=CC(C5=CN(C)N=C5)=CC=C1N=C2
 
 > <facility_reagent_id>
 HMSL10077
+
+> <salt_id>
+101
 
 > <chemical_name>
 QL-XII-47
@@ -8309,6 +8540,9 @@ O=C(NC2=CC=CC(NC3=NC(C4=CC=CN=C4)=CC=N3)=C2)C1=CC(NC(/C=C/CN(C)C)=O)=CC=C1
 
 > <facility_reagent_id>
 HMSL10078
+
+> <salt_id>
+101
 
 > <chemical_name>
 THZ-2-98-01
@@ -8442,6 +8676,9 @@ O=C1N(C2=CC(C(F)(F)F)=C(N3CCN(C(CC)=O)CC3)C=C2)C4=C(C=C1)C=NC5=CC=C(C6=CN=C(C=CC
 > <facility_reagent_id>
 HMSL10079
 
+> <salt_id>
+101
+
 > <chemical_name>
 Torin1
 
@@ -8545,6 +8782,9 @@ O=C(N3C4=CC(C(F)(F)F)=CC=C4)C=CC2=C3C1=CC(C5=CN=C(N)C=C5)=CC=C1N=C2
 
 > <facility_reagent_id>
 HMSL10080
+
+> <salt_id>
+101
 
 > <chemical_name>
 Torin2
@@ -8661,6 +8901,9 @@ O=C(N1)NC2=C1C=CC(OC[C@H](NC(C3=CC=CN(CC4=CC=C(F)C(F)=C4)C3=O)=O)C5=CC=CC=C5)=C2
 
 > <facility_reagent_id>
 HMSL10081
+
+> <salt_id>
+101
 
 > <chemical_name>
 KIN001-244
@@ -8798,6 +9041,9 @@ O=C(NC1=C(Cl)C(OC)=CC(OC)=C1Cl)N(CC2=CC=C(NC(C=C)=O)C=C2)C3=CC(NC4=CC=C(N5CCN(C)
 > <facility_reagent_id>
 HMSL10082
 
+> <salt_id>
+101
+
 > <chemical_name>
 WZ-4-145
 
@@ -8905,6 +9151,9 @@ CN1C2=NC(NCCCCN(CC)CC)=NC=C2CN(C3=C(Cl)C(OC)=CC(OC)=C3Cl)C1=O
 > <facility_reagent_id>
 HMSL10083
 
+> <salt_id>
+101
+
 > <chemical_name>
 WZ-7043
 
@@ -9011,6 +9260,9 @@ CC(C)N1C2=NC(N[C@@H]3CC[C@@H](N(C)C)CC3)=NC(NC4=CC=CC(NC(C=C)=O)=C4)=C2N=C1
 
 > <facility_reagent_id>
 HMSL10084
+
+> <salt_id>
+101
 
 > <chemical_name>
 WZ3105
@@ -9120,6 +9372,9 @@ ClC1=C(OC4=CC(NC(C=C)=O)=CC=C4)N=C(NC2=CC=C(N3CCN(C)CC3)C=C2OC)N=C1
 
 > <facility_reagent_id>
 HMSL10085
+
+> <salt_id>
+101
 
 > <chemical_name>
 WZ4002
@@ -9246,6 +9501,9 @@ O=C1C2=C(C=CC=C2)N(C)C3=NC(NC4=C(OC)C=C(C(N5CCC(N6CCN(C)CC6)CC5)=O)C=C4)=NC=C3N1
 > <facility_reagent_id>
 HMSL10086
 
+> <salt_id>
+101
+
 > <chemical_name>
 XMD11-50; LRRK2-in-1
 
@@ -9364,6 +9622,9 @@ O=C1CCN(C2CCCC2)C3=NC(NC4=CC=C(C(NC5CCN(C)CC5)=O)C=C4OC)=NC=C3N1C(C)C
 > <facility_reagent_id>
 HMSL10087
 
+> <salt_id>
+101
+
 > <chemical_name>
 XMD11-85h
 
@@ -9458,6 +9719,9 @@ O=C(C1CC1)NC2=NNC3=CC(C4=CC(C(NC5CC5)=O)=CC=C4)=CC=C32
 
 > <facility_reagent_id>
 HMSL10088
+
+> <salt_id>
+101
 
 > <chemical_name>
 XMD13-2
@@ -9561,6 +9825,9 @@ NC1=C(C(C2=C(Cl)C=CC=C2Cl)=O)SC(NC3=C(OC)C=C(N4CCN(C)CC4)C=C3)=N1
 
 > <facility_reagent_id>
 HMSL10089
+
+> <salt_id>
+101
 
 > <chemical_name>
 XMD14-99
@@ -9671,6 +9938,9 @@ NC1=C(C(C2=CC=C(NC(C=C)=O)C=C2)=O)SC(NC3=C(OC)C=C(N4CCN(C)CC4)C=C3)=N1
 > <facility_reagent_id>
 HMSL10090
 
+> <salt_id>
+101
+
 > <chemical_name>
 XMD15-27
 
@@ -9777,6 +10047,9 @@ O=C1C2=C(C=CC=C2)N(C)C3=NC(NC4=CC(NC(/C=C/CN(C)C)=O)=CC=C4)=NC=C3N1C
 
 > <facility_reagent_id>
 HMSL10091
+
+> <salt_id>
+101
 
 > <chemical_name>
 XMD16-144
@@ -9894,6 +10167,9 @@ O=C1N(C)C2=C(N=C(NC(C=C3)=CC(C(F)(F)F)=C3CN4CCN(CC)CC4)N=C2)N(C)C5=CC=CC=C51
 > <facility_reagent_id>
 HMSL10092
 
+> <salt_id>
+101
+
 > <chemical_name>
 JWE-035
 
@@ -10001,6 +10277,9 @@ O=C1N(C)C2=C(N=C(NC3=C(OC)C=C(N4CCN(C)CC4)C=C3)N=C2)N(C)C5=CC=CC=C51
 
 > <facility_reagent_id>
 HMSL10093
+
+> <salt_id>
+101
 
 > <chemical_name>
 XMD8-85
@@ -10111,6 +10390,9 @@ O=C1N(C)C2=C(N=C(NC3=C(OCC)C=C(N4CCC(O)CC4)C=C3)N=C2)N(C)C5=CC=CC=C51
 
 > <facility_reagent_id>
 HMSL10094
+
+> <salt_id>
+101
 
 > <chemical_name>
 XMD8-92
@@ -10224,6 +10506,9 @@ O=C(C1=CC=C(NC(/C=C/CN(C)C)=O)C=C1)NC2=CC(NC3=NC(C4=CC=CN=C4)=CC=N3)=CC=C2
 
 > <facility_reagent_id>
 HMSL10095
+
+> <salt_id>
+101
 
 > <chemical_name>
 ZG-10
@@ -10341,6 +10626,9 @@ O=C(NC1=CC=C(NC2=C3C=C(OC)C(OCCCN4CCOCC4)=CC3=NC=N2)C=C1)C5=CC=CC=C5
 > <facility_reagent_id>
 HMSL10096
 
+> <salt_id>
+101
+
 > <chemical_name>
 ZM-447439
 
@@ -10436,6 +10724,9 @@ C#CC1=CC=CC(NC2=NC=NC3=CC(OCCOC)=C(OCCOC)C=C32)=C1
 
 > <facility_reagent_id>
 HMSL10097
+
+> <salt_id>
+101
 
 > <chemical_name>
 OSI-774; Erlotinib
@@ -10537,6 +10828,9 @@ FC(C=C1)=C(Cl)C=C1NC2=NC=NC3=CC(OC)=C(OCCCN4CCOCC4)C=C32
 
 > <facility_reagent_id>
 HMSL10098
+
+> <salt_id>
+101
 
 > <chemical_name>
 ZD1839; Gefitinib
@@ -10656,6 +10950,9 @@ CC1=C(NC2=NC(C3=CC=CN=C3)=CC=N2)C=C(C(NC4=CC(N5C=C(C)N=C5)=CC(C(F)(F)F)=C4)=O)C=
 > <facility_reagent_id>
 HMSL10099
 
+> <salt_id>
+101
+
 > <chemical_name>
 AMN-107; Nilotinib
 
@@ -10773,6 +11070,9 @@ N#CC1=CC(N2CCOCC2)=CC(C3=NC(NC4=CC=C(N5N=C(C6=CN=CC=C6)N=C5)C=C4)=NC=C3)=C1
 > <facility_reagent_id>
 HMSL10100
 
+> <salt_id>
+101
+
 > <chemical_name>
 JNK-9L; KIN001-204
 
@@ -10861,6 +11161,9 @@ FC1=C(F)C=CC(C(NOC[C@H](O)CO)=O)=C1NC2=CC=C(I)C=C2F
 
 > <facility_reagent_id>
 HMSL10101
+
+> <salt_id>
+101
 
 > <chemical_name>
 PD0325901; PD-325901
@@ -10973,6 +11276,9 @@ O=C(C1=CC=C(N)N=C1)NC2=CC(C3=NC4=C(OC5=C4C=CC=N5)C(N6CCOCC6)=N3)=CC=C2
 > <facility_reagent_id>
 HMSL10109
 
+> <salt_id>
+101
+
 > <chemical_name>
 YM 201636; Kin001-170
 
@@ -11063,6 +11369,9 @@ NC1=NNC2=NN=C(C3=C4C=CC=CN4N=C3C5=CC=CC=C5)C=C21
 > <facility_reagent_id>
 HMSL10110
 
+> <salt_id>
+101
+
 > <chemical_name>
 FR180204; KIN001-230
 
@@ -11149,6 +11458,9 @@ C1=CC(=CC(=C1)N)C2=CC3=C(N2)N=CN=C3OC4=CC=CC(=C4)O
 
 > <facility_reagent_id>
 HMSL10111
+
+> <salt_id>
+101
 
 > <chemical_name>
 TWS119
@@ -11251,6 +11563,9 @@ O=C(NC1=CC2=C(C3=C1)C(C=NNC3=O)=C(C4=CN(C)N=C4)N2)[C@H](N)C5CCCCC5
 
 > <facility_reagent_id>
 HMSL10112
+
+> <salt_id>
+101
 
 > <chemical_name>
 PF477736
@@ -11374,6 +11689,9 @@ FC1=CC(NC(C2=C(C)N(CC(C)(O)C)N(C3=CC=CC=C3)C2=O)=O)=CC=C1OC4=CC=NC5=C4C=CC(OC)=C
 > <facility_reagent_id>
 HMSL10113
 
+> <salt_id>
+101
+
 > <chemical_name>
 Kin237; Kin001-237; c-Met/Ron dual kinase inhibitor
 
@@ -11475,6 +11793,9 @@ O=S(C1=CC(NC2=NC=CC(N(C)C3=CC4=NN(C(C)=C4C=C3)C)=N2)=CC=C1C)(N)=O.Cl
 
 > <facility_reagent_id>
 HMSL10114
+
+> <salt_id>
+101
 
 > <chemical_name>
 GW786034; Pazopanib hydrochloride
@@ -11579,6 +11900,9 @@ N1(C2=CC=C(C3=CN4C(N=C3)=C(C5=CC=NC6=CC=CC=C56)C=N4)C=C2)CCNCC1.Cl
 
 > <facility_reagent_id>
 HMSL10115
+
+> <salt_id>
+101
 
 > <chemical_name>
 LDN-193189; DM 3189
@@ -11689,6 +12013,9 @@ CN(C1=CC=CC=C1CNC2=NC(=NC=C2C(F)(F)F)NC3=CC4=C(C=C3)NC(=O)C4)S(=O)(=O)C
 > <facility_reagent_id>
 HMSL10116
 
+> <salt_id>
+101
+
 > <chemical_name>
 PF431396
 
@@ -11795,6 +12122,9 @@ O=C1C=C2C(C(C)=C1O)=CC=C3[C@]2(CCC4([C@@H]5C[C@@](CC[C@@]5(CC[C@]34C)C)([C@@](O)
 > <facility_reagent_id>
 HMSL10117
 
+> <salt_id>
+101
+
 > <chemical_name>
 Celastrol
 
@@ -11899,6 +12229,9 @@ S=C(NCC1=CC=C2OCOC2=C1)N3CCN(CC3)C4=C5OC6=CC=CC=C6C5=NC=N4
 
 > <facility_reagent_id>
 HMSL10118
+
+> <salt_id>
+101
 
 > <chemical_name>
 MP470; Amuvatinib
@@ -12018,6 +12351,9 @@ O=S(C1=CC2=C(NC(/C2=C/C3=C(C)C(C(N4CCN(C)CC4)=O)=C(C)N3)=O)C=C1)(N(C5=CC=CC(Cl)=
 > <facility_reagent_id>
 HMSL10119
 
+> <salt_id>
+101
+
 > <chemical_name>
 SU11274; PKI-SU11274
 
@@ -12131,6 +12467,9 @@ Cl[H].Cl[H].FC1=C(Cl)C=C(NC2=NC=NC3=C2C=C(NC(=O)C=C)C(OCCCN2CCOCC2)=C3)C=C1
 > <facility_reagent_id>
 HMSL10120
 
+> <salt_id>
+101
+
 > <chemical_name>
 CI-1033; Canertinib; PD-183805
 
@@ -12221,6 +12560,9 @@ CC(C)(C)C1=NC(C2=CC=CC(C)=N2)=C(N1)C3=CC=C(N=CC=N4)C4=C3
 
 > <facility_reagent_id>
 HMSL10121
+
+> <salt_id>
+101
 
 > <chemical_name>
 SB525334
@@ -12329,6 +12671,9 @@ NC1=C2C(N(C=C2C3=CC=C(C=C3)OCC4=CC=CC=C4)[C@H]5C[C@@H](C5)CN6CCC6)=NC=N1
 > <facility_reagent_id>
 HMSL10122
 
+> <salt_id>
+101
+
 > <chemical_name>
 NVP-AEW541; AEW541
 
@@ -12420,6 +12765,9 @@ CN1N=CC(C2=NN3C(C=C2)=NN=C3SC4=CC5=CC=CN=C5C=C4)=C1
 
 > <facility_reagent_id>
 HMSL10123
+
+> <salt_id>
+101
 
 > <chemical_name>
 SGX523
@@ -12532,6 +12880,9 @@ O=C(NC(NC1=CC=C(OC2=C3C(C=C(C4=CN(C)C=N4)S3)=NC=C2)C(F)=C1)=S)CC5=CC=CC=C5
 
 > <facility_reagent_id>
 HMSL10124
+
+> <salt_id>
+101
 
 > <chemical_name>
 MGCD265
@@ -12660,6 +13011,9 @@ O=C1NC2=C(C=C(S(=O)(CC3=C(Cl)C=CC=C3Cl)=O)C=C2)/C1=C/C4=C(C)C(C(N5[C@@H](CN6CCCC
 > <facility_reagent_id>
 HMSL10125
 
+> <salt_id>
+101
+
 > <chemical_name>
 PHA-665752
 
@@ -12752,6 +13106,9 @@ OC1=CC=CC(C2=NC(N3CCOCC3)=C(OC4=NC=CC=C45)C5=N2)=C1
 
 > <facility_reagent_id>
 HMSL10126
+
+> <salt_id>
+101
 
 > <chemical_name>
 PI103
@@ -12850,6 +13207,9 @@ O=C1NC2=C(C(F)=CC=C2)C(N)=C1C3=NC4=CC=C(N5CCN(C)CC5)C=C4N3
 
 > <facility_reagent_id>
 HMSL10127
+
+> <salt_id>
+101
 
 > <chemical_name>
 TKI_258; TKI258; Dovitinib
@@ -12951,6 +13311,9 @@ CCN1C2=C(C(=NC=C2OCC3CCCNC3)C#CC(C)(C)O)N=C1C4=NON=C4N
 
 > <facility_reagent_id>
 HMSL10128
+
+> <salt_id>
+101
 
 > <chemical_name>
 GSK 690693
@@ -13057,6 +13420,9 @@ C=CC(=O)N1CCCC(C1)N2C3=C(C(=N2)C4=CC=C(C=C4)OC5=CC=CC=C5)C(=NC=N3)N
 
 > <facility_reagent_id>
 HMSL10129
+
+> <salt_id>
+101
 
 > <chemical_name>
 PCI-32765
@@ -13170,6 +13536,9 @@ CC1=C(C=C(C=C1)NC(=O)C2=CC=C(C=C2)CN3CCN(CC3)C)NC4=NC(=CS4)C5=CN=CC=C5
 > <facility_reagent_id>
 HMSL10130
 
+> <salt_id>
+101
+
 > <chemical_name>
 Masitinib; AB1010
 
@@ -13271,6 +13640,9 @@ O=C(NC1=O)[C@]([H])([C@]1([H])C2=CNC3=C2C=CC=C3)C4=CN5C6=C(C=CC=C64)CCC5
 > <facility_reagent_id>
 HMSL10131
 
+> <salt_id>
+101
+
 > <chemical_name>
 Tivantinib; ARQ197
 
@@ -13358,6 +13730,9 @@ CC(C)(C)C1=CN=C(O1)CSC2=CN=C(S2)NC(=O)C3CCNCC3
 
 > <facility_reagent_id>
 HMSL10132
+
+> <salt_id>
+101
 
 > <chemical_name>
 BMS-387032; SNS-032
@@ -13465,6 +13840,9 @@ CN(C)CC=CC(=O)NC1=C(C=C2C(=C1)C(=NC=N2)NC3=CC(=C(C=C3)F)Cl)OC4CCOC4
 
 > <facility_reagent_id>
 HMSL10133
+
+> <salt_id>
+101
 
 > <chemical_name>
 BIBW-2992; Afatinib
@@ -13631,6 +14009,9 @@ CCC1=CC(=C(C=C1N2CCC(CC2)N3CCN(CC3)S(=O)(=O)C)OC)NC4=NC=CC(=N4)C5=C(N=C6N5C=CC=C
 > <facility_reagent_id>
 HMSL10134
 
+> <salt_id>
+101
+
 > <chemical_name>
 GSK1904529A
 
@@ -13737,6 +14118,9 @@ CC1(CC(C1)C2=NC(=C3N2C=CN=C3N)C4=CC5=C(C=C4)C=CC(=N5)C6=CC=CC=C6)O
 > <facility_reagent_id>
 HMSL10135
 
+> <salt_id>
+101
+
 > <chemical_name>
 OSI 906
 
@@ -13811,6 +14195,9 @@ C1=CC(=CC=C1C2=CC(=C(S2)NC(=O)N)C(=O)N)F
 
 > <facility_reagent_id>
 HMSL10136
+
+> <salt_id>
+101
 
 > <chemical_name>
 TPCA-1
@@ -13908,6 +14295,9 @@ C1=CC(=CN=C1)C(=O)NC2=CC=C(C=C2)C3=C(C(=C(S3)C(=O)O)OCC(=O)O)Br
 > <facility_reagent_id>
 HMSL10137
 
+> <salt_id>
+101
+
 > <chemical_name>
 BMS509744; BMS-509744
 
@@ -14002,6 +14392,9 @@ OP(O)(O)=O.N#CC[C@@H](N1C=C(C2=C3C=CNC3=NC=N2)C=N1)C4CCCC4
 > <facility_reagent_id>
 HMSL10138
 
+> <salt_id>
+101
+
 > <chemical_name>
 INCB018424; Ruxolitinib
 
@@ -14087,6 +14480,9 @@ C1(NC(C)C(=NC=C2F)N=C2)=NC(NC(C=C2C)=NN2)=C(C=N1)Cl
 
 > <facility_reagent_id>
 HMSL10139
+
+> <salt_id>
+101
 
 > <chemical_name>
 AZD-1480
@@ -14188,6 +14584,9 @@ C1C=C(C=CC=1C(C=CN1)=NC=1NC(=CC=C1N(CCO2)CC2)C=C1)C(NCC#N)=O
 
 > <facility_reagent_id>
 HMSL10140
+
+> <salt_id>
+101
 
 > <chemical_name>
 CYT387
@@ -14301,6 +14700,9 @@ CC1=CN=C(N=C1NC2=CC(=CC=C2)S(=O)(=O)NC(C)(C)C)NC3=CC=C(C=C3)OCCN4CCCC4
 
 > <facility_reagent_id>
 HMSL10141
+
+> <salt_id>
+101
 
 > <chemical_name>
 TG 101348
@@ -14416,6 +14818,9 @@ CC(NC1=CC=CC(N(C(C(C(N2C3CC3)=O)=C(NC4=CC=C(I)C=C4F)N5C)=C(C)C5=O)C2=O)=C1)=O
 > <facility_reagent_id>
 HMSL10142
 
+> <salt_id>
+101
+
 > <chemical_name>
 GSK-1120212; GSK1120212; JTP-74057
 
@@ -14527,6 +14932,9 @@ O=C1C(C(NC2=CC=C(C(F)=C2)OC3=CC=NC(N)=C3Cl)=O)=C(OCC)C=CN1C4=CC=C(F)C=C4
 > <facility_reagent_id>
 HMSL10143
 
+> <salt_id>
+101
+
 > <chemical_name>
 BMS 777607
 
@@ -14631,6 +15039,9 @@ C1CC1C(=O)N2CCN(CC2)C(=O)C3=C(C=CC(=C3)CC4=NNC(=O)C5=CC=CC=C54)F
 > <facility_reagent_id>
 HMSL10144
 
+> <salt_id>
+101
+
 > <chemical_name>
 Olaparib; AZD2281; KU-0059436
 
@@ -14710,6 +15121,9 @@ Cl[H].Cl[H].C[C@@]1(CCCN1)C1=NC2=CC=CC(C(N)=O)=C2N1
 
 > <facility_reagent_id>
 HMSL10145
+
+> <salt_id>
+101
 
 > <chemical_name>
 Veliparib; ABT-888
@@ -14823,6 +15237,9 @@ COC1=NC=CC(=C1NS(=O)(=O)C2=C(C=C(C=C2)F)F)C3=CC4=C(C=CN=C4C=C3)C5=CN=NC=C5
 > <facility_reagent_id>
 HMSL10146
 
+> <salt_id>
+101
+
 > <chemical_name>
 GSK2126458
 
@@ -14919,6 +15336,9 @@ C1(N(CCO2)CC2)=NC(=CC(=N1)N(CCO1)CC1)C1=C(C(F)(F)F)C=C(N=C1)N
 
 > <facility_reagent_id>
 HMSL10147
+
+> <salt_id>
+101
 
 > <chemical_name>
 NVP-BKM120
@@ -15022,6 +15442,9 @@ CC1=CC=C(C=C1)S(=O)(=O)NC2=NC3=CC=CC=C3N=C2NC4=CC=CC5=NSN=C54
 > <facility_reagent_id>
 HMSL10148
 
+> <salt_id>
+101
+
 > <chemical_name>
 XL147; SAR245408
 
@@ -15107,6 +15530,9 @@ Cl[H].Cl[H].C[C@@H](N)C1=CC=C(C=C1)C(=O)NC1=C2C=CNC2=NC=C1
 
 > <facility_reagent_id>
 HMSL10149
+
+> <salt_id>
+101
 
 > <chemical_name>
 Y39983
@@ -15225,6 +15651,9 @@ CC1=C(C=C(C=C1)C(=O)NC2=CC(=C(C=C2)CN3CCN(CC3)C)C(F)(F)F)C#CC4=CN=C5N4N=CC=C5
 
 > <facility_reagent_id>
 HMSL10150
+
+> <salt_id>
+101
 
 > <chemical_name>
 AP24534; Ponatinib
@@ -15346,6 +15775,9 @@ CN1CCN(CC1)CC(=O)N(C)C2=CC=C(C=C2)NC(=C3C4=C(C=C(C=C4)C(=O)OC)NC3=O)C5=CC=CC=C5
 > <facility_reagent_id>
 HMSL10151
 
+> <salt_id>
+101
+
 > <chemical_name>
 BIBF-1120; Vargatef
 
@@ -15459,6 +15891,9 @@ CC(C)(C1=NC(=CC=C1)N2C3=NC(=NC=C3C(=O)N2CC=C)NC4=CC=C(C=C4)N5CCN(CC5)C)O
 
 > <facility_reagent_id>
 HMSL10152
+
+> <salt_id>
+101
 
 > <chemical_name>
 MK 1775
@@ -15574,6 +16009,9 @@ N#CC1=CN=C2C(Cl)=CC(NCC3=CN(C4CCN(CC)CC4)N=N3)=CC2=C1NC5=CC=C(F)C(Cl)=C5
 > <facility_reagent_id>
 HMSL10153
 
+> <salt_id>
+101
+
 > <chemical_name>
 KIN001-266
 
@@ -15660,6 +16098,9 @@ C1CNCCC1(C2=CC=C(C=C2)C3=CNN=C3)C4=CC=C(C=C4)Cl
 
 > <facility_reagent_id>
 HMSL10154
+
+> <salt_id>
+101
 
 > <chemical_name>
 AT7867
@@ -15780,6 +16221,9 @@ CC1CN(CC(O1)C)CC(=O)NC2=CC3=C(C=C2)SC4=C(C=CC=C4C3)C5=CC(=O)C=C(O5)N6CCOCC6
 > <facility_reagent_id>
 HMSL10155
 
+> <salt_id>
+101
+
 > <chemical_name>
 KU-60019
 
@@ -15875,6 +16319,9 @@ CN1C=C(C=N1)C2=NN3C(=NN=C3C(C4=CC5=C(C=C4)N=CC=C5)(F)F)C=C2
 
 > <facility_reagent_id>
 HMSL10156
+
+> <salt_id>
+101
 
 > <chemical_name>
 JNJ38877605
@@ -16009,6 +16456,9 @@ COC1=CC2=C(C=CN=C2C=C1OCCCN3CCOCC3)OC4=C(C=C(C=C4)NC(=O)C5(CC5)C(=O)NC6=CC=C(C=C
 > <facility_reagent_id>
 HMSL10157
 
+> <salt_id>
+101
+
 > <chemical_name>
 XL880; GSK1363089; Foretinib
 
@@ -16099,6 +16549,9 @@ CC1=NC=C(N1C(C)C)C2=NC(=NC=C2)NC3=CC=C(C=C3)S(=O)(=O)C
 
 > <facility_reagent_id>
 HMSL10158
+
+> <salt_id>
+101
 
 > <chemical_name>
 AZD 5438
@@ -16204,6 +16657,9 @@ CCOC1=C(C=C2C(=C1)N=CC(=C2NC3=CC(=C(C=C3)F)Cl)C#N)NC(=O)C=CCN(C)C
 > <facility_reagent_id>
 HMSL10159
 
+> <salt_id>
+101
+
 > <chemical_name>
 EKB-569; Pelitinib
 
@@ -16292,6 +16748,9 @@ CN1C=C(C2=CC=CC=C21)C3=C(C(=O)NC3=O)C4=C(C=C(C=C4)Cl)Cl
 
 > <facility_reagent_id>
 HMSL10160
+
+> <salt_id>
+101
 
 > <chemical_name>
 SB 216763
@@ -16400,6 +16859,9 @@ O1N=C(C(=C1C(C=C1C(C)C)=C(O)C=C1O)C(C=CC1CN(CCO2)CC2)=CC=1)C(NCC)=O
 > <facility_reagent_id>
 HMSL10161
 
+> <salt_id>
+101
+
 > <chemical_name>
 NVP-AUY922
 
@@ -16472,6 +16934,9 @@ C1=CC=C2C(=C1)C3=NNC4=CC=CC(=C43)C2=O
 
 > <facility_reagent_id>
 HMSL10162
+
+> <salt_id>
+101
 
 > <chemical_name>
 SP600125
@@ -16578,6 +17043,9 @@ CN(C)CC1=CC(=CC=C1)NC(=C2C3=C(C=C(C=C3)C(=O)N(C)C)NC2=O)C4=CC=CC=C4
 > <facility_reagent_id>
 HMSL10163
 
+> <salt_id>
+101
+
 > <chemical_name>
 BIX 02189
 
@@ -16664,6 +17132,9 @@ C1=C(I)C=C(C(=C1)NC(N(C)C(=O)C1C)=C(C=1)C(=O)NOCCO)F
 
 > <facility_reagent_id>
 HMSL10164
+
+> <salt_id>
+101
 
 > <chemical_name>
 AZD8330; ARRY-424704; ARRY-704
@@ -16760,6 +17231,9 @@ C1(N2)N=CC(=NC=1N(N=2)CC(C=CC1N=C2)=CC=1C=C2)C1=CN(N=C1)CCO
 
 > <facility_reagent_id>
 HMSL10165
+
+> <salt_id>
+101
 
 > <chemical_name>
 PF04217903
@@ -16858,6 +17332,9 @@ O=C(C1=CC=CN=C1NC2=NC(C3=CC=C(OC)C(OC)=C3)=CC4=NC=CN24)N
 > <facility_reagent_id>
 HMSL10166
 
+> <salt_id>
+101
+
 > <chemical_name>
 Bay61-3606
 
@@ -16950,6 +17427,9 @@ CS(=O)C1=CC=C(C=C1)C2=NC(=C(N2)C3=CC=NC=C3)C4=CC=C(C=C4)F
 
 > <facility_reagent_id>
 HMSL10167
+
+> <salt_id>
+101
 
 > <chemical_name>
 SB 203580; RWJ 64809; PB 203580
@@ -17045,6 +17525,9 @@ C1=CC(=C(C(=C1)Cl)C2=C3C=CC(=NN3C=NC2=O)SC4=C(C=C(C=C4)F)F)Cl
 
 > <facility_reagent_id>
 HMSL10168
+
+> <salt_id>
+101
 
 > <chemical_name>
 VX-745
@@ -17164,6 +17647,9 @@ CC1=CC=C(C=C1)N2C(=CC(=N2)C(C)(C)C)NC(=O)NC3=CC=C(C4=CC=CC=C43)OCCN5CCOCC5
 > <facility_reagent_id>
 HMSL10169
 
+> <salt_id>
+101
+
 > <chemical_name>
 BIRB 796; Doramapimod
 
@@ -17252,6 +17738,9 @@ C1C(NCCC(=CN2)C(C=CC3)=C2C=3)=CC(NC(=CC=N2)C=C2)=CC=1
 
 > <facility_reagent_id>
 HMSL10170
+
+> <salt_id>
+101
 
 > <chemical_name>
 JNJ 26854165
@@ -17346,6 +17835,9 @@ CC1=CN2C(=O)C=C(N=C2C(=C1)C(C)NC3=CC=CC=C3)N4CCOCC4
 > <facility_reagent_id>
 HMSL10171
 
+> <salt_id>
+101
+
 > <chemical_name>
 TGX221
 
@@ -17432,6 +17924,9 @@ C1=CC2=NC=CC(=C2C=C1C=C3C(=O)NC(=O)S3)C4=CC=NC=C4
 
 > <facility_reagent_id>
 HMSL10172
+
+> <salt_id>
+101
 
 > <chemical_name>
 GSK1059615
@@ -17559,6 +18054,9 @@ C1(NC(=O)C(C=C(C2C)OC)=CC=2)=CC=C(C=C1)S(=O)(=O)NC(=NC1=CC2)C(=NC1=CC=2)NC1C=C(C
 > <facility_reagent_id>
 HMSL10173
 
+> <salt_id>
+101
+
 > <chemical_name>
 XL765; SAR245409
 
@@ -17649,6 +18147,9 @@ C1C=C(C(O)=CC=1)C1=CC=C(C=C1)C1C2C(O)=C(C#N)C(NC=2SC=1)=O
 
 > <facility_reagent_id>
 HMSL10174
+
+> <salt_id>
+101
 
 > <chemical_name>
 A 769662
@@ -17763,6 +18264,9 @@ O[C@@H](CC(O)=O)C(O)=O.CCN(CC)CCNC(=O)C1=C(C)NC(\C=C2/C(=O)NC3=C2C=C(F)C=C3)=C1C
 > <facility_reagent_id>
 HMSL10175
 
+> <salt_id>
+101
+
 > <chemical_name>
 Sunitinib malate; SU11248; Sutent
 
@@ -17836,6 +18340,9 @@ CC(C1CCC(CC1)C(=O)NC2=CC=NC=C2)N
 
 > <facility_reagent_id>
 HMSL10176
+
+> <salt_id>
+101
 
 > <chemical_name>
 Y-27632
@@ -17929,6 +18436,9 @@ CC1=CC2=C(N1)C=CC(=C2F)OC3=NC=NN4C3=C(C(=C4)OCC(C)O)C
 
 > <facility_reagent_id>
 HMSL10177
+
+> <salt_id>
+101
 
 > <chemical_name>
 Brivanib; BMS-540215
@@ -18030,6 +18540,9 @@ C1=CC=C2C(=C1)C(=CC=N2)CNC3=C(SC=C3)C(=O)NC4=CC=C(C=C4)OC(F)(F)F
 
 > <facility_reagent_id>
 HMSL10178
+
+> <salt_id>
+101
 
 > <chemical_name>
 OSI-930
@@ -18185,6 +18698,9 @@ O=C(C1=CC=C(C=C1)N2CCN(CC2)CC3=CC=CC=C3C4=CC=C(C=C4)Cl)NS(=O)(C5=CC=C(C([N+]([O-
 > <facility_reagent_id>
 HMSL10179
 
+> <salt_id>
+101
+
 > <chemical_name>
 ABT-737
 
@@ -18289,6 +18805,9 @@ N#CC1=CN=C(NCCNC2=NC=C(C3=NC(C)=CN3)C(C4=CC=C(Cl)C=C4Cl)=N2)C=C1
 > <facility_reagent_id>
 HMSL10180
 
+> <salt_id>
+101
+
 > <chemical_name>
 CHIR-99021; CT99021; KIN001-157
 
@@ -18377,6 +18896,9 @@ C1CC(=NO)C2=C1C=C(C=C2)C3=CN(N=C3C4=CC=NC=C4)CCO
 
 > <facility_reagent_id>
 HMSL10181
+
+> <salt_id>
+101
 
 > <chemical_name>
 GDC-0879
@@ -18472,6 +18994,9 @@ CC1=CC(=C(C=C1)F)NC(=O)NC2=CC=C(C=C2)C3=C4C(=CC=C3)NN=C4N
 
 > <facility_reagent_id>
 HMSL10182
+
+> <salt_id>
+101
 
 > <chemical_name>
 ABT-869; Linifanib; AL-39324
@@ -18588,6 +19113,9 @@ O=C(NC1=C(Cl)C(OC)=CC(OC)=C1Cl)N(C2=NC=NC(NC3=CC=C(N4CCN(CC)CC4)C=C3)=C2)C
 > <facility_reagent_id>
 HMSL10183
 
+> <salt_id>
+101
+
 > <chemical_name>
 BGJ398; KIN001-271; NVP-BGJ398
 
@@ -18689,6 +19217,9 @@ COC1=C(C=C(C=C1)CS(=O)(=O)C=CC2=C(C=C(C=C2OC)OC)OC)NCC(=O)[O-].[Na+]
 > <facility_reagent_id>
 HMSL10184
 
+> <salt_id>
+101
+
 > <chemical_name>
 ON-01910
 
@@ -18787,6 +19318,9 @@ C1(C2=CC=CC(OCCN3CCCCC3)=C2)=NNC4=C1C=C(C5=NC=NN5)C=C4
 > <facility_reagent_id>
 HMSL10185
 
+> <salt_id>
+101
+
 > <chemical_name>
 CC-401
 
@@ -18880,6 +19414,9 @@ C[N+]1=C2C(=C3C=CC(=C(C3=C1)OC)OC)C=CC4=CC5=C(C=C42)OCO5.[Cl-]
 
 > <facility_reagent_id>
 HMSL10186
+
+> <salt_id>
+101
 
 > <chemical_name>
 Chelerythrine chloride
@@ -18988,6 +19525,9 @@ O=C(NC(C1=CN=CS1)C)NC2=C(OC)C=C(OC3=CC=NC4=C3C=C(C(OC)=C4)OC)C=C2
 > <facility_reagent_id>
 HMSL10187
 
+> <salt_id>
+101
+
 > <chemical_name>
 Ki20227
 
@@ -19094,6 +19634,9 @@ IC1=C(NCCCNC(C2=CC=CS2)=O)N=C(NC3=CC=CC(NC(N4CCCC4)=O)=C3)N=C1
 
 > <facility_reagent_id>
 HMSL10188
+
+> <salt_id>
+101
 
 > <chemical_name>
 BX795
@@ -19206,6 +19749,9 @@ CN1CCN(CCCOC2=C(OC)C=C3C(NC4=CC(OC)=C(Cl)C=C4Cl)=C(C#N)C=NC3=C2)CC1
 > <facility_reagent_id>
 HMSL10189
 
+> <salt_id>
+101
+
 > <chemical_name>
 Bosutinib; SKI-606
 
@@ -19290,6 +19836,9 @@ CC(NC1=NC(C)=C(C2=CC(S(=O)(NCCO)=O)=C(Cl)C=C2)S1)=O
 
 > <facility_reagent_id>
 HMSL10190
+
+> <salt_id>
+101
 
 > <chemical_name>
 PIK-93
@@ -19390,6 +19939,9 @@ CC(=O)N(C1=CC=CC=C1C=CC2=CC=[N+](C=C2)[O-])S(=O)(=O)C3=CC=C(C=C3)OC
 > <facility_reagent_id>
 HMSL10191
 
+> <salt_id>
+101
+
 > <chemical_name>
 HMN-214
 
@@ -19478,6 +20030,9 @@ O=C(N1CCNCC1)C(C=C2)=CC=C2/C=C/C3=NNC4=C3C=CC=C4
 
 > <facility_reagent_id>
 HMSL10192
+
+> <salt_id>
+101
 
 > <chemical_name>
 KW2449; KW-2449
@@ -19582,6 +20137,9 @@ O=S(C)C(C=C1)=CC=C1C2=NC(C3=CC4=CC=C(OC)C=C4C=C3)=C(C5=CC=NC=C5)N2
 
 > <facility_reagent_id>
 HMSL10193
+
+> <salt_id>
+101
 
 > <chemical_name>
 Kin236; Tie2 kinase inhibitor; Kin236
@@ -19714,6 +20272,9 @@ O=C([C@H](CC(O)=O)O)O.O=C(NC1=CC=C(C=C1)OC2=CC=NC3=CC(OC)=C(C=C23)OC)C4(CC4)C(NC
 > <facility_reagent_id>
 HMSL10194
 
+> <salt_id>
+101
+
 > <chemical_name>
 XL-184; Cabozantinib; Cabozantinib S-malate; BMS-907351
 
@@ -19813,6 +20374,9 @@ O=C(C1=CC(C#N)=CN1)NC2=CC=C(N3CCN(C)CC3)C=C2N4CCC(C)CC4
 
 > <facility_reagent_id>
 HMSL10195
+
+> <salt_id>
+101
 
 > <chemical_name>
 KIN001-269
@@ -19926,6 +20490,9 @@ CS(=O)(NC1=CC(NC2=NC=NC(C3=CC=CC(N(C(C4=C5C=CC=C4)=O)C5=O)=C3)=C2)=CC=C1C)=O
 > <facility_reagent_id>
 HMSL10196
 
+> <salt_id>
+101
+
 > <chemical_name>
 KIN001-270
 
@@ -20021,6 +20588,9 @@ N#CC1=C(C2CCNCC2)C=C(C3=C(O)C=CC=C3OCC4CC4)N=C1N.[H]Cl
 
 > <facility_reagent_id>
 HMSL10197
+
+> <salt_id>
+101
 
 > <chemical_name>
 KIN001-260; Bayer IKKb inhibitor
@@ -20120,6 +20690,9 @@ CN1CCC(COC2=CC3=NC=NC(NC4=CC=C(Br)C=C4F)=C3C=C2OC)CC1
 
 > <facility_reagent_id>
 HMSL10198
+
+> <salt_id>
+101
 
 > <chemical_name>
 Vandetanib; ZD6474; Zactima; Caprelsa
@@ -20227,6 +20800,9 @@ O=C1NC2=C(C=C(NC3=NC=C(C(F)(F)F)C(NCC4=CC=CC(S(=O)(C)=O)=C4)=N3)C=C2)CC1
 
 > <facility_reagent_id>
 HMSL10199
+
+> <salt_id>
+101
 
 > <chemical_name>
 PF 573228
@@ -20342,6 +20918,9 @@ N1(C)C(=N2)C(C=N1)=C(N=C2C(=CN=C1)C=C1)NC1C=C(C=CC=1C)C(=O)NC1C=C(C=CC=1)C(F)(F)
 > <facility_reagent_id>
 HMSL10200
 
+> <salt_id>
+101
+
 > <chemical_name>
 NVP-BHG712
 
@@ -20455,6 +21034,9 @@ O=C1C2=C(NC3=C2C=CC(C#N)=C3)C(C)(C)C4=C1C=C(CC)C(N5CCC(N6CCOCC6)CC5)=C4
 > <facility_reagent_id>
 HMSL10201
 
+> <salt_id>
+101
+
 > <chemical_name>
 CH5424802
 
@@ -20555,6 +21137,9 @@ O=C(N)C1=CC=C(C2=NC(C3=CC=C(OCCO4)C4=C3)=C(C5=NC=CC=C5)N2)C=C1
 > <facility_reagent_id>
 HMSL10202
 
+> <salt_id>
+101
+
 > <chemical_name>
 D 4476
 
@@ -20644,6 +21229,9 @@ O=C(N1[C@H]([C@](N)=O)CCC1)NC2=NC(C)=C(C3=CSC(C(C)(C)C)=N3)S2
 
 > <facility_reagent_id>
 HMSL10203
+
+> <salt_id>
+101
 
 > <chemical_name>
 A66
@@ -20747,6 +21335,9 @@ O=C1N(C2=CC=CC=C2)C([C@@H](NC3=NC=NC4=C3N=CN4)CC)=NC5=C1C(F)=CC=C5
 > <facility_reagent_id>
 HMSL10204
 
+> <salt_id>
+101
+
 > <chemical_name>
 CAL-101
 
@@ -20831,6 +21422,9 @@ NC1=C2C(N(C(C)C)N=C2C3=CC=C(OC(N)=N4)C4=C3)=NC=N1
 
 > <facility_reagent_id>
 HMSL10205
+
+> <salt_id>
+101
 
 > <chemical_name>
 INK-128
@@ -20946,6 +21540,9 @@ FC(C1=CC=C(NC2=NC3=CC(OC4=CC(C5=NC=C(C(F)(F)F)N5)=NC=C4)=CC=C3N2C)C=C1)(F)F
 > <facility_reagent_id>
 HMSL10206
 
+> <salt_id>
+101
+
 > <chemical_name>
 RAF 265
 
@@ -21051,6 +21648,9 @@ O=C(NC)C1=CC=CC=C1NC2=NC(NC3=CC=C(N4CCOCC4)C=C3OC)=NC=C2Cl
 > <facility_reagent_id>
 HMSL10207
 
+> <salt_id>
+101
+
 > <chemical_name>
 NVP-TAE226; CHIR-265
 
@@ -21137,6 +21737,9 @@ O=C(C1=C(C=CC=C2)C2=CC=C1)NC3=C(C#N)C4=C(S3)CCCC4
 
 > <facility_reagent_id>
 HMSL10208
+
+> <salt_id>
+101
 
 > <chemical_name>
 JNK-IN-5A; TCS JNK 5a; KIN001-188
@@ -21246,6 +21849,9 @@ O=[C@]([C@@H]1CN(C2=NC(NC)=NC(C3=CC4=C(C=C3)C(N)=NN4)=C2)[C@H](C)CC1)NC5CCCCC5
 > <facility_reagent_id>
 HMSL10221
 
+> <salt_id>
+101
+
 > <chemical_name>
 GSK2334470
 
@@ -21352,6 +21958,9 @@ O=C(NC1=CC2=C(NC3=CC=C(F)C(Cl)=C3)N=CN=C2C=C1OC)/C=C/CN4CCCCC4
 > <facility_reagent_id>
 HMSL10222
 
+> <salt_id>
+101
+
 > <chemical_name>
 PF-00299804; Dacomitinib
 
@@ -21433,6 +22042,9 @@ COC1=CC2=NC=NC(NC3=CC=CC(Cl)=C3)=C2C=C1OC
 
 > <facility_reagent_id>
 HMSL10223
+
+> <salt_id>
+101
 
 > <chemical_name>
 AG1478; Tyrphostin
@@ -21537,6 +22149,9 @@ C=CC(NC1=CC2=C(C=C1)N=CN=C2NC(C=C3)=CC(Cl)=C3OCC4=CC(F)=CC=C4)=O
 > <facility_reagent_id>
 HMSL10224
 
+> <salt_id>
+101
+
 > <chemical_name>
 AST1306
 
@@ -21640,6 +22255,9 @@ O=C(C1=NC=CC(OC2=CC=C(NC(NC3=CC=C(Cl)C(C(F)(F)F)=C3)=O)C(F)=C2)=C1)NC
 
 > <facility_reagent_id>
 HMSL10225
+
+> <salt_id>
+101
 
 > <is_restricted>
 true

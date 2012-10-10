@@ -259,6 +259,7 @@ def screenDetailResults(request, facility_id):
         return render(request,'db/screenDetailResults.html', details)
     except Http401, e:
         return HttpResponse('Unauthorized', status=401)
+
 def screenDetail(request, facility_id):
     try:
         dataset = DataSet.objects.get(facility_id=facility_id)
@@ -280,10 +281,13 @@ def screenDetail(request, facility_id):
     # TODO: are the screen results gonna be searchable? (no, not for now, but if so, we would look at the search string here)
     # search = request.GET.get('search','')
     
+    datacolumns = get_dataset_columns(dataset_id)
     # Create a query on the fly that pivots the values from the datapoint table, making one column for each datacolumn type
     # use the datacolumns to make a query on the fly (for the DataSetResultSearchManager), and make a DataSetResultSearchTable on the fly.
-    dataColumnCursor = connection.cursor()
-    dataColumnCursor.execute("SELECT id, name, data_type, precision from db_datacolumn where dataset_id = %s order by id asc", [dataset_id])
+    #dataColumnCursor = connection.cursor()
+    #dataColumnCursor.execute("SELECT id, name, data_type, precision from db_datacolumn where dataset_id = %s order by id asc", [dataset_id])
+    logger.info(str(('dataset columns:', datacolumns)))
+    
     
     # Need to construct something like this:
     # select distinct (datarecord_id), smallmolecule_id, sm.facility_id || '-' || sm.salt_id as facility_id,
@@ -291,13 +295,13 @@ def screenDetail(request, facility_id):
     #        (select int_value as col2 from db_datapoint dp2 where dp2.datarecord_id=dp0.datarecord_id and dp2.datacolumn_id=3) as col2 
     #        from db_datapoint dp0 join db_datarecord dr on(datarecord_id=dr.id) join db_smallmoleculebatch smb on(smb.id=dr.smallmolecule_batch_id) join db_smallmolecule sm on(sm.id=smb.smallmolecule_id) 
     #        where dp0.dataset_id = 1 order by datarecord_id;
-    queryString = "select distinct (datarecord_id), sm.id as smallmolecule_id , 'HMSL' || sm.facility_id || '-' || smb.salt_id || '-' || smb.facility_batch_id as facility_id "
+    queryString = "select distinct (datarecord_id), sm.id as smallmolecule_id , 'HMSL' || sm.facility_id || '-' || sm.salt_id || '-' || smb.facility_batch_id as facility_id "
     if(show_cells): queryString += ", cell_id, cell.name as cell_name, cell.facility_id as cell_facility_id " 
     if(show_proteins): queryString += ", protein_id, protein.name as protein_name, protein.lincs_id as protein_lincs_id " 
     i = 0
     names = {}
     orderedNames = ['facility_id']
-    for datacolumn_id, name, datatype, precision in dataColumnCursor.fetchall():
+    for datacolumn_id, name, datatype, precision in datacolumns:
         i += 1
         alias = "dp"+str(i)
         columnName = "col" + str(i)
@@ -340,7 +344,19 @@ def screenDetail(request, facility_id):
            'type':getDatasetType(facility_id)}
     
 #---------------Supporting classes and functions--------------------------------
+def get_dataset_columns(dataset_id):
+    # Create a query on the fly that pivots the values from the datapoint table, making one column for each datacolumn type
+    # use the datacolumns to make a query on the fly (for the DataSetResultSearchManager), and make a DataSetResultSearchTable on the fly.
+    dataColumnCursor = connection.cursor()
+    dataColumnCursor.execute("SELECT id, name, data_type, precision from db_datacolumn where dataset_id = %s order by id asc", [dataset_id])
+    return dataColumnCursor.fetchall()
 
+def get_dataset_column_names(dataset_id):
+    column_names = []
+    for datacolumn_id, name, datatype, precision in get_dataset_columns(dataset_id):
+        column_names.append(name)
+    return column_names
+    
 def cells_for_dataset(dataset_id):
     cursor = connection.cursor()
     sql = 'select cell.* from db_cell cell where cell.id in (select distinct(cell_id) from db_datarecord dr where dr.dataset_id=%s) order by cell.name'
@@ -402,7 +418,7 @@ class SmallMoleculeSearchManager(models.Manager):
             where += 'not sm.is_restricted' # TODO: NOTE, not including: ' and not l.is_restricted'; library restriction will only apply to viewing the library explicitly (the meta data, and selection of compounds)
             
         sql += where
-        sql += " order by sm.facility_id, smb.salt_id, smb.facility_batch_id "
+        sql += " order by sm.facility_id, sm.salt_id, smb.facility_batch_id "
         
         # TODO: the way we are separating query_string out here is a kludge
         if(query_string != ''):
@@ -418,7 +434,6 @@ class SmallMoleculeTable(tables.Table):
     snippet = tables.Column()
     library_name = tables.LinkColumn('library_detail', args=[A('library_id')])
     
-    salt_id = tables.Column()
     facility_batch_id = tables.Column()
     
     provider = tables.Column()

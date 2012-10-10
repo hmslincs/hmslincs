@@ -36,10 +36,10 @@ class LincsFieldInformation(models.Model):
     comments                = _TEXT(**_NULLOKSTR)
 
 class SmallMolecule(models.Model):
-    facility_id             = _INTEGER(unique=True, null=False) # center compound id
+    facility_id             = _INTEGER(null=False) # center compound id
+    salt_id                 = _INTEGER(null=True)
     lincs_id                = _INTEGER(null=True)
     name                    = _TEXT(**_NULLOKSTR) # all names in one, including alternate names
-    #salt_id                 = _INTEGER(null=True)
     #facility_batch_id       = _INTEGER(null=True)
     molfile                 = _TEXT(**_NULLOKSTR)
     pubchem_cid             = _INTEGER(null=True)
@@ -58,10 +58,10 @@ class SmallMolecule(models.Model):
     #well_type               = _CHAR(max_length=35, **_NULLOKSTR)
     is_restricted           = models.BooleanField(default=False) # Note: default=False are not set at the db level, only at the Db-api level
 
-    #class Meta:
-    #    unique_together = ('facility_id', 'salt_id', 'facility_batch_id',)    
+    class Meta:
+        unique_together = ('facility_id', 'salt_id')    
     def __unicode__(self):
-        return unicode(self.facility_id)
+        return unicode(str((self.facility_id, self.salt_id)))
 
 CONCENTRATION_GL = 'g/L'
 CONCENTRATION_MGML = 'mg/mL'
@@ -70,7 +70,6 @@ CONCENTRATION_WEIGHT_VOLUME_CHOICES = ((CONCENTRATION_GL,CONCENTRATION_GL),
 
 class SmallMoleculeBatch(models.Model):
     smallmolecule           = models.ForeignKey('SmallMolecule')
-    salt_id                 = _INTEGER(null=True)
     facility_batch_id       = _INTEGER(null=True)
     provider                = _TEXT(**_NULLOKSTR)
     provider_catalog_id     = _CHAR(max_length=35, **_NULLOKSTR)
@@ -91,9 +90,9 @@ class SmallMoleculeBatch(models.Model):
     molecular_formula       = _TEXT(**_NULLOKSTR)
 
     def __unicode__(self):
-        return unicode(str((self.smallmolecule,self.salt_id,self.facility_batch_id)))
+        return unicode(str((self.smallmolecule,self.facility_batch_id)))
     class Meta:
-        unique_together = ('smallmolecule', 'salt_id', 'facility_batch_id',)    
+        unique_together = ('smallmolecule', 'facility_batch_id',)    
 
 
 class Cell(models.Model):

@@ -37,7 +37,7 @@ def main(path):
     properties = ('model_field','required','default','converter')
     column_definitions = { 
                           'facility_id': ('facility_id',True,None, lambda x: util.convertdata(x,int)),
-                          'salt_form_id': ('salt_id',True,None, lambda x: util.convertdata(x,int)),
+                          'salt_id': ('salt_id',True,None, lambda x: util.convertdata(x,int)),
                           'facility_batch_id':('facility_batch_id',True,None, lambda x: util.convertdata(x,int)),
                           'provider': ('provider',True),
                           'provider_catalog_id':'provider_catalog_id',
@@ -53,12 +53,13 @@ def main(path):
     
     # create a dict mapping the column ordinal to the proper column definition dict
     cols = util.find_columns(column_definitions, sheet.labels)
-
+    
     rows = 0    
     logger.info(str(('cols: ' , cols)))
     for row in sheet:
         r = util.make_row(row)
         initializer = {}
+        small_molecule_lookup = {'facility_id':None, 'salt_id':None}
         for i,value in enumerate(r):
             if i not in cols: continue
             properties = cols[i]
@@ -80,13 +81,15 @@ def main(path):
                 raise Exception('Field is required: %s, record: %d' % (properties['column_label'],rows))
             logger.debug(str(('model_field: ' , model_field, ', value: ', value)))
             
-            if(model_field == 'facility_id'):
-                try:
-                    sm = SmallMolecule.objects.get(facility_id=value)
-                    initializer['smallmolecule'] = sm
-                except Exception, e:
-                    logger.error(str(('sm facility id not found', value)))
-                    raise
+            if(model_field in small_molecule_lookup):
+                small_molecule_lookup[model_field]=value
+                if( None not in small_molecule_lookup.values()):
+                    try:
+                        sm = SmallMolecule.objects.get(**small_molecule_lookup)
+                        initializer['smallmolecule'] = sm
+                    except Exception, e:
+                        logger.error(str(('sm facility id not found', value)))
+                        raise
             else:
                 initializer[model_field] = value
         try:
