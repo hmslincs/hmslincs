@@ -12,19 +12,23 @@ from tastypie import fields
 import re
 
 from db import views
-from db.CSVSerializer import CSVSerializer
-from db.models import SmallMolecule,DataSet,Cell , DataRecord
+from db.DjangoTables2Serializer import DjangoTables2Serializer, get_visible_columns
+from db.models import SmallMolecule,DataSet,Cell
 
 logger = logging.getLogger(__name__)
 
 class SmallMoleculeResource(ModelResource):
     class Meta:
+        # TODO: authorization
+        # TODO: it would be good to feed these from the view/tables2 code; or vice versa
         queryset = SmallMolecule.objects.all()
         # to override: resource_name = 'sm'
         excludes = ['column']
 
 class CellResource(ModelResource):
     class Meta:
+        # TODO: authorization
+        # TODO: it would be good to feed these from the view/tables2 code; or vice versa
         queryset = Cell.objects.all()
         # to override: resource_name = 'sm'
         excludes = []
@@ -33,47 +37,53 @@ class DataSetResource(ModelResource):
     
     class Meta:
         queryset = DataSet.objects.all()
-        # to override: resource_name = 'sm'
+        # TODO: authorization
+        # TODO: it would be good to feed these from the view/tables2 code; or vice versa
         excludes = []
     def dehydrate(self, bundle):
+        # TODO: the following call executes the query *just* to get the column names
+        visibleColumns = get_visible_columns(views.get_dataset_result_table(bundle.data['id']))
         bundle.data['endpointFile'] = {'uri':'http://localhost/db/api/v1/datasetdata/'+str(bundle.data['id']),
-                                       'noCols':len(views.get_dataset_column_names(bundle.data['id'])),
-                                       'cols':views.get_dataset_column_names(bundle.data['id'])
+                                       'noCols':len(visibleColumns),
+                                       'cols':visibleColumns.values()
                                        }
         return bundle
     
-class DataSetData(ModelResource):
-    dataset_id=-1
+class DataSetData(Resource):
+    """
+    This class is a complete override of the read functionality of tastypie; 
+    because serializing the dataset data is not possible using ORM code.
+    """
+    
     class Meta:
-        queryset = DataRecord.objects.all()
+        #queryset = DataRecord.objects.all()
         # to override: resource_name = 'sm'
         fields = []
-        serializer = CSVSerializer()
-    
-    def apply_filters(self, request, applicable_filters):
-        logger.error('apply filters!!!!')
-        self.dataset_id = request.GET.get('dataset_id')
-        self.queryset = views.get_dataset_result_table(self.dataset_id)
-        return self.queryset
+        serializer = DjangoTables2Serializer()
     
     def get_object_list(self, request):
-        matchObject = re.match(r'.*datasetdata/(\d+)/', request.path)
+        logger.info('get_object_list')
+        matchObject = re.match(r'.*datasetdata/(\d+)/', request.path) # TODO: there must be a way to get the request path variable automagically
         if(matchObject):
-            self.dataset_id = matchObject.group(1)
-            logger.info(str(('get_object_list for ', self.dataset_id)))
-            return views.get_dataset_result_queryset(self.dataset_id)
+            dataset_id = matchObject.group(1)
+            logger.info(str(('get_object_list for ', dataset_id)))
+            return views.get_dataset_result_table(dataset_id)
             #return queryset
     
     def obj_get_list(self, request=None, **kwargs):
+        logger.info('obj_get_list')
         # Filtering disabled for brevity...
         return self.get_object_list(request)
     
     def obj_get(self, request=None, **kwargs):
+        logger.info('obj_get')
         return self.get_object_list(request)
     def get_detail(self, request, **kwargs):
+        logger.info('get_detail')
         return self.create_response(request,self.get_object_list(request))
         
     def detail_uri_kwargs(self, bundle_or_obj):
+        logger.info(str(('detail_uri_kwargs', bundle_or_obj)))
         kwargs = {}
 
         if isinstance(bundle_or_obj, Bundle):

@@ -282,7 +282,7 @@ def screenDetail(request, facility_id):
     # search = request.GET.get('search','')
     
     
-    table = get_dataset_result_table(dataset_id, show_cells, show_proteins)
+    table = get_dataset_result_table(dataset_id, is_authenticated=request.user.is_authenticated(), **{'show_cells':show_cells, 'show_proteins':show_proteins})
 
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
     RequestConfig(request, paginate={"per_page": 25}).configure(cellTable)
@@ -295,21 +295,25 @@ def screenDetail(request, facility_id):
            'type':getDatasetType(facility_id)}
 
 
-def get_dataset_result_queryset(dataset_id):
-    # for tastypie integration; to be redone!
-    cell_queryset = cells_for_dataset(dataset_id)
-    show_cells=len(cell_queryset)>0  # TODO pass in show_cells!
+def get_dataset_result_table(dataset_id, is_authenticated=False, **kwargs):
+    if(not 'show_cells' in kwargs):
+        cell_queryset = cells_for_dataset(dataset_id)
+        show_cells=len(cell_queryset)>0  # TODO pass in show_cells!
+    else:
+        show_cells = kwargs['show_cells']
+    
+    if(not 'show_proteins' in kwargs):
+        protein_queryset = proteins_for_dataset(dataset_id)
+        show_proteins=len(protein_queryset)>0 # TODO pass in show_proteins!
+    else:
+        show_proteins = kwargs['show_proteins']
+    #return get_dataset_result_queryset1(dataset_id,show_cells,show_proteins,is_authenticated)['table']
 
-    protein_queryset = proteins_for_dataset(dataset_id)
-    show_proteins=len(protein_queryset)>0 # TODO pass in show_proteins!
-
-    return get_dataset_result_queryset1(dataset_id,show_cells,show_proteins)['table']
-
-def get_dataset_result_table(dataset_id, show_cells, show_proteins):
-    return get_dataset_result_queryset1(dataset_id, show_cells, show_proteins)['table']
+#def get_dataset_result_table(dataset_id, show_cells, show_proteins,is_authenticated=False):
+#    return get_dataset_result_queryset1(dataset_id, show_cells, show_proteins,is_authenticated)['table']
 
 
-def get_dataset_result_queryset1(dataset_id, show_cells, show_proteins):
+#def get_dataset_result_queryset1(dataset_id, show_cells, show_proteins, is_authenticated=False):
         
     datacolumns = get_dataset_columns(dataset_id)
     # Create a query on the fly that pivots the values from the datapoint table, making one column for each datacolumn type
@@ -356,7 +360,14 @@ def get_dataset_result_queryset1(dataset_id, show_cells, show_proteins):
     if(show_proteins): 
         queryString += " join db_protein protein on(protein.id=dr.protein_id) "
         orderedNames.insert(1,'protein_name')
-    queryString += " where dp0.dataset_id = " + str(dataset_id) + " order by datarecord_id"
+    queryString += " where dp0.dataset_id = " + str(dataset_id)
+    if(not is_authenticated): 
+        queryString += " and not sm.is_restricted "
+        if(show_proteins):
+            queryString += " and not protein.is_restricted "
+        if(show_cells):
+            queryString += " and not cell.is_restricted " 
+    queryString += " order by datarecord_id"
     orderedNames.append('...') # is this necessary?
     
     logger.info(str(('orderedNames',orderedNames)))
@@ -364,7 +375,7 @@ def get_dataset_result_queryset1(dataset_id, show_cells, show_proteins):
     queryset = DataSetResultSearchManager().search(queryString);
     table = DataSetResultTable(queryset, names, orderedNames, show_cells, show_proteins)
 
-    return {'queryset':queryset,'table':table} # todo, redo this, once the tastypie integration is figured out
+    return table # todo, redo this, once the tastypie integration is figured out
 
 #---------------Supporting classes and functions--------------------------------
 def get_dataset_columns(dataset_id):
@@ -645,8 +656,8 @@ TEMPLATE = '''
 class DataSetResultTable(tables.Table):
     id = tables.Column(visible=False)
     facility_id = tables.LinkColumn('sm_detail', args=[A('smallmolecule_id')], verbose_name='Facility ID') #TODO: broken! must use facilty_id
-    cell_name = tables.LinkColumn('cell_detail',args=[A('cell_facility_id')], visible=False) #TODO: broken! must use facility_id
-    protein_name = tables.LinkColumn('protein_detail',args=[A('protein_lincs_id')], visible=False) #TODO: broken! must use facilty_id
+    cell_name = tables.LinkColumn('cell_detail',args=[A('cell_facility_id')], visible=False, verbose_name='Cell Name') #TODO: broken! must use facility_id
+    protein_name = tables.LinkColumn('protein_detail',args=[A('protein_lincs_id')], visible=False, verbose_name='Protein Name') #TODO: broken! must use facilty_id
     
     def __init__(self, queryset, names, orderedNames, show_cells, show_proteins, *args, **kwargs):
         super(DataSetResultTable, self).__init__(queryset, names, *args, **kwargs)
