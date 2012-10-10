@@ -5,33 +5,33 @@
 <head>
   <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.min.js"></script>
   <script src="pathway.js"></script>
-  <style>
+  <style type="text/css">
     .signature-popup {
-	border: 1px solid red;
-	background-color: #ffffff;
-	display: none;
-	position: absolute;
-	top: 0px;
-	left: 0px;
-        vertical-alignment: middle;
+      border: 1px solid red;
+      background-color: #ffffff;
+      display: none;
+      position: absolute;
+      top: 0px;
+      left: 0px;
+      vertical-alignment: middle;
     }
-    .signature-popup h1 { font-size: 10pt; padding: 0; margin: 0; }
-    .signature-popup h2 { font-size: 8pt; padding: 0; margin: 0; }
+    .signature-popup h3 { font-size: 10pt; padding: 0; margin: 0; }
+    .signature-popup h4 { font-size: 8pt; padding: 0; margin: 0; }
     .signature-popup tr { font-size: 8pt; padding: 0; margin: 0; }
 
     #pathwayimg {
-        border: 1px solid black;
+      border: 1px solid black;
     }
   </style>
 </head>
 
 <body>
 
-{% for signature in signatures %}
-  {% include "signature.html" %}
-{% endfor %}
+  {% for signature in signatures %}
+    {% include "signature.html" %}
+  {% endfor %}
 
-{{ pathway_source|safe }}
+  {{ pathway_source|safe }}
 
 </body>
 </html>

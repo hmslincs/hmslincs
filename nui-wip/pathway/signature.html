@@ -4,25 +4,24 @@
 
   <tr>
     <td colspan="4">
-      <h1>Target: {{ signature.target_name }}</h1>
-    </td>
-  </tr>
-  <tr>
-    <td colspan="4">
-      <h2>Primary inhibitors</h2>
+      <h3>Target: {{ signature.target_name }}</h3>
     </td>
   </tr>
 
+  <tr>
+    <td colspan="4">
+      <h4>Primary inhibitors</h4>
+    </td>
+  </tr>
   {% with compounds=signature.primary_compounds %}
     {% include "compound_table.html" %}
   {% endwith %}
   
   <tr>
     <td colspan="4">
-      <h2>Other inhibitors</h2>
+      <h4>Other inhibitors</h4>
     </td>
   </tr>
-
   {% with compounds=signature.nonprimary_compounds %}
     {% include "compound_table.html" %}
   {% endwith %}
