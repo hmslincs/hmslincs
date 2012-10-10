@@ -281,21 +281,51 @@ def screenDetail(request, facility_id):
     # TODO: are the screen results gonna be searchable? (no, not for now, but if so, we would look at the search string here)
     # search = request.GET.get('search','')
     
+    
+    table = get_dataset_result_table(dataset_id, show_cells, show_proteins)
+
+    RequestConfig(request, paginate={"per_page": 25}).configure(table)
+    RequestConfig(request, paginate={"per_page": 25}).configure(cellTable)
+    RequestConfig(request, paginate={"per_page": 25}).configure(proteinTable)
+    return {'object': DataSetForm(data=model_to_dict(dataset)),
+           'table': table,
+           'cellTable': cellTable,
+           'proteinTable': proteinTable,
+           'facilityId': facility_id,
+           'type':getDatasetType(facility_id)}
+
+
+def get_dataset_result_queryset(dataset_id):
+    # for tastypie integration; to be redone!
+    cell_queryset = cells_for_dataset(dataset_id)
+    show_cells=len(cell_queryset)>0  # TODO pass in show_cells!
+
+    protein_queryset = proteins_for_dataset(dataset_id)
+    show_proteins=len(protein_queryset)>0 # TODO pass in show_proteins!
+
+    return get_dataset_result_queryset1(dataset_id,show_cells,show_proteins)['table']
+
+def get_dataset_result_table(dataset_id, show_cells, show_proteins):
+    return get_dataset_result_queryset1(dataset_id, show_cells, show_proteins)['table']
+
+
+def get_dataset_result_queryset1(dataset_id, show_cells, show_proteins):
+        
     datacolumns = get_dataset_columns(dataset_id)
     # Create a query on the fly that pivots the values from the datapoint table, making one column for each datacolumn type
     # use the datacolumns to make a query on the fly (for the DataSetResultSearchManager), and make a DataSetResultSearchTable on the fly.
     #dataColumnCursor = connection.cursor()
     #dataColumnCursor.execute("SELECT id, name, data_type, precision from db_datacolumn where dataset_id = %s order by id asc", [dataset_id])
     logger.info(str(('dataset columns:', datacolumns)))
-    
-    
+
     # Need to construct something like this:
     # select distinct (datarecord_id), smallmolecule_id, sm.facility_id || '-' || sm.salt_id as facility_id,
     #        (select int_value as col1 from db_datapoint dp1 where dp1.datacolumn_id=2 and dp1.datarecord_id = dp0.datarecord_id) as col1, 
     #        (select int_value as col2 from db_datapoint dp2 where dp2.datarecord_id=dp0.datarecord_id and dp2.datacolumn_id=3) as col2 
     #        from db_datapoint dp0 join db_datarecord dr on(datarecord_id=dr.id) join db_smallmoleculebatch smb on(smb.id=dr.smallmolecule_batch_id) join db_smallmolecule sm on(sm.id=smb.smallmolecule_id) 
     #        where dp0.dataset_id = 1 order by datarecord_id;
-    queryString = "select distinct (datarecord_id), sm.id as smallmolecule_id , 'HMSL' || sm.facility_id || '-' || sm.salt_id || '-' || smb.facility_batch_id as facility_id "
+    
+    queryString = "select distinct (datarecord_id) as datarecord_id, sm.id as smallmolecule_id , 'HMSL' || sm.facility_id || '-' || sm.salt_id || '-' || smb.facility_batch_id as facility_id "
     if(show_cells): queryString += ", cell_id, cell.name as cell_name, cell.facility_id as cell_facility_id " 
     if(show_proteins): queryString += ", protein_id, protein.name as protein_name, protein.lincs_id as protein_lincs_id " 
     i = 0
@@ -327,22 +357,15 @@ def screenDetail(request, facility_id):
         queryString += " join db_protein protein on(protein.id=dr.protein_id) "
         orderedNames.insert(1,'protein_name')
     queryString += " where dp0.dataset_id = " + str(dataset_id) + " order by datarecord_id"
-    orderedNames.append('...')
+    orderedNames.append('...') # is this necessary?
     
-
+    logger.info(str(('orderedNames',orderedNames)))
+    logger.info(str(('names',names)))
     queryset = DataSetResultSearchManager().search(queryString);
     table = DataSetResultTable(queryset, names, orderedNames, show_cells, show_proteins)
-    
-    RequestConfig(request, paginate={"per_page": 25}).configure(table)
-    RequestConfig(request, paginate={"per_page": 25}).configure(cellTable)
-    RequestConfig(request, paginate={"per_page": 25}).configure(proteinTable)
-    return {'object': DataSetForm(data=model_to_dict(dataset)),
-           'table': table,
-           'cellTable': cellTable,
-           'proteinTable': proteinTable,
-           'facilityId': facility_id,
-           'type':getDatasetType(facility_id)}
-    
+
+    return {'queryset':queryset,'table':table} # todo, redo this, once the tastypie integration is figured out
+
 #---------------Supporting classes and functions--------------------------------
 def get_dataset_columns(dataset_id):
     # Create a query on the fly that pivots the values from the datapoint table, making one column for each datacolumn type
@@ -621,7 +644,7 @@ TEMPLATE = '''
             
 class DataSetResultTable(tables.Table):
     id = tables.Column(visible=False)
-    facility_id = tables.LinkColumn('sm_detail', args=[A('smallmolecule_id')]) #TODO: broken! must use facilty_id
+    facility_id = tables.LinkColumn('sm_detail', args=[A('smallmolecule_id')], verbose_name='Facility ID') #TODO: broken! must use facilty_id
     cell_name = tables.LinkColumn('cell_detail',args=[A('cell_facility_id')], visible=False) #TODO: broken! must use facility_id
     protein_name = tables.LinkColumn('protein_detail',args=[A('protein_lincs_id')], visible=False) #TODO: broken! must use facilty_id
     

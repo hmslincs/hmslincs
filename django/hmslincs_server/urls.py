@@ -2,13 +2,14 @@
 from django.conf.urls.defaults import *
 
 from tastypie.api import Api
-from db.api import SmallMoleculeResource,CellResource,DataSetResource
+from db.api import SmallMoleculeResource,CellResource,DataSetResource,DataSetData 
 
 smallmolecule_resource = SmallMoleculeResource()
 v1_api = Api(api_name='v1') 
 v1_api.register(SmallMoleculeResource())
 v1_api.register(CellResource())
 v1_api.register(DataSetResource())
+v1_api.register(DataSetData())
 
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
