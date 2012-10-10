@@ -26,7 +26,7 @@ SignatureData = co.namedtuple('SignatureData',
                               'signature rangetested')
 
 dpi = 72  # 72 dpi produces perfect 1-pixel lines for 1-pt figure lines
-fig_size = (360/dpi, 40/dpi)  # inches
+fig_size = (250/dpi, 20/dpi)  # inches
 radius = 0.2  # radius of the cell line triangle markers
 spine_y_offset = 0.25  # spacing from topmost line to x-axis spine
 colors = ('red', 'yellow', 'magenta', 'blue', 'green', 'cyan')  # cell line marker colors
@@ -63,7 +63,7 @@ def signature_image(target_name, compound, xlimits, target_dir):
         else:
             # explicit log10 scaling
             x = np.log10(value)
-        ax.scatter(x, -0.27, marker='^', s=300, facecolor=colors[ci], edgecolor='black')
+        ax.scatter(x, -0.5, marker='^', s=150, facecolor=colors[ci], edgecolor='black')
         #marker = RegularPolygon([x, -radius], 3, radius=radius,
         #                        facecolor=colors[ci], edgecolor='black')
         #ax.add_patch(marker)
@@ -84,6 +84,7 @@ def signature_image(target_name, compound, xlimits, target_dir):
     for a in fig.axes:
         # hide all spines (the plot borders where the ticks usually sit)
         plt.setp(a.spines.values(), 'visible', False)
+        #plt.setp(a.patch, 'facecolor', 'none', 'edgecolor', 'none')
 
     # render to png
     filename = op.join(target_dir,
@@ -213,5 +214,5 @@ LATEST ={u'AKT': [SignatureData(drug=u'API-2(Tricir)', isclinical=False, isselec
            SignatureData(drug=u'Temsirolimus(Torisel)', isclinical=False, isselective=False, isprimary=True, signature=(9.26e-06, 3.22e-06, 2.69e-08, 5.31e-08, 1.8e-05, 0.000133), rangetested=(3.41e-10, 0.000133))],
  u'pan inibitor': [SignatureData(drug=u'LBH589', isclinical=False, isselective=True, isprimary=True, signature=(4.46e-07, 1.55e-07, 3.5e-08, 5.83e-08, 1.89e-07, 1.58e-07), rangetested=(8.53e-11, 3.33e-05))],
  u'pyrimidine analog': [SignatureData(drug=u'5-FU', isclinical=True, isselective=True, isprimary=True, signature=(1.52e-05, 0.000109, 0.000177, 0.00017, 7.68e-05, 3e-05), rangetested=(4.92e-08, 0.0192))],
- u'pyrimidine animetabolite': [SignatureData(drug=u'Gemcitabine', isclinical=True, isselective=True, isprimary=True, signature=(6.69e-08, 1.75e-07, 1.31e-05, 1.54e-05, 2.3e-08, 3.55e-08), rangetested=None)],
+ #u'pyrimidine animetabolite': [SignatureData(drug=u'Gemcitabine', isclinical=True, isselective=True, isprimary=True, signature=(6.69e-08, 1.75e-07, 1.31e-05, 1.54e-05, 2.3e-08, 3.55e-08), rangetested=None)],
  u'thymidylate synthase': [SignatureData(drug=u'5-FU', isclinical=True, isselective=True, isprimary=True, signature=(1.52e-05, 0.000109, 0.000177, 0.00017, 7.68e-05, 3e-05), rangetested=(4.92e-08, 0.0192))]}
