@@ -14,6 +14,8 @@ target_name_fixups = {
     u'CDC25S': ['Cdc25'],
     u'CDK': ['CDK1'],
     u'CDK1/CCNB': ['CDK1'],
+    u'EGFR/ERBB2': ['EGFR', 'ERBB2'],
+    u'FLT-3': ['FLT3'],
     u'Hsp90': ['HSP90'],
     u'IKK2 (IkB kinase 2)': ['IKK'],
     u'JNK': ['JNK2', 'JNK3'],
