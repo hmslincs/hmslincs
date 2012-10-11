@@ -35,6 +35,7 @@ def main(path):
     sheet = iu.readtable([path, sheet_name, 1]) # Note, skipping the header row by default
 
     properties = ('model_field','required','default','converter')
+    date_parser = lambda x : util.convertdata(x,date)
     column_definitions = { 
                           'facility_id': ('facility_id',True,None, lambda x: util.convertdata(x,int)),
                           'salt_id': ('salt_id',True,None, lambda x: util.convertdata(x,int)),
@@ -46,7 +47,10 @@ def main(path):
                           'purity':'purity',
                           'purity_method':'purity_method',
                           'aqueous_solubility':'aqueous_solubility',
-                          'aqueous_solubility_unit':'aqueous_solubility_unit'    
+                          'aqueous_solubility_unit':'aqueous_solubility_unit',    
+                          'Date Data Received':('date_data_received',False,None,date_parser),
+                          'Date Loaded': ('date_loaded',False,None,date_parser),
+                          'Date Publicly Available': ('date_publicly_available',False,None,date_parser),
                           }
     # convert the labels to fleshed out dict's, with strategies for optional, default and converter
     column_definitions = util.fill_in_column_definitions(properties,column_definitions)

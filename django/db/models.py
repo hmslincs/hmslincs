@@ -88,6 +88,9 @@ class SmallMoleculeBatch(models.Model):
     smiles                  = _TEXT(**_NULLOKSTR)
     molecular_mass          = _CHAR(max_length=35, **_NULLOKSTR)
     molecular_formula       = _TEXT(**_NULLOKSTR)
+    date_data_received      = models.DateField(null=True,blank=True)
+    date_loaded             = models.DateField(null=True,blank=True)
+    date_publicly_available = models.DateField(null=True,blank=True)
 
     def __unicode__(self):
         return unicode(str((self.smallmolecule,self.facility_batch_id)))
@@ -154,6 +157,9 @@ class Cell(models.Model):
                                                                                # .R280T (Substitution - Missense), \012CDS m
                                                                                # utation: c.839G>C (Substitution)
     organism_gender                = _CHAR(max_length=35, **_NULLOKSTR)     # male
+    date_data_received      = models.DateField(null=True,blank=True)
+    date_loaded             = models.DateField(null=True,blank=True)
+    date_publicly_available = models.DateField(null=True,blank=True)
     is_restricted                     = models.BooleanField()
 
     # ----------------------------------------------------------------------------------------------------------------------
@@ -180,6 +186,9 @@ class Protein(models.Model):
     protein_type        = _CHAR(max_length=35, **_NULLOKSTR) #TODO: controlled vocabulary
     source_organism     = _CHAR(max_length=35, **_NULLOKSTR) #TODO: controlled vocabulary
     reference           = _TEXT(**_NULLOKSTR)
+    date_data_received      = models.DateField(null=True,blank=True)
+    date_loaded             = models.DateField(null=True,blank=True)
+    date_publicly_available = models.DateField(null=True,blank=True)
     is_restricted       = models.BooleanField()
 
     def __unicode__(self):
