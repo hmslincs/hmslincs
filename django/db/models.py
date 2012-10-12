@@ -25,21 +25,31 @@ _NULLOKSTR  = dict(null=True, blank=False)
 # _NULLOKSTR  = dict(null=False, blank=True)
 
 # proposed class to capture all of the DWG information - and to map fields to these database tables
-class LincsFieldInformation(models.Model):
+class FieldInformation(models.Model):
     table                   = _CHAR(max_length=35, **_NOTNULLSTR)
     field                   = _CHAR(max_length=35, **_NOTNULLSTR)
-    unique_id               = _CHAR(max_length=35, **_NOTNULLSTR)
-    lincs_field_name        = _CHAR(max_length=35, **_NOTNULLSTR)
+    is_lincs_field          = models.BooleanField(default=False, null=False) # Note: default=False are not set at the db level, only at the Db-api level
+    use_for_search_index    = models.BooleanField(default=False, null=False) # Note: default=False are not set at the db level, only at the Db-api level
+    unique_id               = _CHAR(max_length=35,**_NULLOKSTR)
+    field_name              = _TEXT(**_NULLOKSTR) # name for display
     related_to              = _TEXT(**_NULLOKSTR)
     description             = _TEXT(**_NULLOKSTR)
     importance              = _TEXT(**_NULLOKSTR)
     comments                = _TEXT(**_NULLOKSTR)
-
+    ontologies              = _TEXT(**_NULLOKSTR)
+    ontology_reference      = _TEXT(**_NULLOKSTR)
+    additional_notes        = _TEXT(**_NULLOKSTR)
+    class Meta:
+        unique_together = ('table', 'field')    
+    def __unicode__(self):
+        return unicode(str((self.table, self.field, self.unique_id, self.field_name)))
+        
 class SmallMolecule(models.Model):
     facility_id             = _INTEGER(null=False) # center compound id
     salt_id                 = _INTEGER(null=True)
     lincs_id                = _INTEGER(null=True)
-    name                    = _TEXT(**_NULLOKSTR) # all names in one, including alternate names
+    name                    = _TEXT(**_NOTNULLSTR) 
+    alternative_names       = _TEXT(**_NULLOKSTR) 
     #facility_batch_id       = _INTEGER(null=True)
     molfile                 = _TEXT(**_NULLOKSTR)
     pubchem_cid             = _INTEGER(null=True)
@@ -48,6 +58,7 @@ class SmallMolecule(models.Model):
     inchi                   = _TEXT(**_NULLOKSTR)
     inchi_key               = _TEXT(**_NULLOKSTR)
     smiles                  = _TEXT(**_NULLOKSTR)
+    software                = _TEXT(**_NULLOKSTR)
     # Following fields not listed for the canonical information in the DWG, but per HMS policy will be - sde4
     molecular_mass          = _CHAR(max_length=35, **_NULLOKSTR)
     molecular_formula       = _TEXT(**_NULLOKSTR)
@@ -82,15 +93,15 @@ class SmallMoleculeBatch(models.Model):
                                                max_length=2,
                                       choices=CONCENTRATION_WEIGHT_VOLUME_CHOICES,
                                       default=CONCENTRATION_MGML)
+    date_data_received      = models.DateField(null=True,blank=True)
+    date_loaded             = models.DateField(null=True,blank=True)
+    date_publicly_available = models.DateField(null=True,blank=True)
     ## following fields probably not used with batch, per HMS policy - sde4
     inchi                   = _TEXT(**_NULLOKSTR)
     inchi_key               = _TEXT(**_NULLOKSTR)
     smiles                  = _TEXT(**_NULLOKSTR)
     molecular_mass          = _CHAR(max_length=35, **_NULLOKSTR)
     molecular_formula       = _TEXT(**_NULLOKSTR)
-    date_data_received      = models.DateField(null=True,blank=True)
-    date_loaded             = models.DateField(null=True,blank=True)
-    date_publicly_available = models.DateField(null=True,blank=True)
 
     def __unicode__(self):
         return unicode(str((self.smallmolecule,self.facility_batch_id)))
@@ -277,7 +288,7 @@ class DataPoint(models.Model):
     int_value               = _INTEGER(null=True)
     float_value             = models.FloatField(null=True)
     text_value              = _TEXT(**_NULLOKSTR)
-    omero_well_id           = _CHAR(max_length=35, **_NULLOKSTR) # this is the plate:well id for lookup on the omero system (NOTE:may need multiple of these)
+    #omero_well_id           = _CHAR(max_length=35, **_NULLOKSTR) # this is the plate:well id for lookup on the omero system (NOTE:may need multiple of these)
     
     def __unicode__(self):
         return unicode(str((self.datarecord,self.datacolumn,self.int_value,self.float_value,self.text_value)))
