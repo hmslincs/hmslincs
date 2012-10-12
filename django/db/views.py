@@ -609,7 +609,7 @@ class SiteSearchManager(models.Manager):
             " ts_rank_cd(search_vector, query1, 32) AS rank, 'cell_detail' as type FROM db_cell, to_tsquery(%s) as query1 WHERE search_vector @@ query1 " +
             " UNION " +
             " SELECT id, " + facility_salt_id + " as facility_id , ts_headline(" + SmallMoleculeTable.snippet_def + """, query2, 'MaxFragments=10, MinWords=1, MaxWords=20, FragmentDelimiter=" | "') as snippet, """ +
-            " ts_rank_cd(search_vector, query2, 32) AS rank, 'sm_detail' as type FROM db_smallmolecule, to_tsquery(%s) as query2 WHERE search_vector @@ query2 " +
+            " ts_rank_cd(search_vector, query2, 32) AS rank, 'sm_detail' as type FROM db_smallmolecule sm, to_tsquery(%s) as query2 WHERE search_vector @@ query2 " +
             " UNION " +
             " SELECT id, facility_id::text, ts_headline(" + DataSetTable.snippet_def + """, query3, 'MaxFragments=10, MinWords=1, MaxWords=20, FragmentDelimiter=" | "') as snippet, """ +
             " ts_rank_cd(search_vector, query3, 32) AS rank, 'screen_detail' as type FROM db_dataset, to_tsquery(%s) as query3 WHERE search_vector @@ query3 " +
