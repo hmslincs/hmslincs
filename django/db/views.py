@@ -23,6 +23,9 @@ from db.models import SmallMolecule, SmallMoleculeBatch, Cell, Protein, DataSet,
 
 logger = logging.getLogger(__name__)
 
+facility_salt_id = " sm.facility_id || '-' || sm.salt_id " # Note: because we have a composite key for determining unique sm structures, we need to do this
+
+
 def get_integer(stringValue):
     try:
         return int(float(stringValue))
@@ -143,9 +146,13 @@ def smallMoleculeIndex(request):
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
     return render(request, 'db/listIndex.html', {'table': table, 'search':search })
  
-def smallMoleculeDetail(request, sm_id):
+def smallMoleculeDetail(request, facility_salt_id):
     try:
-        sm = SmallMolecule.objects.get(pk=sm_id) # TODO: create a sm detail link from facilty-salt-batch id
+        temp = facility_salt_id.split('-')
+        logger.info(str(('find sm detail for', temp)))
+        facility_id = temp[0]
+        salt_id = temp[1]
+        sm = SmallMolecule.objects.get(facility_id=facility_id, salt_id=salt_id) # TODO: create a sm detail link from facility-salt
         if(sm.is_restricted and not request.user.is_authenticated()):
             return HttpResponse('Log in required.', status=401)
     except SmallMolecule.DoesNotExist:
@@ -296,6 +303,10 @@ def screenDetail(request, facility_id):
 
 
 def get_dataset_result_table(dataset_id, is_authenticated=False, **kwargs):
+    """
+    generate a django tables2 table
+    TODO: move the logic out of the view: so that it can be shared with the tastypie api (or make this rely on tastypie)
+    """
     if(not 'show_cells' in kwargs):
         cell_queryset = cells_for_dataset(dataset_id)
         show_cells=len(cell_queryset)>0  # TODO pass in show_cells!
@@ -329,7 +340,10 @@ def get_dataset_result_table(dataset_id, is_authenticated=False, **kwargs):
     #        from db_datapoint dp0 join db_datarecord dr on(datarecord_id=dr.id) join db_smallmoleculebatch smb on(smb.id=dr.smallmolecule_batch_id) join db_smallmolecule sm on(sm.id=smb.smallmolecule_id) 
     #        where dp0.dataset_id = 1 order by datarecord_id;
     
-    queryString = "select distinct (datarecord_id) as datarecord_id, sm.id as smallmolecule_id , 'HMSL' || sm.facility_id || '-' || sm.salt_id || '-' || smb.facility_batch_id as facility_id "
+    queryString = "select distinct (datarecord_id) as datarecord_id, sm.id as smallmolecule_id ,"
+    queryString += " 'HMSL' || sm.facility_id || '-' || sm.salt_id || '-' || smb.facility_batch_id as facility_id, "
+    queryString += facility_salt_id +' as facility_salt_id' # Note: because we have a composite key for determining unique sm structures, we need to do this
+
     if(show_cells): queryString += ", cell_id, cell.name as cell_name, cell.facility_id as cell_facility_id " 
     if(show_proteins): queryString += ", protein_id, protein.name as protein_name, protein.lincs_id as protein_lincs_id " 
     i = 0
@@ -425,7 +439,7 @@ class SmallMoleculeSearchManager(models.Manager):
     def search(self, query_string='', is_authenticated=False, library_id=None):
         query_string = query_string.strip()
         cursor = connection.cursor()
-        sql = ( "select l.short_name as library_name, l.id as library_id, sm.id as sm_id, sm.*, smb.id as smb_id, smb.* " +
+        sql = ( "select l.short_name as library_name, l.id as library_id," + facility_salt_id + " as facility_salt_id , sm.*, smb.id as smb_id, smb.* " +
             " from db_smallmolecule sm " +
             " left join db_smallmoleculebatch smb on(smb.smallmolecule_id=sm.id)" 
             " left join db_librarymapping lm on(smb.id=lm.smallmolecule_batch_id) " + 
@@ -463,7 +477,7 @@ class SmallMoleculeSearchManager(models.Manager):
         return v
     
 class SmallMoleculeTable(tables.Table):
-    facility_id = tables.LinkColumn("sm_detail", args=[A('sm_id')]) # TODO: create a molecule link for facility/salt/batch ids
+    facility_id = tables.LinkColumn("sm_detail", args=[A('facility_salt_id')]) # TODO: create a molecule link for facility/salt/batch ids
     rank = tables.Column()
     snippet = tables.Column()
     library_name = tables.LinkColumn('library_detail', args=[A('library_id')])
@@ -591,16 +605,16 @@ class SiteSearchManager(models.Manager):
         # ts_rank_cd(search_vector, query, 32): Normalization option 32 (rank/(rank+1)) can be applied to scale all 
         # ranks into the range zero to one, but of course this is just a cosmetic change; it will not affect the ordering of the search results.
         cursor.execute(
-            "SELECT id, facility_id, ts_headline(" + CellTable.snippet_def + """, query1, 'MaxFragments=10, MinWords=1, MaxWords=20, FragmentDelimiter=" | "') as snippet, """ +
+            "SELECT id, facility_id::text, ts_headline(" + CellTable.snippet_def + """, query1, 'MaxFragments=10, MinWords=1, MaxWords=20, FragmentDelimiter=" | "') as snippet, """ +
             " ts_rank_cd(search_vector, query1, 32) AS rank, 'cell_detail' as type FROM db_cell, to_tsquery(%s) as query1 WHERE search_vector @@ query1 " +
             " UNION " +
-            " SELECT id, facility_id, ts_headline(" + SmallMoleculeTable.snippet_def + """, query2, 'MaxFragments=10, MinWords=1, MaxWords=20, FragmentDelimiter=" | "') as snippet, """ +
+            " SELECT id, " + facility_salt_id + " as facility_id , ts_headline(" + SmallMoleculeTable.snippet_def + """, query2, 'MaxFragments=10, MinWords=1, MaxWords=20, FragmentDelimiter=" | "') as snippet, """ +
             " ts_rank_cd(search_vector, query2, 32) AS rank, 'sm_detail' as type FROM db_smallmolecule, to_tsquery(%s) as query2 WHERE search_vector @@ query2 " +
             " UNION " +
-            " SELECT id, facility_id, ts_headline(" + DataSetTable.snippet_def + """, query3, 'MaxFragments=10, MinWords=1, MaxWords=20, FragmentDelimiter=" | "') as snippet, """ +
+            " SELECT id, facility_id::text, ts_headline(" + DataSetTable.snippet_def + """, query3, 'MaxFragments=10, MinWords=1, MaxWords=20, FragmentDelimiter=" | "') as snippet, """ +
             " ts_rank_cd(search_vector, query3, 32) AS rank, 'screen_detail' as type FROM db_dataset, to_tsquery(%s) as query3 WHERE search_vector @@ query3 " +
             " UNION " +
-            " SELECT id, lincs_id as facility_id, ts_headline(" + ProteinTable.snippet_def + """, query4, 'MaxFragments=10, MinWords=1, MaxWords=20, FragmentDelimiter=" | "') as snippet, """ +
+            " SELECT id, lincs_id::text as facility_id, ts_headline(" + ProteinTable.snippet_def + """, query4, 'MaxFragments=10, MinWords=1, MaxWords=20, FragmentDelimiter=" | "') as snippet, """ +
             " ts_rank_cd(search_vector, query4, 32) AS rank, 'protein_detail' as type FROM db_protein, to_tsquery(%s) as query4 WHERE search_vector @@ query4 " +
             " ORDER by rank DESC;", [queryString + ":*", queryString + ":*", queryString + ":*", queryString + ":*"])
         return dictfetchall(cursor)
@@ -655,7 +669,7 @@ TEMPLATE = '''
             
 class DataSetResultTable(tables.Table):
     id = tables.Column(visible=False)
-    facility_id = tables.LinkColumn('sm_detail', args=[A('smallmolecule_id')], verbose_name='Facility ID') #TODO: broken! must use facilty_id
+    facility_id = tables.LinkColumn('sm_detail', args=[A('facility_salt_id')], verbose_name='Facility ID') #TODO: broken! must use facilty_id
     cell_name = tables.LinkColumn('cell_detail',args=[A('cell_facility_id')], visible=False, verbose_name='Cell Name') #TODO: broken! must use facility_id
     protein_name = tables.LinkColumn('protein_detail',args=[A('protein_lincs_id')], visible=False, verbose_name='Protein Name') #TODO: broken! must use facilty_id
     
