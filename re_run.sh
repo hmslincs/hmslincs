@@ -36,7 +36,7 @@ then
   VIRTUALENV=/www/dev.lincs.hms.harvard.edu/support/virtualenv/bin/activate
 elif [[ "$SERVER" == "DEVTEST" ]] || [[ "$SERVER" == "devtest" ]] 
 then
-  DATADIR=${DIR}/data/dev2
+  # not needed for test data DATADIR=${DIR}/data/dev2
   DB=devlincs
   DB_USER=devlincsweb
   PGHOST=dev.pgsql.orchestra
@@ -85,6 +85,17 @@ source $VIRTUALENV
 django/manage.py syncdb
 check_errs $? "syncdb fails"
 
+# ============ import the field definition information =========================
+
+echo 'import dwg field definition tables ...'
+python src/import_fieldinformation.py -f sampledata/LINCS_DWG_CellLine_MetaData_Release_Apr-11-2012.xlsx
+check_errs $? "import fieldinformation fails"
+python src/import_fieldinformation.py -f sampledata/LINCS_DWG_SmallMolecule_MetaData_Release_May-04-2012.xlsx
+check_errs $? "import fieldinformation fails"
+python src/import_fieldinformation.py -f sampledata/LINCS_DWG_ProteinReagents_MetaData_Release_Jul-31-2012.xlsx
+check_errs $? "import fieldinformation fails"
+python src/import_fieldinformation.py -f sampledata/Non_DWG_fieldinformation.xlsx 
+check_errs $? "import fieldinformation fails"
 
 if [[ "$SERVER" == "TEST" ]] || [[ "$SERVER" == "test" ]] || [[ "$SERVER" == "DEVTEST" ]] || [[ "$SERVER" == "devtest" ]] 
 then
