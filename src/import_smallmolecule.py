@@ -52,7 +52,7 @@ def main(path):
                'software':'software',
                # 'concentration':'concentration',
                #'well_type':('well_type',False,'experimental'),
-               'is_restricted':('is_restricted',False,False)}
+               'is_restricted':('is_restricted',False,False,util.bool_converter)}
     # convert the labels to fleshed out dict's, with strategies for optional, default and converter
     labels = util.fill_in_column_definitions(properties,labels)
     

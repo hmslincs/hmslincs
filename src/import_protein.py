@@ -34,7 +34,6 @@ def main(path):
     sheet = iu.readtable([path, sheet_name, 1]) # Note, skipping the header row by default
 
     properties = ('model_field','required','default','converter')
-    date_parser = lambda x : util.convertdata(x,date)
     column_definitions = { 'PP_Name':('name',True), 
               'PP_LINCS_ID':('lincs_id',True,None,lambda x: util.convertdata(x[x.index('HMSL')+4:]),int), 
               'PP_UniProt_ID':'uniprot_id', 
@@ -54,9 +53,9 @@ def main(path):
               'PP_Protein_Type':'protein_type', 
               'PP_Source_Organism':'source_organism', 
               'PP_Reference':'reference',
-              'Date Data Received':('date_data_received',False,None,date_parser),
-              'Date Loaded': ('date_loaded',False,None,date_parser),
-              'Date Publicly Available': ('date_publicly_available',False,None,date_parser),
+              'Date Data Received':('date_data_received',False,None,util.date_converter),
+              'Date Loaded': ('date_loaded',False,None,util.date_converter),
+              'Date Publicly Available': ('date_publicly_available',False,None,util.date_converter),
               'Is Restricted':('is_restricted',False,False)}
     # convert the labels to fleshed out dict's, with strategies for optional, default and converter
     column_definitions = util.fill_in_column_definitions(properties,column_definitions)

@@ -206,9 +206,9 @@ LOGGING = {
         'db': {
             'handlers': ['console'],
             'propagate': True,
-            'level': 'DEBUG',
+            'level': 'INFO',
         },
-        '': {  # if you want to see how django makes sql, use this one
+        'util': {  # if you want to see how django makes sql, use this one
             'handlers': ['console'],
             'propagate': True,
             'level': 'WARN',

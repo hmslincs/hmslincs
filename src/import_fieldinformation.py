@@ -50,14 +50,16 @@ def main(path):
     #sheet = book.sheets()[0] #book.sheets() returns a list of sheet objects... alternatively...
     #sheet = book.sheet_by_name("qqqq") #we can pull by name
     worksheet = book.sheet_by_index(0) #or by the index it has in excel's sheet collection
-
     properties = ('model_field','required','default','converter')
     column_definitions = {'table':'table',
                           'field':'field',
-                          'is_lincs_field':('is_lincs_field',True),
-                          'use_for_search_index':'use_for_search_index',
-                          'Unique ID':'unique_id',
-                          'LINCS Field Name':'field_name',
+                          'alias':'alias',
+                          'queryset':'queryset',
+                          'is_lincs_field':('is_lincs_field',True,False,util.bool_converter),
+                          'use_for_search_index':('use_for_search_index',True,False,util.bool_converter),
+                          'Data Working Group version':'dwg_version',
+                          'Unique ID':('unique_id',True),
+                          'Field Name':('field_name',True),
                           'Related to':'related_to',
                           'Description':'description',
                           'Importance (1: essential; 2: desirable / recommended; 3: optional)':'importance',
@@ -73,7 +75,7 @@ def main(path):
     num_rows = worksheet.nrows - 1
     num_cells = worksheet.ncols - 1
 
-    curr_row = 1 # note zero indexed
+    curr_row = 0 # note zero indexed
     row = worksheet.row(curr_row)
     labels = []
     i = -1
@@ -85,6 +87,9 @@ def main(path):
     
     # create a dict mapping the column ordinal to the proper column definition dict
     cols = util.find_columns(column_definitions, labels, all_sheet_columns_required=False)
+    
+    logger.info('delete current table');
+    FieldInformation.objects.all().delete()
     
     rows = 0
     while curr_row < num_rows:
@@ -112,7 +117,9 @@ def main(path):
             # Todo, refactor to a method
             logger.debug(str(('raw value', value)))
             if(converter != None):
+                logger.debug(str(('using converter',converter,value)))
                 value = converter(value)
+                logger.debug(str(('converted',value)))
             if(value == None ):
                 if( default != None ):
                     value = default
@@ -123,22 +130,23 @@ def main(path):
 
         try:
             logger.debug(str(('initializer: ', initializer)))
-            if(initializer['table'] == None or initializer['field'] == None):
+            if((initializer['table'] == None and initializer['queryset'] == None ) or initializer['field'] == None):
                 logger.warn(str(('Note: table entry has no table/field definition (will be skipped)', initializer['unique_id'],initializer['field_name'], 'current row:', curr_row)))
                 continue;
             lfi = FieldInformation(**initializer)
             # check if the table/field exists
-            table = models.get_model(APPNAME, lfi.table)
-            if( table != None):
-                if(lfi.field not in map(lambda x: x.name,table._meta.fields) ):
-                    raise Exception(str(('unknown field: ', lfi.field)))
-            else:
-                raise Exception(str(('unknown table', lfi.table )))
+            if(lfi.table != None):
+                table = models.get_model(APPNAME, lfi.table)
+                if( table != None):
+                    if(lfi.field not in map(lambda x: x.name,table._meta.fields) ):
+                        raise Exception(str(('unknown field: ', lfi.field)))
+                else:
+                    raise Exception(str(('unknown table', lfi.table )))
             lfi.save()
             logger.info(str(('fieldInformation created:', lfi)))
             rows += 1
         except Exception, e:
-            logger.error(str(( "Invalid fieldInformation, initializer so far: ", initializer, 'current row:', curr_row)))
+            logger.error(str(( "Invalid fieldInformation, initializer so far: ", initializer, 'current row:', curr_row,e)))
             raise e
         
     print "fieldInformation read: ", rows

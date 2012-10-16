@@ -1,5 +1,6 @@
 #from django.template import Context, loader
 #from django.http import HttpResponse
+from django.core.exceptions import ObjectDoesNotExist,MultipleObjectsReturned
 from django.shortcuts import render_to_response
 from django.shortcuts import render
 from django.db import models
@@ -12,19 +13,22 @@ from django.http import HttpResponse
 
 import csv
 import xlwt
-import logging
 #from django.template import RequestContext
 import django_tables2 as tables
 from django_tables2 import RequestConfig
 from django_tables2.utils import A  # alias for Accessor
 
-from db.models import SmallMolecule, SmallMoleculeBatch, Cell, Protein, DataSet, Library
+from db.models import SmallMolecule, SmallMoleculeBatch, Cell, Protein, DataSet, Library, FieldInformation
 # --------------- View Functions -----------------------------------------------
 
+import logging
 logger = logging.getLogger(__name__)
-
+APPNAME = 'db',
 facility_salt_id = " sm.facility_id || '-' || sm.salt_id " # Note: because we have a composite key for determining unique sm structures, we need to do this
 
+def dump(obj):
+    for attr in dir(obj):
+        print "%s = %s" % (attr, getattr(obj, attr))
 
 def get_integer(stringValue):
     try:
@@ -177,7 +181,7 @@ def libraryDetail(request, short_name):
         if(library.is_restricted and not request.user.is_authenticated()):
             return HttpResponse('Unauthorized', status=401)
         queryset = SmallMoleculeSearchManager().search(library_id=library.id);
-        table = SmallMoleculeTable(queryset)
+        table = SmallMoleculeTable(queryset, show_plate_well=True)
     except Library.DoesNotExist:
         raise Http404
     return render(request,'db/libraryDetail.html', {'object': LibraryForm(data=model_to_dict(library)),
@@ -331,7 +335,7 @@ def get_dataset_result_table(dataset_id, is_authenticated=False, **kwargs):
     # use the datacolumns to make a query on the fly (for the DataSetResultSearchManager), and make a DataSetResultSearchTable on the fly.
     #dataColumnCursor = connection.cursor()
     #dataColumnCursor.execute("SELECT id, name, data_type, precision from db_datacolumn where dataset_id = %s order by id asc", [dataset_id])
-    logger.info(str(('dataset columns:', datacolumns)))
+    logger.debug(str(('dataset columns:', datacolumns)))
 
     # Need to construct something like this:
     # select distinct (datarecord_id), smallmolecule_id, sm.facility_id || '-' || sm.salt_id as facility_id,
@@ -388,7 +392,7 @@ def get_dataset_result_table(dataset_id, is_authenticated=False, **kwargs):
     logger.info(str(('names',names)))
     queryset = DataSetResultSearchManager().search(queryString);
     table = DataSetResultTable(queryset, names, orderedNames, show_cells, show_proteins)
-
+    logger.info(str(('table',table)))
     return table # todo, redo this, once the tastypie integration is figured out
 
 #---------------Supporting classes and functions--------------------------------
@@ -429,18 +433,15 @@ class TypeColumn(tables.Column):
         elif value == "protein_detail": return "Protein"
         else: raise Exception("Unknown type: "+value)
         
-
-def get_text_fields(model):
-    # Only text or char fields considered, must add numeric fields manually
-    return filter(lambda x: isinstance(x, models.CharField) or isinstance(x, models.TextField), tuple(model._meta.fields))
-
-class SmallMoleculeSearchManager(models.Manager):
+class SmallMoleculeSearchManager(models.Model):
     
     def search(self, query_string='', is_authenticated=False, library_id=None):
         query_string = query_string.strip()
         cursor = connection.cursor()
-        sql = ( "select l.short_name as library_name, l.id as library_id," + facility_salt_id + " as facility_salt_id , sm.*, smb.id as smb_id, smb.* " +
-            " from db_smallmolecule sm " +
+        
+        sql = "select l.short_name, l.id as library_id," + facility_salt_id + " as facility_salt_id , sm.*, smb.id as smb_id, smb.* " # TODO: remove the _id columns, not needed
+        sql += ", lm.plate, lm.well "
+        sql += (" from db_smallmolecule sm " +
             " left join db_smallmoleculebatch smb on(smb.smallmolecule_id=sm.id)" 
             " left join db_librarymapping lm on(smb.id=lm.smallmolecule_batch_id) " + 
             " left join db_library l on(lm.library_id=l.id) ")
@@ -466,7 +467,10 @@ class SmallMoleculeSearchManager(models.Manager):
             where += 'not sm.is_restricted' # TODO: NOTE, not including: ' and not l.is_restricted'; library restriction will only apply to viewing the library explicitly (the meta data, and selection of compounds)
             
         sql += where
-        sql += " order by sm.facility_id, sm.salt_id, smb.facility_batch_id "
+        sql += " order by "
+        if(library_id != None):
+            sql += "plate, well, "
+        sql += " sm.facility_id, sm.salt_id, smb.facility_batch_id "
         
         # TODO: the way we are separating query_string out here is a kludge
         if(query_string != ''):
@@ -476,11 +480,13 @@ class SmallMoleculeSearchManager(models.Manager):
         v = dictfetchall(cursor)
         return v
     
+
+
 class SmallMoleculeTable(tables.Table):
     facility_id = tables.LinkColumn("sm_detail", args=[A('facility_salt_id')]) # TODO: create a molecule link for facility/salt/batch ids
     rank = tables.Column()
     snippet = tables.Column()
-    library_name = tables.LinkColumn('library_detail', args=[A('library_id')])
+    short_name = tables.LinkColumn('library_detail', args=[A('short_name')])
     
     facility_batch_id = tables.Column()
     
@@ -488,21 +494,45 @@ class SmallMoleculeTable(tables.Table):
     provider_catalog_id = tables.Column()
     provider_sample_id = tables.Column()
     
+    well = tables.Column(visible=False)
+    plate = tables.Column(visible=False)
+    
     # TODO:
     # chemical_synthesis_reference = tables.Column()
     # purity = tables.Column()
     # purity_method = tables.Column()
     
     
-    snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce("+x.name+",'') ", get_text_fields(SmallMolecule))))
+    snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce("+x.field+",'') ", FieldInformation.manager.get_search_fields(SmallMolecule))))
     
     class Meta:
         model = SmallMolecule #[SmallMolecule, SmallMoleculeBatch]
         orderable = True
         attrs = {'class': 'paleblue'}
-        sequence = ('facility_id', 'salt_id', 'facility_batch_id', 'name','library_name','...','smiles','inchi')
+        sequence = ('facility_id', 'salt_id', 'facility_batch_id', 'name','short_name','...','smiles','inchi')
         exclude = ('id', 'smallmolecule_id','smallmolecule_batch_id','molfile','rank','snippet','is_restricted','lincs_id') 
-
+        
+    def __init__(self, table, show_plate_well=False,*args, **kwargs):
+        super(SmallMoleculeTable, self).__init__(table)
+        logger.info(str(('sequence', self.sequence)))
+        if(show_plate_well):
+            self.base_columns['plate'].visible = True
+            self.base_columns['well'].visible = True
+            self.sequence.remove('well')
+            self.sequence.remove('plate')
+            self.sequence.insert(0,'well')
+            self.sequence.insert(0,'plate')
+            
+        # Field information section
+        for fieldname,column in self.base_columns.iteritems():
+            try:
+                fi = FieldInformation.manager.get_column_fieldinformation_by_priority(fieldname,['smallmolecule','smallmoleculebatch',''])
+                column.attrs['th']={'title':fi.get_column_detail()}
+                column.verbose_name = fi.get_verbose_name()
+            except (ObjectDoesNotExist) as e:
+                logger.warn(str(('no fieldinformation found for field:', fieldname)))
+                column.attrs['th']={'title': fieldname}
+            
 class SmallMoleculeForm(ModelForm):
     class Meta:
         model = SmallMolecule           
@@ -523,14 +553,26 @@ class CellTable(tables.Table):
 #                   "coalesce(cell_type_detail,'') || ' ' || coalesce(disease,'') || ' ' || coalesce(disease_detail,'') || ' ' ||  " +
 #                   "coalesce(growth_properties,'') || ' ' || coalesce(genetic_modification,'') || ' ' || coalesce(related_projects,'') || ' ' || " + 
 #                   "coalesce(recommended_culture_conditions)")
-    snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce("+x.name+",'') ", get_text_fields(Cell))))
+    snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce("+x.field+",'') ", FieldInformation.manager.get_search_fields(Cell))))
     class Meta:
         model = Cell
         orderable = True
         attrs = {'class': 'paleblue'}
         sequence = ('facility_id', '...')
         exclude = ('id','recommended_culture_conditions', 'verification_reference_profile', 'mutations_explicit', 'mutations_reference')
-        
+    def __init__(self, table):
+        super(CellTable, self).__init__(table)
+            
+        # Field information section
+        for fieldname,column in self.base_columns.iteritems():
+            try:
+                fi = FieldInformation.manager.get_column_fieldinformation_by_priority(fieldname,['cell',''])
+                column.attrs['th']={'title':fi.get_column_detail()}
+                column.verbose_name = fi.get_verbose_name()
+            except (ObjectDoesNotExist) as e:
+                logger.warn(str(('no fieldinformation found for field:', fieldname)))
+                column.attrs['th']={'title': fieldname}
+                        
 class CellForm(ModelForm):
     class Meta:
         model = Cell  
@@ -539,14 +581,28 @@ class ProteinTable(tables.Table):
     lincs_id = tables.LinkColumn("protein_detail", args=[A('lincs_id')])
     rank = tables.Column()
     snippet = SnippetColumn()
-    snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce("+x.name+",'') ", get_text_fields(Protein))))
+    snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce("+x.field+",'') ", FieldInformation.manager.get_search_fields(Protein))))
     class Meta:
         model = Protein
         orderable = True
         attrs = {'class': 'paleblue'}
         sequence = ('lincs_id', '...')
         exclude = ('id')
-        
+    
+    def __init__(self, table):
+        super(ProteinTable, self).__init__(table)
+            
+        # Field information section
+        for fieldname,column in self.base_columns.iteritems():
+            try:
+                fi = FieldInformation.manager.get_column_fieldinformation_by_priority(fieldname,['protein',''])
+                column.attrs['th']={'title':fi.get_column_detail()}
+                column.verbose_name = fi.get_verbose_name()
+            except (ObjectDoesNotExist) as e:
+                logger.warn(str(('no fieldinformation found for field:', fieldname)))
+                column.attrs['th']={'title': fieldname}     
+                
+                        
 class ProteinForm(ModelForm):
     class Meta:
         model = Protein        
@@ -584,13 +640,24 @@ class LibraryTable(tables.Table):
     rank = tables.Column()
     snippet = SnippetColumn()
     
-    snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce("+x.name+",'') ", get_text_fields(Library))))
+    snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce("+x.field+",'') ", FieldInformation.manager.get_search_fields(Library))))
     class Meta:
         orderable = True
         model = Library
         attrs = {'class': 'paleblue'}
         exclude = {'rank','snippet'}
-
+    def __init__(self, table):
+        super(LibraryTable, self).__init__(table)
+            
+        # Field information section
+        for fieldname,column in self.base_columns.iteritems():
+            try:
+                fi = FieldInformation.manager.get_column_fieldinformation_by_priority(fieldname,['library',''])
+                column.attrs['th']={'title':fi.get_column_detail()}
+                column.verbose_name = fi.get_verbose_name()
+            except (ObjectDoesNotExist) as e:
+                logger.warn(str(('no fieldinformation found for field:', fieldname)))
+                column.attrs['th']={'title': fieldname}     
     
 class LibraryForm(ModelForm):
     class Meta:
@@ -640,7 +707,7 @@ class DataSetTable(tables.Table):
     snippet = SnippetColumn()
 #    snippet_def = ("coalesce(facility_id,'') || ' ' || coalesce(title,'') || ' ' || coalesce(summary,'') || ' ' || coalesce(lead_screener_firstname,'') || ' ' || coalesce(lead_screener_lastname,'')|| ' ' || coalesce(lead_screener_email,'') || ' ' || "  +           
 #                   "coalesce(lab_head_firstname,'') || ' ' || coalesce(lab_head_lastname,'')|| ' ' || coalesce(lab_head_email,'')")
-    snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce("+x.name+",'') ", get_text_fields(DataSet))))
+    snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce("+x.field+",'') ", FieldInformation.manager.get_search_fields(DataSet))))
     class Meta:
         model = DataSet
         orderable = True
@@ -649,6 +716,16 @@ class DataSetTable(tables.Table):
 
     def __init__(self, table):
         super(DataSetTable, self).__init__(table)
+          
+        # Field information section
+        for fieldname,column in self.base_columns.iteritems():
+            try:
+                fi = FieldInformation.manager.get_column_fieldinformation_by_priority(fieldname,['dataset',''])
+                column.attrs['th']={'title':fi.get_column_detail()}
+                column.verbose_name = fi.get_verbose_name()
+            except (ObjectDoesNotExist) as e:
+                logger.warn(str(('no fieldinformation found for field:', fieldname)))
+                column.attrs['th']={'title': fieldname}     
 
 class DataSetForm(ModelForm):
     class Meta:
@@ -669,29 +746,38 @@ TEMPLATE = '''
             
 class DataSetResultTable(tables.Table):
     id = tables.Column(visible=False)
-    facility_id = tables.LinkColumn('sm_detail', args=[A('facility_salt_id')], verbose_name='Facility ID') #TODO: broken! must use facilty_id
-    cell_name = tables.LinkColumn('cell_detail',args=[A('cell_facility_id')], visible=False, verbose_name='Cell Name') #TODO: broken! must use facility_id
-    protein_name = tables.LinkColumn('protein_detail',args=[A('protein_lincs_id')], visible=False, verbose_name='Protein Name') #TODO: broken! must use facilty_id
+    facility_id = tables.LinkColumn('sm_detail', args=[A('facility_salt_id')], verbose_name='Facility ID')
+    cell_name = tables.LinkColumn('cell_detail',args=[A('cell_facility_id')], visible=False, verbose_name='Cell Name') 
+    protein_name = tables.LinkColumn('protein_detail',args=[A('protein_lincs_id')], visible=False, verbose_name='Protein Name') 
+    class Meta:
+        orderable = True
+        attrs = {'class': 'paleblue'}
     
     def __init__(self, queryset, names, orderedNames, show_cells, show_proteins, *args, **kwargs):
-        super(DataSetResultTable, self).__init__(queryset, names, *args, **kwargs)
-        # print "queryset: ", queryset , " , names: " , names, ", args: " , args
+
         for name,verbose_name in names.items():
-        #    if name in omeroColumnNames:  #TODO: all the columns are currently in omeroColumnNames, figure out a way to not have them here if there's no omero well_id for that column
-        #        self.base_columns[name] = tables.TemplateColumn(TEMPLATE % (omeroColumnNames[name],name), verbose_name=verbose_name)
-        #    else:
+            logger.info(str(('create column:',name,verbose_name)))
             self.base_columns[name] = tables.Column(verbose_name=verbose_name)
         self.sequence = orderedNames
         if(show_cells):
             self.base_columns['cell_name'].visible = True
         if(show_proteins):
             self.base_columns['protein_name'].visible = True
+        logger.info(str(('base columns:', self.base_columns)))
+        # Field information section: TODO: for the datasetcolumns, use the database information for these.
+        for fieldname,column in self.base_columns.iteritems():
+            try:
+                fi = FieldInformation.manager.get_column_fieldinformation_by_priority(fieldname,['smallmolecule','cell','protein'])
+                column.attrs['th']={'title':fi.get_column_detail()}
+                column.verbose_name = fi.get_verbose_name()
+            except (ObjectDoesNotExist) as e:
+                logger.warn(str(('no fieldinformation found for field:', fieldname)))
+                column.attrs['th']={'title': fieldname}          
+        # TODO: why does this work with the super call last?  Keep an eye on threads for creating dynamic columns with tables2
+        # for instance: https://github.com/bradleyayers/django-tables2/issues/70
+        super(DataSetResultTable, self).__init__(queryset, *args, **kwargs)
         
-    class Meta:
-        orderable = True
-        attrs = {'class': 'paleblue'}
-
-def dictfetchall(cursor):
+def dictfetchall(cursor): #TODO modify this to stream results properly
     "Returns all rows from a cursor as a dict"
     desc = cursor.description
     return [

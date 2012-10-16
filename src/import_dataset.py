@@ -44,7 +44,10 @@ def read_metadata(path):
               'Summary': 'summary',
               'Protocol': 'protocol',
               'References': 'protocol_references',
-              'Is Restricted':('is_restricted',False,False)}
+              'Date Data Received':('date_data_received',False,None,util.date_converter),
+              'Date Loaded': ('date_loaded',False,None,util.date_converter),
+              'Date Publicly Available': ('date_publicly_available',False,None,util.date_converter),
+              'Is Restricted':('is_restricted',False,False,util.bool_converter)}
     
     sheet_labels = []
     for row in metaSheet:
