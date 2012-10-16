@@ -93,11 +93,11 @@ class FieldsManager(models.Manager):
     def get_search_fields(self,model):
         table = model._meta.module_name
         # Only text or char fields considered, must add numeric fields manually
-        # fields = filter(lambda x: isinstance(x, models.CharField) or isinstance(x, models.TextField), tuple(model._meta.fields))
+        fields = map(lambda x: x.name, filter(lambda x: isinstance(x, models.CharField) or isinstance(x, models.TextField), tuple(model._meta.fields)))
         final_fields = []
         for fi in self.get_table_fields(table):
-            if(fi.use_for_search_index):  final_fields.append(fi)
-        logger.debug(str(('get_search_fields for ',model,'returns',final_fields)))
+            if(fi.use_for_search_index and fi.field in fields):  final_fields.append(fi)
+        logger.info(str(('get_search_fields for ',model,'returns',final_fields)))
         return final_fields
 
 
@@ -327,6 +327,9 @@ class DataSet(models.Model):
     summary                 = _TEXT(**_NOTNULLSTR)
     protocol                = _TEXT(**_NULLOKSTR)
     protocol_references     = _TEXT(**_NULLOKSTR)
+    date_data_received      = models.DateField(null=True,blank=True)
+    date_loaded             = models.DateField(null=True,blank=True)
+    date_publicly_available = models.DateField(null=True,blank=True)
     is_restricted           = models.BooleanField()
 
     def __unicode__(self):
