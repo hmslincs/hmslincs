@@ -26,6 +26,14 @@ def get_visible_columns(table):
     return visibleColumns
 
 class DjangoTables2Serializer(Serializer):
+    """
+    Here we serialize the Django tables2 that has been obtained through the query
+    created from the query in the REST path.  
+    The REST layer should be lower level, architecturally than the tables2 view - web UI specific code.
+    However, it was constructed first, so, for now, this serializer can serialize 
+    a django-tables2 table.  Advantage is that all of the columns have been defined
+    for the view layer, queries have been built (to be refactored).  
+    """
     formats = ['json', 'jsonp', 'xml', 'yaml', 'csv']
     content_types = {
         'json': 'application/json',
@@ -56,16 +64,14 @@ class DjangoTables2Serializer(Serializer):
         
         writer.writerow(visibleColumns.values())
 
-        i=0        
-        for item in data:
+        for i,item in enumerate(data):
             row = []
             for fieldname in visibleColumns.keys():
                 row.append(item[fieldname])
             writer.writerow(row)
-            i=i+1
             #if i == 10: break
 
-        logger.info('done')
+        logger.info('done, wrote: %d' % i)
         return raw_data.getvalue()
     
     def to_json(self,table, options=None):
