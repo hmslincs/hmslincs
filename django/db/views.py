@@ -270,6 +270,12 @@ def screenDetailProteins(request, facility_id):
 def screenDetailResults(request, facility_id):
     try:
         details = screenDetail(request,facility_id)
+
+        outputType = request.GET.get('output_type','')
+        if(outputType != ''):
+            table = details['table']
+            return send_to_file(outputType, 'dataset_'+str(facility_id), table, table.data, request )
+
         return render(request,'db/screenDetailResults.html', details)
     except Http401, e:
         return HttpResponse('Unauthorized', status=401)
@@ -526,15 +532,7 @@ class SmallMoleculeTable(tables.Table):
             self.sequence.insert(0,'well')
             self.sequence.insert(0,'plate')
             
-        # Field information section
-        for fieldname,column in self.base_columns.iteritems():
-            try:
-                fi = FieldInformation.manager.get_column_fieldinformation_by_priority(fieldname,['smallmolecule','smallmoleculebatch',''])
-                column.attrs['th']={'title':fi.get_column_detail()}
-                column.verbose_name = fi.get_verbose_name()
-            except (ObjectDoesNotExist) as e:
-                logger.warn(str(('no fieldinformation found for field:', fieldname)))
-                column.attrs['th']={'title': fieldname}
+        set_table_column_info(self, ['smallmolecule','smallmoleculebatch',''])  
             
 class SmallMoleculeForm(ModelForm):
     class Meta:
@@ -566,15 +564,7 @@ class CellTable(tables.Table):
     def __init__(self, table):
         super(CellTable, self).__init__(table)
             
-        # Field information section
-        for fieldname,column in self.base_columns.iteritems():
-            try:
-                fi = FieldInformation.manager.get_column_fieldinformation_by_priority(fieldname,['cell',''])
-                column.attrs['th']={'title':fi.get_column_detail()}
-                column.verbose_name = fi.get_verbose_name()
-            except (ObjectDoesNotExist) as e:
-                logger.warn(str(('no fieldinformation found for field:', fieldname)))
-                column.attrs['th']={'title': fieldname}
+        set_table_column_info(self, ['cell',''])  
                         
 class CellForm(ModelForm):
     class Meta:
@@ -595,15 +585,7 @@ class ProteinTable(tables.Table):
     def __init__(self, table):
         super(ProteinTable, self).__init__(table)
             
-        # Field information section
-        for fieldname,column in self.base_columns.iteritems():
-            try:
-                fi = FieldInformation.manager.get_column_fieldinformation_by_priority(fieldname,['protein',''])
-                column.attrs['th']={'title':fi.get_column_detail()}
-                column.verbose_name = fi.get_verbose_name()
-            except (ObjectDoesNotExist) as e:
-                logger.warn(str(('no fieldinformation found for field:', fieldname)))
-                column.attrs['th']={'title': fieldname}     
+        set_table_column_info(self, ['protein',''])  
                 
                         
 class ProteinForm(ModelForm):
@@ -648,19 +630,10 @@ class LibraryTable(tables.Table):
         orderable = True
         model = Library
         attrs = {'class': 'paleblue'}
-        exclude = {'rank','snippet'}
+        exclude = {'rank','snippet','is_restricted'}
     def __init__(self, table):
         super(LibraryTable, self).__init__(table)
-            
-        # Field information section
-        for fieldname,column in self.base_columns.iteritems():
-            try:
-                fi = FieldInformation.manager.get_column_fieldinformation_by_priority(fieldname,['library',''])
-                column.attrs['th']={'title':fi.get_column_detail()}
-                column.verbose_name = fi.get_verbose_name()
-            except (ObjectDoesNotExist) as e:
-                logger.warn(str(('no fieldinformation found for field:', fieldname)))
-                column.attrs['th']={'title': fieldname}     
+        set_table_column_info(self, ['library',''])  
     
 class LibraryForm(ModelForm):
     class Meta:
@@ -724,20 +697,13 @@ class DataSetTable(tables.Table):
         model = DataSet
         orderable = True
         attrs = {'class': 'paleblue'}
-        exclude = ('id') 
+        exclude = ('id','lead_screener_email','lead_screener_firstname','lead_screener_lastname','lab_head_firstname','lab_head_lastname','lab_head_email','protocol_references','is_restricted','rank','snippet') 
 
     def __init__(self, table):
         super(DataSetTable, self).__init__(table)
-          
-        # Field information section
-        for fieldname,column in self.base_columns.iteritems():
-            try:
-                fi = FieldInformation.manager.get_column_fieldinformation_by_priority(fieldname,['dataset',''])
-                column.attrs['th']={'title':fi.get_column_detail()}
-                column.verbose_name = fi.get_verbose_name()
-            except (ObjectDoesNotExist) as e:
-                logger.warn(str(('no fieldinformation found for field:', fieldname)))
-                column.attrs['th']={'title': fieldname}     
+        
+        set_table_column_info(self, ['dataset',''])  
+        
 
 class DataSetForm(ModelForm):
     class Meta:
@@ -770,24 +736,33 @@ class DataSetResultTable(tables.Table):
         for name,verbose_name in names.items():
             logger.info(str(('create column:',name,verbose_name)))
             self.base_columns[name] = tables.Column(verbose_name=verbose_name)
-        self.sequence = orderedNames
         if(show_cells):
             self.base_columns['cell_name'].visible = True
         if(show_proteins):
             self.base_columns['protein_name'].visible = True
         logger.info(str(('base columns:', self.base_columns)))
         # Field information section: TODO: for the datasetcolumns, use the database information for these.
-        for fieldname,column in self.base_columns.iteritems():
-            try:
-                fi = FieldInformation.manager.get_column_fieldinformation_by_priority(fieldname,['smallmolecule','cell','protein'])
-                column.attrs['th']={'title':fi.get_column_detail()}
-                column.verbose_name = fi.get_verbose_name()
-            except (ObjectDoesNotExist) as e:
-                logger.warn(str(('no fieldinformation found for field:', fieldname)))
-                column.attrs['th']={'title': fieldname}          
+        set_table_column_info(self, ['smallmolecule','cell','protein',''])  
+
         # TODO: why does this work with the super call last?  Keep an eye on threads for creating dynamic columns with tables2
         # for instance: https://github.com/bradleyayers/django-tables2/issues/70
         super(DataSetResultTable, self).__init__(queryset, *args, **kwargs)
+        self.sequence = orderedNames
+
+def set_table_column_info(table,table_names):
+    """
+    Field information section
+    param: table: a django-tables2 table
+    param: table_names: a list of table names, by order of priority, include '' empty string for a general search.
+    """ 
+    for fieldname,column in table.base_columns.iteritems():
+        try:
+            fi = FieldInformation.manager.get_column_fieldinformation_by_priority(fieldname,table_names)
+            column.attrs['th']={'title':fi.get_column_detail()}
+            column.verbose_name = fi.get_verbose_name()
+        except (ObjectDoesNotExist) as e:
+            logger.warn(str(('no fieldinformation found for field:', fieldname)))
+            #column.attrs['th']={'title': fieldname}  
         
 def dictfetchall(cursor): #TODO modify this to stream results properly
     "Returns all rows from a cursor as a dict"
@@ -797,13 +772,21 @@ def dictfetchall(cursor): #TODO modify this to stream results properly
     ]
 
 def send_to_file(outputType, name, table, queryset, request):
-    columns = map(lambda (x,y): x, filter(lambda (x,y): x != 'rank' and x!= 'snippet' and y.visible, table.base_columns.items()))
+    # ordered list (field,verbose_name)
+    columns = map(lambda (x,y): (x, y.verbose_name), filter(lambda (x,y): x != 'rank' and x!= 'snippet' and y.visible, table.base_columns.items()))
+    columnsOrdered = []
+    for col in table._sequence:
+        for (field,verbose_name) in columns:
+            if(field==col):
+                columnsOrdered.append((field,verbose_name))
+                break
+            
     #print 'return as ', outputType, ", columns: ", columns 
 
     if(outputType == 'csv'):
-        return export_as_csv(name,columns , request, queryset)
+        return export_as_csv(name,columnsOrdered , request, queryset)
     elif(outputType == 'xls'):
-        return export_as_xls(name, columns, request, queryset)
+        return export_as_xls(name, columnsOrdered, request, queryset)
  
 def export_as_xls(name,columnNames, request, queryset):
     """
@@ -814,14 +797,14 @@ def export_as_xls(name,columnNames, request, queryset):
     
     wbk = xlwt.Workbook()
     sheet = wbk.add_sheet('sheet 1')    # Write a first row with header information
-    for i, column in enumerate(columnNames):
-        sheet.write(0, i, columnNames[i])
+    for i, (field,verbose_name) in enumerate(columnNames):
+        sheet.write(0, i, verbose_name)
     # Write data rows
     for row,obj in enumerate(queryset):
         if isinstance(obj, dict):
-            vals = [obj[field] for field in columnNames]
+            vals = [obj[field] for (field,verbose_name) in columnNames]
         else:
-            vals = [getattr(obj, field) for field in columnNames]
+            vals = [getattr(obj, field) for (field,verbose_name) in columnNames]
         
         for i,column in enumerate(vals):
             sheet.write(row+1, i, column )
@@ -836,11 +819,11 @@ def export_as_csv(name,columnNames, request, queryset):
     response['Content-Disposition'] = 'attachment; filename=%s.csv' % unicode(name).replace('.', '_')
     writer = csv.writer(response)
     # Write a first row with header information
-    writer.writerow(columnNames)
+    writer.writerow([verbose_name for (field,verbose_name) in columnNames])
     # Write data rows
     for obj in queryset:
         if isinstance(obj, dict):
-            writer.writerow([obj[field] for field in columnNames])
+            writer.writerow([obj[field] for (field,verbose_name) in columnNames])
         else:
-            writer.writerow([getattr(obj, field) for field in columnNames])
+            writer.writerow([getattr(obj, field) for (field,verbose_name) in columnNames])
     return response

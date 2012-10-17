@@ -59,7 +59,8 @@ def main(path):
                           'use_for_search_index':('use_for_search_index',True,False,util.bool_converter),
                           'Data Working Group version':'dwg_version',
                           'Unique ID':('unique_id',True),
-                          'Field Name':('field_name',True),
+                          'DWG Field Name':'dwg_field_name',
+                          'HMS Field Name':'hms_field_name',
                           'Related to':'related_to',
                           'Description':'description',
                           'Importance (1: essential; 2: desirable / recommended; 3: optional)':'importance',
@@ -130,8 +131,9 @@ def main(path):
 
         try:
             logger.debug(str(('initializer: ', initializer)))
-            if((initializer['table'] == None and initializer['queryset'] == None ) or initializer['field'] == None):
-                logger.warn(str(('Note: table entry has no table/field definition (will be skipped)', initializer['unique_id'],initializer['field_name'], 'current row:', curr_row)))
+            #if((initializer['table'] == None and initializer['queryset'] == None ) or
+            if(initializer['field'] == None):
+                logger.warn(str(('Note: table entry has no field definition (will be skipped)', initializer, 'current row:', curr_row)))
                 continue;
             lfi = FieldInformation(**initializer)
             # check if the table/field exists

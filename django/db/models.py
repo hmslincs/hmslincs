@@ -115,7 +115,8 @@ class FieldInformation(models.Model):
     use_for_search_index    = models.BooleanField(default=False) # Note: default=False are not set at the db level, only at the Db-api level
     dwg_version             = _CHAR(max_length=35,**_NULLOKSTR)
     unique_id               = _CHAR(max_length=35,null=False,unique=True)
-    field_name              = _TEXT(**_NOTNULLSTR) # name for display
+    dwg_field_name              = _TEXT(**_NULLOKSTR) # LINCS name for display
+    hms_field_name              = _TEXT(**_NULLOKSTR) # override the LINCS name for display
     related_to              = _TEXT(**_NULLOKSTR)
     description             = _TEXT(**_NULLOKSTR)
     importance              = _TEXT(**_NULLOKSTR)
@@ -126,30 +127,42 @@ class FieldInformation(models.Model):
     class Meta:
         unique_together = (('table', 'field','queryset'),('field','alias'))    
     def __unicode__(self):
-        return unicode(str((self.table, self.field, self.unique_id, self.field_name)))
+        return unicode(str((self.table, self.field, self.unique_id, self.dwg_field_name, self.hms_field_name)))
+    
+    def get_field_name(self):
+        if(self.hms_field_name != None):
+            return self.hms_field_name
+        else:
+            return self.dwg_field_name
 
     def get_column_detail(self):
         s = ''
-        if(self.unique_id): s += self.unique_id
-        if(self.field_name): 
+        if(self.dwg_field_name): 
+            if(self.unique_id): s += self.unique_id
             if(len(s)>0): s += '-'
-            s += self.field_name
-        else: raise Exception(str(('field has no field_name value:', self)))
+            s += self.dwg_field_name
         if(self.description):
             if(len(s)>0): s += ':'
-            s+= self.description       
+            s+= self.description
+        else:
+            if(len(s)>0): s += ':'
+            s+= self.get_verbose_name()
         return s
     
     def get_verbose_name(self):
         logger.debug(str(('create a verbose name for:', self)))
-        field_name = self.field_name
-        field_name = re.sub(r'^[^_]{2}_','',field_name)
+        
+        field_name = re.sub(r'^[^_]{2}_','',self.get_field_name())
         field_name = field_name.replace('_',' ')
         field_name = field_name.strip()
         if(field_name != ''):
-            field_name = field_name.capitalize()
+            #field_name = field_name.capitalize()
+            #logger.info(str(('field_name:',field_name)))
+            #field_name=field_name.replace('id','ID')
+            #logger.info(str(('field_name:',field_name)))
             return field_name
         else:
+            logger.error(str(('There is an issue with the field name: ',self.dwg_field_name,self.hms_field_name)))
             return self.field
 
         
@@ -229,10 +242,10 @@ class Cell(models.Model):
     alternate_id                   = _CHAR(max_length=100, **_NULLOKSTR)    # COSMIC:687452
     center_name                    = _CHAR(max_length=35, **_NOTNULLSTR)    # HMS
     center_specific_id             = _CHAR(max_length=35, **_NOTNULLSTR)    # HMSL50001
-    mgh_id                         = _INTEGER(null=True)       # 6
+    mgh_id                         = _INTEGER(null=True)                    # 6
     assay                          = _TEXT(**_NULLOKSTR)                    # Mitchison Mitosis-apoptosis Img; Mitchison 
-                                                                               # Prolif-Mitosis Img; Mitchison 2-3 color apo
-                                                                               # pt Img
+                                                                            # Prolif-Mitosis Img; Mitchison 2-3 color apo
+                                                                            # pt Img
     provider_name                  = _CHAR(max_length=35, **_NOTNULLSTR)    # ATCC
     provider_catalog_id            = _CHAR(max_length=35, **_NOTNULLSTR)    # HTB-9
     batch_id                       = _CHAR(max_length=35, **_NULLOKSTR)     #
