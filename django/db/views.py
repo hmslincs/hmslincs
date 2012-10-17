@@ -40,10 +40,13 @@ def get_integer(stringValue):
 def main(request):
     search = request.GET.get('search','')
     if(search != ''):
-        queryset = SiteSearchManager().search(search);
-        table = SiteSearchTable(queryset)
-        RequestConfig(request, paginate={"per_page": 25}).configure(table)
-        return render(request, 'db/index.html', {'table': table, 'search':search })
+        queryset = SiteSearchManager().search(search, is_authenticated=request.user.is_authenticated());
+        if(len(queryset) > 0):
+            table = SiteSearchTable(queryset)
+            RequestConfig(request, paginate={"per_page": 25}).configure(table)
+            return render(request, 'db/index.html', {'table': table, 'search':search })
+        else:
+            return render(request, 'db/index.html')
     else:
         return render(request, 'db/index.html')
 
@@ -665,25 +668,34 @@ class LibraryForm(ModelForm):
             
 class SiteSearchManager(models.Manager):
     
-    def search(self, queryString):
+    def search(self, queryString, is_authenticated=False):
         cursor = connection.cursor()
         # TODO: build this dynamically, like the rest of the search
         # Notes: MaxFragments=10 turns on fragment based headlines (context for search matches), with MaxWords=20
         # ts_rank_cd(search_vector, query, 32): Normalization option 32 (rank/(rank+1)) can be applied to scale all 
         # ranks into the range zero to one, but of course this is just a cosmetic change; it will not affect the ordering of the search results.
+        sql =   ("SELECT id, facility_id::text, ts_headline(" + CellTable.snippet_def + """, query1, 'MaxFragments=10, MinWords=1, MaxWords=20, FragmentDelimiter=" | "') as snippet, """ + 
+                " ts_rank_cd(search_vector, query1, 32) AS rank, 'cell_detail' as type FROM db_cell, to_tsquery(%s) as query1 WHERE search_vector @@ query1 ") 
+        if(not is_authenticated): 
+            sql += " AND not is_restricted"
+        sql +=  (" UNION " +
+                " SELECT id, " + facility_salt_id + " as facility_id , ts_headline(" + SmallMoleculeTable.snippet_def + """, query2, 'MaxFragments=10, MinWords=1, MaxWords=20, FragmentDelimiter=" | "') as snippet, """ +
+                " ts_rank_cd(search_vector, query2, 32) AS rank, 'sm_detail' as type FROM db_smallmolecule sm, to_tsquery(%s) as query2 WHERE search_vector @@ query2 ")
+        if(not is_authenticated): 
+            sql += " AND not is_restricted"
+        sql +=  (" UNION " +
+                " SELECT id, facility_id::text, ts_headline(" + DataSetTable.snippet_def + """, query3, 'MaxFragments=10, MinWords=1, MaxWords=20, FragmentDelimiter=" | "') as snippet, """ +
+                " ts_rank_cd(search_vector, query3, 32) AS rank, 'screen_detail' as type FROM db_dataset, to_tsquery(%s) as query3 WHERE search_vector @@ query3 " )
+        if(not is_authenticated): 
+            sql += " AND not is_restricted"
+        sql +=  (" UNION " +
+                " SELECT id, lincs_id::text as facility_id, ts_headline(" + ProteinTable.snippet_def + """, query4, 'MaxFragments=10, MinWords=1, MaxWords=20, FragmentDelimiter=" | "') as snippet, """ +
+                " ts_rank_cd(search_vector, query4, 32) AS rank, 'protein_detail' as type FROM db_protein, to_tsquery(%s) as query4 WHERE search_vector @@ query4 ")
+        if(not is_authenticated): 
+            sql += " AND not is_restricted"
+        sql += " ORDER by rank DESC;"
         cursor.execute(
-            "SELECT id, facility_id::text, ts_headline(" + CellTable.snippet_def + """, query1, 'MaxFragments=10, MinWords=1, MaxWords=20, FragmentDelimiter=" | "') as snippet, """ +
-            " ts_rank_cd(search_vector, query1, 32) AS rank, 'cell_detail' as type FROM db_cell, to_tsquery(%s) as query1 WHERE search_vector @@ query1 " +
-            " UNION " +
-            " SELECT id, " + facility_salt_id + " as facility_id , ts_headline(" + SmallMoleculeTable.snippet_def + """, query2, 'MaxFragments=10, MinWords=1, MaxWords=20, FragmentDelimiter=" | "') as snippet, """ +
-            " ts_rank_cd(search_vector, query2, 32) AS rank, 'sm_detail' as type FROM db_smallmolecule sm, to_tsquery(%s) as query2 WHERE search_vector @@ query2 " +
-            " UNION " +
-            " SELECT id, facility_id::text, ts_headline(" + DataSetTable.snippet_def + """, query3, 'MaxFragments=10, MinWords=1, MaxWords=20, FragmentDelimiter=" | "') as snippet, """ +
-            " ts_rank_cd(search_vector, query3, 32) AS rank, 'screen_detail' as type FROM db_dataset, to_tsquery(%s) as query3 WHERE search_vector @@ query3 " +
-            " UNION " +
-            " SELECT id, lincs_id::text as facility_id, ts_headline(" + ProteinTable.snippet_def + """, query4, 'MaxFragments=10, MinWords=1, MaxWords=20, FragmentDelimiter=" | "') as snippet, """ +
-            " ts_rank_cd(search_vector, query4, 32) AS rank, 'protein_detail' as type FROM db_protein, to_tsquery(%s) as query4 WHERE search_vector @@ query4 " +
-            " ORDER by rank DESC;", [queryString + ":*", queryString + ":*", queryString + ":*", queryString + ":*"])
+                       sql , [queryString + ":*", queryString + ":*", queryString + ":*", queryString + ":*"])
         return dictfetchall(cursor)
 
 class SiteSearchTable(tables.Table):
