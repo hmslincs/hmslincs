@@ -1,6 +1,8 @@
 #from django.conf.urls import patterns, include, url
 from django.conf.urls.defaults import *
-
+from django.views.generic import TemplateView
+from settings import _djangopath
+import os.path as op
 from tastypie.api import Api
 from db.api import SmallMoleculeResource,CellResource,DataSetResource,DataSetData 
 
@@ -49,4 +51,8 @@ urlpatterns = patterns('',
     #url(r'^db/search/', include('haystack.urls'), name="haystackSearch"),
     
     (r'^db/api/', include(v1_api.urls)),
+
+    (r'^pathway/$', 'django.views.static.serve',
+     {'path': 'index.html',
+      'document_root': op.join(_djangopath, 'pathway', 'static', 'pathway')}),
 )

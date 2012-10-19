@@ -26,16 +26,11 @@ target_name_fixups = {
 
 if __name__ == '__main__':
 
-    data_dir = op.abspath(op.join(op.dirname(__file__), '../nui-wip/pathway'))
-
-    if not django.conf.settings.configured:
-        django.conf.settings.configure(
-            TEMPLATE_LOADERS=(
-                'django.template.loaders.filesystem.Loader',
-                ),
-            TEMPLATE_DIRS=(data_dir,),
-            TEMPLATE_DEBUG=True,
-            )
+    cur_dir = op.abspath(op.dirname(__file__))
+    data_dir = op.join(cur_dir, '..', 'nui-wip', 'pathway')
+    static_dir = op.join(cur_dir, '..', 'django', 'pathway', 'static', 'pathway')
+    out_dir_html = static_dir
+    out_dir_image = op.join(static_dir, 'img')
 
     # tweak some target names
     signature_data = signature.LATEST.copy()
@@ -57,12 +52,14 @@ if __name__ == '__main__':
         del elt.attrib['href']
     # fix up <map> attribs
     map_elt = tree.xpath('//map')[0]
-    map_elt.attrib['id'] = 'pathwaymap'
+    map_elt.attrib['id'] = 'pathway-map'
     del map_elt.attrib['name']
     # fix up <img> attribs
     img_elt = tree.xpath('//img')[0]
-    img_elt.attrib['usemap'] = '#pathwaymap'
-    img_elt.attrib['id'] = 'pathwayimg'
+    img_elt.attrib['usemap'] = '#pathway-map'
+    img_elt.attrib['id'] = 'pathway-img'
+    img_elt.attrib['src'] = '%s/pathway/%s' % (django.conf.settings.STATIC_URL,
+                                               img_elt.attrib['src'])
     # turn the tree back into html source
     formatter = functools.partial(lxml.etree.tostring,
                                   pretty_print=True, method='html')
@@ -70,12 +67,13 @@ if __name__ == '__main__':
 
     signatures = map(signature.template_context, *zip(*signature_data.items()))
     for target, compounds in signature_data.items():
-        signature.signature_images(target, compounds, data_dir)
+        signature.signature_images(target, compounds, out_dir_image)
     ctx = {
         'signatures': signatures,
         'pathway_source': pathway_source,
+        'STATIC_URL': django.conf.settings.STATIC_URL,
         }
 
-    out_file = open(op.join(data_dir, 'pathway-output.html'), 'w')
-    out_file.write(render_to_string('pathway-template.html', ctx))
+    out_file = open(op.join(out_dir_html, 'index.html'), 'w')
+    out_file.write(render_to_string('pathway/index.html', ctx))
     out_file.close()

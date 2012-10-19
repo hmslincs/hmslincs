@@ -1,0 +1,24 @@
+.signature-popup {
+  border: 1px solid red;
+  padding: 3px 0 0 3px;
+  background-color: #ffffff;
+  /*display: none;*/
+  position: absolute;
+  z-index: 99;
+}
+.signature-popup h3 { font-size: 10pt; padding: 0; margin: 0; }
+.signature-popup h4 { font-size: 8pt; padding: 0; margin: 0; }
+.signature-popup tr { font-size: 8pt; padding: 0; margin: 0; }
+.signature-popup table { margin: 0; }
+.signature-popup td { padding-right: 4pt; }
+
+
+#pathway-img {
+  border: 1px solid black;
+}
+
+#pathway-container {
+  position: relative;
+  margin: 0 auto;
+  width: 640px;
+}

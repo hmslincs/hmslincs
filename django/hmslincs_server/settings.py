@@ -85,7 +85,7 @@ STATIC_ROOT = op.join(_djangopath, '..', '..', '..', 'docroot', '_static')
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
-STATIC_URL = '/_static/'
+STATIC_URL = '/_static'
 
 # Additional locations of static files
 STATICFILES_DIRS = (
@@ -160,6 +160,7 @@ INSTALLED_APPS = (
     'django_tables2', # for UI tabling
     'tastypie', # manual says this is "not necessary, but useful"
     'db',
+    'pathway',
     # # 'south', #for schema migrations
     # # 'fts', # for full text search
 )

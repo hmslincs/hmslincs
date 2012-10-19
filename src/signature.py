@@ -31,7 +31,7 @@ radius = 0.2  # radius of the cell line triangle markers
 spine_y_offset = 0.25  # spacing from topmost line to x-axis spine
 colors = ('red', 'yellow', 'magenta', 'blue', 'green', 'cyan')  # cell line marker colors
 
-main_template = 'signature.html'
+main_template = 'pathway/signature.html'
 
 
 def signature(target_name, compounds, cell_lines):

@@ -14,7 +14,7 @@
     </td>
   </tr>
   {% with compounds=signature.primary_compounds %}
-    {% include "compound_table.html" %}
+    {% include "pathway/compound_table.html" %}
   {% endwith %}
   
   <tr>
@@ -23,7 +23,7 @@
     </td>
   </tr>
   {% with compounds=signature.nonprimary_compounds %}
-    {% include "compound_table.html" %}
+    {% include "pathway/compound_table.html" %}
   {% endwith %}
 
 </table>

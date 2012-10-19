@@ -1,6 +1,6 @@
 {% for sd in compounds %}
   <tr>
-    <td>{{ sd.drug }}</td>
+    <td><a href="#">{{ sd.drug }}</a></td>
     <td>
       {% if sd.isclinical %}
         <div style="background: #000000; color: #ffffff;">C</div>
@@ -12,7 +12,7 @@
       {% endif %}
     </td>
     <td>
-      <img src="{{ signature.target_name|slugify }}-{{ sd.drug|slugify }}.png">
+      <img src="{{ STATIC_URL }}/pathway/img/{{ signature.target_name|slugify }}-{{ sd.drug|slugify }}.png">
     </td>
   </tr>
 {% endfor %}

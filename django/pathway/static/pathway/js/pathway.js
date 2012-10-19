@@ -1,6 +1,6 @@
 jQuery(document).ready(function ($) {
     var touched = false;
-    $('#pathwaymap > area').mouseenter(function (e) {
+    $('#pathway-map > area').mouseenter(function (e) {
 	var $popup = get_popup(e.target);
 	if ($popup !== null) {
 	    $('.signature-popup').hide();
@@ -17,11 +17,11 @@ jQuery(document).ready(function ($) {
 	}
     });
 
-    $('#pathwaymap > area').each(function(idx, elt) {
+    $('#pathway-map > area').each(function(idx, elt) {
 	var $popup = get_popup(elt);
 	if ($popup !== null) {
 	    var target_bounds = area_bounds(elt);
-	    var offset = {left: target_bounds.right + 30, top: target_bounds.top};
+	    var offset = {left: target_bounds.right + 15, top: target_bounds.top};
 	    $popup.offset(offset);
 	}
     });
