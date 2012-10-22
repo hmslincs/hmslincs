@@ -122,11 +122,10 @@ def main(argv=sys.argv[1:]):
         ax, vs = zip(*pair)
         if ax[0] == ax[1]: continue
         output = outpath(ax)
-        spd = tuple(spd(*(k + (x, y))) for k, x, y in zip(specs, *vs))
+        points = tuple(spd(*(k + (x, y))) for k, x, y in zip(specs, *vs))
         axis_labels = tuple(', '.join(l) for l in ax)
-        write_scatterplot(output, spd, axis_labels, lims)
+        write_scatterplot(output, points, axis_labels, lims)
 
 
 if __name__ == '__main__':
-
     main()
