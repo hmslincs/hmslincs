@@ -38,9 +38,13 @@ def _seq2type(seq, type_):
 def write_scatterplot(output, points, axis_labels, lims=None):
     # calls sp.scatterplot
     # outputs a scatterplot to output
-    with open(output, 'w') as outfh:
-        fig = sp.scatterplot(points, axis_labels, lims)
-        outfh.write(fig)
+    with open(output, 'w') as out_fh:
+        fig_fh = sp.scatterplot(points, axis_labels, lims)
+        while True:
+            buf = fig_fh.read1(4096)
+            if len(buf) == 0:
+                break
+            out_fh.write(buf)
 
 def normalize(ax, _nre=re.compile(r'[/\s]')):
     # returns a string
@@ -121,13 +125,14 @@ def main(argv=sys.argv[1:]):
 
     spd = sp.ScatterplotData
 
+    data = data[:5]
     for pair in it.product(data, data):
         ax, vs = zip(*pair)
         if ax[0] == ax[1]: continue
         output = outpath(ax)
         points = tuple(spd(*(k + (x, y))) for k, x, y in zip(specs, *vs))
         axis_labels = tuple(', '.join(l) for l in ax)
-        write_scatterplot(output, points, axis_labels, lims)
+        write_scatterplot(output, points, axis_labels)
 
 
 if __name__ == '__main__':
