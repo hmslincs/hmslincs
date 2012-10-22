@@ -161,6 +161,7 @@ INSTALLED_APPS = (
     'tastypie', # manual says this is "not necessary, but useful"
     'db',
     'pathway',
+    'responses',
     # # 'south', #for schema migrations
     # # 'fts', # for full text search
 )

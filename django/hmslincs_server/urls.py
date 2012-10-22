@@ -55,4 +55,8 @@ urlpatterns = patterns('',
     (r'^pathway/$', 'django.views.static.serve',
      {'path': 'index.html',
       'document_root': op.join(_djangopath, 'pathway', 'static', 'pathway')}),
+
+    (r'^responses/$', 'django.views.static.serve',
+     {'path': 'index.html',
+      'document_root': op.join(_djangopath, 'responses', 'static', 'responses')}),
 )
