@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block head %}
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.min.js"></script>
+  <script src="{{ STATIC_URL }}/pathway/js/pathway.js"></script>
+  <link rel="stylesheet" href="{{ STATIC_URL }}/pathway/css/pathway.css"/>
+{% endblock %}
+
+{% block body %}
+<div id="pathway-container">
+  {% for signature in signatures %}
+    {% include "pathway/signature.html" %}
+  {% endfor %}
+
+  {{ pathway_source|safe }}
+</div>
+{% endblock %}
