@@ -15,9 +15,8 @@ import scatterplot as sp
 import setparams as _sg
 _params = dict(
     VERBOSE = False,
-    OUTPUTDIR = re.sub(r'(^|/)do_', r'\1',
-                       op.join(os.getcwd(),
-                               op.splitext(op.basename(sys.argv[0]))[0])),
+    APPNAME = 'responses',
+    OUTPUTDIR = None,
     OUTPUTEXT = '.%s' % sp.FORMAT.lower(),
     KEYLENGTH = 3,
     COLHEADERROWNUM = 0,
@@ -25,6 +24,10 @@ _params = dict(
 )
 _sg.setparams(_params)
 del _sg, _params
+
+if OUTPUTDIR is None:
+    OUTPUTDIR = op.join(op.dirname(op.dirname(op.abspath(__file__))),
+                        'django', APPNAME, 'static', APPNAME, 'img')
 
 # ---------------------------------------------------------------------------
 
