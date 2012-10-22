@@ -62,7 +62,10 @@ def main(path):
               'CL_Mutations_Reference':'mutations_reference',
               'CL_Mutations_Explicit':'mutations_explicit',
               'CL_Organism_Gender':'organism_gender',
-              'Is Restricted':('is_restricted',False,False)}
+              'Date Data Received':('date_data_received',False,None,util.date_converter),
+              'Date Loaded': ('date_loaded',False,None,util.date_converter),
+              'Date Publicly Available': ('date_publicly_available',False,None,util.date_converter),
+              'Is Restricted':('is_restricted',False,False,util.bool_converter)}
     # convert the labels to fleshed out dict's, with strategies for optional, default and converter
     column_definitions = util.fill_in_column_definitions(properties,column_definitions)
     
@@ -129,7 +132,7 @@ if __name__ == "__main__":
     elif args.verbose >= 2:
         log_level = logging.DEBUG
     # NOTE this doesn't work because the config is being set by the included settings.py, and you can only set the config once
-    # logging.basicConfig(level=log_level, format='%(msecs)d:%(module)s:%(lineno)d:%(levelname)s: %(message)s')        
+    logging.basicConfig(level=log_level, format='%(msecs)d:%(module)s:%(lineno)d:%(levelname)s: %(message)s')        
     logger.setLevel(log_level)
         
     print 'importing ', args.inputFile

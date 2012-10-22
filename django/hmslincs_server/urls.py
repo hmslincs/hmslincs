@@ -2,13 +2,14 @@
 from django.conf.urls.defaults import *
 
 from tastypie.api import Api
-from db.api import SmallMoleculeResource,CellResource,DataSetResource
+from db.api import SmallMoleculeResource,CellResource,DataSetResource,DataSetData 
 
 smallmolecule_resource = SmallMoleculeResource()
 v1_api = Api(api_name='v1') 
 v1_api.register(SmallMoleculeResource())
 v1_api.register(CellResource())
 v1_api.register(DataSetResource())
+v1_api.register(DataSetData())
 
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
@@ -31,7 +32,7 @@ urlpatterns = patterns('',
     url(r'^admin/', include(admin.site.urls)),
     url(r'^db/$', 'db.views.main', name="home"),
     url(r'^db/sm/$','db.views.smallMoleculeIndex', name="listSmallMolecules" ),
-    url(r'^db/sm/(?P<sm_id>\d+)/$', 'db.views.smallMoleculeDetail', name="sm_detail"),
+    url(r'^db/sm/(?P<facility_salt_id>[0-9\-]+)/$', 'db.views.smallMoleculeDetail', name="sm_detail"),
     url(r'^db/cells/$','db.views.cellIndex', name="listCells"),
     url(r'^db/cells/(?P<facility_id>\d+)/$', 'db.views.cellDetail', name="cell_detail"),
     url(r'^db/proteins/$','db.views.proteinIndex', name="listProteins"),

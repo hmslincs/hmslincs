@@ -40,6 +40,7 @@ def main(path):
                'salt_id': ('salt_id',True,None, lambda x: util.convertdata(x,int)),
                'lincs_id':('lincs_id',False,False,lambda x:util.convertdata(x,int)),
                'chemical_name':('name',True),
+               'alternative_names':'alternative_names',
                'pubchem_cid':'pubchem_cid',
                'chembl_id':'chembl_id',
                'chebi_id':'chebi_id',
@@ -48,9 +49,10 @@ def main(path):
                'smiles': ('smiles',True),
                'molecular_mass':'molecular_mass',
                'molecular_formula':'molecular_formula',
+               'software':'software',
                # 'concentration':'concentration',
                #'well_type':('well_type',False,'experimental'),
-               'is_restricted':('is_restricted',False,False)}
+               'is_restricted':('is_restricted',False,False,util.bool_converter)}
     # convert the labels to fleshed out dict's, with strategies for optional, default and converter
     labels = util.fill_in_column_definitions(properties,labels)
     
@@ -112,7 +114,7 @@ if __name__ == "__main__":
     elif args.verbose >= 2:
         log_level = logging.DEBUG
     # NOTE this doesn't work because the config is being set by the included settings.py, and you can only set the config once
-    # logging.basicConfig(level=log_level, format='%(msecs)d:%(module)s:%(lineno)d:%(levelname)s: %(message)s')        
+    logging.basicConfig(level=log_level, format='%(msecs)d:%(module)s:%(lineno)d:%(levelname)s: %(message)s')        
     logger.setLevel(log_level)
         
     print 'importing ', args.inputFile

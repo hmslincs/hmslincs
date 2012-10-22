@@ -46,7 +46,10 @@ def main(path):
                           'purity':'purity',
                           'purity_method':'purity_method',
                           'aqueous_solubility':'aqueous_solubility',
-                          'aqueous_solubility_unit':'aqueous_solubility_unit'    
+                          'aqueous_solubility_unit':'aqueous_solubility_unit',    
+                          'Date Data Received':('date_data_received',False,None,util.date_converter),
+                          'Date Loaded': ('date_loaded',False,None,util.date_converter),
+                          'Date Publicly Available': ('date_publicly_available',False,None,util.date_converter),
                           }
     # convert the labels to fleshed out dict's, with strategies for optional, default and converter
     column_definitions = util.fill_in_column_definitions(properties,column_definitions)

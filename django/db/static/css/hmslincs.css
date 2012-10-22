@@ -1,6 +1,9 @@
 #loginmsg {
- position:absolute;
- top:0;
- right:0;
- width:200px;
+  float: right;
+  width:200px;
+}
+
+#pagebody {
+  background: #ffffff;
+  padding: 10px 0;
 }

@@ -4,6 +4,9 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+bool_converter = lambda x: convertdata(x,bool)
+date_converter = lambda x: convertdata(x,date)
+
 def fill_in_column_definitions(properties, column_definitions):
     """
     utility to make sure every column_definition has a mapping for each property, or set to None
@@ -40,7 +43,7 @@ def find_columns(column_definitions, sheet_labels, all_column_definitions_requir
     if(all_column_definitions_required):
         for key in column_definitions:
             if(key not in sheet_labels_cleaned):
-                raise Exception('required column not found in the sheet "' + key + '"')
+                raise Exception(str(('required column not found:"' + key + '"',sheet_labels_cleaned)))
     logger.debug(str(('cols:', cols)))
     return cols
 
@@ -61,6 +64,9 @@ def convertdata(value, t=None):
             return int(float(value))
         elif t is date:
             return dateutil.parser.parse(value)
+        elif t is bool:
+            if(value.lower() == 'true' or value.lower() == 't'): return True
+            return False
         else:
             return t(value)
     except Exception, e:

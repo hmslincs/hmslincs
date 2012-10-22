@@ -1,4 +1,9 @@
 from django.db import models
+from django.core.exceptions import ObjectDoesNotExist,MultipleObjectsReturned
+
+import re
+import logging
+logger = logging.getLogger(__name__)
 
 # *temporary* shorthand, to make the following declarations more visually
 # digestible
@@ -21,25 +26,139 @@ _TEXT       = models.TextField
 _NOTNULLSTR = dict(null=False, blank=False)
 _NULLOKSTR  = dict(null=True, blank=False)
 # to follow the opposite convention, uncomment the following
+
 # definition
 # _NULLOKSTR  = dict(null=False, blank=True)
 
+class FieldsManager(models.Manager):
+    
+    fieldinformation_map = {}
+
+    # this is how you override a Manager's base QuerySet
+    def get_query_set(self):
+        return super(FieldsManager, self).get_query_set()
+    
+    def get_table_fields(self,table):
+        """
+        return the FieldInformation objects for the table, or None if not defined
+        """
+        return self.get_query_set().filter(table=table)
+    
+    def get_column_fieldinformation_by_priority(self,field_or_alias,tables_by_priority):
+        """
+        searches for the FieldInformation using the tables in the tables_by_priority, in the order given.
+        raises an ObjectDoesNotExist exception if not found in any of them.
+        :param tables_by_priority: a sequence of table names.  If an empty table name is given, then
+        a search through all fields is used.  This search can result in MultipleObjectsReturned exception.
+        """
+        for i,table in enumerate(tables_by_priority):
+            try:
+                if(table == ''):
+                    return self.get_column_fieldinformation(field_or_alias)
+                return self.get_column_fieldinformation(field_or_alias, table)
+            except (ObjectDoesNotExist,MultipleObjectsReturned) as e:
+                if( i+1 == len(tables_by_priority)): raise e
+                
+    def get_column_fieldinformation(self,field_or_alias,table_or_queryset=None):
+        """
+        return the FieldInformation object for the column, or None if not defined
+        """
+        
+        fi = None
+        if(table_or_queryset == None):
+            try:
+                return self.get_query_set().get(alias=field_or_alias); # TODO can use get?
+            except (ObjectDoesNotExist,MultipleObjectsReturned) as e:
+                logger.debug(str(('No field information for the alias: ',field_or_alias,e)))
+            try:
+                return self.get_query_set().get(field=field_or_alias); # TODO can use get?
+            except (ObjectDoesNotExist,MultipleObjectsReturned) as e:
+                logger.info(str(('No field information for the field: ',field_or_alias,e)))
+                raise e
+        else:
+            # if the table or queryset is given, alias should not be needed
+            try:
+                fi = self.get_query_set().get(queryset=table_or_queryset, field=field_or_alias)
+                return fi
+            except (ObjectDoesNotExist,MultipleObjectsReturned) as e:
+                logger.debug(str(('No field information for the queryset,field: ',table_or_queryset,field_or_alias, e)))
+            
+            try:
+                return self.get_query_set().get(table=table_or_queryset, field=field_or_alias)
+            except (ObjectDoesNotExist,MultipleObjectsReturned) as e:
+                logger.info(str(('No field information for the table,field: ',table_or_queryset,field_or_alias, e)))
+                raise e
+        
+    #TODO: link this in to the reindex process!
+    def get_search_fields(self,model):
+        table = model._meta.module_name
+        # Only text or char fields considered, must add numeric fields manually
+        fields = map(lambda x: x.name, filter(lambda x: isinstance(x, models.CharField) or isinstance(x, models.TextField), tuple(model._meta.fields)))
+        final_fields = []
+        for fi in self.get_table_fields(table):
+            if(fi.use_for_search_index and fi.field in fields):  final_fields.append(fi)
+        logger.info(str(('get_search_fields for ',model,'returns',final_fields)))
+        return final_fields
+
+
+
 # proposed class to capture all of the DWG information - and to map fields to these database tables
-class LincsFieldInformation(models.Model):
-    table                   = _CHAR(max_length=35, **_NOTNULLSTR)
-    field                   = _CHAR(max_length=35, **_NOTNULLSTR)
-    unique_id               = _CHAR(max_length=35, **_NOTNULLSTR)
-    lincs_field_name        = _CHAR(max_length=35, **_NOTNULLSTR)
+class FieldInformation(models.Model):
+    manager                 = FieldsManager()
+    objects                 = models.Manager() # default manager
+    
+    table                   = _CHAR(max_length=35, **_NULLOKSTR)
+    field                   = _CHAR(max_length=35, **_NULLOKSTR)
+    alias                   = _CHAR(max_length=35, **_NULLOKSTR)
+    queryset                = _CHAR(max_length=35, **_NULLOKSTR)
+    is_lincs_field          = models.BooleanField(default=False, null=False) # Note: default=False are not set at the db level, only at the Db-api level
+    use_for_search_index    = models.BooleanField(default=False) # Note: default=False are not set at the db level, only at the Db-api level
+    dwg_version             = _CHAR(max_length=35,**_NULLOKSTR)
+    unique_id               = _CHAR(max_length=35,null=False,unique=True)
+    field_name              = _TEXT(**_NOTNULLSTR) # name for display
     related_to              = _TEXT(**_NULLOKSTR)
     description             = _TEXT(**_NULLOKSTR)
     importance              = _TEXT(**_NULLOKSTR)
     comments                = _TEXT(**_NULLOKSTR)
+    ontologies              = _TEXT(**_NULLOKSTR)
+    ontology_reference      = _TEXT(**_NULLOKSTR)
+    additional_notes        = _TEXT(**_NULLOKSTR)
+    class Meta:
+        unique_together = (('table', 'field','queryset'),('field','alias'))    
+    def __unicode__(self):
+        return unicode(str((self.table, self.field, self.unique_id, self.field_name)))
 
+    def get_column_detail(self):
+        s = ''
+        if(self.unique_id): s += self.unique_id
+        if(self.field_name): 
+            if(len(s)>0): s += '-'
+            s += self.field_name
+        else: raise Exception(str(('field has no field_name value:', self)))
+        if(self.description):
+            if(len(s)>0): s += ':'
+            s+= self.description       
+        return s
+    
+    def get_verbose_name(self):
+        logger.debug(str(('create a verbose name for:', self)))
+        field_name = self.field_name
+        field_name = re.sub(r'^[^_]{2}_','',field_name)
+        field_name = field_name.replace('_',' ')
+        field_name = field_name.strip()
+        if(field_name != ''):
+            field_name = field_name.capitalize()
+            return field_name
+        else:
+            return self.field
+
+        
 class SmallMolecule(models.Model):
     facility_id             = _INTEGER(null=False) # center compound id
     salt_id                 = _INTEGER(null=True)
     lincs_id                = _INTEGER(null=True)
-    name                    = _TEXT(**_NULLOKSTR) # all names in one, including alternate names
+    name                    = _TEXT(**_NOTNULLSTR) 
+    alternative_names       = _TEXT(**_NULLOKSTR) 
     #facility_batch_id       = _INTEGER(null=True)
     molfile                 = _TEXT(**_NULLOKSTR)
     pubchem_cid             = _INTEGER(null=True)
@@ -48,6 +167,7 @@ class SmallMolecule(models.Model):
     inchi                   = _TEXT(**_NULLOKSTR)
     inchi_key               = _TEXT(**_NULLOKSTR)
     smiles                  = _TEXT(**_NULLOKSTR)
+    software                = _TEXT(**_NULLOKSTR)
     # Following fields not listed for the canonical information in the DWG, but per HMS policy will be - sde4
     molecular_mass          = _CHAR(max_length=35, **_NULLOKSTR)
     molecular_formula       = _TEXT(**_NULLOKSTR)
@@ -82,6 +202,9 @@ class SmallMoleculeBatch(models.Model):
                                                max_length=2,
                                       choices=CONCENTRATION_WEIGHT_VOLUME_CHOICES,
                                       default=CONCENTRATION_MGML)
+    date_data_received      = models.DateField(null=True,blank=True)
+    date_loaded             = models.DateField(null=True,blank=True)
+    date_publicly_available = models.DateField(null=True,blank=True)
     ## following fields probably not used with batch, per HMS policy - sde4
     inchi                   = _TEXT(**_NULLOKSTR)
     inchi_key               = _TEXT(**_NULLOKSTR)
@@ -154,6 +277,9 @@ class Cell(models.Model):
                                                                                # .R280T (Substitution - Missense), \012CDS m
                                                                                # utation: c.839G>C (Substitution)
     organism_gender                = _CHAR(max_length=35, **_NULLOKSTR)     # male
+    date_data_received      = models.DateField(null=True,blank=True)
+    date_loaded             = models.DateField(null=True,blank=True)
+    date_publicly_available = models.DateField(null=True,blank=True)
     is_restricted                     = models.BooleanField()
 
     # ----------------------------------------------------------------------------------------------------------------------
@@ -180,6 +306,9 @@ class Protein(models.Model):
     protein_type        = _CHAR(max_length=35, **_NULLOKSTR) #TODO: controlled vocabulary
     source_organism     = _CHAR(max_length=35, **_NULLOKSTR) #TODO: controlled vocabulary
     reference           = _TEXT(**_NULLOKSTR)
+    date_data_received      = models.DateField(null=True,blank=True)
+    date_loaded             = models.DateField(null=True,blank=True)
+    date_publicly_available = models.DateField(null=True,blank=True)
     is_restricted       = models.BooleanField()
 
     def __unicode__(self):
@@ -198,6 +327,9 @@ class DataSet(models.Model):
     summary                 = _TEXT(**_NOTNULLSTR)
     protocol                = _TEXT(**_NULLOKSTR)
     protocol_references     = _TEXT(**_NULLOKSTR)
+    date_data_received      = models.DateField(null=True,blank=True)
+    date_loaded             = models.DateField(null=True,blank=True)
+    date_publicly_available = models.DateField(null=True,blank=True)
     is_restricted           = models.BooleanField()
 
     def __unicode__(self):
@@ -268,7 +400,7 @@ class DataPoint(models.Model):
     int_value               = _INTEGER(null=True)
     float_value             = models.FloatField(null=True)
     text_value              = _TEXT(**_NULLOKSTR)
-    omero_well_id           = _CHAR(max_length=35, **_NULLOKSTR) # this is the plate:well id for lookup on the omero system (NOTE:may need multiple of these)
+    #omero_well_id           = _CHAR(max_length=35, **_NULLOKSTR) # this is the plate:well id for lookup on the omero system (NOTE:may need multiple of these)
     
     def __unicode__(self):
         return unicode(str((self.datarecord,self.datacolumn,self.int_value,self.float_value,self.text_value)))

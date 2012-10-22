@@ -2,7 +2,7 @@
 import sys
 import init_utils as iu
 
-from db.models import Cell, DataSet, SmallMolecule, Library, Protein
+from db.models import Cell, DataSet, SmallMolecule, Library, Protein, FieldInformation
 from django.db import models
 
 # ---------------------------------------------------------------------------
@@ -44,19 +44,19 @@ def createTableIndexTrigger(tableName, model):
         BEFORE INSERT OR UPDATE ON """, tableName, """ 
         FOR EACH ROW EXECUTE PROCEDURE 
             tsvector_update_trigger(search_vector, 'pg_catalog.english', 
-            """, ','.join(map(lambda x: x.name,getTextTypeFields(model))) , ");"
+            """, ','.join(map(lambda x: x.field,getTextTypeFields(model))) , ");"
 
 def createTableIndexUpdate(tableName, model):
     print 'update ' + tableName + \
         " set search_vector = to_tsvector('pg_catalog.english'," + \
-        " || ' ' || ".join(map( lambda x: "coalesce("+x.name+",'') ", getTextTypeFields(model))), ");" 
+        " || ' ' || ".join(map( lambda x: "coalesce("+x.field+",'') ", getTextTypeFields(model))), ");" 
 
     
     
 def getTextTypeFields(model):
     # Only text or char fields considered, must add numeric fields manually
-    return filter(lambda x: isinstance(x, models.CharField) or isinstance(x, models.TextField), tuple(model._meta.fields))
-
+    #return filter(lambda x: isinstance(x, models.CharField) or isinstance(x, models.TextField), tuple(model._meta.fields))
+    return FieldInformation.manager.get_search_fields(model)
 
 if __name__ == "__main__":
     main()
