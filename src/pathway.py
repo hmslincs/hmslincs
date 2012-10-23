@@ -46,34 +46,47 @@ if __name__ == '__main__':
     pathway_source_file = open(op.join(data_dir, 'pathway.html'))
     pathway_source = pathway_source_file.read()
     tree = lxml.etree.HTML(pathway_source)
-    # move <area> hrefs to ids
-    for elt in tree.xpath('//area'):
-        elt.attrib['id'] = elt.attrib['href']
-        del elt.attrib['href']
-    # fix up <map> attribs
-    map_elt = tree.xpath('//map')[0]
-    map_elt.attrib['id'] = 'pathway-map'
-    del map_elt.attrib['name']
+    map_ = tree.xpath('//map')[0]
+    img = tree.xpath('//img')[0]
+    # turn <area> elts into positioned divs
+    for area in map_.xpath('//area'):
+        assert area.attrib['shape'] == 'poly'
+        coords = map(int, area.attrib['coords'].split(','))
+        coords_x = coords[::2]
+        coords_y = coords[1::2]
+        left = min(coords_x)
+        top = min(coords_y)
+        width = max(coords_x) - left
+        height = max(coords_y) - top
+        div = lxml.etree.Element('div')
+        div.attrib['id'] = area.attrib['href']
+        div.attrib['class'] = 'pathway-target'
+        div.attrib['style'] = 'left: %dpx; top: %dpx; width: %dpx; height: %dpx;' % \
+                              (left, top, width, height)
+        img.addprevious(div)
+    # delete the map since we no longer need it
+    map_.getparent().remove(map_)
     # fix up <img> attribs
-    img_elt = tree.xpath('//img')[0]
-    img_elt.attrib['usemap'] = '#pathway-map'
-    img_elt.attrib['id'] = 'pathway-img'
-    img_elt.attrib['src'] = '%s/pathway/%s' % (django.conf.settings.STATIC_URL,
-                                               img_elt.attrib['src'])
+    del img.attrib['usemap']
+    img.attrib['id'] = 'pathway-img'
+    img.attrib['src'] = '%s/pathway/%s' % (django.conf.settings.STATIC_URL,
+                                           img.attrib['src'])
     # turn the tree back into html source
     formatter = functools.partial(lxml.etree.tostring,
                                   pretty_print=True, method='html')
     pathway_source = ''.join(map(formatter, tree[0].getchildren()))
 
     signatures = map(signature.template_context, *zip(*signature_data.items()))
-    for target, compounds in signature_data.items():
-        signature.signature_images(target, compounds, out_dir_image)
     ctx = {
         'signatures': signatures,
         'pathway_source': pathway_source,
         'STATIC_URL': django.conf.settings.STATIC_URL,
         }
-
     out_file = open(op.join(out_dir_html, 'index.html'), 'w')
     out_file.write(render_to_string('pathway/index.html', ctx))
     out_file.close()
+
+    # generate the signature images
+    #for target, compounds in signature_data.items():
+    #    signature.signature_images(target, compounds, out_dir_image)
+

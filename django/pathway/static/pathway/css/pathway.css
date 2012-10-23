@@ -2,7 +2,7 @@
   border: 1px solid red;
   padding: 3px 0 0 3px;
   background-color: #ffffff;
-  /*display: none;*/
+  display: none;
   position: absolute;
   z-index: 99;
 }
@@ -21,4 +21,9 @@
   position: relative;
   margin: 0 auto;
   width: 640px;
+}
+
+.pathway-target {
+  position: absolute;
+  cursor: pointer;
 }
