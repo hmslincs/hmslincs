@@ -87,11 +87,14 @@ def _getspecs(datarows,
         row[1] = float(row[1])
 
     levelrange, minlevel = _range([r[1] for r in datarows])[:2]
-    assert levelrange > 0
+    if levelrange > 0:
+        def level(lvl):
+            return (lvl - minlevel)/levelrange
+    else:
+        level = lambda lvl: None
 
-    return tuple((row[0], _celltype2shape[row[2]],
-                  (row[1] - minlevel)/levelrange)
-                 for row in datarows)
+    return tuple((row[0], _celltype2shape[row[2]], level(row[1]))
+                  for row in datarows)
 
 
 def process(rows):
