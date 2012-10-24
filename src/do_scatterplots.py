@@ -97,8 +97,8 @@ def _getspecs(datarows,
 def process(rows):
     # returns:
     # specs: tuple of triples
-    # data: tuple of doubles
-    # lims: double of floats
+    # data: tuple of pairs
+    # lims: pair of floats
 
     r0 = COLHEADERROWNUM
     r1 = FIRSTDATAROWNUM
@@ -125,7 +125,6 @@ def main(argv=sys.argv[1:]):
 
     spd = sp.ScatterplotData
 
-    data = data[:5]
     for pair in it.product(data, data):
         ax, vs = zip(*pair)
         if ax[0] == ax[1]: continue
