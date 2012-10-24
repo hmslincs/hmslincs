@@ -4,6 +4,7 @@ import os.path as op
 import re
 import itertools as it
 import csv
+import collections as co
 
 import shell_utils as su
 import typecheck as tc
@@ -48,7 +49,7 @@ def write_scatterplot(output, points, axis_labels, lims=None):
 
 def normalize(ax, _nre=re.compile(r'[/\s]')):
     # returns a string
-    return ','.join(_nre.sub('_', s.lower()) for s in ax)
+    return ','.join(_nre.sub('_', s.lower()) for s in ax if s is not None)
 
 
 def outpath(axes):
@@ -57,12 +58,25 @@ def outpath(axes):
                    '%s%s' % ('__'.join(normalize(ax) for ax in axes),
                              OUTPUTEXT))
 
-def parse_header(header,
-                 _parsere=re.compile(r'^\S+\s+(\S+\s+\S+):\d+\s+\w$'),
-                 _splitre=re.compile(r'\s+')):
-    core = _parsere.sub(r'\1', header)
-    return tuple(_splitre.split(core))
+METADATA = co.namedtuple('MetaData',
+                         'readout ligand concentration time')
 
+def parse_header(header,
+                 _p0=re.compile(r'^\S+\s+(\S+)(?:\s+(\S+.*))?$'),
+                 _p1=re.compile(r'^([a-zA-Z].+?)(?::(\d+))?(?:\s+(\S+.*))?$'),
+                 _p2=re.compile(r'((?<=@T)\d+)?$')):
+    ret = [None] * 4
+    try:
+        ret[0], rest = _p0.search(header).groups()
+        if rest:
+            ret[1], ret[2], rest = _p1.search(rest).groups()
+            if rest:
+                ret[3] = _p2.search(rest).group(1)
+    except AttributeError, e:
+        if not "'NoneType' object has no attribute 'groups'" in str(e):
+            raise
+
+    return METADATA(*ret)
 
 def readinput(path):
     with open(path) as inh:
@@ -133,7 +147,8 @@ def main(argv=sys.argv[1:]):
         if ax[0] == ax[1]: continue
         output = outpath(ax)
         points = tuple(spd(*(k + (x, y))) for k, x, y in zip(specs, *vs))
-        axis_labels = tuple(', '.join(l) for l in ax)
+        axis_labels = tuple(', '.join(s for s in l if not s is None)
+                            for l in ax)
         write_scatterplot(output, points, axis_labels)
 
 
