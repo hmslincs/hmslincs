@@ -1,8 +1,11 @@
 {% extends "db/screenDetailBase.html" %}
 {% block screenContent %}
-<h2>Proteins Studied</h2>
-{% load render_table from django_tables2 %}
-{% render_table proteinTable %}
-
+{% if proteinTable %}
+	<h2>Proteins Studied</h2>
+	{% load render_table from django_tables2 %}
+	{% render_table proteinTable %}
+{% else %}
+  <h2>No Proteins Studied</h2>
+{% endif %}
 {% endblock %}
 	

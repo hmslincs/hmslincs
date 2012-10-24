@@ -1,8 +1,8 @@
 {% extends "db/base.html" %}
 {% block content %}
 <h2>Cell Information</h2>
-	{% for field in object %}
-	    <li><b>{{ field.label }}:</b> {{ field.data }}</li>
+	{% for field,info in object.items %}
+	    <li><b>{{ info.fieldinformation.get_verbose_name }}:</b> {{ info.value|safe }}</li>
 	{% endfor %}
 {% endblock %}
 	
