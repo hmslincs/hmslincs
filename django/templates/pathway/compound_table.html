@@ -1,0 +1,18 @@
+{% for sd in compounds %}
+  <tr>
+    <td><a href="#">{{ sd.drug }}</a></td>
+    <td>
+      {% if sd.isclinical %}
+        <div style="background: #000000; color: #ffffff;">C</div>
+      {% endif %}
+    </td>
+    <td>
+      {% if sd.isselective %}
+        <div style="color: #800000; font-size: 500%; line-height: 20%;">&middot;</div>
+      {% endif %}
+    </td>
+    <td>
+      <img src="{{ STATIC_URL }}/pathway/img/{{ signature.target_name|slugify }}-{{ sd.drug|slugify }}.png">
+    </td>
+  </tr>
+{% endfor %}

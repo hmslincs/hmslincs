@@ -1,0 +1,31 @@
+<div class="signature-popup" id="signature-{{ signature.target_name }}">
+
+<table>
+
+  <tr>
+    <td colspan="4">
+      <h3>Target: {{ signature.target_name }}</h3>
+    </td>
+  </tr>
+
+  <tr>
+    <td colspan="4">
+      <h4>Primary inhibitors</h4>
+    </td>
+  </tr>
+  {% with compounds=signature.primary_compounds %}
+    {% include "pathway/compound_table.html" %}
+  {% endwith %}
+  
+  <tr>
+    <td colspan="4">
+      <h4>Other inhibitors</h4>
+    </td>
+  </tr>
+  {% with compounds=signature.nonprimary_compounds %}
+    {% include "pathway/compound_table.html" %}
+  {% endwith %}
+
+</table>
+
+</div>

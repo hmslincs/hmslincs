@@ -1,6 +1,6 @@
 jQuery(document).ready(function ($) {
     var touched = false;
-    $('#pathwaymap > area').mouseenter(function (e) {
+    $('.pathway-target').mouseenter(function (e) {
 	var $popup = get_popup(e.target);
 	if ($popup !== null) {
 	    $('.signature-popup').hide();
@@ -17,11 +17,14 @@ jQuery(document).ready(function ($) {
 	}
     });
 
-    $('#pathwaymap > area').each(function(idx, elt) {
+    $('.pathway-target').each(function(idx, elt) {
 	var $popup = get_popup(elt);
 	if ($popup !== null) {
-	    var target_bounds = area_bounds(elt);
-	    var offset = {left: target_bounds.right + 30, top: target_bounds.top};
+            $elt = $(elt)
+            var target_pos = $elt.position()
+            var left = target_pos.left + $elt.width() + 15;
+            var top = target_pos.top;
+	    var offset = {'left': left, 'top': top};
 	    $popup.offset(offset);
 	}
     });
@@ -31,18 +34,4 @@ jQuery(document).ready(function ($) {
 	return area.id !== null ? $('#signature-' + area.id) : null;
     }
 
-    /* Return the left/right/top/bottom of an area element */
-    function area_bounds(area) {
-	var x = [], y = [];
-	var coords = area.coords.split(',');
-	for (var i = 0; i < coords.length / 2; ++i) {
-	    x[i] = parseInt(coords[i*2]);
-	    y[i] = parseInt(coords[i*2+1]);
-	}
-	function cmp(a,b) { return a-b }
-	x.sort(cmp);
-	y.sort(cmp);
-	return {left: x[0], right: x[x.length-1],
-		top: y[0], bottom: y[y.length-1]};
-    }
 });

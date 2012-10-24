@@ -1,5 +1,7 @@
 import collections as co
 import matplotlib.pyplot as plt
+from matplotlib.backends.backend_agg import FigureCanvasAgg
+import io
 # ---------------------------------------------------------------------------
 
 FORMAT = 'png'
@@ -14,15 +16,29 @@ marker_map = {
               'square': 's',
               }
 
-def scatterplot(points, axis_labels, lims=None):
+def scatterplot(points, axis_labels, lims=None, display=False):
+    f = plt.figure()
+    ax = f.gca()
     for p in points:
-        plt.scatter(p.x, p.y, c=p.level, vmin=0, vmax=1,
-                    marker=marker_map[p.shape], s=200, cmap=plt.cm.RdBu_r)
-    if lims is not None:
-        plt.xlim(lims)
-        plt.ylim(lims)
-    plt.axes().set_aspect('equal')
-    plt.show()
+        ax.scatter(p.x, p.y, c=p.level, vmin=0, vmax=1,
+                   marker=marker_map[p.shape], s=200, cmap=plt.cm.RdBu_r)
+    if lims is None:
+        all_data = sum(([p.x, p.y] for p in points), [])
+        dmin = min(all_data)
+        dmax = max(all_data)
+        drange = dmax - dmin
+        lims = dmin - drange * 0.1, dmax + drange * 0.1
+    ax.set_xlim(lims)
+    ax.set_ylim(lims)
+    ax.set_aspect('equal')
+    if display:
+        plt.show()
+    else:
+        output = io.BytesIO()
+        canvas = FigureCanvasAgg(f)
+        canvas.print_png(output, dpi=72)
+        output.seek(0)
+        return output
 
 if __name__ == '__main__':
     points = (ScatterplotData('AU-565', 'triangle', 0.554, 4.308, 4.311),
@@ -57,4 +73,4 @@ if __name__ == '__main__':
     axis_labels = ('pErk, EGF', 'pErk, EPR')
     lims = (1.518, 4.395)
 
-    scatterplot(points, axis_labels, lims)
+    scatterplot(points, axis_labels, lims, display=True)

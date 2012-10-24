@@ -1,0 +1,75 @@
+COMPOUNDS	TARGET
+AG1024	IGF1R
+AG1478	EGFR
+AKT1-2 inhibitor	AKT1-2
+API-2(Tricir)	"AKT, ZNF217 amplification"
+AS-252424	PI3K gamma
+AZD6244	MEK
+BEZ235	PI3K
+BIBW2992	EGFR/ERBB2
+Bortezomib	"Proteasome, NFkB"
+Carboplatin	DNA cross-linker
+Cisplatin	DNA cross-linker
+CPT-11(FD)	Topoisomerase I
+Docetaxel	Microtubule  
+Doxorubicin(FD)	Topoisomerase II
+Epirubicin	Topoisomerase II
+Erlotinib	EGFR
+Etoposide	Topoisomerase II
+Fascaplysin	CDK
+Geldanamycin	Hsp90
+Gemcitabine	pyrimidine animetabolite
+Glycyl H1152	ROCK
+Ibandronate sodium salt	"farnesyl diphosphate synthase, FPPS (20 nM)"
+ICRF-193	"PLK1, Topoisomerase II"
+Iressa	EGFR
+Ixabepilone	Microtubule  
+LBH589	"HDAC, pan inibitor"
+Lestaurtinib(CEP-701)	"FLT-3, TrkA"
+Methotrexate	DHFR
+NSC663284	CDC25S
+NU6102	CDK1/CCNB
+Oxaliplatin	DNA cross-linker
+Oxamflatin	HDAC
+Paclitaxel	Microtubule  
+PD173074	FGFR3
+PD98059(LC Labs)	MEK
+Pemetrexed	DNA synthesis/repair
+private_company_drug_1604	"PI3K, beta selective"
+private_company_drug_1945	"PI3K, gamma selective"
+private_company_drug_2220	AUR1
+private_company_drug_2498	MDM2
+private_company_drug_2643	EGFR/ERBB2
+private_company_drug_2931	IGF1R
+private_company_drug_3098	polyamine analogue
+private_company_drug_3104	NAE
+private_company_drug_3560	MEK
+private_company_drug_4047	AURKA
+private_company_drug_5834	PI3K
+private_company_drug_7388	"PI3K, beta minus (alpha selective)"
+private_company_drug_7463	Kinesin spindle protein (KSP)
+private_company_drug_8271	"PI3K, pan"
+private_company_drug_8437	PLK
+private_company_drug_8461	CENPE
+private_company_drug_8648	polyamine analogue
+Purvalanol A	CDK1
+Rafi IV (L779450)	B-Raf
+Rapamycin	mTOR
+SAHA (Vorinostat)	Histone deacetylase
+SB-3CT	"MMP2, MMP9"
+SKI-606(Bosutinib)	Src
+Sorafenib	VGEFR
+Sunitinib Malate	VEGFR 
+Tamoxifen	ESR1
+TCS JNK 5a	JNK
+TCS2312 dihydrochloride	CHK1
+Temsirolimus(Torisel)	mTOR
+TPCA-1	IKK2 (IkB kinase 2)
+TPT(FD)	Topoisomerase I
+Trichostatin A	Histone deacetylase
+Vinorelbine	Microtubule  
+VX-680	Aurora kinase
+17-AAG	Hsp90
+5-FdUR	DNA
+5-FU	"pyrimidine analog, thymidylate synthase"
+XRP44X	Ras-Net (Elk-3)
