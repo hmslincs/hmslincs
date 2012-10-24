@@ -143,12 +143,13 @@ def main(argv=sys.argv[1:]):
     spd = sp.ScatterplotData
 
     for pair in it.product(data, data):
-        ax, vs = zip(*pair)
-        if ax[0] == ax[1]: continue
-        output = outpath(ax)
+        md, vs = zip(*pair)
+        if md[0] >= md[1]: continue
+        if md[0].time != md[1].time: continue
+        output = outpath(md)
         points = tuple(spd(*(k + (x, y))) for k, x, y in zip(specs, *vs))
         axis_labels = tuple(', '.join(s for s in l if not s is None)
-                            for l in ax)
+                            for l in md)
         write_scatterplot(output, points, axis_labels)
 
 
