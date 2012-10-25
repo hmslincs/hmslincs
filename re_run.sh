@@ -32,7 +32,7 @@ then
   export LINCS_PGSQL_USER=$DB_USER
   export LINCS_PGSQL_DB=$DB
   export LINCS_PGSQL_SERVER=$PGHOST
-  export LINCS_PGSQL_PASSWORD=`cat ~/.pgpass |grep $DB_USER| nawk -F ':' '{print $5}'`
+  export LINCS_PGSQL_PASSWORD=`cat ~/.pgpass |grep $DB_USER| awk -F ':' '{print $5}'`
   VIRTUALENV=/www/dev.lincs.hms.harvard.edu/support/virtualenv/bin/activate
 elif [[ "$SERVER" == "DEVTEST" ]] || [[ "$SERVER" == "devtest" ]] 
 then
@@ -43,7 +43,7 @@ then
   export LINCS_PGSQL_USER=$DB_USER
   export LINCS_PGSQL_DB=$DB
   export LINCS_PGSQL_SERVER=$PGHOST
-  export LINCS_PGSQL_PASSWORD=`cat ~/.pgpass |grep $DB_USER| nawk -F ':' '{print $5}'`
+  export LINCS_PGSQL_PASSWORD=`cat ~/.pgpass |grep $DB_USER| awk -F ':' '{print $5}'`
   VIRTUALENV=/www/dev.lincs.hms.harvard.edu/support/virtualenv/bin/activate
 elif [[ "$SERVER" == "DEV" ]] || [[ "$SERVER" == "dev" ]] 
 then
@@ -54,7 +54,7 @@ then
   export LINCS_PGSQL_USER=$DB_USER
   export LINCS_PGSQL_DB=$DB
   export LINCS_PGSQL_SERVER=$PGHOST
-  export LINCS_PGSQL_PASSWORD=`cat ~/.pgpass |grep $DB_USER| nawk -F ':' '{print $5}'`
+  export LINCS_PGSQL_PASSWORD=`cat ~/.pgpass |grep $DB_USER| awk -F ':' '{print $5}'`
   VIRTUALENV=/www/dev.lincs.hms.harvard.edu/support/virtualenv/bin/activate
 elif [[ "$SERVER" == "LOCAL" ]] || [[ "$SERVER" == "local" ]] 
 then
