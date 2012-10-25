@@ -9,6 +9,8 @@ FORMAT = 'png'
 # ---------------------------------------------------------------------------
 
 ScatterplotData = co.namedtuple('ScatterplotData', 'label shape level x y')
+ScatterplotMetaData = co.namedtuple('ScatterplotMetaData',
+                                    'readout ligand concentration time')
 
 marker_map = {
               'triangle': '^',
@@ -16,7 +18,7 @@ marker_map = {
               'square': 's',
               }
 
-def scatterplot(points, axis_labels, lims=None, display=False):
+def scatterplot(points, metadata, lims=None, display=False):
     f = plt.figure()
     ax = f.gca()
     for p in points:
@@ -70,7 +72,8 @@ if __name__ == '__main__':
               ScatterplotData('UACC-812', 'triangle', 0.537, 3.908, 3.907),
               ScatterplotData('UACC-893', 'triangle', 0.539, 3.677, 3.709),
               ScatterplotData('ZR-75-1', 'square', 1.000, 3.884, 3.569))
-    axis_labels = ('pErk, EGF', 'pErk, EPR')
+    metadata = (MetaData(readout='pErk', ligand='EGF', concentration='100', time=None),
+                MetaData(readout='pErk', ligand='EPR', concentration='100', time=None))
     lims = (1.518, 4.395)
 
     scatterplot(points, axis_labels, lims, display=True)

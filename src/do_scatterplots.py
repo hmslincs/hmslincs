@@ -36,11 +36,11 @@ def _seq2type(seq, type_):
     assert tc.issequence(seq)
     return type(seq)([type_(v) for v in seq])
 
-def write_scatterplot(output, points, axis_labels, lims=None):
+def write_scatterplot(output, points, metadata, lims=None):
     # calls sp.scatterplot
     # outputs a scatterplot to output
     with open(output, 'w') as out_fh:
-        fig_fh = sp.scatterplot(points, axis_labels, lims)
+        fig_fh = sp.scatterplot(points, metadata, lims)
         while True:
             buf = fig_fh.read1(4096)
             if len(buf) == 0:
@@ -58,9 +58,6 @@ def outpath(axes):
                    '%s%s' % ('__'.join(normalize(ax) for ax in axes),
                              OUTPUTEXT))
 
-METADATA = co.namedtuple('MetaData',
-                         'readout ligand concentration time')
-
 def parse_header(header,
                  _p0=re.compile(r'^\S+\s+(\S+)(?:\s+(\S+.*))?$'),
                  _p1=re.compile(r'^([a-zA-Z].+?)(?::(\d+))?(?:\s+(\S+.*))?$'),
@@ -76,7 +73,7 @@ def parse_header(header,
         if not "'NoneType' object has no attribute 'groups'" in str(e):
             raise
 
-    return METADATA(*ret)
+    return sp.ScatterplotMetaData(*ret)
 
 def readinput(path):
     with open(path) as inh:
@@ -148,9 +145,7 @@ def main(argv=sys.argv[1:]):
         if md[0].time != md[1].time: continue
         output = outpath(md)
         points = tuple(spd(*(k + (x, y))) for k, x, y in zip(specs, *vs))
-        axis_labels = tuple(', '.join(s for s in l if not s is None)
-                            for l in md)
-        write_scatterplot(output, points, axis_labels)
+        write_scatterplot(output, points, md)
 
 
 if __name__ == '__main__':
