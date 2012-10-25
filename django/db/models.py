@@ -99,7 +99,7 @@ class FieldsManager(models.Manager):
         final_fields = []
         for fi in self.get_table_fields(table):
             if(fi.use_for_search_index and fi.field in fields):  final_fields.append(fi)
-        logger.info(str(('get_search_fields for ',model,'returns',final_fields)))
+        logger.debug(str(('get_search_fields for ',model,'returns',final_fields)))
         return final_fields
 
 
@@ -213,7 +213,7 @@ class SmallMoleculeBatch(models.Model):
     smallmolecule           = models.ForeignKey('SmallMolecule')
     facility_batch_id       = _INTEGER(null=True)
     provider                = _TEXT(**_NULLOKSTR)
-    provider_catalog_id     = _CHAR(max_length=35, **_NULLOKSTR)
+    provider_catalog_id     = _CHAR(max_length=64, **_NULLOKSTR)
     provider_sample_id      = _CHAR(max_length=35, **_NULLOKSTR)
     chemical_synthesis_reference = _TEXT(**_NULLOKSTR)
     purity                  = _TEXT(**_NULLOKSTR)
