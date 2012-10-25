@@ -32,7 +32,8 @@ def main(path):
     Read in the smallmolecule batch info
     """
     sheet_name = 'sheet 1'
-    sheet = iu.readtable([path, sheet_name, 1]) # Note, skipping the header row by default
+    start_row = 1
+    sheet = iu.readtable([path, sheet_name, start_row]) # Note, skipping the header row by default
 
     properties = ('model_field','required','default','converter')
     column_definitions = { 
@@ -91,7 +92,7 @@ def main(path):
                         sm = SmallMolecule.objects.get(**small_molecule_lookup)
                         initializer['smallmolecule'] = sm
                     except Exception, e:
-                        logger.error(str(('sm facility id not found', value)))
+                        logger.error(str(('sm identifiers not found', small_molecule_lookup,'row',rows+start_row+2)))
                         raise
             else:
                 initializer[model_field] = value
@@ -102,7 +103,7 @@ def main(path):
             logger.info(str(('smb created:', smb)))
             rows += 1
         except Exception, e:
-            logger.error(str(( "Invalid smallmolecule batch initializer: ", initializer)))
+            logger.error(str(( "Invalid smallmolecule batch initializer: ", initializer, 'row', rows+start_row+2, e)))
             raise
         
     print "Rows read: ", rows

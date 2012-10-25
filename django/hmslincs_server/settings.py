@@ -85,13 +85,15 @@ STATIC_ROOT = op.join(_djangopath, '..', '..', '..', 'docroot', '_static')
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
-STATIC_URL = '/_static'
+STATIC_URL = '/_static/'
 
 # Additional locations of static files
 STATICFILES_DIRS = (
     # Put strings here, like "/home/html/static" or "C:/www/django/static".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
+    '/home/sde4/docs/work/LINCS/data/images/',
+    '/groups/pharmacoresponse/data/images/'
 )
 
 # List of finder classes that know how to find static files in
@@ -179,7 +181,7 @@ LOGGING = {
             'format': '%(levelname)s %(asctime)s %(module)s:%(lineno)d %(process)d %(thread)d %(message)s'
         },
         'simple': {
-            'format': '%(module)s:%(lineno)d:%(levelname)s: %(message)s'
+            'format': '%(pathname)s:%(lineno)d:%(levelname)s: %(message)s'
         },
     },
     'filters': {
@@ -197,6 +199,11 @@ LOGGING = {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
             'formatter': 'simple'
+        },  
+        'console_verbose':{
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose'
         }
     },
     'loggers': {
@@ -214,6 +221,11 @@ LOGGING = {
             'handlers': ['console'],
             'propagate': True,
             'level': 'WARN',
+        },
+        'urls': {  
+            'handlers': ['console'],
+            'propagate': True,
+            'level': 'INFO',
         },
     }
 }

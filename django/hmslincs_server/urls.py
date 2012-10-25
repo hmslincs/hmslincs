@@ -5,6 +5,7 @@ from settings import _djangopath
 import os.path as op
 from tastypie.api import Api
 from db.api import SmallMoleculeResource,CellResource,DataSetResource,DataSetDataResource,ProteinResource,LibraryResource
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 smallmolecule_resource = SmallMoleculeResource()
 v1_api = Api(api_name='v1') 
@@ -62,3 +63,6 @@ urlpatterns = patterns('',
      {'path': 'index.html',
       'document_root': op.join(_djangopath, 'responses', 'static', 'responses')}),
 )
+
+# For DEBUG mode only (development) serving of static files
+urlpatterns += staticfiles_urlpatterns()

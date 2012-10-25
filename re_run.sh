@@ -47,7 +47,7 @@ then
   VIRTUALENV=/www/dev.lincs.hms.harvard.edu/support/virtualenv/bin/activate
 elif [[ "$SERVER" == "DEV" ]] || [[ "$SERVER" == "dev" ]] 
 then
-  DATADIR=${DIR}/data/dev
+  DATADIR=${DIR}/data/dev2
   DB=devlincs
   DB_USER=devlincsweb
   PGHOST=dev.pgsql.orchestra
@@ -58,7 +58,7 @@ then
   VIRTUALENV=/www/dev.lincs.hms.harvard.edu/support/virtualenv/bin/activate
 elif [[ "$SERVER" == "LOCAL" ]] || [[ "$SERVER" == "local" ]] 
 then
-  DATADIR=${2:-/home/sde4/sean/docs/work/LINCS/data/dev}
+  DATADIR=${2:-/home/sde4/sean/docs/work/LINCS/data/dev2}
   DB=django
   DB_USER=django
   PGHOST=localhost
@@ -131,10 +131,14 @@ else
 	#============ Here is where the "real" imports go ============================
 
 	echo 'import small molecule tables...'
-	python src/import_smallmolecule.py -f $DATADIR/HMS_LINCS-1.sdf
+	python src/import_smallmolecule.py -f $DATADIR/HMS-LINCS_complete.sdf
 	check_errs $? "import sdf fails"
-	python src/import_smallmolecule.py -f $DATADIR/HMS_LINCS-2.sdf
-	check_errs $? "import sdf fails"
+
+	echo 'import small molecule batch tables...'
+	python src/import_smallmolecule_batch.py -f $DATADIR/small_molecule_batch-HMS_LINCS-1.xls
+	check_errs $? "import smallmolecule batch fails"
+	
+
 
 fi
 

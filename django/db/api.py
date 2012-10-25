@@ -43,7 +43,7 @@ class SmallMoleculeResource(ModelResource):
         return self.prepend_urls();
     
     def prepend_urls(self):
-        logger.error('prepend urls!!!!')
+
         return [
             url(r"^(?P<resource_name>%s)/(?P<facility_id>\d+)\-(?P<salt_id>\d+)/$" % self._meta.resource_name, self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
         ]
@@ -73,7 +73,6 @@ class CellResource(ModelResource):
         return self.prepend_urls();
     
     def prepend_urls(self):
-        logger.error('prepend urls!!!!')
         return [
             url(r"^(?P<resource_name>%s)/(?P<facility_id>\d+)/$" % self._meta.resource_name, self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
         ]
@@ -102,7 +101,6 @@ class ProteinResource(ModelResource):
         return self.prepend_urls();
     
     def prepend_urls(self):
-        logger.error('prepend urls!!!!')
         return [
             url(r"^(?P<resource_name>%s)/(?P<lincs_id>\d+)/$" % self._meta.resource_name, self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
         ]
@@ -130,7 +128,6 @@ class LibraryResource(ModelResource):
         return self.prepend_urls();
     
     def prepend_urls(self):
-        logger.error('prepend urls!!!!')
         return [
             url(r"^(?P<resource_name>%s)/(?P<lincs_id>\d+)/$" % self._meta.resource_name, self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
         ]
@@ -164,7 +161,6 @@ class DataSetResource(ModelResource):
         return self.prepend_urls();
     
     def prepend_urls(self):
-        logger.error('prepend urls!!!!')
         return [
             url(r"^(?P<resource_name>%s)/(?P<facility_id>\d+)/$" % self._meta.resource_name, self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
         ]
@@ -233,7 +229,6 @@ class DataSetDataResource(Resource):
         return self.prepend_urls();
     
     def prepend_urls(self):
-        logger.error('prepend urls!!!!')
         return [
             url(r"^(?P<resource_name>%s)/(?P<facility_id>\d+)/$" % self._meta.resource_name, self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
         ]
