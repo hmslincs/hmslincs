@@ -398,8 +398,8 @@ class LibraryMapping(models.Model):
                                       default=CONCENTRATION_UM)
     def __unicode__(self):
         return unicode(str((self.library,self.smallmolecule_batch)))
-    class Meta:
-        unique_together = ('library', 'smallmolecule_batch',)    
+    #class Meta:
+    #    unique_together = ('library', 'smallmolecule_batch',)    
     
 class DataColumn(models.Model):
     dataset                 = models.ForeignKey('DataSet')
