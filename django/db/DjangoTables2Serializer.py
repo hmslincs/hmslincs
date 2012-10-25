@@ -3,6 +3,7 @@ import StringIO
 from tastypie.serializers import Serializer
 from django.utils.datastructures import SortedDict
 import logging
+import django_tables2 as tables
 
 logger = logging.getLogger(__name__)
 
@@ -51,10 +52,15 @@ class DjangoTables2Serializer(Serializer):
         serialize the visible columns of a django tables2 table that has been initialized
         with a queryset.
         """
-        
         logger.info('to_csv_from_tables2')
         raw_data = StringIO.StringIO()
-        logger.info(str(('table', table)))
+                
+        # this is an unexpected way to get this error, look into tastypie sequence calls
+        if(isinstance(table,dict) and 'error_message' in table):
+            raw_data.writelines(('error_message\n',table['error_message'],'\n'))
+            return raw_data.getvalue() 
+        
+
         data = table.data.list
         if(len(data)==0):
             return

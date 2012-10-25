@@ -80,7 +80,7 @@ def read_metadata(path):
             if( default != None ):
                 value = default
         if(value == None and  required == True):
-            raise Exception('Field is required: %s, record: %d' % (properties['column_label'],rows))
+            raise Exception('Field is required: %s, record: %d' % (properties['column_label'],row))
         logger.debug(str(('model_field: ' , model_field, ', value: ', value)))
         initializer[model_field] = value
 

@@ -1,8 +1,10 @@
 from django.db import models
 from django.core.exceptions import ObjectDoesNotExist,MultipleObjectsReturned
-
+from collections import OrderedDict
+import types
 import re
 import logging
+
 logger = logging.getLogger(__name__)
 
 # *temporary* shorthand, to make the following declarations more visually
@@ -111,11 +113,15 @@ class FieldInformation(models.Model):
     field                   = _CHAR(max_length=35, **_NULLOKSTR)
     alias                   = _CHAR(max_length=35, **_NULLOKSTR)
     queryset                = _CHAR(max_length=35, **_NULLOKSTR)
+    show_in_detail          = models.BooleanField(default=False, null=False) # Note: default=False are not set at the db level, only at the Db-api level
+    show_in_list            = models.BooleanField(default=False, null=False) # Note: default=False are not set at the db level, only at the Db-api level
+    order                   = _INTEGER(null=False)
     is_lincs_field          = models.BooleanField(default=False, null=False) # Note: default=False are not set at the db level, only at the Db-api level
     use_for_search_index    = models.BooleanField(default=False) # Note: default=False are not set at the db level, only at the Db-api level
     dwg_version             = _CHAR(max_length=35,**_NULLOKSTR)
     unique_id               = _CHAR(max_length=35,null=False,unique=True)
-    field_name              = _TEXT(**_NOTNULLSTR) # name for display
+    dwg_field_name              = _TEXT(**_NULLOKSTR) # LINCS name for display
+    hms_field_name              = _TEXT(**_NULLOKSTR) # override the LINCS name for display
     related_to              = _TEXT(**_NULLOKSTR)
     description             = _TEXT(**_NULLOKSTR)
     importance              = _TEXT(**_NULLOKSTR)
@@ -126,30 +132,45 @@ class FieldInformation(models.Model):
     class Meta:
         unique_together = (('table', 'field','queryset'),('field','alias'))    
     def __unicode__(self):
-        return unicode(str((self.table, self.field, self.unique_id, self.field_name)))
+        return unicode(str((self.table, self.field, self.unique_id, self.dwg_field_name, self.hms_field_name)))
+    
+    def get_field_name(self):
+        if(self.hms_field_name != None):
+            return self.hms_field_name
+        else:
+            return self.dwg_field_name
 
     def get_column_detail(self):
+        """
+        descriptive long name for the field: unique_id-field_name-description
+        """
         s = ''
-        if(self.unique_id): s += self.unique_id
-        if(self.field_name): 
+        if(self.dwg_field_name): 
+            if(self.unique_id): s += self.unique_id
             if(len(s)>0): s += '-'
-            s += self.field_name
-        else: raise Exception(str(('field has no field_name value:', self)))
+            s += self.dwg_field_name
         if(self.description):
             if(len(s)>0): s += ':'
-            s+= self.description       
+            s+= self.description
+        else:
+            if(len(s)>0): s += ':'
+            s+= self.get_verbose_name()
         return s
     
     def get_verbose_name(self):
         logger.debug(str(('create a verbose name for:', self)))
-        field_name = self.field_name
-        field_name = re.sub(r'^[^_]{2}_','',field_name)
+        
+        field_name = re.sub(r'^[^_]{2}_','',self.get_field_name())
         field_name = field_name.replace('_',' ')
         field_name = field_name.strip()
         if(field_name != ''):
-            field_name = field_name.capitalize()
+            #field_name = field_name.capitalize()
+            #logger.info(str(('field_name:',field_name)))
+            #field_name=field_name.replace('id','ID')
+            #logger.info(str(('field_name:',field_name)))
             return field_name
         else:
+            logger.error(str(('There is an issue with the field name: ',self.dwg_field_name,self.hms_field_name)))
             return self.field
 
         
@@ -229,10 +250,10 @@ class Cell(models.Model):
     alternate_id                   = _CHAR(max_length=100, **_NULLOKSTR)    # COSMIC:687452
     center_name                    = _CHAR(max_length=35, **_NOTNULLSTR)    # HMS
     center_specific_id             = _CHAR(max_length=35, **_NOTNULLSTR)    # HMSL50001
-    mgh_id                         = _INTEGER(null=True)       # 6
+    mgh_id                         = _INTEGER(null=True)                    # 6
     assay                          = _TEXT(**_NULLOKSTR)                    # Mitchison Mitosis-apoptosis Img; Mitchison 
-                                                                               # Prolif-Mitosis Img; Mitchison 2-3 color apo
-                                                                               # pt Img
+                                                                            # Prolif-Mitosis Img; Mitchison 2-3 color apo
+                                                                            # pt Img
     provider_name                  = _CHAR(max_length=35, **_NOTNULLSTR)    # ATCC
     provider_catalog_id            = _CHAR(max_length=35, **_NOTNULLSTR)    # HTB-9
     batch_id                       = _CHAR(max_length=35, **_NULLOKSTR)     #
@@ -331,6 +352,19 @@ class DataSet(models.Model):
     date_loaded             = models.DateField(null=True,blank=True)
     date_publicly_available = models.DateField(null=True,blank=True)
     is_restricted           = models.BooleanField()
+    
+    
+    def _get_lead_screener(self):
+        "Returns the LS  full name."
+        return '%s %s' % (self.lead_screener_firstname, self.lead_screener_lastname)
+    
+    lead_screener = property(_get_lead_screener)    
+    
+    def _get_lab_head(self):
+        "Returns the LH  full name."
+        return '%s %s' % (self.lab_head_firstname, self.lab_head_lastname)
+    
+    lab_head = property(_get_lab_head)
 
     def __unicode__(self):
         return unicode(self.facility_id)
@@ -413,4 +447,101 @@ class DataPoint(models.Model):
 del _CHAR, _TEXT, _INTEGER
 del _NULLOKSTR, _NOTNULLSTR
 
+def get_properties(obj):
+    """
+    Custom method to grab all of the fields _and_ properties on model instances
+    """
+    
+    attrs     = {}
+    MethodWrapperType = type(object().__hash__)
+
+    for slot in dir(obj):
+        try:
+            attr = getattr(obj, slot)
+
+            if ( slot.find('_') == 0 or slot == '__dict__' or slot == '__class__' 
+                 or slot == '__doc__' 
+                 or  slot == '__module__' 
+                 or (isinstance(attr, types.BuiltinMethodType) or 
+                  isinstance(attr, MethodWrapperType))
+                 or (isinstance(attr, types.MethodType) or
+                  isinstance(attr, types.FunctionType))
+                or isinstance(attr, types.TypeType)):
+                continue
+            else:
+                attrs[slot] = attr
+        except Exception, e:
+            logger.debug(str(('can not introspect',e)))
+    return attrs
+def get_listing(model_object, search_tables):
+    """
+    returns an ordered dict of field_name->{value:value,fieldinformation:}
+    to be used to display the item in the UI Listing views
+    """
+    return get_fielddata(model_object, search_tables, False)
+
+def get_detail(model_object, search_tables):
+    """
+    returns an ordered dict of field_name->{value:value,fieldinformation:}
+    to be used to display the item in the UI Detail views
+    """
+    return get_fielddata(model_object, search_tables, True)
+
+def get_fielddata(model_object, search_tables, is_detail=False):
+    """
+    returns an ordered dict of field_name->{value:value,fieldinformation:}
+    to be used to display the item in the UI Detail views
+    """
+    #dump(self.dataset)
+    #data=model_to_dict(self.dataset)
+    property_dict = get_properties(model_object)
+    ui_dict = {}
+    for field,value in property_dict.iteritems():
+        details = {}
+        try:
+            fi = FieldInformation.manager.get_column_fieldinformation_by_priority(field,search_tables)
+            if((is_detail and fi.show_in_detail) or
+               (not is_detail and fi.show_in_list)):
+                details['fieldinformation'] = fi
+                details['value'] = value
+                ui_dict[field] = details
+                #ui_dict[fi.get_verbose_name()] = value
+            else:
+                logger.info(str(('field not shown in this view: is_detail',is_detail, field,value)))
+        except (ObjectDoesNotExist,MultipleObjectsReturned) as e:
+            logger.info(str(('no field information defined for: ', field, value)))
+    ui_dict = OrderedDict(sorted(ui_dict.items(), key=lambda x: x[1]['fieldinformation'].order))
+    return ui_dict
+    #return self.DatasetForm(data)
    
+def get_detail_bundle(obj,tables_to_search):
+    """
+    returns a bundle (dict of {verbose_name->value}) for the object, using fieldinformation to 
+    determine fields to show, and to find the verbose names
+    """
+    detail = get_detail(obj, tables_to_search)
+    data = {}
+    for entry in detail.values():
+        data[entry['fieldinformation'].get_verbose_name()]=entry['value']
+    return data
+
+def get_detail_schema(obj,tables_to_search):
+    """
+    returns a schema (a dictionary: {fieldinformation.verbose_name -> {field information}) 
+    for the api
+    """
+    meta_field_info = get_listing(FieldInformation(),['fieldinformation'])
+    
+    detail = get_detail(obj, tables_to_search)
+    fields = {}
+    for entry in detail.values():
+        fi = entry['fieldinformation']
+        field_schema_info = {}
+        for item in meta_field_info.items():
+            meta_fi_attr = item[0]
+            meta_fi = item[1]['fieldinformation']
+            
+            field_schema_info[meta_fi.get_verbose_name()] = getattr(fi,meta_fi_attr)
+             
+        fields[fi.get_verbose_name()]= field_schema_info
+    return fields

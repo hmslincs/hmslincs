@@ -7,6 +7,7 @@ from django.db import models
 from django.db import connection
 from django.forms.models import model_to_dict
 from django.forms import ModelForm
+from django.forms import Field
 from django.http import Http404
 from django.utils.safestring import mark_safe
 from django.http import HttpResponse
@@ -19,16 +20,21 @@ from django_tables2 import RequestConfig
 from django_tables2.utils import A  # alias for Accessor
 
 from db.models import SmallMolecule, SmallMoleculeBatch, Cell, Protein, DataSet, Library, FieldInformation
-# --------------- View Functions -----------------------------------------------
+from db.models import get_detail
+from collections import OrderedDict
 
 import logging
+
 logger = logging.getLogger(__name__)
 APPNAME = 'db',
 facility_salt_id = " sm.facility_id || '-' || sm.salt_id " # Note: because we have a composite key for determining unique sm structures, we need to do this
 
+from dump_obj import dumpObj
 def dump(obj):
-    for attr in dir(obj):
-        print "%s = %s" % (attr, getattr(obj, attr))
+    dumpObj(obj)
+
+
+# --------------- View Functions -----------------------------------------------
 
 def get_integer(stringValue):
     try:
@@ -40,10 +46,13 @@ def get_integer(stringValue):
 def main(request):
     search = request.GET.get('search','')
     if(search != ''):
-        queryset = SiteSearchManager().search(search);
-        table = SiteSearchTable(queryset)
-        RequestConfig(request, paginate={"per_page": 25}).configure(table)
-        return render(request, 'db/index.html', {'table': table, 'search':search })
+        queryset = SiteSearchManager().search(search, is_authenticated=request.user.is_authenticated());
+        if(len(queryset) > 0):
+            table = SiteSearchTable(queryset)
+            RequestConfig(request, paginate={"per_page": 25}).configure(table)
+            return render(request, 'db/index.html', {'table': table, 'search':search })
+        else:
+            return render(request, 'db/index.html')
     else:
         return render(request, 'db/index.html')
 
@@ -90,7 +99,7 @@ def cellDetail(request, facility_id):
             return HttpResponse('Log in required.', status=401)
     except Cell.DoesNotExist:
         raise Http404
-    return render(request, 'db/cellDetail.html', {'object': CellForm(data=model_to_dict(cell))})
+    return render(request, 'db/cellDetail.html', {'object': get_detail(cell, ['cell',''])})
 
 # TODO REFACTOR, DRY... 
 def proteinIndex(request):
@@ -136,7 +145,7 @@ def proteinDetail(request, lincs_id):
             return HttpResponse('Log in required.', status=401)
     except Protein.DoesNotExist:
         raise Http404
-    return render(request, 'db/proteinDetail.html', {'object': ProteinForm(data=model_to_dict(protein))})
+    return render(request, 'db/proteinDetail.html', {'object': get_detail(protein, ['protein',''])})
 
 def smallMoleculeIndex(request):
     search = request.GET.get('search','')
@@ -161,7 +170,7 @@ def smallMoleculeDetail(request, facility_salt_id):
             return HttpResponse('Log in required.', status=401)
     except SmallMolecule.DoesNotExist:
         raise Http404
-    return render(request,'db/smallMoleculeDetail.html', {'object': SmallMoleculeForm(data=model_to_dict(sm))})
+    return render(request,'db/smallMoleculeDetail.html', {'object': get_detail(sm, ['smallmolecule',''])})
 
 def libraryIndex(request):
     search = request.GET.get('search','')
@@ -180,12 +189,14 @@ def libraryDetail(request, short_name):
         library = Library.objects.get(short_name=short_name)
         if(library.is_restricted and not request.user.is_authenticated()):
             return HttpResponse('Unauthorized', status=401)
+        response_dict = {'object': get_detail(library, ['library',''])}
         queryset = SmallMoleculeSearchManager().search(library_id=library.id);
-        table = SmallMoleculeTable(queryset, show_plate_well=True)
+        if(len(queryset)>0): 
+            table = SmallMoleculeTable(queryset, show_plate_well=True)
+            response_dict[table]=table
+        return render(request,'db/libraryDetail.html', response_dict)
     except Library.DoesNotExist:
         raise Http404
-    return render(request,'db/libraryDetail.html', {'object': LibraryForm(data=model_to_dict(library)),
-                                                         'table': table})
 
 def studyIndex(request):
     return screenIndex(request, 'study' )
@@ -267,11 +278,18 @@ def screenDetailProteins(request, facility_id):
 def screenDetailResults(request, facility_id):
     try:
         details = screenDetail(request,facility_id)
+
+        outputType = request.GET.get('output_type','')
+        if(outputType != ''):
+            table = details['table']
+            return send_to_file(outputType, 'dataset_'+str(facility_id), table, table.data, request )
+
         return render(request,'db/screenDetailResults.html', details)
     except Http401, e:
         return HttpResponse('Unauthorized', status=401)
 
 def screenDetail(request, facility_id):
+    logger.error('----------------------------------------test!!!==================')
     try:
         dataset = DataSet.objects.get(facility_id=facility_id)
         if(dataset.is_restricted and not request.user.is_authenticated()):
@@ -279,147 +297,29 @@ def screenDetail(request, facility_id):
     except DataSet.DoesNotExist:
         raise Http404
 
-    dataset_id = dataset.id
-    
-    cell_queryset = cells_for_dataset(dataset_id)
-    cellTable = CellTable(cell_queryset)
-    show_cells=len(cell_queryset)>0  # TODO pass in show_cells!
+    # TODO: remove this and use left join in manager
+    manager = DataSetManager(dataset)
 
-    protein_queryset = proteins_for_dataset(dataset_id)
-    proteinTable = ProteinTable(protein_queryset)
-    show_proteins=len(protein_queryset)>0 # TODO pass in show_proteins!
+    cellTable = None
+    if(manager.has_cells()):
+        cellTable = CellTable(manager.cell_queryset)
+        RequestConfig(request, paginate={"per_page": 25}).configure(cellTable)
+    proteinTable = None
+    if(manager.has_proteins()):
+        proteinTable = ProteinTable(manager.protein_queryset)
+        RequestConfig(request, paginate={"per_page": 25}).configure(proteinTable)
 
     # TODO: are the screen results gonna be searchable? (no, not for now, but if so, we would look at the search string here)
     # search = request.GET.get('search','')
     
-    
-    table = get_dataset_result_table(dataset_id, is_authenticated=request.user.is_authenticated(), **{'show_cells':show_cells, 'show_proteins':show_proteins})
-
+    table = manager.get_table(request.user.is_authenticated())
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
-    RequestConfig(request, paginate={"per_page": 25}).configure(cellTable)
-    RequestConfig(request, paginate={"per_page": 25}).configure(proteinTable)
-    return {'object': DataSetForm(data=model_to_dict(dataset)),
+    return {'object': get_detail(manager.dataset, ['dataset','']),
            'table': table,
            'cellTable': cellTable,
            'proteinTable': proteinTable,
            'facilityId': facility_id,
            'type':getDatasetType(facility_id)}
-
-
-def get_dataset_result_table(dataset_id, is_authenticated=False, **kwargs):
-    """
-    generate a django tables2 table
-    TODO: move the logic out of the view: so that it can be shared with the tastypie api (or make this rely on tastypie)
-    """
-    if(not 'show_cells' in kwargs):
-        cell_queryset = cells_for_dataset(dataset_id)
-        show_cells=len(cell_queryset)>0  # TODO pass in show_cells!
-    else:
-        show_cells = kwargs['show_cells']
-    
-    if(not 'show_proteins' in kwargs):
-        protein_queryset = proteins_for_dataset(dataset_id)
-        show_proteins=len(protein_queryset)>0 # TODO pass in show_proteins!
-    else:
-        show_proteins = kwargs['show_proteins']
-    #return get_dataset_result_queryset1(dataset_id,show_cells,show_proteins,is_authenticated)['table']
-
-#def get_dataset_result_table(dataset_id, show_cells, show_proteins,is_authenticated=False):
-#    return get_dataset_result_queryset1(dataset_id, show_cells, show_proteins,is_authenticated)['table']
-
-
-#def get_dataset_result_queryset1(dataset_id, show_cells, show_proteins, is_authenticated=False):
-        
-    datacolumns = get_dataset_columns(dataset_id)
-    # Create a query on the fly that pivots the values from the datapoint table, making one column for each datacolumn type
-    # use the datacolumns to make a query on the fly (for the DataSetResultSearchManager), and make a DataSetResultSearchTable on the fly.
-    #dataColumnCursor = connection.cursor()
-    #dataColumnCursor.execute("SELECT id, name, data_type, precision from db_datacolumn where dataset_id = %s order by id asc", [dataset_id])
-    logger.debug(str(('dataset columns:', datacolumns)))
-
-    # Need to construct something like this:
-    # select distinct (datarecord_id), smallmolecule_id, sm.facility_id || '-' || sm.salt_id as facility_id,
-    #        (select int_value as col1 from db_datapoint dp1 where dp1.datacolumn_id=2 and dp1.datarecord_id = dp0.datarecord_id) as col1, 
-    #        (select int_value as col2 from db_datapoint dp2 where dp2.datarecord_id=dp0.datarecord_id and dp2.datacolumn_id=3) as col2 
-    #        from db_datapoint dp0 join db_datarecord dr on(datarecord_id=dr.id) join db_smallmoleculebatch smb on(smb.id=dr.smallmolecule_batch_id) join db_smallmolecule sm on(sm.id=smb.smallmolecule_id) 
-    #        where dp0.dataset_id = 1 order by datarecord_id;
-    
-    queryString = "select distinct (datarecord_id) as datarecord_id, sm.id as smallmolecule_id ,"
-    queryString += " 'HMSL' || sm.facility_id || '-' || sm.salt_id || '-' || smb.facility_batch_id as facility_id, "
-    queryString += facility_salt_id +' as facility_salt_id' # Note: because we have a composite key for determining unique sm structures, we need to do this
-
-    if(show_cells): queryString += ", cell_id, cell.name as cell_name, cell.facility_id as cell_facility_id " 
-    if(show_proteins): queryString += ", protein_id, protein.name as protein_name, protein.lincs_id as protein_lincs_id " 
-    i = 0
-    names = {}
-    orderedNames = ['facility_id']
-    for datacolumn_id, name, datatype, precision in datacolumns:
-        i += 1
-        alias = "dp"+str(i)
-        columnName = "col" + str(i)
-        names[columnName] = name
-        orderedNames.append(columnName)
-        column_to_select = None
-        if(datatype == 'Numeric'):
-            if precision == 0:
-                column_to_select = "int_value"
-            else:
-                column_to_select = "float_value"
-        else:
-            column_to_select = "text_value"
-        # TODO: use params
-        queryString +=  (",(select " + column_to_select + " from db_datapoint " + alias + 
-                            " where " + alias + ".datacolumn_id="+str(datacolumn_id) + " and " + alias + ".datarecord_id=dp0.datarecord_id) as " + columnName )
-    queryString += " from db_datapoint dp0 join db_datarecord dr on(datarecord_id=dr.id) join db_smallmoleculebatch smb on(smb.id=dr.smallmolecule_batch_id) "
-    queryString += " join db_smallmolecule sm on(smb.smallmolecule_id = sm.id) "
-    if(show_cells): 
-        queryString += " join db_cell cell on(cell.id=dr.cell_id) "
-        orderedNames.insert(1,'cell_name')
-    if(show_proteins): 
-        queryString += " join db_protein protein on(protein.id=dr.protein_id) "
-        orderedNames.insert(1,'protein_name')
-    queryString += " where dp0.dataset_id = " + str(dataset_id)
-    if(not is_authenticated): 
-        queryString += " and not sm.is_restricted "
-        if(show_proteins):
-            queryString += " and not protein.is_restricted "
-        if(show_cells):
-            queryString += " and not cell.is_restricted " 
-    queryString += " order by datarecord_id"
-    orderedNames.append('...') # is this necessary?
-    
-    logger.info(str(('orderedNames',orderedNames)))
-    logger.info(str(('names',names)))
-    queryset = DataSetResultSearchManager().search(queryString);
-    table = DataSetResultTable(queryset, names, orderedNames, show_cells, show_proteins)
-    logger.info(str(('table',table)))
-    return table # todo, redo this, once the tastypie integration is figured out
-
-#---------------Supporting classes and functions--------------------------------
-def get_dataset_columns(dataset_id):
-    # Create a query on the fly that pivots the values from the datapoint table, making one column for each datacolumn type
-    # use the datacolumns to make a query on the fly (for the DataSetResultSearchManager), and make a DataSetResultSearchTable on the fly.
-    dataColumnCursor = connection.cursor()
-    dataColumnCursor.execute("SELECT id, name, data_type, precision from db_datacolumn where dataset_id = %s order by id asc", [dataset_id])
-    return dataColumnCursor.fetchall()
-
-def get_dataset_column_names(dataset_id):
-    column_names = []
-    for datacolumn_id, name, datatype, precision in get_dataset_columns(dataset_id):
-        column_names.append(name)
-    return column_names
-    
-def cells_for_dataset(dataset_id):
-    cursor = connection.cursor()
-    sql = 'select cell.* from db_cell cell where cell.id in (select distinct(cell_id) from db_datarecord dr where dr.dataset_id=%s) order by cell.name'
-    cursor.execute(sql, [dataset_id])
-    return dictfetchall(cursor)
-
-def proteins_for_dataset(dataset_id):
-    cursor = connection.cursor()
-    sql = 'select protein.* from db_protein protein where protein.id in (select distinct(protein_id) from db_datarecord dr where dr.dataset_id=%s) order by protein.name'
-    cursor.execute(sql, [dataset_id])
-    return dictfetchall(cursor)
 
 class SnippetColumn(tables.Column):
     def render(self, value):
@@ -432,6 +332,216 @@ class TypeColumn(tables.Column):
         elif value == "screen_detail": return "Screen"
         elif value == "protein_detail": return "Protein"
         else: raise Exception("Unknown type: "+value)
+        
+        
+
+class DataSetTable(tables.Table):
+    id = tables.Column(visible=False)
+    facility_id = tables.LinkColumn("screen_detail", args=[A('facility_id')])
+    protocol = tables.Column(visible=False) 
+    references = tables.Column(visible=False)
+    rank = tables.Column()
+    snippet = SnippetColumn()
+#    snippet_def = ("coalesce(facility_id,'') || ' ' || coalesce(title,'') || ' ' || coalesce(summary,'') || ' ' || coalesce(lead_screener_firstname,'') || ' ' || coalesce(lead_screener_lastname,'')|| ' ' || coalesce(lead_screener_email,'') || ' ' || "  +           
+#                   "coalesce(lab_head_firstname,'') || ' ' || coalesce(lab_head_lastname,'')|| ' ' || coalesce(lab_head_email,'')")
+    snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce("+x.field+",'') ", FieldInformation.manager.get_search_fields(DataSet))))
+    class Meta:
+        model = DataSet
+        orderable = True
+        attrs = {'class': 'paleblue'}
+        #exclude = ('id','lead_screener_email','lead_screener_firstname','lead_screener_lastname','lab_head_firstname','lab_head_lastname','lab_head_email','protocol_references','is_restricted','rank','snippet') 
+
+    def __init__(self, table):
+        super(DataSetTable, self).__init__(table)
+        
+        set_table_column_info(self, ['dataset',''])  
+
+        
+# NOTE: this class doesn't have to override models.Manager, since it won't be used on 
+# a particular model.
+class DataSetManager():
+
+    exclude_detail = ('lead_screener_firstname','lead_screener_lastname','lead_screener_email') 
+    
+    def __init__(self,dataset,is_authenticated=False):
+        self.dataset = dataset
+        self.dataset_id = dataset.id
+        self.cell_queryset = self.cells_for_dataset(self.dataset_id)  # TODO: use ORM
+        self.protein_queryset = self.proteins_for_dataset(self.dataset_id)
+                
+    class DatasetForm(ModelForm):
+        class Meta:
+            model = DataSet           
+            order = ('facility_id', '...')
+            exclude = ('id', 'molfile') 
+
+
+
+        
+    class DataSetResultTable(tables.Table):
+        """
+        Override of the tables.Table - columns are defined manually to conform to the DataSetManager query fields; 
+        fields are added as Table "base_columns" in the __init__ method.
+        # TODO: the cursor is converted to a list of dicts, all in memory; implement pagination
+        # TODO: Augment each column/verbose_name with column info for each of the dataset fields, 
+        just like set_table_column_info does with the fieldinformation class 
+        """
+        id = tables.Column(visible=False)
+        facility_id = tables.LinkColumn('sm_detail', args=[A('facility_salt_id')], verbose_name='Facility ID')
+        cell_name = tables.LinkColumn('cell_detail',args=[A('cell_facility_id')], visible=False, verbose_name='Cell Name') 
+        protein_name = tables.LinkColumn('protein_detail',args=[A('protein_lincs_id')], visible=False, verbose_name='Protein Name') 
+        class Meta:
+            orderable = True
+            attrs = {'class': 'paleblue'}
+        
+        def __init__(self, queryset, names_to_columns, ordered_names, show_cells, show_proteins, *args, **kwargs):
+    
+            logger.info(str(('names_to_columns', names_to_columns, 'orderedNames', ordered_names)))
+            for name,verbose_name in names_to_columns.items():
+                logger.info(str(('create column:',name,verbose_name)))
+                self.base_columns[name] = tables.Column(verbose_name=verbose_name)
+            if(show_cells):
+                self.base_columns['cell_name'].visible = True
+            if(show_proteins):
+                self.base_columns['protein_name'].visible = True
+            logger.info(str(('base columns:', self.base_columns)))
+            # Field information section: TODO: for the datasetcolumns, use the database information for these.
+            # set_table_column_info(self, ['smallmolecule','cell','protein',''])  
+    
+            # TODO: why does this work with the super call last?  Keep an eye on forums for creating dynamic columns with tables2
+            # for instance: https://github.com/bradleyayers/django-tables2/issues/70
+            super(DataSetManager.DataSetResultTable, self).__init__(queryset, *args, **kwargs)
+            self.sequence = ordered_names
+    
+    def has_cells(self):
+        return len(self.cell_queryset) > 0
+    
+    def has_proteins(self):
+        return len(self.protein_queryset) > 0
+    
+    def get_table(self, is_authenticated=False):
+        
+        dataset_info = self._get_query_info(is_authenticated)
+        cursor = connection.cursor()
+        cursor.execute(dataset_info.query_sql)
+        # TODO: all dictfetchall calls to be replaced with pageable cursor implementation
+    
+        queryset = dictfetchall(cursor)
+        #queryset = manager.get_dataset_result_table(dataset_id, is_authenticated=request.user.is_authenticated(), **{'show_cells':show_cells, 'show_proteins':show_proteins})
+        table = self.DataSetResultTable(queryset, dataset_info.columns_to_names, dataset_info.ordered_names, self.has_cells(), self.has_proteins())
+        return table
+    
+    class DatasetInfo:
+        names_to_columns = {}
+        ordered_names = []
+        query_sql = ''
+    
+    def _get_query_info(self, is_authenticated=False):
+        """
+        generate a django tables2 table
+        TODO: move the logic out of the view: so that it can be shared with the tastypie api (or make this rely on tastypie)
+        """
+    
+        datacolumns = self.get_dataset_columns(self.dataset.id)
+        # Create a query on the fly that pivots the values from the datapoint table, making one column for each datacolumn type
+        # use the datacolumns to make a query on the fly (for the DataSetManager), and make a DataSetResultSearchTable on the fly.
+        #dataColumnCursor = connection.cursor()
+        #dataColumnCursor.execute("SELECT id, name, data_type, precision from db_datacolumn where dataset_id = %s order by id asc", [dataset_id])
+        logger.debug(str(('dataset columns:', datacolumns)))
+    
+        # Need to construct something like this:
+        # select distinct (datarecord_id), smallmolecule_id, sm.facility_id || '-' || sm.salt_id as facility_id,
+        #        (select int_value as col1 from db_datapoint dp1 where dp1.datacolumn_id=2 and dp1.datarecord_id = dp0.datarecord_id) as col1, 
+        #        (select int_value as col2 from db_datapoint dp2 where dp2.datarecord_id=dp0.datarecord_id and dp2.datacolumn_id=3) as col2 
+        #        from db_datapoint dp0 join db_datarecord dr on(datarecord_id=dr.id) join db_smallmoleculebatch smb on(smb.id=dr.smallmolecule_batch_id) join db_smallmolecule sm on(sm.id=smb.smallmolecule_id) 
+        #        where dp0.dataset_id = 1 order by datarecord_id;
+        
+        queryString = "select distinct (datarecord_id) as datarecord_id, sm.id as smallmolecule_id ,"
+        queryString += " 'HMSL' || sm.facility_id || '-' || sm.salt_id || '-' || smb.facility_batch_id as facility_id, "
+        queryString += facility_salt_id +' as facility_salt_id' # Note: because we have a composite key for determining unique sm structures, we need to do this
+        
+        show_cells = self.has_cells()
+        show_proteins = self.has_proteins()
+        if(show_cells): queryString += ", cell_id, cell.name as cell_name, cell.facility_id as cell_facility_id " 
+        if(show_proteins): queryString += ", protein_id, protein.name as protein_name, protein.lincs_id as protein_lincs_id " 
+        i = 0
+        columns_to_names = {}
+        orderedNames = ['facility_id']
+        for datacolumn_id, name, datatype, precision in datacolumns:
+            i += 1
+            alias = "dp"+str(i)
+            columnName = "col" + str(i)
+            columns_to_names[columnName] = name
+            orderedNames.append(columnName)
+            column_to_select = None
+            if(datatype == 'Numeric'):
+                if precision == 0:
+                    column_to_select = "int_value"
+                else:
+                    column_to_select = "float_value"
+            else:
+                column_to_select = "text_value"
+            # TODO: use params
+            queryString +=  (",(select " + column_to_select + " from db_datapoint " + alias + 
+                                " where " + alias + ".datacolumn_id="+str(datacolumn_id) + " and " + alias + ".datarecord_id=dp0.datarecord_id) as " + columnName )
+        queryString += " from db_datapoint dp0 join db_datarecord dr on(datarecord_id=dr.id) join db_smallmoleculebatch smb on(smb.id=dr.smallmolecule_batch_id) "
+        queryString += " join db_smallmolecule sm on(smb.smallmolecule_id = sm.id) "
+        if(self.has_cells()): 
+            queryString += " join db_cell cell on(cell.id=dr.cell_id) " # TODO: change to left join
+            orderedNames.insert(1,'cell_name')
+        if(self.has_proteins()): 
+            queryString += " join db_protein protein on(protein.id=dr.protein_id) " # TODO: change to left join
+            orderedNames.insert(1,'protein_name')
+        queryString += " where dp0.dataset_id = " + str(self.dataset.id)
+        if(not is_authenticated): 
+            queryString += " and not sm.is_restricted "
+            if(show_proteins):
+                queryString += " and not protein.is_restricted "
+            if(show_cells):
+                queryString += " and not cell.is_restricted " 
+        queryString += " order by datarecord_id"
+        orderedNames.append('...') # is this necessary?
+        
+        logger.info(str(('orderedNames',orderedNames)))
+        logger.info(str(('columns_to_names',columns_to_names)))
+    
+        if(logger.isEnabledFor(logging.DEBUG)): logger.debug( "queryString: "+ queryString)
+        
+        dataset_info = self.DatasetInfo()
+        dataset_info.columns_to_names = columns_to_names
+        dataset_info.ordered_names = orderedNames
+        dataset_info.query_sql = queryString
+        
+        return dataset_info
+   
+
+    #---------------Supporting classes and functions--------------------------------
+    def get_dataset_columns(self, dataset_id):
+        # Create a query on the fly that pivots the values from the datapoint table, making one column for each datacolumn type
+        # use the datacolumns to make a query on the fly (for the DataSetManager), and make a DataSetResultSearchTable on the fly.
+        dataColumnCursor = connection.cursor()
+        dataColumnCursor.execute("SELECT id, name, data_type, precision from db_datacolumn where dataset_id = %s order by id asc", [dataset_id])
+        return dataColumnCursor.fetchall()
+    
+    def get_dataset_column_names(self,dataset_id):
+        column_names = []
+        for datacolumn_id, name, datatype, precision in self.get_dataset_columns(dataset_id):
+            column_names.append(name)
+        return column_names
+         
+    def cells_for_dataset(self, dataset_id):
+        cursor = connection.cursor()
+        sql = 'select cell.* from db_cell cell where cell.id in (select distinct(cell_id) from db_datarecord dr where dr.dataset_id=%s) order by cell.name'
+        # TODO: like this: SELECT * FROM TABLE, (SELECT COLUMN FROM TABLE) as dummytable WHERE dummytable.COLUMN = TABLE.COLUMN;
+        cursor.execute(sql, [dataset_id])
+        return dictfetchall(cursor)
+        
+    def proteins_for_dataset(self,dataset_id):
+        cursor = connection.cursor()
+        sql = 'select protein.* from db_protein protein where protein.id in (select distinct(protein_id) from db_datarecord dr where dr.dataset_id=%s) order by protein.name'
+        cursor.execute(sql, [dataset_id])
+        return dictfetchall(cursor)
+                
         
 class SmallMoleculeSearchManager(models.Model):
     
@@ -509,8 +619,8 @@ class SmallMoleculeTable(tables.Table):
         model = SmallMolecule #[SmallMolecule, SmallMoleculeBatch]
         orderable = True
         attrs = {'class': 'paleblue'}
-        sequence = ('facility_id', 'salt_id', 'facility_batch_id', 'name','short_name','...','smiles','inchi')
-        exclude = ('id', 'smallmolecule_id','smallmolecule_batch_id','molfile','rank','snippet','is_restricted','lincs_id') 
+        #sequence = ('facility_id', 'salt_id', 'facility_batch_id', 'name','short_name','...')
+        #exclude = ('id', 'smallmolecule_id','smallmolecule_batch_id','molfile','rank','snippet','is_restricted','lincs_id') 
         
     def __init__(self, table, show_plate_well=False,*args, **kwargs):
         super(SmallMoleculeTable, self).__init__(table)
@@ -522,16 +632,8 @@ class SmallMoleculeTable(tables.Table):
             self.sequence.remove('plate')
             self.sequence.insert(0,'well')
             self.sequence.insert(0,'plate')
-            
-        # Field information section
-        for fieldname,column in self.base_columns.iteritems():
-            try:
-                fi = FieldInformation.manager.get_column_fieldinformation_by_priority(fieldname,['smallmolecule','smallmoleculebatch',''])
-                column.attrs['th']={'title':fi.get_column_detail()}
-                column.verbose_name = fi.get_verbose_name()
-            except (ObjectDoesNotExist) as e:
-                logger.warn(str(('no fieldinformation found for field:', fieldname)))
-                column.attrs['th']={'title': fieldname}
+        sequence_override = ['facility_id', 'salt_id', 'facility_batch_id']
+        set_table_column_info(self, ['smallmolecule','smallmoleculebatch',''],sequence_override)  
             
 class SmallMoleculeForm(ModelForm):
     class Meta:
@@ -558,25 +660,13 @@ class CellTable(tables.Table):
         model = Cell
         orderable = True
         attrs = {'class': 'paleblue'}
-        sequence = ('facility_id', '...')
-        exclude = ('id','recommended_culture_conditions', 'verification_reference_profile', 'mutations_explicit', 'mutations_reference')
+        #sequence = ('facility_id', '...')
+        #exclude = ('id','recommended_culture_conditions', 'verification_reference_profile', 'mutations_explicit', 'mutations_reference')
     def __init__(self, table):
         super(CellTable, self).__init__(table)
-            
-        # Field information section
-        for fieldname,column in self.base_columns.iteritems():
-            try:
-                fi = FieldInformation.manager.get_column_fieldinformation_by_priority(fieldname,['cell',''])
-                column.attrs['th']={'title':fi.get_column_detail()}
-                column.verbose_name = fi.get_verbose_name()
-            except (ObjectDoesNotExist) as e:
-                logger.warn(str(('no fieldinformation found for field:', fieldname)))
-                column.attrs['th']={'title': fieldname}
+        sequence_override = ['facility_id']    
+        set_table_column_info(self, ['cell',''], sequence_override)  
                         
-class CellForm(ModelForm):
-    class Meta:
-        model = Cell  
-        
 class ProteinTable(tables.Table):
     lincs_id = tables.LinkColumn("protein_detail", args=[A('lincs_id')])
     rank = tables.Column()
@@ -586,26 +676,13 @@ class ProteinTable(tables.Table):
         model = Protein
         orderable = True
         attrs = {'class': 'paleblue'}
-        sequence = ('lincs_id', '...')
-        exclude = ('id')
+        #sequence = ('lincs_id', '...')
+        #exclude = ('id')
     
     def __init__(self, table):
         super(ProteinTable, self).__init__(table)
-            
-        # Field information section
-        for fieldname,column in self.base_columns.iteritems():
-            try:
-                fi = FieldInformation.manager.get_column_fieldinformation_by_priority(fieldname,['protein',''])
-                column.attrs['th']={'title':fi.get_column_detail()}
-                column.verbose_name = fi.get_verbose_name()
-            except (ObjectDoesNotExist) as e:
-                logger.warn(str(('no fieldinformation found for field:', fieldname)))
-                column.attrs['th']={'title': fieldname}     
-                
-                        
-class ProteinForm(ModelForm):
-    class Meta:
-        model = Protein        
+        sequence_override = ['lincs_id']    
+        set_table_column_info(self, ['protein',''],sequence_override)  
         
 class LibrarySearchManager(models.Manager):
     
@@ -634,7 +711,7 @@ class LibrarySearchManager(models.Manager):
     
 class LibraryTable(tables.Table):
     id = tables.Column(visible=False)
-    name = tables.LinkColumn("library_detail", args=[A('short_name')])
+    short_name = tables.LinkColumn("library_detail", args=[A('short_name')])
     well_count = tables.Column()
     plate_count = tables.Column()
     rank = tables.Column()
@@ -645,19 +722,10 @@ class LibraryTable(tables.Table):
         orderable = True
         model = Library
         attrs = {'class': 'paleblue'}
-        exclude = {'rank','snippet'}
+        #exclude = {'rank','snippet','is_restricted'}
     def __init__(self, table):
         super(LibraryTable, self).__init__(table)
-            
-        # Field information section
-        for fieldname,column in self.base_columns.iteritems():
-            try:
-                fi = FieldInformation.manager.get_column_fieldinformation_by_priority(fieldname,['library',''])
-                column.attrs['th']={'title':fi.get_column_detail()}
-                column.verbose_name = fi.get_verbose_name()
-            except (ObjectDoesNotExist) as e:
-                logger.warn(str(('no fieldinformation found for field:', fieldname)))
-                column.attrs['th']={'title': fieldname}     
+        set_table_column_info(self, ['library',''],[])  
     
 class LibraryForm(ModelForm):
     class Meta:
@@ -665,25 +733,34 @@ class LibraryForm(ModelForm):
             
 class SiteSearchManager(models.Manager):
     
-    def search(self, queryString):
+    def search(self, queryString, is_authenticated=False):
         cursor = connection.cursor()
         # TODO: build this dynamically, like the rest of the search
         # Notes: MaxFragments=10 turns on fragment based headlines (context for search matches), with MaxWords=20
         # ts_rank_cd(search_vector, query, 32): Normalization option 32 (rank/(rank+1)) can be applied to scale all 
         # ranks into the range zero to one, but of course this is just a cosmetic change; it will not affect the ordering of the search results.
+        sql =   ("SELECT id, facility_id::text, ts_headline(" + CellTable.snippet_def + """, query1, 'MaxFragments=10, MinWords=1, MaxWords=20, FragmentDelimiter=" | "') as snippet, """ + 
+                " ts_rank_cd(search_vector, query1, 32) AS rank, 'cell_detail' as type FROM db_cell, to_tsquery(%s) as query1 WHERE search_vector @@ query1 ") 
+        if(not is_authenticated): 
+            sql += " AND not is_restricted"
+        sql +=  (" UNION " +
+                " SELECT id, " + facility_salt_id + " as facility_id , ts_headline(" + SmallMoleculeTable.snippet_def + """, query2, 'MaxFragments=10, MinWords=1, MaxWords=20, FragmentDelimiter=" | "') as snippet, """ +
+                " ts_rank_cd(search_vector, query2, 32) AS rank, 'sm_detail' as type FROM db_smallmolecule sm, to_tsquery(%s) as query2 WHERE search_vector @@ query2 ")
+        if(not is_authenticated): 
+            sql += " AND not is_restricted"
+        sql +=  (" UNION " +
+                " SELECT id, facility_id::text, ts_headline(" + DataSetTable.snippet_def + """, query3, 'MaxFragments=10, MinWords=1, MaxWords=20, FragmentDelimiter=" | "') as snippet, """ +
+                " ts_rank_cd(search_vector, query3, 32) AS rank, 'screen_detail' as type FROM db_dataset, to_tsquery(%s) as query3 WHERE search_vector @@ query3 " )
+        if(not is_authenticated): 
+            sql += " AND not is_restricted"
+        sql +=  (" UNION " +
+                " SELECT id, lincs_id::text as facility_id, ts_headline(" + ProteinTable.snippet_def + """, query4, 'MaxFragments=10, MinWords=1, MaxWords=20, FragmentDelimiter=" | "') as snippet, """ +
+                " ts_rank_cd(search_vector, query4, 32) AS rank, 'protein_detail' as type FROM db_protein, to_tsquery(%s) as query4 WHERE search_vector @@ query4 ")
+        if(not is_authenticated): 
+            sql += " AND not is_restricted"
+        sql += " ORDER by rank DESC;"
         cursor.execute(
-            "SELECT id, facility_id::text, ts_headline(" + CellTable.snippet_def + """, query1, 'MaxFragments=10, MinWords=1, MaxWords=20, FragmentDelimiter=" | "') as snippet, """ +
-            " ts_rank_cd(search_vector, query1, 32) AS rank, 'cell_detail' as type FROM db_cell, to_tsquery(%s) as query1 WHERE search_vector @@ query1 " +
-            " UNION " +
-            " SELECT id, " + facility_salt_id + " as facility_id , ts_headline(" + SmallMoleculeTable.snippet_def + """, query2, 'MaxFragments=10, MinWords=1, MaxWords=20, FragmentDelimiter=" | "') as snippet, """ +
-            " ts_rank_cd(search_vector, query2, 32) AS rank, 'sm_detail' as type FROM db_smallmolecule sm, to_tsquery(%s) as query2 WHERE search_vector @@ query2 " +
-            " UNION " +
-            " SELECT id, facility_id::text, ts_headline(" + DataSetTable.snippet_def + """, query3, 'MaxFragments=10, MinWords=1, MaxWords=20, FragmentDelimiter=" | "') as snippet, """ +
-            " ts_rank_cd(search_vector, query3, 32) AS rank, 'screen_detail' as type FROM db_dataset, to_tsquery(%s) as query3 WHERE search_vector @@ query3 " +
-            " UNION " +
-            " SELECT id, lincs_id::text as facility_id, ts_headline(" + ProteinTable.snippet_def + """, query4, 'MaxFragments=10, MinWords=1, MaxWords=20, FragmentDelimiter=" | "') as snippet, """ +
-            " ts_rank_cd(search_vector, query4, 32) AS rank, 'protein_detail' as type FROM db_protein, to_tsquery(%s) as query4 WHERE search_vector @@ query4 " +
-            " ORDER by rank DESC;", [queryString + ":*", queryString + ":*", queryString + ":*", queryString + ":*"])
+                       sql , [queryString + ":*", queryString + ":*", queryString + ":*", queryString + ":*"])
         return dictfetchall(cursor)
 
 class SiteSearchTable(tables.Table):
@@ -698,84 +775,44 @@ class SiteSearchTable(tables.Table):
         attrs = {'class': 'paleblue'}
         exclude = {'rank'}
 
-class DataSetTable(tables.Table):
-    id = tables.Column(visible=False)
-    facility_id = tables.LinkColumn("screen_detail", args=[A('facility_id')])
-    protocol = tables.Column(visible=False) 
-    references = tables.Column(visible=False)
-    rank = tables.Column()
-    snippet = SnippetColumn()
-#    snippet_def = ("coalesce(facility_id,'') || ' ' || coalesce(title,'') || ' ' || coalesce(summary,'') || ' ' || coalesce(lead_screener_firstname,'') || ' ' || coalesce(lead_screener_lastname,'')|| ' ' || coalesce(lead_screener_email,'') || ' ' || "  +           
-#                   "coalesce(lab_head_firstname,'') || ' ' || coalesce(lab_head_lastname,'')|| ' ' || coalesce(lab_head_email,'')")
-    snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce("+x.field+",'') ", FieldInformation.manager.get_search_fields(DataSet))))
-    class Meta:
-        model = DataSet
-        orderable = True
-        attrs = {'class': 'paleblue'}
-        exclude = ('id') 
-
-    def __init__(self, table):
-        super(DataSetTable, self).__init__(table)
-          
-        # Field information section
-        for fieldname,column in self.base_columns.iteritems():
-            try:
-                fi = FieldInformation.manager.get_column_fieldinformation_by_priority(fieldname,['dataset',''])
-                column.attrs['th']={'title':fi.get_column_detail()}
-                column.verbose_name = fi.get_verbose_name()
-            except (ObjectDoesNotExist) as e:
-                logger.warn(str(('no fieldinformation found for field:', fieldname)))
-                column.attrs['th']={'title': fieldname}     
-
-class DataSetForm(ModelForm):
-    class Meta:
-        model = DataSet  
         
-class DataSetResultSearchManager(models.Manager):
-    
-    def search(self, queryString ): # TODO: pass the parameters for the SQL as well
-        cursor = connection.cursor()
-        logger.info( "queryString: "+ queryString)
-        cursor.execute(queryString)
-
-        return dictfetchall(cursor)
-  
 TEMPLATE = '''
    <a href="#" onclick='window.open("https://lincs-omero.hms.harvard.edu/webclient/img_detail/{{ record.%s }}", "test","height=700,width=800")' >{{ record.%s }}</a>
 '''
             
-class DataSetResultTable(tables.Table):
-    id = tables.Column(visible=False)
-    facility_id = tables.LinkColumn('sm_detail', args=[A('facility_salt_id')], verbose_name='Facility ID')
-    cell_name = tables.LinkColumn('cell_detail',args=[A('cell_facility_id')], visible=False, verbose_name='Cell Name') 
-    protein_name = tables.LinkColumn('protein_detail',args=[A('protein_lincs_id')], visible=False, verbose_name='Protein Name') 
-    class Meta:
-        orderable = True
-        attrs = {'class': 'paleblue'}
-    
-    def __init__(self, queryset, names, orderedNames, show_cells, show_proteins, *args, **kwargs):
 
-        for name,verbose_name in names.items():
-            logger.info(str(('create column:',name,verbose_name)))
-            self.base_columns[name] = tables.Column(verbose_name=verbose_name)
-        self.sequence = orderedNames
-        if(show_cells):
-            self.base_columns['cell_name'].visible = True
-        if(show_proteins):
-            self.base_columns['protein_name'].visible = True
-        logger.info(str(('base columns:', self.base_columns)))
-        # Field information section: TODO: for the datasetcolumns, use the database information for these.
-        for fieldname,column in self.base_columns.iteritems():
-            try:
-                fi = FieldInformation.manager.get_column_fieldinformation_by_priority(fieldname,['smallmolecule','cell','protein'])
+def set_table_column_info(table,table_names, sequence_override=[]):
+    """
+    Field information section
+    param: table: a django-tables2 table
+    param: table_names: a list of table names, by order of priority, include '' empty string for a general search.
+    """ 
+    fields = OrderedDict()
+    exclude_list = [x for x in table.exclude]
+    for fieldname,column in table.base_columns.iteritems():
+        try:
+            fi = FieldInformation.manager.get_column_fieldinformation_by_priority(fieldname,table_names)
+            if(not fi.show_in_list):
+                if(fieldname not in exclude_list):
+                    exclude_list.append(fieldname)
+            else:
                 column.attrs['th']={'title':fi.get_column_detail()}
                 column.verbose_name = fi.get_verbose_name()
-            except (ObjectDoesNotExist) as e:
-                logger.warn(str(('no fieldinformation found for field:', fieldname)))
-                column.attrs['th']={'title': fieldname}          
-        # TODO: why does this work with the super call last?  Keep an eye on threads for creating dynamic columns with tables2
-        # for instance: https://github.com/bradleyayers/django-tables2/issues/70
-        super(DataSetResultTable, self).__init__(queryset, *args, **kwargs)
+                fields[fieldname] = fi
+        except (ObjectDoesNotExist) as e:
+            logger.warn(str(('no fieldinformation found for field:', fieldname)))
+            if(fieldname not in exclude_list):
+                exclude_list.append(fieldname)
+            #column.attrs['th']={'title': fieldname}  
+        
+    fields = OrderedDict(sorted(fields.items(), key=lambda x: x[1].order))
+    logger.info(str(('fields',fields)))
+    sequence = filter(lambda x: x not in sequence_override, [x for x in fields.keys()])
+    sequence_override.extend(sequence)
+    table.exclude = tuple(exclude_list)
+    table.sequence = sequence_override
+    logger.info(str(('excl',table.exclude)))
+    logger.info(str(('seq',table.sequence)))
         
 def dictfetchall(cursor): #TODO modify this to stream results properly
     "Returns all rows from a cursor as a dict"
@@ -785,13 +822,21 @@ def dictfetchall(cursor): #TODO modify this to stream results properly
     ]
 
 def send_to_file(outputType, name, table, queryset, request):
-    columns = map(lambda (x,y): x, filter(lambda (x,y): x != 'rank' and x!= 'snippet' and y.visible, table.base_columns.items()))
+    # ordered list (field,verbose_name)
+    columns = map(lambda (x,y): (x, y.verbose_name), filter(lambda (x,y): x != 'rank' and x!= 'snippet' and y.visible, table.base_columns.items()))
+    columnsOrdered = []
+    for col in table._sequence:
+        for (field,verbose_name) in columns:
+            if(field==col):
+                columnsOrdered.append((field,verbose_name))
+                break
+            
     #print 'return as ', outputType, ", columns: ", columns 
 
     if(outputType == 'csv'):
-        return export_as_csv(name,columns , request, queryset)
+        return export_as_csv(name,columnsOrdered , request, queryset)
     elif(outputType == 'xls'):
-        return export_as_xls(name, columns, request, queryset)
+        return export_as_xls(name, columnsOrdered, request, queryset)
  
 def export_as_xls(name,columnNames, request, queryset):
     """
@@ -802,14 +847,14 @@ def export_as_xls(name,columnNames, request, queryset):
     
     wbk = xlwt.Workbook()
     sheet = wbk.add_sheet('sheet 1')    # Write a first row with header information
-    for i, column in enumerate(columnNames):
-        sheet.write(0, i, columnNames[i])
+    for i, (field,verbose_name) in enumerate(columnNames):
+        sheet.write(0, i, verbose_name)
     # Write data rows
     for row,obj in enumerate(queryset):
         if isinstance(obj, dict):
-            vals = [obj[field] for field in columnNames]
+            vals = [obj[field] for (field,verbose_name) in columnNames]
         else:
-            vals = [getattr(obj, field) for field in columnNames]
+            vals = [getattr(obj, field) for (field,verbose_name) in columnNames]
         
         for i,column in enumerate(vals):
             sheet.write(row+1, i, column )
@@ -824,11 +869,11 @@ def export_as_csv(name,columnNames, request, queryset):
     response['Content-Disposition'] = 'attachment; filename=%s.csv' % unicode(name).replace('.', '_')
     writer = csv.writer(response)
     # Write a first row with header information
-    writer.writerow(columnNames)
+    writer.writerow([verbose_name for (field,verbose_name) in columnNames])
     # Write data rows
     for obj in queryset:
         if isinstance(obj, dict):
-            writer.writerow([obj[field] for field in columnNames])
+            writer.writerow([obj[field] for (field,verbose_name) in columnNames])
         else:
-            writer.writerow([getattr(obj, field) for field in columnNames])
+            writer.writerow([getattr(obj, field) for (field,verbose_name) in columnNames])
     return response
