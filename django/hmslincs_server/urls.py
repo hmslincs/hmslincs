@@ -55,11 +55,11 @@ urlpatterns = patterns('',
     
     (r'^db/api/', include(v1_api.urls)),
 
-    (r'^pathway/$', 'django.views.static.serve',
+    (r'^explore/pathway/$', 'django.views.static.serve',
      {'path': 'index.html',
       'document_root': op.join(_djangopath, 'pathway', 'static', 'pathway')}),
 
-    (r'^responses/$', 'django.views.generic.simple.direct_to_template',
+    (r'^explore/responses/$', 'django.views.generic.simple.direct_to_template',
      {'template': 'responses/index.html'}),
 )
 
