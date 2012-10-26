@@ -9,3 +9,4 @@ temp/*
 .pydevproject
 .settings/*
 bak/*
+.DS_Store
