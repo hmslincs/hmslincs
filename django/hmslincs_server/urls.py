@@ -59,9 +59,8 @@ urlpatterns = patterns('',
      {'path': 'index.html',
       'document_root': op.join(_djangopath, 'pathway', 'static', 'pathway')}),
 
-    (r'^responses/$', 'django.views.static.serve',
-     {'path': 'index.html',
-      'document_root': op.join(_djangopath, 'responses', 'static', 'responses')}),
+    (r'^responses/$', 'django.views.generic.simple.direct_to_template',
+     {'template': 'responses/index.html'}),
 )
 
 # For DEBUG mode only (development) serving of static files
