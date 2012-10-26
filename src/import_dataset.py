@@ -229,10 +229,12 @@ def main(path):
                         well_id = value 
                         
                     dataRecord.library_mapping = LibraryMapping.objects.get(plate=plate_id,well=well_id) 
-                    if(dataRecord.smallmolecule_batch == None or (dataRecord.smallmolecule_batch != dataRecord.library_mapping.smallmolecule_batch)):
+                    if(dataRecord.smallmolecule_batch != None and (dataRecord.smallmolecule_batch != dataRecord.library_mapping.smallmolecule_batch)):
                         raise Exception(str(('SmallMolecule batch does not match the libraryMapping SMB:',
                                              dataRecord.smallmolecule_batch,dataRecord.library_mapping.smallmolecule_batch,
                                              r,'row',current_row)))
+                    else:
+                        dataRecord.smallmolecule_batch = dataRecord.library_mapping.smallmolecule_batch
                     mapped = True
             except Exception, e:
                 logger.error(str(("Invalid plate/well identifiers",plate_id,well_id,r,e,'row',current_row)))
