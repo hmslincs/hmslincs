@@ -97,11 +97,11 @@ then
   #============ Here is where the test data imports go =========================
   
 	echo 'import cell tables ...'
-	python src/import_cell.py -f sampledata/LINCS_Cells_forLoading.xls
+	python src/import_cell.py -f sampledata/LINCS_Cells_20120727.xls
 	check_errs $? "import cell fails"
 	
 	echo 'import small molecule tables...'
-	python src/import_smallmolecule.py -f  sampledata/HMS-LINCS_complete.sdf
+	python src/import_smallmolecule.py -f  sampledata/HMS_LINCS-1.sdf
 	check_errs $? "import sdf fails"
 
 	echo 'import small molecule batch tables...'
@@ -113,7 +113,7 @@ then
 	check_errs $? "import library fails"
 	
 	echo 'import kinase tables...'
-	python src/import_protein.py -f sampledata/HMS-LINCS_KinaseMetadata_forLoading.xls
+	python src/import_protein.py -f sampledata/HMS-LINCS_KinaseReagents_MetaData_20120906_DRAFT.xls
 	check_errs $? 'import kinases fails'
 	
 	echo 'import screen results...'
@@ -128,10 +128,6 @@ else
 	
 	#============ Here is where the "real" imports go ============================
 
-	echo 'import cell tables ...'
-	python src/import_cell.py -f $DATADIR/LINCS_Cells_forLoading.xls
-	check_errs $? "import cell fails"
-	
 	echo 'import small molecule tables...'
 	python src/import_smallmolecule.py -f $DATADIR/HMS-LINCS_complete.sdf
 	check_errs $? "import sdf fails"
@@ -140,13 +136,7 @@ else
 	python src/import_smallmolecule_batch.py -f $DATADIR/small_molecule_batch-HMS_LINCS-1.xls
 	check_errs $? "import smallmolecule batch fails"
 	
-	echo 'import library mapping tables...'
-	python src/import_libraries.py -f $DATADIR/libraries.xls
-	check_errs $? "import library fails"
-	
-	echo 'import kinase tables...'
-	python src/import_protein.py -f $DATADIR/HMS-LINCS_KinaseMetadata_forLoading.xls
-	check_errs $? 'import kinases fails'
+
 
 fi
 
