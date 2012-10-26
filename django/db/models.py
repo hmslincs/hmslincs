@@ -419,6 +419,7 @@ class DataColumn(models.Model):
 class DataRecord(models.Model):
     dataset                 = models.ForeignKey('DataSet')
     smallmolecule_batch     = models.ForeignKey('SmallMoleculeBatch', null=True)
+    library_mapping         = models.ForeignKey('LibraryMapping',null=True)
     cell                    = models.ForeignKey('Cell', null=True)
     protein                 = models.ForeignKey('Protein', null=True)
     plate                   = _INTEGER(null=True)

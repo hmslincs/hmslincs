@@ -6,7 +6,7 @@ import logging
 
 import init_utils as iu
 import import_utils as util
-from db.models import DataSet, DataColumn, DataRecord, DataPoint, SmallMolecule, SmallMoleculeBatch, Cell, Protein
+from db.models import DataSet, DataColumn, DataRecord, DataPoint, SmallMolecule, SmallMoleculeBatch, Cell, Protein, LibraryMapping
 
 
 # ---------------------------------------------------------------------------
@@ -153,11 +153,11 @@ def main(path):
     
     # First, map the sheet column indices to the DataColumns that were created
     dataColumnList = {}
-    metaColumnDict = {'Well':-1, 'Plate':-1, 'Control Type':-1} # meta columns contain forensic information
-    mappingColumnDict = {'Small Molecule Batch':-1, 'Cell':-1, 'Protein':-1} # what is being studied - at least one is required
+    metaColumnDict = {'Control Type':-1} # meta columns contain forensic information
+    mappingColumnDict = {'Small Molecule Batch':-1, 'Plate':-1, 'Well':-1, 'Cell':-1, 'Protein':-1} # what is being studied - at least one is required
     # NOTE: this scheme is matching based on the labels between the "Data Column" sheet and the "Data" sheet
     for i,label in enumerate(dataSheet.labels):
-        if(label == 'None' or label == 'well_id' or label.strip()=='' or label == 'Exclude' ): continue  
+        if(label == 'None' or  label.strip()=='' or label == 'Exclude' ): continue  
         if label in metaColumnDict: 
             metaColumnDict[label] = i
             continue
@@ -190,6 +190,7 @@ def main(path):
     pointsSaved = 0
     rowsRead = 0
     for row in dataSheet:
+        current_row = rowsRead+2
         r = util.make_row(row)
         dataRecord = DataRecord(dataset=dataset )
         map_column = mappingColumnDict['Small Molecule Batch']
@@ -199,9 +200,9 @@ def main(path):
                 value = util.convertdata(r[map_column].strip())
                 if(value != None and value != '' ):
                     value = value.split("-")
-                    if len(value) != 3: raise Exception('Small Molecule Batch format is HMSL#####-###-#')
+                    if len(value) != 3: raise Exception('Small Molecule Batch format is #####-###-#')
                     x = value[0]
-                    facility = util.convertdata(x[x.index('HMSL')+4:],int) # TODO: purge "HMSL" from the db
+                    facility = util.convertdata(x,int) 
                     salt = value[1]
                     batch = value[2]
                     try:
@@ -212,18 +213,41 @@ def main(path):
                     dataRecord.smallmolecule_batch = SmallMoleculeBatch.objects.get(smallmolecule=sm, facility_batch_id=batch)
                     mapped = True
             except Exception, e:
-                logger.error(str(("Invalid Small Molecule Batch identifiers: ", value)))
+                logger.error(str(("Invalid Small Molecule Batch identifiers: ", value, e,'row',current_row)))
                 raise    
+        map_column = mappingColumnDict['Plate']
+        if(map_column > -1):
+            try:
+                plate_id=None
+                well_id=None
+                value = util.convertdata(r[map_column].strip())
+                if(value != None and value != '' ):
+                    plate_id = util.convertdata(value,int)
+                 
+                    value = util.convertdata(r[map_column+1].strip())
+                    if(value != None and value != '' ):
+                        well_id = value 
+                        
+                    dataRecord.library_mapping = LibraryMapping.objects.get(plate=plate_id,well=well_id) 
+                    if(dataRecord.smallmolecule_batch == None or (dataRecord.smallmolecule_batch != dataRecord.library_mapping.smallmolecule_batch)):
+                        raise Exception(str(('SmallMolecule batch does not match the libraryMapping SMB:',
+                                             dataRecord.smallmolecule_batch,dataRecord.library_mapping.smallmolecule_batch,
+                                             r,'row',current_row)))
+                    mapped = True
+            except Exception, e:
+                logger.error(str(("Invalid plate/well identifiers",plate_id,well_id,r,e,'row',current_row)))
+                raise e
         map_column = mappingColumnDict['Cell']
         if(map_column > -1):
             try:
                 value = util.convertdata(r[map_column].strip())
+                facility_id = None
                 if(value != None and value != '' ):
-                    facility_id = util.convertdata(value[value.index('HMSL')+4:],int) # TODO: purge "HMSL" from the db
-                    dataRecord.cell = Cell.objects.get(facility_id=facility_id) # TODO: purge "HMSL" from the db
+                    facility_id = util.convertdata(value,int) 
+                    dataRecord.cell = Cell.objects.get(facility_id=facility_id) 
                     mapped = True
             except Exception, e:
-                logger.error(str(("Invalid Cell facility id: ", facility_id)))
+                logger.error(str(("Invalid Cell facility id: ", facility_id,'row',current_row)))
                 raise    
         map_column = mappingColumnDict['Protein']
         if(map_column > -1):
@@ -231,18 +255,16 @@ def main(path):
                 value = util.convertdata(r[map_column].strip())
                 if(value != None and value != '' ):
                     facility_id = r[map_column]
-                    facility_id = util.convertdata(facility_id[facility_id.index('HMSL')+4:],int) # TODO: purge "HMSL" from the db
-                    dataRecord.protein = Protein.objects.get(lincs_id=facility_id) #TODO: purge "HMSL"
+                    facility_id = util.convertdata(facility_id,int) 
+                    dataRecord.protein = Protein.objects.get(lincs_id=facility_id) 
                     mapped = True
             except Exception, e:
-                logger.error(str(("Invalid Protein facility id: ", value)))
+                logger.error(str(("Invalid Protein facility id: ", value,'row',current_row)))
                 raise
             
         if(not mapped):
-            raise Exception('at least one of: ' + str(mappingColumnDict.keys()) + ' must be defined, missing for row: ' + str(rowsRead+2))
+            raise Exception(str(('at least one of: ' , str(mappingColumnDict.keys()) , ' must be defined, missing for row: ',current_row)))
                 
-        if metaColumnDict['Plate'] > -1 : dataRecord.plate = util.convertdata(r[metaColumnDict['Plate']],int)
-        if metaColumnDict['Well'] > -1 : dataRecord.well = util.convertdata(r[metaColumnDict['Well']])
         if metaColumnDict['Control Type'] > -1: dataRecord.control_type = util.convertdata(r[metaColumnDict['Control Type']])
         dataRecord.save()
         logger.info(str(('datarecord created:', dataRecord)))

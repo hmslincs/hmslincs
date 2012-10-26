@@ -117,10 +117,8 @@ then
 	check_errs $? 'import kinases fails'
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f sampledata/moerke_2color_IA-LM.xls 
+	python src/import_dataset.py -f sampledata/test_dataset.xls 
 	check_errs $? "import dataset fails"
-	python src/import_dataset.py -f sampledata/tang_MitoApop2_5637.xls
-	check_errs $? "import dataset result fails"
 	
 	echo 'import studies...'
 	python ./src/import_dataset.py -f sampledata/Study300002_HMSL10008_sorafenib_ambit.xls

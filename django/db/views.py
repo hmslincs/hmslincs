@@ -455,7 +455,6 @@ class DataSetManager():
         #        (select int_value as col2 from db_datapoint dp2 where dp2.datarecord_id=dp0.datarecord_id and dp2.datacolumn_id=3) as col2 
         #        from db_datapoint dp0 join db_datarecord dr on(datarecord_id=dr.id) join db_smallmoleculebatch smb on(smb.id=dr.smallmolecule_batch_id) join db_smallmolecule sm on(sm.id=smb.smallmolecule_id) 
         #        where dp0.dataset_id = 1 order by datarecord_id;
-        
         queryString = "select distinct (datarecord_id) as datarecord_id, sm.id as smallmolecule_id ,"
         queryString += " 'HMSL' || sm.facility_id || '-' || sm.salt_id || '-' || smb.facility_batch_id as facility_id, "
         queryString += facility_salt_id +' as facility_salt_id' # Note: because we have a composite key for determining unique sm structures, we need to do this
@@ -484,13 +483,13 @@ class DataSetManager():
             # TODO: use params
             queryString +=  (",(select " + column_to_select + " from db_datapoint " + alias + 
                                 " where " + alias + ".datacolumn_id="+str(datacolumn_id) + " and " + alias + ".datarecord_id=dp0.datarecord_id) as " + columnName )
-        queryString += " from db_datapoint dp0 join db_datarecord dr on(datarecord_id=dr.id) join db_smallmoleculebatch smb on(smb.id=dr.smallmolecule_batch_id) "
+        queryString += " from db_datapoint dp0 join db_datarecord dr on(datarecord_id=dr.id) left join db_smallmoleculebatch smb on(smb.id=dr.smallmolecule_batch_id) "
         queryString += " join db_smallmolecule sm on(smb.smallmolecule_id = sm.id) "
         if(self.has_cells()): 
-            queryString += " join db_cell cell on(cell.id=dr.cell_id) " # TODO: change to left join
+            queryString += " left join db_cell cell on(cell.id=dr.cell_id) " # TODO: change to left join
             orderedNames.insert(1,'cell_name')
         if(self.has_proteins()): 
-            queryString += " join db_protein protein on(protein.id=dr.protein_id) " # TODO: change to left join
+            queryString += " left join db_protein protein on(protein.id=dr.protein_id) " # TODO: change to left join
             orderedNames.insert(1,'protein_name')
         queryString += " where dp0.dataset_id = " + str(self.dataset.id)
         if(not is_authenticated): 
