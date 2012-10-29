@@ -11,6 +11,8 @@ FORMAT = 'png'
 ScatterplotData = co.namedtuple('ScatterplotData', 'label shape level x y')
 ScatterplotMetaData = co.namedtuple('ScatterplotMetaData',
                                     'readout ligand concentration time')
+PointSpec = co.namedtuple('PointSpec', 'label shape level')
+ResponseData = co.namedtuple('ResponseData', 'metadata data')
 
 marker_map = {
               'triangle': '^',

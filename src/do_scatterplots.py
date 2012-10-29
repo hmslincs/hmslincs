@@ -4,7 +4,6 @@ import os.path as op
 import re
 import itertools as it
 import csv
-import collections as co
 
 import shell_utils as su
 import typecheck as tc
@@ -20,11 +19,15 @@ _params = dict(
     APPNAME = 'responses',
     OUTPUTDIR = None,
     OUTPUTEXT = '.%s' % sp.FORMAT.lower(),
-    KEYLENGTH = 3,
     WITHLIMITS = False,
 
     COLHEADERROWNUM = 0,
     FIRSTDATAROWNUM = 1,
+
+    # Each data row is construed as a key-value pair, where the row's
+    # KEYLENGTH leftmost cells comprise the "key", and remaining cells
+    # comprise the "value".
+    KEYLENGTH = 3,
 )
 _sg.setparams(_params)
 del _sg, _params
@@ -106,22 +109,30 @@ def _getspecs(datarows,
     else:
         level = lambda lvl: None
 
-    return tuple((row[0], _celltype2shape[row[2]], level(row[1]))
-                  for row in datarows)
+    return tuple(sp.PointSpec(row[0], _celltype2shape[row[2]], level(row[1]))
+                 for row in datarows)
 
 
 def process(rows, withlimits=WITHLIMITS):
     # returns:
-    # specs: tuple of triples
-    # data: tuple of pairs
+    # specs: tuple of sp.PointSpec instances (triples)
+    # data: tuple of sp.ResponseData instances (pairs)
     # lims: pair of floats
+
+    # The components of a sp.PointSpec instance are 'label'
+    # (=cell line), 'shape' (=cell type), 'level' (=sensitivity score).
+
+    # The components of a sp.ResponseData are 'metadata' (a
+    # sp.ScatterplotMetaData object, initialized with info parsed from
+    # column header) and 'data' (sequence of floats).
 
     r0 = COLHEADERROWNUM
     r1 = FIRSTDATAROWNUM
 
     specs = _getspecs(rows[r1:])
 
-    data = tuple((parse_header(col[r0]), _seq2type(col[r1:], float))
+    data = tuple(sp.ResponseData(parse_header(col[r0]),
+                                 _seq2type(col[r1:], float))
                  for col in zip(*rows)[KEYLENGTH:])
 
     if withlimits:
