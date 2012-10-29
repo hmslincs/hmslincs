@@ -82,4 +82,4 @@ To generate the pre-cooked scatterplots, run
 
   % python src/do_scatterplots.py sampledata/MH/picks_for_basal.tsv
   % python src/do_scatterplots.py sampledata/MH/picks_for_responses.tsv
-  % python src/do_scatterplots.py sampledata/MH/picks_for_slider.tsv
+  % WITHLIMITS=1 python src/do_scatterplots.py sampledata/MH/picks_for_slider.tsv

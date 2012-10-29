@@ -10,6 +10,7 @@ import shell_utils as su
 import typecheck as tc
 
 import scatterplot as sp
+import minmax as mm
 
 # ---------------------------------------------------------------------------
 
@@ -20,6 +21,8 @@ _params = dict(
     OUTPUTDIR = None,
     OUTPUTEXT = '.%s' % sp.FORMAT.lower(),
     KEYLENGTH = 3,
+    WITHLIMITS = False,
+
     COLHEADERROWNUM = 0,
     FIRSTDATAROWNUM = 1,
 )
@@ -82,8 +85,7 @@ def readinput(path):
 
 
 def _range(seq):
-    min_ = min(seq)
-    max_ = max(seq)
+    min_, max_ = mm.minmax(seq)
     return max_ - min_, min_, max_
 
 
@@ -108,7 +110,7 @@ def _getspecs(datarows,
                   for row in datarows)
 
 
-def process(rows):
+def process(rows, withlimits=WITHLIMITS):
     # returns:
     # specs: tuple of triples
     # data: tuple of pairs
@@ -122,7 +124,10 @@ def process(rows):
     data = tuple((parse_header(col[r0]), _seq2type(col[r1:], float))
                  for col in zip(*rows)[KEYLENGTH:])
 
-    lims = _range(sum([pair[1] for pair in data], ()))[1:]
+    if withlimits:
+        lims = _range(sum([pair[1] for pair in data], ()))[1:]
+    else:
+        lims = None
 
     return specs, data, lims
 
@@ -135,7 +140,7 @@ def main(argv=sys.argv[1:]):
     su.mkdirp(OUTPUTDIR)
 
     rows = readinput(argv[0])
-    specs, data, lims = process(rows)
+    specs, data, lims = process(rows, withlimits=WITHLIMITS)
 
     spd = sp.ScatterplotData
 
