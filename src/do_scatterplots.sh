@@ -6,8 +6,7 @@ JOIN=${JOIN:-join}
 CUT=${CUT:-cut}
 DATADIR0=sampledata/MH
 DATADIR1=sampledata/MH
-DATADIR1=/tmp
-KLUGE=$DATADIR1/kluge.tsv
+KLUGE=$DATADIR1/col_1_3.tsv
 EXECDIR=$( dirname $( dirname $0 ) )
 
 cd $EXECDIR || false
