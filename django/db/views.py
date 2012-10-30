@@ -275,7 +275,7 @@ def libraryDetail(request, short_name):
         if(library.is_restricted and not request.user.is_authenticated()):
             return HttpResponse('Unauthorized', status=401)
         response_dict = {'object': get_detail(library, ['library',''])}
-        queryset = SmallMoleculeSearchManager().search(library_id=library.id);
+        queryset = LibraryMappingSearchManager().search(is_authenticated=request.user.is_authenticated,library_id=library.id);
         if(len(queryset)>0): 
             table = LibraryMappingTable(queryset)
             RequestConfig(request, paginate={"per_page": 25}).configure(table)
@@ -456,6 +456,85 @@ def set_field_information_to_table_column(fieldname,table_names,column):
         raise Exception(str(('no fieldinformation found for field:', fieldname,e)))
     
         
+class DataSetResultTable(tables.Table):
+    """
+    Override of the tables.Table - columns are defined manually to conform to the DataSetManager query fields; 
+    fields are added as Table "base_columns" in the __init__ method.
+    # TODO: the cursor is converted to a list of dicts, all in memory; implement pagination
+    # TODO: Augment each column/verbose_name with column info for each of the dataset fields, 
+    just like set_table_column_info does with the fieldinformation class 
+    """
+    defined_base_columns = []
+    id = tables.Column(visible=False)
+    defined_base_columns.append('id')
+    
+    facility_salt_batch = tables.LinkColumn('sm_detail', args=[A('facility_salt_batch')])
+    defined_base_columns.append('facility_salt_batch')
+    set_field_information_to_table_column('facility_salt_batch', ['smallmoleculebatch'], facility_salt_batch)
+    
+    cell_name = tables.LinkColumn('cell_detail',args=[A('cell_facility_id')], visible=False, verbose_name='Cell Name') 
+    defined_base_columns.append('cell_name')
+    set_field_information_to_table_column('name', ['cell'], cell_name)
+    
+    protein_name = tables.LinkColumn('protein_detail',args=[A('protein_lincs_id')], visible=False, verbose_name='Protein Name') 
+    defined_base_columns.append('protein_name')
+    set_field_information_to_table_column('name', ['protein'], protein_name)
+    
+    plate = tables.Column()
+    defined_base_columns.append('plate')
+    set_field_information_to_table_column('plate', ['datarecord'], plate)
+    well = tables.Column()
+    defined_base_columns.append('well')
+    set_field_information_to_table_column('well', ['datarecord'], well)
+    
+    control_type = tables.Column()
+    defined_base_columns.append('control_type')
+    set_field_information_to_table_column('control_type', ['datarecord'], control_type)
+
+    class Meta:
+        orderable = True
+        attrs = {'class': 'paleblue'}
+    
+    def __init__(self, queryset, names_to_columns, ordered_names, show_cells, show_proteins, *args, **kwargs):
+        # Follows is to deal with a bug - columns from one table appear to be injecting into other tables!!
+        # This indicates that we are doing something wrong here by defining columns dynamically on the class "base_columns" attribute
+        # So, to fix, we should redefine all of the base_columns every time here.  
+        # For now, what is done is the "defined_base_columns" are preserved, then others are added.
+        for name in self.base_columns.keys():
+            if name not in self.defined_base_columns:
+                logger.warn(str(('deleting column from the table', name)))
+                del self.base_columns[name]
+        
+        temp = ['facility_salt_batch','plate','well','control_type']
+        if(show_cells): temp.append('cell_name')
+        if(show_proteins): temp.append('protein_name')
+        temp.extend(ordered_names)
+        ordered_names = temp
+        
+        logger.info(str(('names_to_columns', names_to_columns, 'orderedNames', ordered_names)))
+        for name,verbose_name in names_to_columns.items():
+            logger.info(str(('create column:',name,verbose_name)))
+            self.base_columns[name] = tables.Column(verbose_name=verbose_name)
+        
+        # Note: since every instance reuses the base_columns, each time the visibility must be set.
+        if(show_cells):
+            self.base_columns['cell_name'].visible = True
+        else:
+            self.base_columns['cell_name'].visible = False
+        if(show_proteins):
+            self.base_columns['protein_name'].visible = True
+        else:
+            self.base_columns['protein_name'].visible = False
+        logger.info(str(('base columns:', self.base_columns)))
+        # Field information section: TODO: for the datasetcolumns, use the database information for these.
+        # set_table_column_info(self, ['smallmolecule','cell','protein',''])  
+
+        # TODO: why does this work with the super call last?  Keep an eye on forums for creating dynamic columns with tables2
+        # for instance: https://github.com/bradleyayers/django-tables2/issues/70
+        super(DataSetResultTable, self).__init__(queryset, *args, **kwargs)
+        self.sequence = ordered_names
+
+
 # NOTE: this class doesn't have to override models.Manager, since it won't be used on 
 # a particular model.
 class DataSetManager():
@@ -474,50 +553,6 @@ class DataSetManager():
             order = ('facility_id', '...')
             exclude = ('id', 'molfile') 
 
-
-
-        
-    class DataSetResultTable(tables.Table):
-        """
-        Override of the tables.Table - columns are defined manually to conform to the DataSetManager query fields; 
-        fields are added as Table "base_columns" in the __init__ method.
-        # TODO: the cursor is converted to a list of dicts, all in memory; implement pagination
-        # TODO: Augment each column/verbose_name with column info for each of the dataset fields, 
-        just like set_table_column_info does with the fieldinformation class 
-        """
-        id = tables.Column(visible=False)
-        facility_salt_batch = tables.LinkColumn('sm_detail', args=[A('facility_salt_batch')])
-        set_field_information_to_table_column('facility_salt_batch', ['smallmoleculebatch'], facility_salt_batch)
-        
-        cell_name = tables.LinkColumn('cell_detail',args=[A('cell_facility_id')], visible=False, verbose_name='Cell Name') 
-        set_field_information_to_table_column('name', ['cell'], cell_name)
-        
-        protein_name = tables.LinkColumn('protein_detail',args=[A('protein_lincs_id')], visible=False, verbose_name='Protein Name') 
-        set_field_information_to_table_column('name', ['protein'], protein_name)
-
-        class Meta:
-            orderable = True
-            attrs = {'class': 'paleblue'}
-        
-        def __init__(self, queryset, names_to_columns, ordered_names, show_cells, show_proteins, *args, **kwargs):
-    
-            logger.info(str(('names_to_columns', names_to_columns, 'orderedNames', ordered_names)))
-            for name,verbose_name in names_to_columns.items():
-                logger.info(str(('create column:',name,verbose_name)))
-                self.base_columns[name] = tables.Column(verbose_name=verbose_name)
-            if(show_cells):
-                self.base_columns['cell_name'].visible = True
-            if(show_proteins):
-                self.base_columns['protein_name'].visible = True
-            logger.info(str(('base columns:', self.base_columns)))
-            # Field information section: TODO: for the datasetcolumns, use the database information for these.
-            # set_table_column_info(self, ['smallmolecule','cell','protein',''])  
-    
-            # TODO: why does this work with the super call last?  Keep an eye on forums for creating dynamic columns with tables2
-            # for instance: https://github.com/bradleyayers/django-tables2/issues/70
-            super(DataSetManager.DataSetResultTable, self).__init__(queryset, *args, **kwargs)
-            self.sequence = ordered_names
-    
     def has_cells(self):
         return len(self.cell_queryset) > 0
     
@@ -533,8 +568,7 @@ class DataSetManager():
     
         queryset = dictfetchall(cursor)
         #queryset = manager.get_dataset_result_table(dataset_id, is_authenticated=request.user.is_authenticated(), **{'show_cells':show_cells, 'show_proteins':show_proteins})
-        table = self.DataSetResultTable(queryset, dataset_info.columns_to_names, dataset_info.ordered_names, self.has_cells(), self.has_proteins())
-        return table
+        return DataSetResultTable(queryset, dataset_info.columns_to_names, dataset_info.ordered_names, self.has_cells(), self.has_proteins())
     
     class DatasetInfo:
         names_to_columns = {}
@@ -560,17 +594,16 @@ class DataSetManager():
         #        (select int_value as col2 from db_datapoint dp2 where dp2.datarecord_id=dp0.datarecord_id and dp2.datacolumn_id=3) as col2 
         #        from db_datapoint dp0 join db_datarecord dr on(datarecord_id=dr.id) join db_smallmoleculebatch smb on(smb.id=dr.smallmolecule_batch_id) join db_smallmolecule sm on(sm.id=smb.smallmolecule_id) 
         #        where dp0.dataset_id = 1 order by datarecord_id;
-        queryString = "select distinct (datarecord_id) as datarecord_id, sm.id as smallmolecule_id ,"
-        #queryString += " 'HMSL' || sm.facility_id || '-' || sm.salt_id || '-' || smb.facility_batch_id as facility_salt_batch, "
-        queryString += facility_salt_batch_id +' as facility_salt_batch' # Note: because we have a composite key for determining unique sm structures, we need to do this
-        
+        queryString =   "select distinct (datarecord_id) as datarecord_id, sm.id as smallmolecule_id ,"
+        queryString +=  facility_salt_batch_id +' as facility_salt_batch' # Note: because we have a composite key for determining unique sm structures, we need to do this
+        queryString +=  ', plate, well, control_type '
         show_cells = self.has_cells()
         show_proteins = self.has_proteins()
         if(show_cells): queryString += ", cell_id, cell.name as cell_name, cell.facility_id as cell_facility_id " 
         if(show_proteins): queryString += ", protein_id, protein.name as protein_name, protein.lincs_id as protein_lincs_id " 
         i = 0
         columns_to_names = {}
-        orderedNames = ['facility_salt_batch']
+        orderedNames = []
         for datacolumn_id, name, datatype, precision in datacolumns:
             i += 1
             alias = "dp"+str(i)
@@ -588,14 +621,16 @@ class DataSetManager():
             # TODO: use params
             queryString +=  (",(select " + column_to_select + " from db_datapoint " + alias + 
                                 " where " + alias + ".datacolumn_id="+str(datacolumn_id) + " and " + alias + ".datarecord_id=dp0.datarecord_id) as " + columnName )
-        queryString += " from db_datapoint dp0 join db_datarecord dr on(datarecord_id=dr.id) left join db_smallmoleculebatch smb on(smb.id=dr.smallmolecule_batch_id) "
-        queryString += " join db_smallmolecule sm on(smb.smallmolecule_id = sm.id) "
+        queryString += " from db_datapoint dp0 join db_datarecord dr on(datarecord_id=dr.id) "
+        # LEAVE LM out, so can also serve un-mapped studies  queryString += " join db_librarymapping lm on(dr.librarymapping_id=lm.id) "
+        queryString += " left join db_smallmoleculebatch smb on(smb.id=dr.smallmolecule_batch_id) "
+        queryString += " left join db_smallmolecule sm on(smb.smallmolecule_id = sm.id) "
         if(self.has_cells()): 
             queryString += " left join db_cell cell on(cell.id=dr.cell_id) " # TODO: change to left join
-            orderedNames.insert(1,'cell_name')
+            # orderedNames.insert(1,'cell_name')
         if(self.has_proteins()): 
             queryString += " left join db_protein protein on(protein.id=dr.protein_id) " # TODO: change to left join
-            orderedNames.insert(1,'protein_name')
+            # orderedNames.insert(1,'protein_name')
         queryString += " where dp0.dataset_id = " + str(self.dataset.id)
         if(not is_authenticated): 
             queryString += " and not sm.is_restricted "
@@ -604,7 +639,7 @@ class DataSetManager():
             if(show_cells):
                 queryString += " and not cell.is_restricted " 
         queryString += " order by datarecord_id"
-        orderedNames.append('...') # is this necessary?
+        # orderedNames.append('...') # is this necessary?
         
         logger.info(str(('orderedNames',orderedNames)))
         logger.info(str(('columns_to_names',columns_to_names)))
@@ -647,9 +682,14 @@ class DataSetManager():
         return dictfetchall(cursor)
                 
         
-class SmallMoleculeSearchManager(models.Model):
-    
+class LibraryMappingSearchManager(models.Model):
+    """
+    Used for librarymapping display
+    """
     def search(self, query_string='', is_authenticated=False, library_id=None):
+        if(library_id == None): 
+            raise Exception('Must define a library id to use the LibraryMappingSearchManager')
+
         query_string = query_string.strip()
         cursor = connection.cursor()
         
@@ -658,10 +698,17 @@ class SmallMoleculeSearchManager(models.Model):
 #            " left join db_smallmoleculebatch smb on(smb.smallmolecule_id=sm.id)" 
 #            " left join db_librarymapping lm on(smb.id=lm.smallmolecule_batch_id) " + 
 #            " left join db_library l on(lm.library_id=l.id) ")
-        sql = "select " + facility_salt_batch_id + " as facility_salt_batch , sm.* " 
-        if(library_id != None): 
-            sql += ", smb.*, lm.* "
-        sql += (" from db_smallmolecule sm " )
+        sql = "select " + facility_salt_batch_id + " as facility_salt_batch , sm.*, smb.*, lm.* "
+        sql += " from db_library l "
+        sql += " join db_librarymapping lm on(lm.library_id=l.id) " 
+        sql += " left join db_smallmoleculebatch smb on (smb.id=lm.smallmolecule_batch_id) "
+        sql += " left join db_smallmolecule sm on(smb.smallmolecule_id=sm.id) " 
+        
+#        sql += " from db_smallmolecule sm " 
+#        sql += (" left join db_smallmoleculebatch smb on(smb.smallmolecule_id=sm.id) ") 
+#        sql += (" left join db_librarymapping lm on(smb.id=lm.smallmolecule_batch_id) " + 
+#                " left join db_library l on(lm.library_id=l.id) ")
+
         where = ' where 1=1 '
         if(query_string != '' ):
             # TODO: how to include the smb snippet (once it's created)
@@ -670,11 +717,7 @@ class SmallMoleculeSearchManager(models.Model):
                 where = '(' + where + ' OR sm.facility_id='+str(get_integer(query_string)) + ')' # TODO: seems messy here
             # TODO: search by facility-salt-batch
             where = ", to_tsquery(%s) as query  where " + where
-        if(library_id != None):
-            sql += (" left join db_smallmoleculebatch smb on(smb.smallmolecule_id=sm.id) ") 
-            sql += (" left join db_librarymapping lm on(smb.id=lm.smallmolecule_batch_id) " + 
-                    " left join db_library l on(lm.library_id=l.id) ")
-            where += ' and library_id='+ str(library_id)
+        where += ' and library_id='+ str(library_id)
         if(not is_authenticated):
             where += ' and not sm.is_restricted' # TODO: NOTE, not including: ' and not l.is_restricted'; library restriction will only apply to viewing the library explicitly (the meta data, and selection of compounds)
             
@@ -737,7 +780,8 @@ class AttachedFileTable(tables.Table):
         set_table_column_info(self, ['attachedfile',''],sequence_override)  
         
 class LibraryMappingTable(tables.Table):
-    facility_salt_batch = tables.LinkColumn("sm_detail", args=[A('facility_salt_batch')])  
+    facility_salt_batch = tables.LinkColumn("sm_detail", args=[A('facility_salt_batch')]) 
+    is_control = tables.Column() 
     well = tables.Column()
     plate = tables.Column()
     concentration = tables.Column()

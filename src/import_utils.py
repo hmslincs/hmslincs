@@ -10,21 +10,26 @@ date_converter = lambda x: convertdata(x,date)
 
 def fill_in_column_definitions(properties, column_definitions):
     """
-    utility to make sure every column_definition has a mapping for each property, or set to None
+    Utility to lowercase and to make sure every column_definition has a mapping for each property, 
+    (the set of dict values assigned to it), or set to None
     """
+    column_definitions_to_lower = {}
     for key,value in column_definitions.items():
+        key = key.lower()
         if(isinstance(value, basestring)): value = (value,) # convert to a tuple
-        column_definitions[key]=dict(zip(properties,value))
+        #column_definitions[key]=dict(zip(properties,value))
+        column_definitions_to_lower[key] = dict(zip(properties,value))
         # make all default to None
-        for property in properties:
-            if(property == 'converter'):
-                column_definitions[key].setdefault(property,lambda x:convertdata(x))
-            column_definitions[key].setdefault(property,None)
-    return column_definitions
+        for prop in properties:
+            if(prop == 'converter'):
+                column_definitions_to_lower[key].setdefault(prop,lambda x:convertdata(x))
+            column_definitions_to_lower[key].setdefault(prop,None)
+    return column_definitions_to_lower
     
 def find_columns(column_definitions, sheet_labels, all_column_definitions_required=True, all_sheet_columns_required=True):
     """
     return a dict mapping the column ordinal to the proper column definition dict
+    - all matches are done after lowercasing the sheet labels.
     """
     logger.debug(str(('sheet_labels:', sheet_labels)))
     cols = {}
@@ -32,7 +37,7 @@ def find_columns(column_definitions, sheet_labels, all_column_definitions_requir
     for label in sheet_labels:
         label = label.strip()
         if label == None or label == '' or label == 'None': continue
-        sheet_labels_cleaned.append(label)
+        sheet_labels_cleaned.append(label.lower())
     # first put the label row in (it contains the worksheet column, and its unique)
     for i,label in enumerate(sheet_labels_cleaned):
         label = label.strip()

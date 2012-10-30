@@ -405,11 +405,12 @@ CONCENTRATION_CHOICES = ((CONCENTRATION_NM,CONCENTRATION_NM),
                          (CONCENTRATION_UM,CONCENTRATION_UM),
                          (CONCENTRATION_MM,CONCENTRATION_MM))
 class LibraryMapping(models.Model):
-    library                 = models.ForeignKey('Library')
-    smallmolecule_batch     = models.ForeignKey('SmallMoleculeBatch')
+    library                 = models.ForeignKey('Library',null=True)
+    smallmolecule_batch     = models.ForeignKey('SmallMoleculeBatch',null=True)
+    is_control              = models.BooleanField()
     plate                   = _INTEGER(null=True)
     well                    = _CHAR(max_length=4, **_NULLOKSTR) # AA99
-    concentration           = models.DecimalField(max_digits=4, decimal_places=2)
+    concentration           = models.DecimalField(max_digits=4, decimal_places=2, null=True)
     concentration_unit      = models.CharField(null=True, max_length=2,
                                       choices=CONCENTRATION_CHOICES,
                                       default=CONCENTRATION_UM)
@@ -436,7 +437,9 @@ class DataColumn(models.Model):
 class DataRecord(models.Model):
     dataset                 = models.ForeignKey('DataSet')
     smallmolecule_batch     = models.ForeignKey('SmallMoleculeBatch', null=True)
-    library_mapping         = models.ForeignKey('LibraryMapping',null=True)
+    
+    # NOTE: library_mapping: used in the case of control wells, if smallmolecule_batch is defined, then this must match the librarymapping to the smb
+    library_mapping         = models.ForeignKey('LibraryMapping',null=True)  
     cell                    = models.ForeignKey('Cell', null=True)
     protein                 = models.ForeignKey('Protein', null=True)
     plate                   = _INTEGER(null=True)
