@@ -3,7 +3,9 @@
 	{% for field,info in object.items %}
 	    <li><b>{{ info.fieldinformation.get_verbose_name }}:</b> {{ info.value|safe }}</li>
 	{% endfor %}
-		<img src="{{ STATIC_URL }}/screen-images-by-facility-id/{{object.facility_id.value}}.png" />
+	{% if image_location %}
+		<img src="{{ STATIC_URL }}/{{image_location}}" />
+	{% endif %}
 	
 {% endblock %}
 	

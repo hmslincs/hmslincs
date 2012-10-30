@@ -69,13 +69,13 @@ class FieldsManager(models.Manager):
         fi = None
         if(table_or_queryset == None):
             try:
-                return self.get_query_set().get(alias=field_or_alias); # TODO can use get?
+                return self.get_query_set().get(alias=field_or_alias, table=None, queryset=None); # TODO can use get?
             except (ObjectDoesNotExist,MultipleObjectsReturned) as e:
                 logger.debug(str(('No field information for the alias: ',field_or_alias,e)))
             try:
-                return self.get_query_set().get(field=field_or_alias); # TODO can use get?
+                return self.get_query_set().get(field=field_or_alias, table=None, queryset=None); # TODO can use get?
             except (ObjectDoesNotExist,MultipleObjectsReturned) as e:
-                logger.info(str(('No field information for the field: ',field_or_alias,e)))
+                logger.debug(str(('No field information for the field: ',field_or_alias,e)))
                 raise e
         else:
             # if the table or queryset is given, alias should not be needed
@@ -88,7 +88,7 @@ class FieldsManager(models.Manager):
             try:
                 return self.get_query_set().get(table=table_or_queryset, field=field_or_alias)
             except (ObjectDoesNotExist,MultipleObjectsReturned) as e:
-                logger.info(str(('No field information for the table,field: ',table_or_queryset,field_or_alias, e)))
+                logger.debug(str(('No field information for the table,field: ',table_or_queryset,field_or_alias, e)))
                 raise e
         
     #TODO: link this in to the reindex process!
@@ -203,6 +203,19 @@ class SmallMolecule(models.Model):
         unique_together = ('facility_id', 'salt_id')    
     def __unicode__(self):
         return unicode(str((self.facility_id, self.salt_id)))
+    
+    def _get_facility_salt(self):
+        "Returns the 'facilty_id-salt_id'"
+        return '%d-%d' % (self.facility_id, self.salt_id)
+    
+    facility_salt = property(_get_facility_salt) 
+    
+    def _get_primary_name(self):
+        "Returns the 'primary name'"
+        return self.name.split(';')[0]
+    
+    primary_name = property(_get_primary_name)   
+
 
 CONCENTRATION_GL = 'g/L'
 CONCENTRATION_MGML = 'mg/mL'
@@ -238,6 +251,11 @@ class SmallMoleculeBatch(models.Model):
     class Meta:
         unique_together = ('smallmolecule', 'facility_batch_id',)    
 
+    def _get_facility_salt_batch(self):
+        "Returns the 'facilty_id-salt_id'"
+        return '%s-%d' % (self.smallmolecule.facility_salt, self.facility_batch_id)
+    
+    facility_salt_batch = property(_get_facility_salt_batch)    
 
 class Cell(models.Model):
     # ----------------------------------------------------------------------------------------------------------------------
@@ -353,7 +371,6 @@ class DataSet(models.Model):
     date_publicly_available = models.DateField(null=True,blank=True)
     is_restricted           = models.BooleanField()
     
-    
     def _get_lead_screener(self):
         "Returns the LS  full name."
         return '%s %s' % (self.lead_screener_firstname, self.lead_screener_lastname)
@@ -442,8 +459,14 @@ class DataPoint(models.Model):
     class Meta:
         unique_together = ('datacolumn', 'datarecord',)    
 
-
-
+class AttachedFile(models.Model):
+    filename                = _TEXT(unique=True,**_NOTNULLSTR)
+    relative_path           = _TEXT(**_NULLOKSTR)
+    facility_id_for         = _INTEGER(null=False)
+    salt_id_for             = _INTEGER(null=True)
+    batch_id_for            = _INTEGER(null=True)
+    file_type               = _TEXT(**_NULLOKSTR)
+    file_date               = models.DateField(null=True,blank=True)
 
 del _CHAR, _TEXT, _INTEGER
 del _NULLOKSTR, _NOTNULLSTR
@@ -474,6 +497,7 @@ def get_properties(obj):
         except Exception, e:
             logger.debug(str(('can not introspect',e)))
     return attrs
+
 def get_listing(model_object, search_tables):
     """
     returns an ordered dict of field_name->{value:value,fieldinformation:}
@@ -508,9 +532,9 @@ def get_fielddata(model_object, search_tables, is_detail=False):
                 ui_dict[field] = details
                 #ui_dict[fi.get_verbose_name()] = value
             else:
-                logger.info(str(('field not shown in this view: is_detail',is_detail, field,value)))
+                logger.debug(str(('field not shown in this view: is_detail',is_detail, field,value)))
         except (ObjectDoesNotExist,MultipleObjectsReturned) as e:
-            logger.info(str(('no field information defined for: ', field, value)))
+            logger.debug(str(('no field information defined for: ', field, value)))
     ui_dict = OrderedDict(sorted(ui_dict.items(), key=lambda x: x[1]['fieldinformation'].order))
     return ui_dict
     #return self.DatasetForm(data)

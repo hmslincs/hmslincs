@@ -1,0 +1,4 @@
+{% for field,info in object.items %}
+    <li><b>{{ info.fieldinformation.get_verbose_name }}:</b> {{ info.value|safe }}</li>
+{% endfor %}
+	

@@ -5,6 +5,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 bool_converter = lambda x: convertdata(x,bool)
+int_converter = lambda x: convertdata(x,int)
 date_converter = lambda x: convertdata(x,date)
 
 def fill_in_column_definitions(properties, column_definitions):

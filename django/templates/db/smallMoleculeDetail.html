@@ -2,7 +2,22 @@
 {% block content %}
 <h2>Small Molecule Information</h2>
 	{% for field,info in object.items %}
-	    <li><b>{{ info.fieldinformation.get_verbose_name }}:</b> {{ info.value|safe }}</li>
+	  <li><b>{{ info.fieldinformation.get_verbose_name }}:</b> {{ info.value|safe }}</li>
 	{% endfor %}
-	<img src="{{ STATIC_URL }}/compound-images-by-facility-salt-id/HMSL{{object.facility_id.value}}-{{object.salt_id.value}}.png" />
+	{% if image_location %}
+		<img src="{{ STATIC_URL }}/{{image_location}}" />
+	{% endif %}
+	
+	{% if batchTable %}
+		{% load render_table from django_tables2 %}
+		{% render_table batchTable %}
+	{% endif %}
+	{% if smallmolecule_batch %}
+		<h3>Batch Information:</h3>
+		{% for field,info in smallmolecule_batch.items %}
+		  <li><b>{{ info.fieldinformation.get_verbose_name }}:</b> {{ info.value|safe }}</li>
+		{% endfor %}
+	{% endif %}
+	
+	
 {% endblock %}

@@ -33,8 +33,11 @@ def main(path):
     """
     Read in the sdf file
     """
-   # map field labels to model fields
+    # map field labels to model fields
     properties = ('model_field','required','default','converter')
+    get_primary_name = lambda x: x.split(';')[0].strip()
+    get_alternate_names = lambda x: ';'.join([x.strip() for x in x.split(';')[1:]])
+    
     labels = { s2p.MOLDATAKEY:('molfile',True),
                'facility_reagent_id': ('facility_id',True,None, lambda x: util.convertdata(x[x.index('HMSL')+4:],int)),
                'salt_id': ('salt_id',True,None, lambda x: util.convertdata(x,int)),
@@ -85,7 +88,12 @@ def main(path):
                 raise Exception(str(('Field is required: ', key, initializer, 'record:', count)))
             logger.debug(str(('model_field: ' , model_field, ', value: ', value)))
             initializer[model_field] = value
-            
+        
+        # follows is a kludge, to split up the entered "chemical_name" field, on ';' - TODO: just have two fields that get entered
+        if(initializer['name']):
+            initializer['alternative_names']=get_alternate_names(initializer['name'])
+            initializer['name']=get_primary_name(initializer['name'])
+                
         logger.debug(str(('initializer: ', initializer)))
         sm = SmallMolecule(**initializer)
         sm.save()

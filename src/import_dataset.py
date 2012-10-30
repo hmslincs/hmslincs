@@ -177,7 +177,7 @@ def main(path):
                     findError = False
                     break
             if findError:    
-                raise Exception(str(( "Error: no datacolumn for ", label)))
+                raise Exception(str(( "Error: no datacolumn for ", label, dataColumns.values(), metaColumnDict.keys(),metaColumnDict.keys())))
     
     found=False
     for key,value in mappingColumnDict.items():

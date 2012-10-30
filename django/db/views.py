@@ -1,17 +1,19 @@
 #from django.template import Context, loader
 #from django.http import HttpResponse
 from django.core.exceptions import ObjectDoesNotExist,MultipleObjectsReturned
-from django.shortcuts import render_to_response
+#from django.shortcuts import render_to_response
 from django.shortcuts import render
 from django.db import models
 from django.db import connection
-from django.forms.models import model_to_dict
+#from django.forms.models import model_to_dict
 from django.forms import ModelForm
-from django.forms import Field
+#from django.forms import Field
 from django.http import Http404
 from django.utils.safestring import mark_safe
 from django.http import HttpResponse
+from django.conf import settings
 
+import urllib2
 import csv
 import xlwt
 #from django.template import RequestContext
@@ -27,7 +29,10 @@ import logging
 
 logger = logging.getLogger(__name__)
 APPNAME = 'db',
+COMPOUND_IMAGE_LOCATION = "compound-images-by-facility-salt-id"  
+DATASET_IMAGE_LOCATION = "screen-images-by-facility-id" 
 facility_salt_id = " sm.facility_id || '-' || sm.salt_id " # Note: because we have a composite key for determining unique sm structures, we need to do this
+facility_salt_batch_id = facility_salt_id + " || '-' || smb.facility_batch_id " # Note: because we have a composite key for determining unique sm structures, we need to do this
 
 from dump_obj import dumpObj
 def dump(obj):
@@ -147,9 +152,35 @@ def proteinDetail(request, lincs_id):
         raise Http404
     return render(request, 'db/proteinDetail.html', {'object': get_detail(protein, ['protein',''])})
 
+# TODO REFACTOR, DRY... 
 def smallMoleculeIndex(request):
     search = request.GET.get('search','')
-    queryset = SmallMoleculeSearchManager().search(search, is_authenticated=request.user.is_authenticated());
+    logger.info(str(("is_authenticated:", request.user.is_authenticated(), 'search: ', search)))
+    if(search != ''):
+        criteria = "search_vector @@ to_tsquery(%s)"
+        if(get_integer(search) != None):
+            criteria = '(' + criteria + ' OR facility_id='+str(get_integer(search)) + ')' # TODO: seems messy here
+        where = [criteria]
+        if(not request.user.is_authenticated()): 
+            where.append("not is_restricted")
+        # postgres fulltext search with rank and snippets
+        logger.info(str(("SmallMoleculeTable.snippet_def:",SmallMoleculeTable.snippet_def)))
+        queryset = SmallMolecule.objects.extra(
+            select={
+                'snippet': "ts_headline(" + SmallMoleculeTable.snippet_def + ", to_tsquery(%s))",
+                'rank': "ts_rank_cd(search_vector, to_tsquery(%s), 32)",
+                },
+            where=where,
+            params=[search+":*"],
+            select_params=[search+":*",search+":*"],
+            order_by=('-rank',)
+            )        
+    else:
+        where = []
+        if(not request.user.is_authenticated()): where.append("not is_restricted")
+        queryset = SmallMolecule.objects.extra(
+            where=where,
+            order_by=('facility_id','salt_id'))        
     table = SmallMoleculeTable(queryset)
 
     outputType = request.GET.get('output_type','')
@@ -158,19 +189,63 @@ def smallMoleculeIndex(request):
     
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
     return render(request, 'db/listIndex.html', {'table': table, 'search':search })
- 
-def smallMoleculeDetail(request, facility_salt_id):
+
+#def smallMoleculeIndex(request):
+#    search = request.GET.get('search','')
+#    queryset = SmallMoleculeSearchManager().search(search, is_authenticated=request.user.is_authenticated());
+#    table = SmallMoleculeTable(queryset)
+#
+#    outputType = request.GET.get('output_type','')
+#    if(outputType != ''):
+#        return send_to_file(outputType, 'small_molecule', table, queryset, request )
+#    
+#    RequestConfig(request, paginate={"per_page": 25}).configure(table)
+#    return render(request, 'db/listIndex.html', {'table': table, 'search':search })
+
+def can_access_image(request, image_filename):
+    #dump(settings)
+    url = request.build_absolute_uri(settings.STATIC_URL + image_filename)
+    logger.info(str(('try to open url',url))) 
     try:
-        temp = facility_salt_id.split('-')
+        response = urllib2.urlopen(url)
+        response.read()
+        return True
+    except Exception,e:
+        logger.info(str(('no image found at', url, e)))
+    return False
+        
+def smallMoleculeDetail(request, facility_salt_id): # TODO: let urls.py grep the facility and the salt
+    try:
+        temp = facility_salt_id.split('-') # TODO: let urls.py grep the facility and the salt
         logger.info(str(('find sm detail for', temp)))
         facility_id = temp[0]
         salt_id = temp[1]
-        sm = SmallMolecule.objects.get(facility_id=facility_id, salt_id=salt_id) # TODO: create a sm detail link from facility-salt
+        sm = SmallMolecule.objects.get(facility_id=facility_id, salt_id=salt_id) 
         if(sm.is_restricted and not request.user.is_authenticated()):
             return HttpResponse('Log in required.', status=401)
+        smb = None
+        if(len(temp)>2):
+            smb = SmallMoleculeBatch.objects.get(smallmolecule=sm,facility_batch_id=temp[2]) 
+        
+    
+        details = {'object': get_detail(sm, ['smallmolecule',''])}
+        
+        # batch table
+        if(smb == None):
+            batches = SmallMoleculeBatch.objects.filter(smallmolecule=sm)
+            if(len(batches)>0):
+                details['batchTable']=SmallMoleculeBatchTable(batches)
+        else:
+            details['smallmolecule_batch']= get_detail(smb,['smallmoleculebatch',''])
+        # attached file table        
+        #attachedFiles = AttachedFile.objects.get(facility_id_for=facility_id, salt_id_for=salt_id)
+        
+        image_location = COMPOUND_IMAGE_LOCATION + '/HMSL%d-%d.png' % (sm.facility_id,sm.salt_id)
+        if(can_access_image(request,image_location)): details['image_location'] = image_location
+        return render(request,'db/smallMoleculeDetail.html', details)
+
     except SmallMolecule.DoesNotExist:
         raise Http404
-    return render(request,'db/smallMoleculeDetail.html', {'object': get_detail(sm, ['smallmolecule',''])})
 
 def libraryIndex(request):
     search = request.GET.get('search','')
@@ -192,8 +267,9 @@ def libraryDetail(request, short_name):
         response_dict = {'object': get_detail(library, ['library',''])}
         queryset = SmallMoleculeSearchManager().search(library_id=library.id);
         if(len(queryset)>0): 
-            table = SmallMoleculeTable(queryset, show_plate_well=True)
-            response_dict[table]=table
+            table = LibraryMappingTable(queryset)
+            RequestConfig(request, paginate={"per_page": 25}).configure(table)
+            response_dict['table']=table
         return render(request,'db/libraryDetail.html', response_dict)
     except Library.DoesNotExist:
         raise Http404
@@ -314,12 +390,18 @@ def screenDetail(request, facility_id):
     
     table = manager.get_table(request.user.is_authenticated())
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
-    return {'object': get_detail(manager.dataset, ['dataset','']),
-           'table': table,
-           'cellTable': cellTable,
-           'proteinTable': proteinTable,
-           'facilityId': facility_id,
-           'type':getDatasetType(facility_id)}
+    
+    details =  {'object': get_detail(manager.dataset, ['dataset','']),
+                'table': table,
+                'cellTable': cellTable,
+                'proteinTable': proteinTable,
+                'facilityId': facility_id,
+                'type':getDatasetType(facility_id)}
+
+    image_location = DATASET_IMAGE_LOCATION + '/%s.png' % str(facility_id)
+    if(can_access_image(request,image_location)): details['image_location'] = image_location
+    
+    return details
 
 class SnippetColumn(tables.Column):
     def render(self, value):
@@ -548,39 +630,37 @@ class SmallMoleculeSearchManager(models.Model):
         query_string = query_string.strip()
         cursor = connection.cursor()
         
-        sql = "select l.short_name, l.id as library_id," + facility_salt_id + " as facility_salt_id , sm.*, smb.id as smb_id, smb.* " # TODO: remove the _id columns, not needed
-        sql += ", lm.plate, lm.well "
-        sql += (" from db_smallmolecule sm " +
-            " left join db_smallmoleculebatch smb on(smb.smallmolecule_id=sm.id)" 
-            " left join db_librarymapping lm on(smb.id=lm.smallmolecule_batch_id) " + 
-            " left join db_library l on(lm.library_id=l.id) ")
-        where = ''
+#        sql = "select l.short_name, l.id as library_id," + facility_salt_batch_id + " as facility_salt , sm.*, smb.id as smb_id, smb.* " # TODO: remove the _id columns, not needed
+#        sql += (" from db_smallmolecule sm " +
+#            " left join db_smallmoleculebatch smb on(smb.smallmolecule_id=sm.id)" 
+#            " left join db_librarymapping lm on(smb.id=lm.smallmolecule_batch_id) " + 
+#            " left join db_library l on(lm.library_id=l.id) ")
+        sql = "select " + facility_salt_batch_id + " as facility_salt_batch , sm.* " 
+        if(library_id != None): 
+            sql += ", smb.*, lm.* "
+        sql += (" from db_smallmolecule sm " )
+        where = ' where 1=1 '
         if(query_string != '' ):
             # TODO: how to include the smb snippet (once it's created)
-            where = " sm.search_vector @@ query "
+            where += " and sm.search_vector @@ query "
             if(get_integer(query_string) != None):
                 where = '(' + where + ' OR sm.facility_id='+str(get_integer(query_string)) + ')' # TODO: seems messy here
             # TODO: search by facility-salt-batch
             where = ", to_tsquery(%s) as query  where " + where
         if(library_id != None):
-            if(where != ''):
-                where += ' and '
-            else:
-                where = ' where '
-            where += 'library_id='+ str(library_id)
+            sql += (" left join db_smallmoleculebatch smb on(smb.smallmolecule_id=sm.id) ") 
+            sql += (" left join db_librarymapping lm on(smb.id=lm.smallmolecule_batch_id) " + 
+                    " left join db_library l on(lm.library_id=l.id) ")
+            where += ' and library_id='+ str(library_id)
         if(not is_authenticated):
-            if(where != ''):
-                where += ' and '
-            else:
-                where = ' where '
-            where += 'not sm.is_restricted' # TODO: NOTE, not including: ' and not l.is_restricted'; library restriction will only apply to viewing the library explicitly (the meta data, and selection of compounds)
+            where += ' and not sm.is_restricted' # TODO: NOTE, not including: ' and not l.is_restricted'; library restriction will only apply to viewing the library explicitly (the meta data, and selection of compounds)
             
         sql += where
         sql += " order by "
         if(library_id != None):
-            sql += "plate, well, "
-        sql += " sm.facility_id, sm.salt_id, smb.facility_batch_id "
-        
+            sql += "plate, well, smb.facility_batch_id, "
+        sql += " sm.facility_id, sm.salt_id "
+        logger.debug(str(('sql',sql)))
         # TODO: the way we are separating query_string out here is a kludge
         if(query_string != ''):
             cursor.execute(sql, [query_string + ':*'])
@@ -589,50 +669,55 @@ class SmallMoleculeSearchManager(models.Model):
         v = dictfetchall(cursor)
         return v
     
+class SmallMoleculeBatchTable(tables.Table):
+    
+    facility_salt_batch = tables.LinkColumn("sm_detail", args=[A('facility_salt_batch')])
+    
+    class Meta:
+        model = SmallMoleculeBatch
+        orderable = True
+        attrs = {'class': 'paleblue'}
 
+    def __init__(self, table, show_plate_well=False,*args, **kwargs):
+        super(SmallMoleculeBatchTable, self).__init__(table)
+        sequence_override = ['facility_salt_batch']
+        set_table_column_info(self, ['smallmolecule','smallmoleculebatch',''],sequence_override)  
 
 class SmallMoleculeTable(tables.Table):
-    facility_id = tables.LinkColumn("sm_detail", args=[A('facility_salt_id')]) # TODO: create a molecule link for facility/salt/batch ids
+    facility_salt = tables.LinkColumn("sm_detail", args=[A('facility_salt')]) 
     rank = tables.Column()
     snippet = tables.Column()
-    short_name = tables.LinkColumn('library_detail', args=[A('short_name')])
-    
-    facility_batch_id = tables.Column()
-    
-    provider = tables.Column()
-    provider_catalog_id = tables.Column()
-    provider_sample_id = tables.Column()
-    
-    well = tables.Column(visible=False)
-    plate = tables.Column(visible=False)
-    
-    # TODO:
-    # chemical_synthesis_reference = tables.Column()
-    # purity = tables.Column()
-    # purity_method = tables.Column()
-    
-    
-    snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce("+x.field+",'') ", FieldInformation.manager.get_search_fields(SmallMolecule))))
-    
+
+    snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce("+x.field+",'') ", FieldInformation.manager.get_search_fields(SmallMolecule)))) 
+
     class Meta:
         model = SmallMolecule #[SmallMolecule, SmallMoleculeBatch]
         orderable = True
         attrs = {'class': 'paleblue'}
-        #sequence = ('facility_id', 'salt_id', 'facility_batch_id', 'name','short_name','...')
-        #exclude = ('id', 'smallmolecule_id','smallmolecule_batch_id','molfile','rank','snippet','is_restricted','lincs_id') 
-        
     def __init__(self, table, show_plate_well=False,*args, **kwargs):
         super(SmallMoleculeTable, self).__init__(table)
-        logger.info(str(('sequence', self.sequence)))
-        if(show_plate_well):
-            self.base_columns['plate'].visible = True
-            self.base_columns['well'].visible = True
-            self.sequence.remove('well')
-            self.sequence.remove('plate')
-            self.sequence.insert(0,'well')
-            self.sequence.insert(0,'plate')
-        sequence_override = ['facility_id', 'salt_id', 'facility_batch_id']
+        sequence_override = ['facility_salt']
         set_table_column_info(self, ['smallmolecule','smallmoleculebatch',''],sequence_override)  
+
+class LibraryMappingTable(tables.Table):
+    facility_salt_batch = tables.LinkColumn("sm_detail", args=[A('facility_salt_batch')])  
+    well = tables.Column()
+    plate = tables.Column()
+    concentration = tables.Column()
+    concentration_unit = tables.Column()
+        
+    snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce("+x.field+",'') ", FieldInformation.manager.get_search_fields(SmallMolecule)))) # TODO: specialized search for librarymapping, if needed
+    
+    class Meta:
+        model = SmallMoleculeBatch
+        orderable = True
+        attrs = {'class': 'paleblue'}
+        
+    def __init__(self, table, show_plate_well=False,*args, **kwargs):
+        super(LibraryMappingTable, self).__init__(table)
+        sequence_override = ['facility_salt_batch']
+        
+        set_table_column_info(self, ['smallmolecule','smallmoleculebatch','librarymapping',''],sequence_override)  
             
 class SmallMoleculeForm(ModelForm):
     class Meta:
@@ -694,11 +779,12 @@ class LibrarySearchManager(models.Manager):
         if(not is_authenticated):
             where += 'and not library.is_restricted '
         if(query_string != '' ):
-            sql += ", to_tsquery(%s) as query  where " 
-            where = "and library.search_vector @@ query "
+            sql += ", to_tsquery(%s) as query  " 
+            where += "and library.search_vector @@ query "
         sql += where
         sql += " group by library.id) a join db_library library on(a.id=library.id)"
         
+        logger.info(str(('sql',sql)))
         # TODO: the way we are separating query_string out here is a kludge
         if(query_string != ''):
             cursor.execute(sql, [query_string + ':*'])
@@ -781,6 +867,7 @@ TEMPLATE = '''
             
 
 def set_table_column_info(table,table_names, sequence_override=[]):
+    # TODO: set_table_column info could pick the columns to include from the fieldinformation as well
     """
     Field information section
     param: table: a django-tables2 table
