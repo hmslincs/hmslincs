@@ -1,3 +1,6 @@
+Author: Gabriel F. Berriz <gabriel_berriz@hms.harvard.edu>
+Date:   Wed Oct 24 16:40:54 2012 -0400
+
 The files
 
   sampledata/MH/picks_for_basal.tsv
@@ -40,30 +43,30 @@ The files
 were generated with the following incantations
 
  % gjoin -t$'\t' \
-     sampledata/MH/kluge.tsv \
+     sampledata/MH/col_1_3.tsv \
      <( cut -f 1,3,5,6,29,31,32 'sampledata/MH/data_Basal levels_raw.tsv' ) \
    > sampledata/MH/picks_for_basal.tsv
  % gjoin -t$'\t' \
-     sampledata/MH/kluge.tsv \
+     sampledata/MH/col_1_3.tsv \
      <( cut -f 1,2,4,5,7,12,13,17,22 'sampledata/MH/data_HTM (all GF), mean_foldchange.tsv' ) \
    > sampledata/MH/picks_for_responses.tsv
  % gjoin -t$'\t' \
-     sampledata/MH/kluge.tsv \
+     sampledata/MH/col_1_3.tsv \
      <( cut -f 1,67,68,69,127,128,129 'sampledata/MH/data_HTM (GF)_foldchange.tsv' ) \
    > sampledata/MH/picks_for_slider.tsv
 
-...where the file sampledata/MH/kluge.tsv was in turn generated with:
+...where the file sampledata/MH/col_1_3.tsv was in turn generated with:
 
  % gjoin -o 0,1.2,2.2 -a1 -a2 -e '0.0' -t$'\t' \
      <( cut -f 1,2 'sampledata/MH/data_HTM (all GF), mean_raw(1).txt' ) \
      <( cut -f 1,3 'sampledata/MH/data_HTM (GF)_foldchange.tsv' ) \
-   > sampledata/MH/kluge.tsv
+   > sampledata/MH/col_1_3.tsv
 
 NOTE that the last gjoin command results in some output lines where
 the second column (GI50(AG1478)) is 0.0, which is incorrect, but is
 meant as a placeholder:
 
-  % nl sampledata/MH/kluge.tsv | grep -e GI50 -e '0.0'
+  % nl sampledata/MH/col_1_3.tsv | grep -e GI50 -e '0.0'
        1	.	GI50(AG1478)	Subtype
        2	184B5	0.0	TNBC
       13	HCC1500	0.0	HR+
@@ -79,4 +82,4 @@ To generate the pre-cooked scatterplots, run
 
   % python src/do_scatterplots.py sampledata/MH/picks_for_basal.tsv
   % python src/do_scatterplots.py sampledata/MH/picks_for_responses.tsv
-  % python src/do_scatterplots.py sampledata/MH/picks_for_slider.tsv
+  % WITHLIMITS=1 python src/do_scatterplots.py sampledata/MH/picks_for_slider.tsv
