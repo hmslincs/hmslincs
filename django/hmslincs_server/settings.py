@@ -93,7 +93,9 @@ STATICFILES_DIRS = (
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
     '/home/sde4/docs/work/LINCS/data/images/',
+    '/home/sde4/docs/work/LINCS/data/upload_files/',
     '/groups/pharmacoresponse/data/images/'
+    '/groups/pharmacoresponse/data/upload_files/'
 )
 
 # List of finder classes that know how to find static files in
@@ -134,6 +136,9 @@ MIDDLEWARE_CLASSES = (
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
+
+# uncomment to enable - this is the default, but we'll override 
+# AUTHENTICATION_BACKENDS = ('django.contrib.auth.backends.ModelBackend',) # Note, this is the default
 
 ROOT_URLCONF = 'hmslincs_server.urls'
 
@@ -222,7 +227,7 @@ LOGGING = {
             'propagate': True,
             'level': 'WARN',
         },
-        'urls': {  
+        '': {  
             'handlers': ['console'],
             'propagate': True,
             'level': 'INFO',

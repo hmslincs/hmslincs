@@ -78,7 +78,7 @@ def cellIndex(request):
                 'rank': "ts_rank_cd(search_vector, plainto_tsquery(%s), 32)",
                 },
             where=where,
-            params=[search],
+            params=[search+":*"],
             select_params=[search,search],
             order_by=('-rank',)
             )        
@@ -124,7 +124,7 @@ def proteinIndex(request):
                 'rank': "ts_rank_cd(search_vector, plainto_tsquery(%s), 32)",
                 },
             where=where,
-            params=[search],
+            params=[search+":*"],
             select_params=[search,search],
             order_by=('-rank',)
             )        
@@ -300,7 +300,7 @@ def screenIndex(request, type='screen'):
                 'rank': "ts_rank_cd(search_vector, plainto_tsquery(%s), 32)",
                 },
             where=where,
-            params=[search],
+            params=[search+":*"],
             select_params=[search,search],
             order_by=('-rank',)
             )        
