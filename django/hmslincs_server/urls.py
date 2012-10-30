@@ -51,6 +51,7 @@ urlpatterns = patterns('',
     url(r'^db/screen/(?P<facility_id>\d+)/proteins$', 'db.views.screenDetailProteins', name="screen_detail_proteins"),
     url(r'^db/screen/(?P<facility_id>\d+)/results$', 'db.views.screenDetailResults', name="screen_detail_results"),
     url(r'^db/study/$','db.views.studyIndex', name="listStudies"),
+    url(r'^db/downloadattached/(?P<path>.*)/$', 'db.views.download_attached_file', name='download_attached_file'),
     #url(r'^db/search/', include('haystack.urls'), name="haystackSearch"),
     
     (r'^db/api/', include(v1_api.urls)),

@@ -1,15 +1,15 @@
 {% extends "db/base.html" %}
 {% block content %}
 <h2>Small Molecule Information</h2>
-	{% for field,info in object.items %}
-	  <li><b>{{ info.fieldinformation.get_verbose_name }}:</b> {{ info.value|safe }}</li>
-	{% endfor %}
+	{% include "db/detailListing.html" %}
+
 	{% if image_location %}
 		<img src="{{ STATIC_URL }}/{{image_location}}" />
 	{% endif %}
 	
 	{% if batchTable %}
 		{% load render_table from django_tables2 %}
+		<h3>Batch Information:</h3>
 		{% render_table batchTable %}
 	{% endif %}
 	{% if smallmolecule_batch %}
@@ -17,6 +17,11 @@
 		{% for field,info in smallmolecule_batch.items %}
 		  <li><b>{{ info.fieldinformation.get_verbose_name }}:</b> {{ info.value|safe }}</li>
 		{% endfor %}
+		{% if attached_files_batch %}
+		<h2>Attached Files</h2>
+			{% load render_table from django_tables2 %}
+			{% render_table attached_files_batch %}
+		{% endif %}
 	{% endif %}
 	
 	

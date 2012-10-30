@@ -1,3 +1,4 @@
+import os.path as op
 #from django.template import Context, loader
 #from django.http import HttpResponse
 from django.core.exceptions import ObjectDoesNotExist,MultipleObjectsReturned
@@ -8,7 +9,7 @@ from django.db import connection
 #from django.forms.models import model_to_dict
 from django.forms import ModelForm
 #from django.forms import Field
-from django.http import Http404
+from django.http import Http404,HttpResponseRedirect
 from django.utils.safestring import mark_safe
 from django.http import HttpResponse
 from django.conf import settings
@@ -21,7 +22,7 @@ import django_tables2 as tables
 from django_tables2 import RequestConfig
 from django_tables2.utils import A  # alias for Accessor
 
-from db.models import SmallMolecule, SmallMoleculeBatch, Cell, Protein, DataSet, Library, FieldInformation
+from db.models import SmallMolecule, SmallMoleculeBatch, Cell, Protein, DataSet, Library, FieldInformation,AttachedFile
 from db.models import get_detail
 from collections import OrderedDict
 
@@ -213,7 +214,7 @@ def can_access_image(request, image_filename):
     except Exception,e:
         logger.info(str(('no image found at', url, e)))
     return False
-        
+       
 def smallMoleculeDetail(request, facility_salt_id): # TODO: let urls.py grep the facility and the salt
     try:
         temp = facility_salt_id.split('-') # TODO: let urls.py grep the facility and the salt
@@ -230,6 +231,10 @@ def smallMoleculeDetail(request, facility_salt_id): # TODO: let urls.py grep the
     
         details = {'object': get_detail(sm, ['smallmolecule',''])}
         
+        attachedFiles = get_attached_files(sm.facility_id,sm.salt_id)
+        if(len(attachedFiles)>0):
+            details['attached_files'] = AttachedFileTable(attachedFiles)
+            
         # batch table
         if(smb == None):
             batches = SmallMoleculeBatch.objects.filter(smallmolecule=sm)
@@ -237,7 +242,9 @@ def smallMoleculeDetail(request, facility_salt_id): # TODO: let urls.py grep the
                 details['batchTable']=SmallMoleculeBatchTable(batches)
         else:
             details['smallmolecule_batch']= get_detail(smb,['smallmoleculebatch',''])
-        # attached file table        
+            attachedFiles = get_attached_files(sm.facility_id,sm.salt_id,smb.facility_batch_id)
+            if(len(attachedFiles)>0):
+                details['attached_files_batch'] = AttachedFileTable(attachedFiles)        # attached file table        
         #attachedFiles = AttachedFile.objects.get(facility_id_for=facility_id, salt_id_for=salt_id)
         
         image_location = COMPOUND_IMAGE_LOCATION + '/HMSL%d-%d.png' % (sm.facility_id,sm.salt_id)
@@ -246,6 +253,9 @@ def smallMoleculeDetail(request, facility_salt_id): # TODO: let urls.py grep the
 
     except SmallMolecule.DoesNotExist:
         raise Http404
+    
+def get_attached_files(facility_id, salt_id=None, batch_id=None):
+    return AttachedFile.objects.filter(facility_id_for=facility_id, salt_id_for=salt_id, batch_id_for=batch_id)
 
 def libraryIndex(request):
     search = request.GET.get('search','')
@@ -282,7 +292,7 @@ def screenIndex(request, type='screen'):
     logger.info(str(("is_authenticated:", request.user.is_authenticated(), 'search: ', search)))
     where = []
     if(type == 'screen'):
-        where.append(" facility_id between 10000 and 20000 ")
+        where.append(" facility_id between 10000 and 30000 ")
     elif(type == 'study'):
         where.append(" facility_id between 300000 and 400000 ")
     if(search != ''):
@@ -324,7 +334,7 @@ def screenIndex(request, type='screen'):
 # Follows is a messy way to differentiate each tab for the screen detail page (each tab calls it's respective method)
 def getDatasetType(facility_id):
     facility_id = int(facility_id)
-    if(facility_id < 20000 and facility_id >=  10000 ):
+    if(facility_id < 30000 and facility_id >=  10000 ):
         return 'screen'
     elif(facility_id < 400000 and facility_id >= 300000 ):
         return 'study'
@@ -365,7 +375,6 @@ def screenDetailResults(request, facility_id):
         return HttpResponse('Unauthorized', status=401)
 
 def screenDetail(request, facility_id):
-    logger.error('----------------------------------------test!!!==================')
     try:
         dataset = DataSet.objects.get(facility_id=facility_id)
         if(dataset.is_restricted and not request.user.is_authenticated()):
@@ -438,6 +447,14 @@ class DataSetTable(tables.Table):
         
         set_table_column_info(self, ['dataset',''])  
 
+def set_field_information_to_table_column(fieldname,table_names,column):
+    try:
+        fi = FieldInformation.manager.get_column_fieldinformation_by_priority(fieldname,table_names)
+        column.attrs['th']={'title':fi.get_column_detail()}
+        column.verbose_name = fi.get_verbose_name()
+    except (ObjectDoesNotExist) as e:
+        raise Exception(str(('no fieldinformation found for field:', fieldname,e)))
+    
         
 # NOTE: this class doesn't have to override models.Manager, since it won't be used on 
 # a particular model.
@@ -469,9 +486,15 @@ class DataSetManager():
         just like set_table_column_info does with the fieldinformation class 
         """
         id = tables.Column(visible=False)
-        facility_id = tables.LinkColumn('sm_detail', args=[A('facility_salt_id')], verbose_name='Facility ID')
+        facility_salt_batch = tables.LinkColumn('sm_detail', args=[A('facility_salt_batch')])
+        set_field_information_to_table_column('facility_salt_batch', ['smallmoleculebatch'], facility_salt_batch)
+        
         cell_name = tables.LinkColumn('cell_detail',args=[A('cell_facility_id')], visible=False, verbose_name='Cell Name') 
+        set_field_information_to_table_column('name', ['cell'], cell_name)
+        
         protein_name = tables.LinkColumn('protein_detail',args=[A('protein_lincs_id')], visible=False, verbose_name='Protein Name') 
+        set_field_information_to_table_column('name', ['protein'], protein_name)
+
         class Meta:
             orderable = True
             attrs = {'class': 'paleblue'}
@@ -538,8 +561,8 @@ class DataSetManager():
         #        from db_datapoint dp0 join db_datarecord dr on(datarecord_id=dr.id) join db_smallmoleculebatch smb on(smb.id=dr.smallmolecule_batch_id) join db_smallmolecule sm on(sm.id=smb.smallmolecule_id) 
         #        where dp0.dataset_id = 1 order by datarecord_id;
         queryString = "select distinct (datarecord_id) as datarecord_id, sm.id as smallmolecule_id ,"
-        queryString += " 'HMSL' || sm.facility_id || '-' || sm.salt_id || '-' || smb.facility_batch_id as facility_id, "
-        queryString += facility_salt_id +' as facility_salt_id' # Note: because we have a composite key for determining unique sm structures, we need to do this
+        #queryString += " 'HMSL' || sm.facility_id || '-' || sm.salt_id || '-' || smb.facility_batch_id as facility_salt_batch, "
+        queryString += facility_salt_batch_id +' as facility_salt_batch' # Note: because we have a composite key for determining unique sm structures, we need to do this
         
         show_cells = self.has_cells()
         show_proteins = self.has_proteins()
@@ -547,7 +570,7 @@ class DataSetManager():
         if(show_proteins): queryString += ", protein_id, protein.name as protein_name, protein.lincs_id as protein_lincs_id " 
         i = 0
         columns_to_names = {}
-        orderedNames = ['facility_id']
+        orderedNames = ['facility_salt_batch']
         for datacolumn_id, name, datatype, precision in datacolumns:
             i += 1
             alias = "dp"+str(i)
@@ -699,6 +722,20 @@ class SmallMoleculeTable(tables.Table):
         sequence_override = ['facility_salt']
         set_table_column_info(self, ['smallmolecule','smallmoleculebatch',''],sequence_override)  
 
+class AttachedFileTable(tables.Table):
+    filename=tables.LinkColumn("download_attached_file", args=[A('filename')])
+    #snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce("+x.field+",'') ", FieldInformation.manager.get_search_fields(SmallMolecule)))) # TODO: specialized search for librarymapping, if needed
+    
+    class Meta:
+        model = AttachedFile
+        orderable = True
+        attrs = {'class': 'paleblue'}
+        
+    def __init__(self, table,*args, **kwargs):
+        super(AttachedFileTable, self).__init__(table)
+        sequence_override = []
+        set_table_column_info(self, ['attachedfile',''],sequence_override)  
+        
 class LibraryMappingTable(tables.Table):
     facility_salt_batch = tables.LinkColumn("sm_detail", args=[A('facility_salt_batch')])  
     well = tables.Column()
@@ -907,6 +944,14 @@ def dictfetchall(cursor): #TODO modify this to stream results properly
         dict(zip([col[0] for col in desc], row)) for row in cursor.fetchall()
     ]
 
+def download_attached_file(request, path):
+    # TODO Authorization
+    dump(request.user)
+    logger.info(str(('download_attached_file',path,request.user)))
+    if(request.user.is_authenticated()):
+        pass
+    return HttpResponseRedirect("/_static/"+path)
+        
 def send_to_file(outputType, name, table, queryset, request):
     # ordered list (field,verbose_name)
     columns = map(lambda (x,y): (x, y.verbose_name), filter(lambda (x,y): x != 'rank' and x!= 'snippet' and y.visible, table.base_columns.items()))
@@ -923,7 +968,7 @@ def send_to_file(outputType, name, table, queryset, request):
         return export_as_csv(name,columnsOrdered , request, queryset)
     elif(outputType == 'xls'):
         return export_as_xls(name, columnsOrdered, request, queryset)
- 
+    
 def export_as_xls(name,columnNames, request, queryset):
     """
     Generic xls export admin action.
@@ -934,7 +979,8 @@ def export_as_xls(name,columnNames, request, queryset):
     wbk = xlwt.Workbook()
     sheet = wbk.add_sheet('sheet 1')    # Write a first row with header information
     for i, (field,verbose_name) in enumerate(columnNames):
-        sheet.write(0, i, verbose_name)
+        sheet.write(0, i, verbose_name)        
+        
     # Write data rows
     for row,obj in enumerate(queryset):
         if isinstance(obj, dict):

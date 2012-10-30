@@ -1,8 +1,6 @@
 {% extends "db/base.html" %}
 {% block content %}
 <h2>Protein Information</h2>
-	{% for field,info in object.items %}
-	    <li><b>{{ info.fieldinformation.get_verbose_name }}:</b> {{ info.value|safe }}</li>
-	{% endfor %}
+ {% include "db/detailListing.html" %}
 {% endblock %}
 	

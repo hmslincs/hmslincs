@@ -1,13 +1,15 @@
 import sys
+import os
 import argparse
 import xls2py as x2p
 import re
 from datetime import date
 import logging
+from django.core.exceptions import ObjectDoesNotExist
 
 import init_utils as iu
 import import_utils as util
-from db.models import Protein
+from db.models import SmallMolecule, SmallMoleculeBatch, Cell, Protein, DataSet, Library, AttachedFile
 
 __version__ = "$Revision: 24d02504e664 $"
 # $Source$
@@ -26,88 +28,46 @@ del _sg, _params
 
 logger = logging.getLogger(__name__)
 
-def main(path):
+def main(path,):
     """
-    Read in the Protein
+    Record the attached file for the entity, and move the attached files to the right directory
     """
-    sheet_name = 'HMS-LINCS Kinases'
-    sheet = iu.readtable([path, sheet_name, 1]) # Note, skipping the header row by default
-
-    properties = ('model_field','required','default','converter')
-    column_definitions = { 'PP_Name':('name',True), 
-              'PP_LINCS_ID':('lincs_id',True,None,lambda x: util.convertdata(x[x.index('HMSL')+4:]),int), 
-              'PP_UniProt_ID':'uniprot_id', 
-              'PP_Alternate_Name':'alternate_name',
-              'PP_Alternate_Name[2]':'alternate_name_2',
-              'PP_Provider':'provider',
-              'PP_Provider_Catalog_ID':'provider_catalog_id',
-              'PP_Batch_ID':'batch_id', 
-              'PP_Amino_Acid_Sequence':'amino_acid_sequence',
-              'PP_Gene_Symbol':'gene_symbol', 
-              'PP_Gene_ID':'gene_id',
-              'PP_Protein_Source':'protein_source',
-              'PP_Protein_Form':'protein_form', 
-              'PP_Protein_Purity':'protein_purity', 
-              'PP_Protein_Complex':'protein_complex', 
-              'PP_Isoform':'isoform', 
-              'PP_Protein_Type':'protein_type', 
-              'PP_Source_Organism':'source_organism', 
-              'PP_Reference':'reference',
-              'Date Data Received':('date_data_received',False,None,util.date_converter),
-              'Date Loaded': ('date_loaded',False,None,util.date_converter),
-              'Date Publicly Available': ('date_publicly_available',False,None,util.date_converter),
-              'Is Restricted':('is_restricted',False,False)}
-    # convert the labels to fleshed out dict's, with strategies for optional, default and converter
-    column_definitions = util.fill_in_column_definitions(properties,column_definitions)
-    
-    # create a dict mapping the column ordinal to the proper column definition dict
-    cols = util.find_columns(column_definitions, sheet.labels)
-
-    rows = 0    
-    logger.debug(str(('cols: ' , cols)))
-    for row in sheet:
-        r = util.make_row(row)
-        dict = {}
-        initializer = {}
-        for i,value in enumerate(r):
-            if i not in cols: continue
-            properties = cols[i]
-
-            logger.debug(str(('read col: ', i, ', ', properties)))
-            required = properties['required']
-            default = properties['default']
-            converter = properties['converter']
-            model_field = properties['model_field']
-
-            # Todo, refactor to a method
-            logger.debug(str(('raw value', value)))
-            if(converter != None):
-                value = converter(value)
-            if(value == None ):
-                if( default != None ):
-                    value = default
-            if(value == None and  required == True):
-                raise Exception('Field is required: %s, record: %d' % (properties['column_label'],rows))
-            logger.debug(str(('model_field: ' , model_field, ', value: ', value)))
-            initializer[model_field] = value
-        try:
-            logger.debug(str(('initializer: ', initializer)))
-            protein = Protein(**initializer)
-            protein.save()
-            logger.info(str(('protein created: ', protein)))
-            rows += 1
-        except Exception, e:
-            logger.error(str(( "Invalid protein initializer: ", initializer)))
-            raise
-        
-    print "Rows read: ", rows
-    
+    logger.info("read the attached file")
     
 
-parser = argparse.ArgumentParser(description='Import file')
+parser = argparse.ArgumentParser(description='Copy attached files to the deployed directory, and add an attached file record to the database')
 parser.add_argument('-f', action='store', dest='inputFile',
                     metavar='FILE', required=True,
-                    help='input file path')
+                    help='attached file path')
+
+parser.add_argument('-rp', action='store', dest='relativePath',
+                    metavar='RELPATH', required=True,
+                    help='relative path of this file from the server/_static directory')
+
+parser.add_argument('-d', action='store', dest='description',
+                    metavar='DESCRIPTION', required=False,
+                    help='description for the end user')
+
+parser.add_argument('-fi', action='store', dest='facilityId',
+                    metavar='FACILITY_ID', required=True,
+                    help='facility ID of the entity to attach this file to')
+
+parser.add_argument('-si', action='store', dest='saltId',
+                    metavar='SALT_ID', required=False,
+                    help='Salt ID (must be used with facility id')
+
+parser.add_argument('-bi', action='store', dest='batchId',
+                    metavar='BATCH_ID', required=False,
+                    help='Batch ID (must be used with facility/salt id')
+
+parser.add_argument('-ft', action='store', dest='fileType',
+                    metavar='FILE_TYPE', required=True,
+                    help='designate a descriptive one word file type classification')
+
+parser.add_argument('-fd', action='store', dest='fileDate',
+                    metavar='FILE_DATE', required=True,
+                    help='the date to record for the file')
+
 parser.add_argument('-v', '--verbose', dest='verbose', action='count',
                 help="Increase verbosity (specify multiple times for more)")    
 
@@ -126,5 +86,68 @@ if __name__ == "__main__":
     logging.basicConfig(level=log_level, format='%(msecs)d:%(module)s:%(lineno)d:%(levelname)s: %(message)s')        
     logger.setLevel(log_level)
 
-    print 'importing ', args.inputFile
-    main(args.inputFile)
+    facilityId = util.int_converter(args.facilityId);
+    inputFile = args.inputFile
+    relativePath = args.relativePath
+
+    print 'importing ', inputFile
+    if(not os.path.exists(inputFile)):
+        raise Exception(str(('file does not exist',inputFile)))
+    filename = os.path.basename(inputFile)
+    attachedFile = AttachedFile(filename=filename,facility_id_for=facilityId, relative_path=relativePath)
+    # lookup the Entity
+    
+    if(facilityId <= 30000 ): # SM or Screen
+        logger.info('look for the small molecule for:' + str(facilityId))
+        saltId = util.int_converter(args.saltId)
+        if(saltId is not None):
+            logger.info('look for the small molecule for saltId ' + str(saltId))
+            try:
+                sm = SmallMolecule(facility_id=facilityId, salt_id=saltId)
+                attachedFile.salt_id_for=saltId
+                batchId = util.int_converter(args.batchId)
+                if(batchId is not None):
+                    logger.info('look for the batch Id: ' + str(batchId))
+                    attachedFile.batch_id_for=batchId
+                    try:
+                        smb = SmallMoleculeBatch(smallmolecule=sm,facility_batch_id=batchId)
+                    except ObjectDoesNotExist,e:
+                        logger.error(str(('No such SmallMoleculeBatch found', facilityId, saltId, batchId, e)))
+                        raise e
+            except ObjectDoesNotExist,e:
+                logger.error(str(('No such SmallMolecule found', facilityId, saltId, e)))
+                raise e
+                    
+        else: # it's a screen/dataset
+            try:
+                ds = DataSet.objects.get(facility_id=facilityId)
+            except ObjectDoesNotExist,e:
+                logger.error(str(('No such Study DataSet found', facilityId, saltId, e)))
+                raise e
+    elif(facilityId <=60000): # Cell
+        try:
+            cell = Cell.objects.get(facility_id=facilityId)
+        except ObjectDoesNotExist,e:
+            logger.error(str(('No such Cell found', facilityId, saltId, e)))
+            raise e
+         
+    elif(facilityId <=300000): # Protein 
+        try:
+            ds = DataSet.objects.get(facility_id=facilityId)
+        except ObjectDoesNotExist,e:
+            logger.error(str(('No such Study DataSet found', facilityId, saltId, e)))
+            raise e
+    elif(facilityId <=400000): # Study 
+        try:
+            ds = DataSet.objects.get(facility_id=facilityId)
+        except ObjectDoesNotExist,e:
+            logger.error(str(('No such Study DataSet found', facilityId, saltId, e)))
+            raise e
+    else:
+        raise Exception(str(('unknown facility id', facilityId)))
+        
+    attachedFile.file_type = args.fileType
+    attachedFile.description = args.description
+    attachedFile.file_date = util.date_converter(args.fileDate)
+    
+    attachedFile.save()

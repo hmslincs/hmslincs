@@ -59,7 +59,7 @@ def main(path):
     cols = util.find_columns(column_definitions, sheet.labels)
     
     rows = 0    
-    logger.info(str(('cols: ' , cols)))
+    logger.debug(str(('cols: ' , cols)))
     for row in sheet:
         r = util.make_row(row)
         initializer = {}
@@ -100,7 +100,7 @@ def main(path):
             logger.debug(str(('initializer: ', initializer)))
             smb = SmallMoleculeBatch(**initializer)
             smb.save()
-            logger.info(str(('smb created:', smb)))
+            logger.debug(str(('smb created:', smb)))
             rows += 1
         except Exception, e:
             logger.error(str(( "Invalid smallmolecule batch initializer: ", initializer, 'row', rows+start_row+2, e)))

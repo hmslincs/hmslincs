@@ -261,7 +261,7 @@ class Cell(models.Model):
     # ----------------------------------------------------------------------------------------------------------------------
     #                                                                          EXAMPLE VALUES:
     # ----------------------------------------------------------------------------------------------------------------------
-    facility_id                    = _INTEGER(null=False)
+    facility_id                    = _INTEGER(null=False, unique=True)
     name                           = _CHAR(max_length=35, unique=True, **_NOTNULLSTR)    # 5637
     cl_id                          = _CHAR(max_length=35, **_NULLOKSTR)     # CLO_0003703
     alternate_name                 = _CHAR(max_length=35, **_NULLOKSTR)     # CaSki
@@ -327,7 +327,7 @@ class Cell(models.Model):
 
 class Protein(models.Model):
     name                = _TEXT(**_NOTNULLSTR)
-    lincs_id            = _INTEGER(null=False)
+    lincs_id            = _INTEGER(null=False, unique=True)
     uniprot_id          = _CHAR(max_length=6, **_NULLOKSTR)
     alternate_name      = _TEXT(**_NULLOKSTR)
     alternate_name_2    = _TEXT(**_NULLOKSTR)
@@ -355,8 +355,8 @@ class Protein(models.Model):
 
 class DataSet(models.Model):
     #cells                   = models.ManyToManyField(Cell, verbose_name="Cells screened")
-    facility_id             = _INTEGER(null=False)
-    title                   = _TEXT(**_NOTNULLSTR)
+    facility_id             = _INTEGER(null=False, unique=True)
+    title                   = _TEXT(unique=True, **_NOTNULLSTR)
     lead_screener_firstname = _TEXT(**_NULLOKSTR)
     lead_screener_lastname  = _TEXT(**_NULLOKSTR)
     lead_screener_email     = _TEXT(**_NULLOKSTR)
@@ -461,13 +461,23 @@ class DataPoint(models.Model):
 
 class AttachedFile(models.Model):
     filename                = _TEXT(unique=True,**_NOTNULLSTR)
+    description             = _TEXT(**_NULLOKSTR)
     relative_path           = _TEXT(**_NULLOKSTR)
     facility_id_for         = _INTEGER(null=False)
     salt_id_for             = _INTEGER(null=True)
     batch_id_for            = _INTEGER(null=True)
     file_type               = _TEXT(**_NULLOKSTR)
     file_date               = models.DateField(null=True,blank=True)
-
+    
+    def __unicode__(self):
+        return unicode(str((self.filename,self.relative_path,self.file_type,self.description,self.file_date)))
+    
+    def _get_relative_path_to_file(self):
+        "Returns the 'id string'"
+        return '%s/%s' % (self.relative_path, self.filename)
+    
+    relative_path_to_file = property(_get_relative_path_to_file)
+     
 del _CHAR, _TEXT, _INTEGER
 del _NULLOKSTR, _NOTNULLSTR
 
