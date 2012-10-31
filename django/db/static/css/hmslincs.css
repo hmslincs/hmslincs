@@ -12,3 +12,39 @@ img {
 	max-width: 100%;
 	height: auto;
 }
+
+td {
+	vertical-align: top;
+}
+
+.detail_table{
+	
+}
+
+.entity_detail_title{
+/* 	text-align: center; */
+	text-indent: 5px;
+	font-size: large;
+	font-weight: bold;
+	border-bottom: 1px solid gray;
+}
+.propertyLabelColumn {
+	width: 160px;
+	padding-bottom: 1px;
+	border-width: 1px;
+	border-style: solid;
+	border-color: white;
+
+	vertical-align: top;
+	padding-top: 1px;
+	padding-left: 3px;
+	padding-right: 3px;	
+}
+.propertyLabelColumn, .propertyLabel, .subduedLabel {
+	font-weight: bold;
+	background-color: #DDD;
+}
+
+.propertyValueColumn {
+	padding-left: 3px;
+}

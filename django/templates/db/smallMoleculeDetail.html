@@ -1,24 +1,25 @@
 {% extends "db/base.html" %}
 {% block content %}
-<h2>Small Molecule Information</h2>
+<h2 class='entity_detail_title'>Small Molecule Information</h2>
 	{% include "db/detailListing.html" %}
-
 	{% if image_location %}
 		<img src="{{ STATIC_URL }}/{{image_location}}" />
 	{% endif %}
-	
+	{% if attached_files %}
+		<h2 class='entity_detail_title'>Attached Files</h2>
+		{% load render_table from django_tables2 %}
+		{% render_table attached_files %}
+	{% endif %}
 	{% if batchTable %}
 		{% load render_table from django_tables2 %}
-		<h3>Batch Information:</h3>
+		<h2 class='entity_detail_title'>Batch Information:</h2>
 		{% render_table batchTable %}
 	{% endif %}
 	{% if smallmolecule_batch %}
-		<h3>Batch Information:</h3>
-		{% for field,info in smallmolecule_batch.items %}
-		  <li><b>{{ info.fieldinformation.get_verbose_name }}:</b> {{ info.value|safe }}</li>
-		{% endfor %}
+		<h2 class='entity_detail_title'>Batch Information:</h2>
+		{% include "db/detailListing.html" with object=smallmolecule_batch %}
 		{% if attached_files_batch %}
-		<h2>Attached Files</h2>
+			<h2 class='entity_detail_title'>Attached Files</h2>
 			{% load render_table from django_tables2 %}
 			{% render_table attached_files_batch %}
 		{% endif %}
