@@ -69,7 +69,7 @@ if __name__ == '__main__':
     # fix up <img> attribs
     del img.attrib['usemap']
     img.attrib['id'] = 'pathway-img'
-    img.attrib['src'] = '%s/pathway/%s' % (django.conf.settings.STATIC_URL,
+    img.attrib['src'] = '%spathway/img/%s' % (django.conf.settings.STATIC_URL,
                                            img.attrib['src'])
     # turn the tree back into html source
     formatter = functools.partial(lxml.etree.tostring,
@@ -87,6 +87,6 @@ if __name__ == '__main__':
     out_file.close()
 
     # generate the signature images
-    #for target, compounds in signature_data.items():
-    #    signature.signature_images(target, compounds, out_dir_image)
+    for target, compounds in signature_data.items():
+        signature.signature_images(target, compounds, out_dir_image)
 

@@ -1,13 +1,18 @@
 {% extends "db/base.html" %}
 {% block content %}
-<h2>Library Information</h2>
+<h2 class='entity_detail_title'>Library Information</h2>
  {% include "db/detailListing.html" %}
+	{% if attached_files %}
+		<h2 class='entity_detail_title'>Attached Files</h2>
+		{% load render_table from django_tables2 %}
+		{% render_table attached_files %}
+	{% endif %}
 	
 	{% if table %}
-		<p>Small Molecule Reagents</p>
+		<h2 class='entity_detail_title'>Small Molecule Reagents</h2>
 		{% load render_table from django_tables2 %}
 		{% render_table table %}
 	{% else %}
-	    <p>Library contents not defined</p>
+	    <h3>Library contents not defined</h3>
 	{% endif %}
 {% endblock %}
