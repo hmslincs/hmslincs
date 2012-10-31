@@ -169,6 +169,7 @@ INSTALLED_APPS = (
     'db',
     'pathway',
     'responses',
+    'sensitivities',
     # # 'south', #for schema migrations
     # # 'fts', # for full text search
 )

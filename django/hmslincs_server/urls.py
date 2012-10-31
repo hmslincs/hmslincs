@@ -62,6 +62,9 @@ urlpatterns = patterns('',
 
     (r'^explore/responses/$', 'django.views.generic.simple.direct_to_template',
      {'template': 'responses/index.html'}),
+
+    (r'^explore/sensitivities/$', 'django.views.generic.simple.direct_to_template',
+     {'template': 'sensitivities/index.html'}),
 )
 
 # For DEBUG mode only (development) serving of static files
