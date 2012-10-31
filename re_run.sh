@@ -124,9 +124,9 @@ then
 	python ./src/import_dataset.py -f sampledata/Study300002_HMSL10008_sorafenib_ambit.xls
 	check_errs $? "import study dataset fails"
 	
-	echo 'import attached files...'
-	python ./src/import_attachedfiles.py -f /home/sde4/docs/work/LINCS/data/dev/qc/LCMS_HMSL10014.101.01.pdf -rp upload_files -fi 10014 -si 101 -bi 1 -ft 'QC-NMR' -fd 2012-10-11
-	check_errs $? "import attached file fails"
+	# echo 'import attached files...'
+	# python ./src/import_attachedfiles.py -f /home/sde4/docs/work/LINCS/data/dev/qc/LCMS_HMSL10014.101.01.pdf -rp upload_files -fi 10014 -si 101 -bi 1 -ft 'QC-NMR' -fd 2012-10-11
+	# check_errs $? "import attached file fails"
 
 else
 	
