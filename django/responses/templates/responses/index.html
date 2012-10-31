@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block head %}
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.min.js"></script>
+  <script src="{{ STATIC_URL }}/responses/js/responses.js"></script>
+  <link rel="stylesheet" href="{{ STATIC_URL }}/responses/css/responses.css"/>
+{% endblock %}
+
+{% block body %}
+
+<table>
+  <tr>
+    <th>
+      Basal ErbB2 vs. pErbB2
+    </th>
+    <td>
+      <img src="{{ STATIC_URL }}/responses/img/erbb2__perbb2.png">
+    </td>
+  </tr>
+  <tr>
+    <th>
+      Basal AKT vs. pAKT
+    </th>
+    <td>
+      <img src="{{ STATIC_URL }}/responses/img/akt__pakt.png">
+    </td>
+  </tr>
+  <tr>
+    <th>
+      Basal pAKT vs. pErbB2
+    </th>
+    <td>
+      <img src="{{ STATIC_URL }}/responses/img/pakt__perbb2.png">
+    </td>
+  </tr>
+  <tr>
+    <th>
+      Basal pErbB2 vs pErbB3
+    </th>
+    <td>
+      <img src="{{ STATIC_URL }}/responses/img/perbb2__perbb3.png">
+    </td>
+  </tr>
+  <tr>
+    <th>
+      Basal ErbB3 vs pErbB3
+    </th>
+    <td>
+      <img src="{{ STATIC_URL }}/responses/img/erbb3__perbb3.png">
+    </td>
+  </tr>
+  <tr>
+    <th>
+      pAKT [IGF-1] vs pERK [FGF-1] (over time)
+    </th>
+    <td>
+      <img src="{{ STATIC_URL }}/responses/img/pakt,igf-1,100,10__perk,fgf1,100,10.png">
+    </td>
+  </tr>
+</table>
+
+
+{% endblock %}
