@@ -71,7 +71,7 @@ def cellIndex(request):
             criteria = '(' + criteria + ' OR facility_id='+str(get_integer(search)) + ')' # TODO: seems messy here
         where = [criteria]
         if(not request.user.is_authenticated()): 
-            where.append("not is_restricted")
+            where.append("( not is_restricted or is_restricted is NULL )")
         # postgres fulltext search with rank and snippets
         queryset = Cell.objects.extra(    # TODO: evaluate using django query language, not extra clause
             select={
@@ -85,7 +85,7 @@ def cellIndex(request):
             )        
     else:
         where = []
-        if(not request.user.is_authenticated()): where.append("not is_restricted")
+        if(not request.user.is_authenticated()): where.append("( not is_restricted or is_restricted is NULL)")
         queryset = Cell.objects.extra(
             where=where,
             order_by=('facility_id',))        
@@ -117,7 +117,7 @@ def proteinIndex(request):
             criteria = '(' + criteria + ' OR lincs_id='+str(get_integer(search)) + ')' # TODO: seems messy here
         where = [criteria]
         if(not request.user.is_authenticated()): 
-            where.append("not is_restricted")
+            where.append("(not is_restricted or is_restricted is NULL)")
         # postgres fulltext search with rank and snippets
         queryset = Protein.objects.extra(
             select={
@@ -131,7 +131,7 @@ def proteinIndex(request):
             )        
     else:
         where = []
-        if(not request.user.is_authenticated()): where.append("not is_restricted")
+        if(not request.user.is_authenticated()): where.append("(not is_restricted or is_restricted is NULL)")
         queryset = Protein.objects.extra(
             where=where,
             order_by=('lincs_id',))        
@@ -163,7 +163,7 @@ def smallMoleculeIndex(request):
             criteria = '(' + criteria + ' OR facility_id='+str(get_integer(search)) + ')' # TODO: seems messy here
         where = [criteria]
         if(not request.user.is_authenticated()): 
-            where.append("not is_restricted")
+            where.append("(not is_restricted or is_restricted is NULL)")
         # postgres fulltext search with rank and snippets
         logger.info(str(("SmallMoleculeTable.snippet_def:",SmallMoleculeTable.snippet_def)))
         queryset = SmallMolecule.objects.extra(
@@ -178,7 +178,7 @@ def smallMoleculeIndex(request):
             )        
     else:
         where = []
-        if(not request.user.is_authenticated()): where.append("not is_restricted")
+        if(not request.user.is_authenticated()): where.append("(not is_restricted or is_restricted is NULL)")
         queryset = SmallMolecule.objects.extra(
             where=where,
             order_by=('facility_id','salt_id'))        
@@ -301,7 +301,7 @@ def screenIndex(request, type='screen'):
             criteria = '(' + criteria + ' OR facility_id='+str(get_integer(search)) + ')' # TODO: seems messy here
         where.append(criteria)
         if(not request.user.is_authenticated()): 
-            where.append("not is_restricted")
+            where.append("(not is_restricted or is_restricted is NULL)")
             
         # postgres fulltext search with rank and snippets
         queryset = DataSet.objects.extra(
@@ -317,7 +317,7 @@ def screenIndex(request, type='screen'):
         #logger.info( 'queryset: ' queryset
     else:
         if(not request.user.is_authenticated()): 
-            where.append("not is_restricted")
+            where.append("(not is_restricted or is_restricted is NULL)")
         queryset = DataSet.objects.extra(
             where=where,
             order_by=('facility_id',))        
@@ -633,11 +633,11 @@ class DataSetManager():
             # orderedNames.insert(1,'protein_name')
         queryString += " where dp0.dataset_id = " + str(self.dataset.id)
         if(not is_authenticated): 
-            queryString += " and not sm.is_restricted "
+            queryString += " and ( not sm.is_restricted or sm.is_restricted is NULL)"
             if(show_proteins):
-                queryString += " and not protein.is_restricted "
+                queryString += " and (not protein.is_restricted or protein.is_restricted is NULL) "
             if(show_cells):
-                queryString += " and not cell.is_restricted " 
+                queryString += " and (not cell.is_restricted or cell.is_restricted is NULL)" 
         queryString += " order by datarecord_id"
         # orderedNames.append('...') # is this necessary?
         
@@ -719,7 +719,7 @@ class LibraryMappingSearchManager(models.Model):
             where = ", to_tsquery(%s) as query  where " + where
         where += ' and library_id='+ str(library_id)
         if(not is_authenticated):
-            where += ' and not sm.is_restricted' # TODO: NOTE, not including: ' and not l.is_restricted'; library restriction will only apply to viewing the library explicitly (the meta data, and selection of compounds)
+            where += ' and ( not sm.is_restricted or sm.is_restricted is NULL)' # TODO: NOTE, not including: ' and not l.is_restricted'; library restriction will only apply to viewing the library explicitly (the meta data, and selection of compounds)
             
         sql += where
         sql += " order by "
@@ -858,7 +858,7 @@ class LibrarySearchManager(models.Manager):
             " from db_library library left join db_librarymapping on(library_id=library.id) ")
         where = ' where 1=1 '
         if(not is_authenticated):
-            where += 'and not library.is_restricted '
+            where += 'and (not library.is_restricted or library.is_restricted is NULL) '
         if(query_string != '' ):
             sql += ", to_tsquery(%s) as query  " 
             where += "and library.search_vector @@ query "
@@ -908,22 +908,22 @@ class SiteSearchManager(models.Manager):
         sql =   ("SELECT id, facility_id::text, ts_headline(" + CellTable.snippet_def + """, query1, 'MaxFragments=10, MinWords=1, MaxWords=20, FragmentDelimiter=" | "') as snippet, """ + 
                 " ts_rank_cd(search_vector, query1, 32) AS rank, 'cell_detail' as type FROM db_cell, to_tsquery(%s) as query1 WHERE search_vector @@ query1 ") 
         if(not is_authenticated): 
-            sql += " AND not is_restricted"
+            sql += " AND (not is_restricted or is_restricted is NULL)"
         sql +=  (" UNION " +
                 " SELECT id, " + facility_salt_id + " as facility_id , ts_headline(" + SmallMoleculeTable.snippet_def + """, query2, 'MaxFragments=10, MinWords=1, MaxWords=20, FragmentDelimiter=" | "') as snippet, """ +
                 " ts_rank_cd(search_vector, query2, 32) AS rank, 'sm_detail' as type FROM db_smallmolecule sm, to_tsquery(%s) as query2 WHERE search_vector @@ query2 ")
         if(not is_authenticated): 
-            sql += " AND not is_restricted"
+            sql += " AND (not is_restricted or is_restricted is NULL)"
         sql +=  (" UNION " +
                 " SELECT id, facility_id::text, ts_headline(" + DataSetTable.snippet_def + """, query3, 'MaxFragments=10, MinWords=1, MaxWords=20, FragmentDelimiter=" | "') as snippet, """ +
                 " ts_rank_cd(search_vector, query3, 32) AS rank, 'screen_detail' as type FROM db_dataset, to_tsquery(%s) as query3 WHERE search_vector @@ query3 " )
         if(not is_authenticated): 
-            sql += " AND not is_restricted"
+            sql += " AND (not is_restricted or is_restricted is NULL)"
         sql +=  (" UNION " +
                 " SELECT id, lincs_id::text as facility_id, ts_headline(" + ProteinTable.snippet_def + """, query4, 'MaxFragments=10, MinWords=1, MaxWords=20, FragmentDelimiter=" | "') as snippet, """ +
                 " ts_rank_cd(search_vector, query4, 32) AS rank, 'protein_detail' as type FROM db_protein, to_tsquery(%s) as query4 WHERE search_vector @@ query4 ")
         if(not is_authenticated): 
-            sql += " AND not is_restricted"
+            sql += " AND (not is_restricted or is_restricted is NULL)"
         sql += " ORDER by rank DESC;"
         cursor.execute(
                        sql , [queryString + ":*", queryString + ":*", queryString + ":*", queryString + ":*"])
