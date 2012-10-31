@@ -98,6 +98,7 @@ def main(path):
     rows = 0
     while curr_row < num_rows:
         curr_row += 1
+        actual_row = curr_row + 2
         row = worksheet.row(curr_row)
         if(logger.isEnabledFor(logging.DEBUG)): logger.debug(str(('row', row)))
         i = -1
@@ -128,7 +129,7 @@ def main(path):
                 if( default != None ):
                     value = default
             if(value == None and  required == True):
-                raise Exception('Field is required: %s, record: %d' % (properties['column_label'],curr_row))
+                raise Exception('Field is required: %s, record: %d' % (properties['column_label'],actual_row))
             logger.debug(str(('model_field: ' , model_field, ', value: ', value)))
             initializer[model_field] = value
 
@@ -136,7 +137,7 @@ def main(path):
             logger.debug(str(('initializer: ', initializer)))
             #if((initializer['table'] == None and initializer['queryset'] == None ) or
             if(initializer['field'] == None):
-                logger.warn(str(('Note: table entry has no field definition (will be skipped)', initializer, 'current row:', curr_row)))
+                logger.warn(str(('Note: table entry has no field definition (will be skipped)', initializer, 'current row:', actual_row)))
                 continue;
             lfi = FieldInformation(**initializer)
             # check if the table/field exists
@@ -151,7 +152,7 @@ def main(path):
             logger.info(str(('fieldInformation created:', lfi)))
             rows += 1
         except Exception, e:
-            logger.error(str(( "Invalid fieldInformation, initializer so far: ", initializer, 'current row:', curr_row,e)))
+            logger.error(str(( "Invalid fieldInformation, initializer so far: ", initializer, 'current row:', actual_row,e)))
             raise e
         
     print "fieldInformation read: ", rows

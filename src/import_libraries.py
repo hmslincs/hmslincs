@@ -34,9 +34,10 @@ def main(path):
     
     sheet = iu.readtable([path, 'LibraryMapping'])
     properties = ('model_field','required','default','converter')
-    column_definitions = {'Facility':('facility_id',True,None, lambda x: util.convertdata(x,int)),
-                          'Salt':('salt_id',True,None, lambda x: util.convertdata(x,int)),
-                          'Batch':('facility_batch_id',True,None, lambda x: util.convertdata(x,int)),
+    column_definitions = {'Facility':('facility_id',False,None, lambda x: util.convertdata(x,int)),
+                          'Salt':('salt_id',False,None, lambda x: util.convertdata(x,int)),
+                          'Batch':('facility_batch_id',False,None, lambda x: util.convertdata(x,int)),
+                          'Is Control':('is_control',False,False,util.bool_converter),
                           'Plate':('plate',False,None, lambda x: util.convertdata(x,int)),
                           'Well':'well',
                           'Library Name':'short_name',
@@ -50,10 +51,11 @@ def main(path):
     cols = util.find_columns(column_definitions, sheet.labels)
     
     small_molecule_batch_lookup = ('smallmolecule', 'facility_batch_id')
-    library_mapping_lookup = ('smallmolecule_batch','library','plate','well','concentration','concentration_unit')
+    library_mapping_lookup = ('smallmolecule_batch','library','is_control','plate','well','concentration','concentration_unit')
     rows = 0    
     logger.debug(str(('cols: ' , cols)))
     for row in sheet:
+        current_row = rows + 2
         r = util.make_row(row)
         initializer = {}
         small_molecule_lookup = {'facility_id':None, 'salt_id':None}
@@ -75,7 +77,7 @@ def main(path):
                 if( default != None ):
                     value = default
             if(value == None and  required == True):
-                raise Exception('Field is required: %s, record: %d' % (properties['column_label'],rows))
+                raise Exception('Field is required: %s, record: %d' % (properties['column_label'],'row',current_row))
             logger.debug(str(('model_field: ' , model_field, ', value: ', value)))
             
             initializer[model_field] = value
@@ -87,28 +89,34 @@ def main(path):
                         sm = SmallMolecule.objects.get(**small_molecule_lookup)
                         initializer['smallmolecule'] = sm
                     except Exception, e:
-                        logger.error(str(('sm facility id not found', value)))
-                        raise
+                        raise Exception(str(('sm facility id not found', value,e,'row',current_row)))
             elif(model_field == 'short_name'):
                 try:
                     library = libraries[value]
                     initializer['library'] = library
                 except Exception, e:
-                    logger.error(str(('library short_name not found', value)))
-                    raise
+                    raise Exception(str(('library short_name not found', value,e,'row',current_row)))
 
+        # Do some business logic checks
+        if initializer['is_control'] is True:
+            if 'smallmolecule' in initializer and initializer['smallmolecule'] is not None:
+                raise Exception(str(('Must define either "is control", or the small molecule fields, not both', initializer, 'row',current_row)))
+        else:
+            if initializer['smallmolecule'] is None:
+                raise Exception(str(('Must define either the Small Molecule, or as a control well', initializer, 'row', current_row)))
+            try:
+                search = {}
+                for val in small_molecule_batch_lookup:
+                    search[val]=initializer[val]
+                initializer['smallmolecule_batch'] = SmallMoleculeBatch.objects.get(**search)
+            except Exception, e:
+                logger.error(str(('smallmolecule batch not found: ', search, 'initializer', initializer)))    
+                raise
+        lm_initializer = {}
         try:
-            search = {}
-            for val in small_molecule_batch_lookup:
-                search[val]=initializer[val]
-            initializer['smallmolecule_batch'] = SmallMoleculeBatch.objects.get(**search)
-        except Exception, e:
-            logger.error(str(('smallmolecule batch not found: ', search, 'initializer', initializer)))    
-            raise
-        try:
-            lm_initializer = {}
             for val in library_mapping_lookup:
-                lm_initializer[val] = initializer[val]
+                if val in initializer:
+                    lm_initializer[val] = initializer[val]
             lm = LibraryMapping(**lm_initializer)
             lm.save()
             logger.info(str(('librarymapping defined:',lm)))

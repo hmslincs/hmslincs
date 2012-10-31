@@ -123,6 +123,10 @@ then
 	echo 'import studies...'
 	python ./src/import_dataset.py -f sampledata/Study300002_HMSL10008_sorafenib_ambit.xls
 	check_errs $? "import study dataset fails"
+	
+	echo 'import attached files...'
+	python ./src/import_attachedfiles.py -f /home/sde4/docs/work/LINCS/data/dev/qc/LCMS_HMSL10014.101.01.pdf -rp upload_files -fi 10014 -si 101 -bi 1 -ft 'QC-NMR' -fd 2012-10-11
+	check_errs $? "import attached file fails"
 
 else
 	
@@ -147,6 +151,90 @@ else
 	echo 'import kinase tables...'
 	python src/import_protein.py -f $DATADIR/HMS-LINCS_KinaseMetadata_forLoading.xls
 	check_errs $? 'import kinases fails'
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/Screen10001_moerke_2color_IA-LM.xls
+	check_errs $? "import dataset fails"
+
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/Screen10002_moerke_2color_IST-MEL1.xls
+	check_errs $? "import dataset fails"	
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/Screen10001_10002_moerke_2color_IA-LM_IST-MEL1.xls
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/Screen10003_moerke_2color_NCI-H1648.xls
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/Screen10004_moerke_2color_PC-9.xls
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/Screen10005_moerke_2color_SK-LMS-1.xls
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/Screen10006_moerke_3color_5637.xls
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/Screen10007_moerke_3color_BPH-1.xls
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/Screen10008_moerke_3color_NCI-H810.xls
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/Screen10009_moerke_3color_KYSE-140.xls
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/Screen10010_moerke_3color_KYSE-180.xls
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/Screen10011_tang_MitoApop2_A375S2.xls
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/Screen10012_tang_MitoApop2_AGS.xls
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/Screen10013_tang_MitoApop2_Calu-3.xls
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/Screen10014_tang_MitoApop2_CaSki.xls
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/Screen10015_tang_MitoApop2_Colo-679.xls
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/Screen10016_tang_MitoApop2_HEC-1.xls
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/Screen10017_tang_MitoApop2_Ishikawa-02-ER-.xls
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/Screen10018_tang_MitoApop2_JHH-6.xls
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/Screen10019_tang_MitoApop2_Kyse-150.xls
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/Screen10020_tang_MitoApop2_Kyse-450.xls
+	check_errs $? "import dataset fails"
 
 fi
 

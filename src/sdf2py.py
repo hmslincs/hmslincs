@@ -5,7 +5,7 @@ import setparams as _sg
 _params = dict(
     VERBOSE = False,
     ENCODING = u'utf8',
-    MOLDATAKEY = u'MOLDATA',
+    MOLDATAKEY = u'moldata',
     COMMENTKEY = u'comment',
     COMMENTTAG = u'comment',
 )

@@ -6,6 +6,7 @@ import logging
 
 import init_utils as iu
 import import_utils as util
+from django.core.exceptions import ObjectDoesNotExist
 from db.models import DataSet, DataColumn, DataRecord, DataPoint, SmallMolecule, SmallMoleculeBatch, Cell, Protein, LibraryMapping
 
 
@@ -177,7 +178,7 @@ def main(path):
                     findError = False
                     break
             if findError:    
-                raise Exception(str(( "Error: no datacolumn for ", label)))
+                raise Exception(str(( "Error: no datacolumn for ", label, dataColumns.values(), metaColumnDict.keys(),metaColumnDict.keys())))
     
     found=False
     for key,value in mappingColumnDict.items():
@@ -227,14 +228,23 @@ def main(path):
                     value = util.convertdata(r[map_column+1].strip())
                     if(value != None and value != '' ):
                         well_id = value 
-                        
-                    dataRecord.library_mapping = LibraryMapping.objects.get(plate=plate_id,well=well_id) 
-                    if(dataRecord.smallmolecule_batch != None and (dataRecord.smallmolecule_batch != dataRecord.library_mapping.smallmolecule_batch)):
-                        raise Exception(str(('SmallMolecule batch does not match the libraryMapping SMB:',
-                                             dataRecord.smallmolecule_batch,dataRecord.library_mapping.smallmolecule_batch,
-                                             r,'row',current_row)))
                     else:
-                        dataRecord.smallmolecule_batch = dataRecord.library_mapping.smallmolecule_batch
+                        raise Exception(str(('Must define both plate and well (not just plate), row', current_row)))
+                        
+                    dataRecord.plate = plate_id
+                    dataRecord.well = well_id
+                    try:
+                        # TODO: what if the plate/well does not correlate to a librarymapping?  i.e. if this is the plate/well for a cell/protein study?
+                        # For now, the effect of the following logic is that plate/well either maps a librarymapping, or is a an arbitrary plate/well
+                        dataRecord.library_mapping = LibraryMapping.objects.get(plate=plate_id,well=well_id)
+                        if(dataRecord.smallmolecule_batch != None and (dataRecord.smallmolecule_batch != dataRecord.library_mapping.smallmolecule_batch)):
+                            raise Exception(str(('SmallMolecule batch does not match the libraryMapping.smallmolecule_batch pointed to by the plate/well:',plate_id,well_id,
+                                                 dataRecord.smallmolecule_batch,dataRecord.library_mapping.smallmolecule_batch,
+                                                 r,'row',current_row)))
+                        else:
+                            dataRecord.smallmolecule_batch = dataRecord.library_mapping.smallmolecule_batch
+                    except ObjectDoesNotExist, e:
+                        logger.warn(str(('No librarymapping defined (plate/well do not point to a librarymapping), row', current_row))) 
                     mapped = True
             except Exception, e:
                 logger.error(str(("Invalid plate/well identifiers",plate_id,well_id,r,e,'row',current_row)))
@@ -267,7 +277,10 @@ def main(path):
         if(not mapped):
             raise Exception(str(('at least one of: ' , str(mappingColumnDict.keys()) , ' must be defined, missing for row: ',current_row)))
                 
-        if metaColumnDict['Control Type'] > -1: dataRecord.control_type = util.convertdata(r[metaColumnDict['Control Type']])
+        if metaColumnDict['Control Type'] > -1: 
+            dataRecord.control_type = util.convertdata(r[metaColumnDict['Control Type']])
+            if(dataRecord.control_type is not None and dataRecord.smallmolecule_batch is not None):
+                raise Exception(str(('Cannot define a control type for a non-control well (well mapped to a small molecule batch)',dataRecord.smallmolecule_batch,dataRecord.control_type, 'row',current_row)))
         dataRecord.save()
         logger.info(str(('datarecord created:', dataRecord)))
         for i,value in enumerate(r):
