@@ -20,8 +20,10 @@ marker_map = {
               'square': 's',
               }
 
+dpi = 72.0
+
 def scatterplot(points, metadata, lims=None, display=False):
-    f = plt.figure()
+    f = plt.figure(figsize=(400 / dpi, 400 / dpi))
     ax = f.gca()
     for p in points:
         ax.scatter(p.x, p.y, c=p.level, vmin=0, vmax=1,
@@ -35,14 +37,20 @@ def scatterplot(points, metadata, lims=None, display=False):
     ax.set_xlim(lims)
     ax.set_ylim(lims)
     ax.set_aspect('equal')
+    ax.set_xlabel(build_label(metadata[0]))
+    ax.set_ylabel(build_label(metadata[1]))
     if display:
         plt.show()
     else:
         output = io.BytesIO()
         canvas = FigureCanvasAgg(f)
-        canvas.print_png(output, dpi=72)
+        canvas.print_png(output, dpi=dpi)
         output.seek(0)
         return output
+
+def build_label(metadata):
+    label = '/'.join(map(str, metadata))
+    return label
 
 if __name__ == '__main__':
     points = (ScatterplotData('AU-565', 'triangle', 0.554, 4.308, 4.311),
@@ -74,8 +82,8 @@ if __name__ == '__main__':
               ScatterplotData('UACC-812', 'triangle', 0.537, 3.908, 3.907),
               ScatterplotData('UACC-893', 'triangle', 0.539, 3.677, 3.709),
               ScatterplotData('ZR-75-1', 'square', 1.000, 3.884, 3.569))
-    metadata = (MetaData(readout='pErk', ligand='EGF', concentration='100', time=None),
-                MetaData(readout='pErk', ligand='EPR', concentration='100', time=None))
+    metadata = (ScatterplotMetaData(readout='pErk', ligand='EGF', concentration='100', time=None),
+                ScatterplotMetaData(readout='pErk', ligand='EPR', concentration='100', time=None))
     lims = (1.518, 4.395)
 
-    scatterplot(points, axis_labels, lims, display=True)
+    scatterplot(points, metadata, lims, display=True)
