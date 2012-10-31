@@ -87,6 +87,6 @@ if __name__ == '__main__':
     out_file.close()
 
     # generate the signature images
-    #for target, compounds in signature_data.items():
-    #    signature.signature_images(target, compounds, out_dir_image)
+    for target, compounds in signature_data.items():
+        signature.signature_images(target, compounds, out_dir_image)
 
