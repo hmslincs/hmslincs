@@ -1,5 +1,6 @@
 import collections as co
 import matplotlib.pyplot as plt
+from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 import io
 # ---------------------------------------------------------------------------
@@ -22,12 +23,15 @@ marker_map = {
 
 dpi = 72.0
 
+cmap_bwr = LinearSegmentedColormap.from_list('bwr', ['blue', 'white', 'red'])
+
 def scatterplot(points, metadata, lims=None, display=False):
     f = plt.figure(figsize=(400 / dpi, 400 / dpi))
     ax = f.gca()
+    print "\n".join(map(str, sorted([p.level for p in points]))), "\n\n"
     for p in points:
         ax.scatter(p.x, p.y, c=p.level, vmin=0, vmax=1,
-                   marker=marker_map[p.shape], s=200, cmap=plt.cm.RdBu_r)
+                   marker=marker_map[p.shape], s=200, cmap=cmap_bwr)
     if lims is None:
         all_data = sum(([p.x, p.y] for p in points), [])
         dmin = min(all_data)
