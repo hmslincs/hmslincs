@@ -4,6 +4,7 @@ import os.path as op
 import re
 import itertools as it
 import csv
+import math as ma
 
 import shell_utils as su
 import typecheck as tc
@@ -28,6 +29,7 @@ _params = dict(
     # KEYLENGTH leftmost cells comprise the "key", and remaining cells
     # comprise the "value".
     KEYLENGTH = 3,
+    LEVELFORNAN = 0.5,
 )
 _sg.setparams(_params)
 del _sg, _params
@@ -102,10 +104,12 @@ def _getspecs(datarows,
     for row in datarows:
         row[1] = float(row[1])
 
-    levelrange, minlevel = _range([r[1] for r in datarows])[:2]
+    levelrange, minlevel = _range([n for n in (r[1] for r in datarows)
+                                   if not ma.isnan(n)])[:2]
     if levelrange > 0:
         def level(lvl):
-            return (lvl - minlevel)/levelrange
+            return (LEVELFORNAN if ma.isnan(lvl)
+                    else (lvl - minlevel)/levelrange)
     else:
         level = lambda lvl: None
 
