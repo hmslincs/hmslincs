@@ -45,6 +45,25 @@ elif socket.getfqdn().endswith('.orchestra'):
     del DATABASES['default']['USER']
     del dbname, dbhost
 
+    # Additional locations of static files
+    STATICFILES_DIRS = (
+        # Put strings here, like "/home/html/static" or "C:/www/django/static".
+        # Always use forward slashes, even on Windows.
+        # Don't forget to use absolute paths, not relative paths.
+        '/groups/pharmacoresponse/data/images/',
+        '/groups/pharmacoresponse/data/upload_files/',
+    )   
+else:
+
+    # Additional locations of static files
+    STATICFILES_DIRS = (
+        # Put strings here, like "/home/html/static" or "C:/www/django/static".
+        # Always use forward slashes, even on Windows.
+        # Don't forget to use absolute paths, not relative paths.
+        '/home/sde4/docs/work/LINCS/data/images/',
+        '/home/sde4/docs/work/LINCS/data/upload_files/',
+    )   
+
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
 # although not all choices may be available on all operating systems.
@@ -86,17 +105,6 @@ STATIC_ROOT = op.join(_djangopath, '..', '..', '..', 'docroot', '_static')
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
 STATIC_URL = '/_static/'
-
-# Additional locations of static files
-STATICFILES_DIRS = (
-    # Put strings here, like "/home/html/static" or "C:/www/django/static".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-    '/home/sde4/docs/work/LINCS/data/images/',
-    '/home/sde4/docs/work/LINCS/data/upload_files/',
-    '/groups/pharmacoresponse/data/images/'
-    '/groups/pharmacoresponse/data/upload_files/'
-)
 
 # List of finder classes that know how to find static files in
 # various locations.
