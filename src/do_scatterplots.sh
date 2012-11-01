@@ -26,11 +26,14 @@ $JOIN -t$'\t' \
     <( $CUT -f 1,2,4,5,7,12,13,17,22 $DATADIR0/'data_HTM (all GF), mean_foldchange.tsv' ) \
   > $DATADIR1/picks_for_responses.tsv
 
-$JOIN -t$'\t' \
-    $KLUGE \
-    <( $CUT -f 1,67,68,69,127,128,129 $DATADIR0/'data_HTM (GF)_foldchange.tsv' ) \
+# effectively, a 3-way join
+$JOIN -t$'\t' <( $JOIN -t$'\t' \
+                   $KLUGE \
+                   <( cut -f 1,12,22 $DATADIR0/'data_HTM (all GF), mean_foldchange.tsv' ) ) \
+              <( cut -f 1,67,68,69,127,128,129 $DATADIR0/'data_HTM (GF)_foldchange.tsv' ) \
   > $DATADIR1/picks_for_slider.tsv
 
 python src/do_scatterplots.py $DATADIR1/picks_for_basal.tsv
 python src/do_scatterplots.py $DATADIR1/picks_for_responses.tsv
-WITHLIMITS=1 python src/do_scatterplots.py $DATADIR1/picks_for_slider.tsv
+WITHLIMITS=1 OUTPUTDIR=django/responses/static/responses/img/slider \
+  python src/do_scatterplots.py sampledata/MH/picks_for_slider.tsv
