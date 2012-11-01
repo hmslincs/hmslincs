@@ -7,7 +7,7 @@ set -e
 JOIN=${JOIN:-join}
 CUT=${CUT:-cut}
 DATADIR0=sampledata/MH
-DATADIR1=sampledata/MH
+DATADIR1=${DATADIR1:-/tmp}
 KLUGE=$DATADIR1/col_1_3.tsv
 EXECDIR=$( dirname $( dirname $0 ) )
 
