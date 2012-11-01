@@ -28,7 +28,6 @@ cmap_bwr = LinearSegmentedColormap.from_list('bwr', ['blue', 'white', 'red'])
 def scatterplot(points, metadata, lims=None, display=False):
     f = plt.figure(figsize=(400 / dpi, 400 / dpi))
     ax = f.gca()
-    print "\n".join(map(str, sorted([p.level for p in points]))), "\n\n"
     for p in points:
         ax.scatter(p.x, p.y, c=p.level, vmin=0, vmax=1,
                    marker=marker_map[p.shape], s=200, cmap=cmap_bwr)
