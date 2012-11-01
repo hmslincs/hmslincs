@@ -3,7 +3,7 @@
 <h2 class='entity_detail_title'>Small Molecule Information</h2>
 	{% include "db/detailListing.html" %}
 	{% if image_location %}
-		<img src="{{ STATIC_URL }}/{{image_location}}" />
+		<img src="{{ STATIC_URL }}{{image_location}}" />
 	{% endif %}
 	{% if attached_files %}
 		<h2 class='entity_detail_title'>Attached Files</h2>
