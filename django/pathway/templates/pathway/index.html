@@ -15,23 +15,23 @@
   {{ pathway_source|safe }}
 </div>
 
-<p>As part of our LINCS initiative we are creating a highly curated library of
-kinase inhibitors, focusing both on clinical compounds that are either NIH
-approved or are undergoing trials and on highly selective tool compounds against
-key nodes in the signal transduction pathways.
+<p>One component of the HMS LINCS initiative is the creation of a highly curated
+library of kinase inhibitors. We are focusing on clinical compounds (FDA
+approved or undergoing trials) and tool compounds which are highly selective for
+important kinases.
 
-<p>To facility access to our library of inhibitors, we created a simplified
+<p>To facilitate access to our library of inhibitors, we created this simplified
 network map of key signal transduction pathways that includes the majority of
-kinases we can target with small molecules. When searching the complete library,
-the user will have to search for either individual compounds (link to search
-function) or for specific kinases (link to search function) to find information
-on inhibitors and chose them for application. The signaling network map gives a
-fast overview of the majority of targetable kinases in the context of their
-signal transduction pathways. This allows users to rapidly find compounds of
-interest. It also allows users to identify compounds that may have similar
-effects if they target different proteins in the same signal transduction
-cascade and it will give immediate clues about the potential immediate
-biochemical effects of treatment with a given inhibitor.
+kinases we can selectively target with small molecules. This allows biologists
+to rapidly find compounds which target a given kinase or affect a specific
+phenotypic outcome, as well as to identify compounds with potentially similar or
+synergistic effects by virtue of targeting different nodes in the same signal
+transduction cascade.
+
+{% comment %}
+and it will give immediate clues about the
+potential immediate biochemical effects of treatment with a given inhibitor.
+{% endcomment %}
 
 <p>Clicking on proteins shaded in red give information on all inhibitors with
 that protein as nominal target. Included is compressed information on the growth
@@ -39,5 +39,9 @@ inhibition to a small sample of breast cancer cell lines and whether or not the
 protein is targeted for clinical applications. Clicking through to individual
 inhibitors links the user back to all information for a given inhibitor
 contained in our database.
+
+<p>You may also use our full database search engine to
+find <a href="/db/sm/">compounds</a> or <a href="/db/proteins/">protein
+targets</a> by name or other attributes.
 
 {% endblock %}
