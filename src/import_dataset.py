@@ -154,7 +154,7 @@ def main(path):
     
     # First, map the sheet column indices to the DataColumns that were created
     dataColumnList = {}
-    metaColumnDict = {'Control Type':-1} # meta columns contain forensic information
+    metaColumnDict = {'Control Type':-1, 'omero_image_id':-1} # meta columns contain forensic information
     mappingColumnDict = {'Small Molecule Batch':-1, 'Plate':-1, 'Well':-1, 'Cell':-1, 'Protein':-1} # what is being studied - at least one is required
     # NOTE: this scheme is matching based on the labels between the "Data Column" sheet and the "Data" sheet
     for i,label in enumerate(dataSheet.labels):
@@ -281,6 +281,9 @@ def main(path):
             dataRecord.control_type = util.convertdata(r[metaColumnDict['Control Type']])
             if(dataRecord.control_type is not None and dataRecord.smallmolecule_batch is not None):
                 raise Exception(str(('Cannot define a control type for a non-control well (well mapped to a small molecule batch)',dataRecord.smallmolecule_batch,dataRecord.control_type, 'row',current_row)))
+        if metaColumnDict['omero_image_id'] > -1: 
+            dataRecord.omero_image_id = util.convertdata(r[metaColumnDict['omero_image_id']], int)
+            logger.info(str(('recorded omero well id:', dataRecord.omero_image_id)))
         dataRecord.save()
         logger.info(str(('datarecord created:', dataRecord)))
         for i,value in enumerate(r):

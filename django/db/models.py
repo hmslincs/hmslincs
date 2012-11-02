@@ -175,6 +175,7 @@ class FieldInformation(models.Model):
 
         
 class SmallMolecule(models.Model):
+    nominal_target          = models.ForeignKey('Protein', null=True)
     facility_id             = _INTEGER(null=False) # center compound id
     salt_id                 = _INTEGER(null=True)
     lincs_id                = _INTEGER(null=True)
@@ -445,6 +446,7 @@ class DataRecord(models.Model):
     plate                   = _INTEGER(null=True)
     well                    = _CHAR(max_length=4, **_NULLOKSTR) # AA99
     control_type            = _CHAR(max_length=35, **_NULLOKSTR) # TODO: controlled vocabulary
+    omero_image_id           = _INTEGER(null=True)
     def __unicode__(self):
         return unicode(str((self.dataset,self.smallmolecule_batch,self.cell,self.protein,self.plate,self.well)))
     
@@ -455,7 +457,6 @@ class DataPoint(models.Model):
     int_value               = _INTEGER(null=True)
     float_value             = models.FloatField(null=True)
     text_value              = _TEXT(**_NULLOKSTR)
-    #omero_well_id           = _CHAR(max_length=35, **_NULLOKSTR) # this is the plate:well id for lookup on the omero system (NOTE:may need multiple of these)
     
     def __unicode__(self):
         return unicode(str((self.datarecord,self.datacolumn,self.int_value,self.float_value,self.text_value)))

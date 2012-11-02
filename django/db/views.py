@@ -22,7 +22,7 @@ import django_tables2 as tables
 from django_tables2 import RequestConfig
 from django_tables2.utils import A  # alias for Accessor
 
-from db.models import SmallMolecule, SmallMoleculeBatch, Cell, Protein, DataSet, Library, FieldInformation,AttachedFile
+from db.models import SmallMolecule, SmallMoleculeBatch, Cell, Protein, DataSet, Library, FieldInformation,AttachedFile,DataRecord
 from db.models import get_detail
 from collections import OrderedDict
 
@@ -490,12 +490,21 @@ class DataSetResultTable(tables.Table):
     control_type = tables.Column()
     defined_base_columns.append('control_type')
     set_field_information_to_table_column('control_type', ['datarecord'], control_type)
-
+    
+    # OMERO Image: TODO: only include this if the dataset has images
+    TEMPLATE = '''
+       <a href="#" onclick='window.open("https://lincs-omero.hms.harvard.edu/webclient/img_detail/{{ record.%s }}", "test","height=700,width=800")' ><img src='https://lincs-omero.hms.harvard.edu/webgateway/render_thumbnail/{{ record.%s }}/32/' alt='image if available' ></a>
+    '''
+    logger.info(str(('omero_image column template', TEMPLATE % ('omero_image_id','omero_image_id'))))
+    omero_image_id = tables.TemplateColumn(TEMPLATE % ('omero_image_id','omero_image_id'))
+    defined_base_columns.append('omero_image_id')
+    set_field_information_to_table_column('omero_image_id', ['datarecord'], omero_image_id)
+    
     class Meta:
         orderable = True
         attrs = {'class': 'paleblue'}
     
-    def __init__(self, queryset, names_to_columns, ordered_names, show_cells, show_proteins, *args, **kwargs):
+    def __init__(self, queryset, names_to_columns, ordered_names, show_cells, show_proteins, has_omero_images, *args, **kwargs):
         # Follows is to deal with a bug - columns from one table appear to be injecting into other tables!!
         # This indicates that we are doing something wrong here by defining columns dynamically on the class "base_columns" attribute
         # So, to fix, we should redefine all of the base_columns every time here.  
@@ -525,6 +534,7 @@ class DataSetResultTable(tables.Table):
             self.base_columns['protein_name'].visible = True
         else:
             self.base_columns['protein_name'].visible = False
+        self.base_columns['omero_image_id'].visible=has_omero_images
         logger.info(str(('base columns:', self.base_columns)))
         # Field information section: TODO: for the datasetcolumns, use the database information for these.
         # set_table_column_info(self, ['smallmolecule','cell','protein',''])  
@@ -539,7 +549,7 @@ class DataSetResultTable(tables.Table):
 # a particular model.
 class DataSetManager():
 
-    exclude_detail = ('lead_screener_firstname','lead_screener_lastname','lead_screener_email') 
+    #exclude_detail = ('lead_screener_firstname','lead_screener_lastname','lead_screener_email') 
     
     def __init__(self,dataset,is_authenticated=False):
         self.dataset = dataset
@@ -568,7 +578,7 @@ class DataSetManager():
     
         queryset = dictfetchall(cursor)
         #queryset = manager.get_dataset_result_table(dataset_id, is_authenticated=request.user.is_authenticated(), **{'show_cells':show_cells, 'show_proteins':show_proteins})
-        return DataSetResultTable(queryset, dataset_info.columns_to_names, dataset_info.ordered_names, self.has_cells(), self.has_proteins())
+        return DataSetResultTable(queryset, dataset_info.columns_to_names, dataset_info.ordered_names, self.has_cells(), self.has_proteins(),self.has_omero_images(self.dataset_id))
     
     class DatasetInfo:
         names_to_columns = {}
@@ -596,7 +606,7 @@ class DataSetManager():
         #        where dp0.dataset_id = 1 order by datarecord_id;
         queryString =   "select distinct (datarecord_id) as datarecord_id, sm.id as smallmolecule_id ,"
         queryString +=  facility_salt_batch_id +' as facility_salt_batch' # Note: because we have a composite key for determining unique sm structures, we need to do this
-        queryString +=  ', plate, well, control_type '
+        queryString +=  ', plate, well, control_type, omero_image_id '
         show_cells = self.has_cells()
         show_proteins = self.has_proteins()
         if(show_cells): queryString += ", cell_id, cell.name as cell_name, cell.facility_id as cell_facility_id " 
@@ -680,7 +690,11 @@ class DataSetManager():
         sql = 'select protein.* from db_protein protein where protein.id in (select distinct(protein_id) from db_datarecord dr where dr.dataset_id=%s) order by protein.name'
         cursor.execute(sql, [dataset_id])
         return dictfetchall(cursor)
-                
+    
+    def has_omero_images(self, dataset_id):
+        res= len(DataRecord.objects.all().filter(dataset_id=dataset_id).filter(omero_image_id__isnull=False))>0
+        logger.info(str(('len(DataRecord.objects.all().filter(dataset_id=dataset_id).filter(omero_image_id__isnull=False))',len(DataRecord.objects.all().filter(dataset_id=dataset_id).filter(omero_image_id__isnull=False)))))
+        return res
         
 class LibraryMappingSearchManager(models.Model):
     """
@@ -940,12 +954,6 @@ class SiteSearchTable(tables.Table):
         orderable = True
         attrs = {'class': 'paleblue'}
         exclude = {'rank'}
-
-        
-TEMPLATE = '''
-   <a href="#" onclick='window.open("https://lincs-omero.hms.harvard.edu/webclient/img_detail/{{ record.%s }}", "test","height=700,width=800")' >{{ record.%s }}</a>
-'''
-            
 
 def set_table_column_info(table,table_names, sequence_override=[]):
     # TODO: set_table_column info could pick the columns to include from the fieldinformation as well
