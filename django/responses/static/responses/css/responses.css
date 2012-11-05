@@ -1,0 +1,11 @@
+tr {
+  border: 1px solid #808080;
+}
+
+th, td {
+  padding: 1em;
+}
+
+table {
+  margin: 2em;
+}
