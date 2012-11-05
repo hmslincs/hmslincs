@@ -7,6 +7,7 @@
 {% endblock %}
 
 {% block body %}
+
 <div id="pathway-container">
   {% for signature in signatures %}
     {% include "pathway/signature.html" %}
@@ -20,25 +21,23 @@ library of kinase inhibitors. We are focusing on clinical compounds (FDA
 approved or undergoing trials) and tool compounds which are highly selective for
 important kinases.
 
-<p>To facilitate access to our library of inhibitors, we created this simplified
-network map of key signal transduction pathways that includes the majority of
-kinases we can selectively target with small molecules. This allows biologists
-to rapidly find compounds which target a given kinase or affect a specific
-phenotypic outcome, as well as to identify compounds with potentially similar or
+<p>This network map of key signal transduction pathways includes the majority of
+kinases we can selectively target with small molecules, as well as information
+on the relevant inhibitors in the HMS LINCS library. This allows biologists to
+find compounds which target a given kinase or affect a specific phenotypic
+outcome, as well as to identify compounds with potentially similar or
 synergistic effects by virtue of targeting different nodes in the same signal
 transduction cascade.
 
-{% comment %}
-and it will give immediate clues about the
-potential immediate biochemical effects of treatment with a given inhibitor.
-{% endcomment %}
+<h2>Instructions</h2>
 
-<p>Clicking on proteins shaded in red give information on all inhibitors with
-that protein as nominal target. Included is compressed information on the growth
-inhibition to a small sample of breast cancer cell lines and whether or not the
-protein is targeted for clinical applications. Clicking through to individual
-inhibitors links the user back to all information for a given inhibitor
-contained in our database.
+<p>Click on a kinase shaded in orange to view a box listing compounds in the HMS
+LINCS library which inhibit the activity of that kinase. For each compound, the
+box shows the following summary information: an indication of whether the
+inhibitor is in clinical use, a link to a KinomeScan profile of the compound (if
+available), a graphical visualization of the compound's ability to inhibit
+growth of a panel of six breast cancer cell lines, and a link to the HMS LINCS
+Database for detailed information.
 
 <p>You may also use our full database search engine to
 find <a href="/db/sm/">compounds</a> or <a href="/db/proteins/">protein
