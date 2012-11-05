@@ -12,7 +12,8 @@
       {% endif %}
     </td>
     <td>
-      <img src="{{ STATIC_URL }}pathway/img/{{ signature.target_name|slugify }}-{{ sd.drug|slugify }}.png">
+      <img src="{{ STATIC_URL }}pathway/img/{{ signature.target_name|slugify }}-{{ sd.drug|slugify }}.png"
+           width="250" height="20">
     </td>
   </tr>
 {% endfor %}
