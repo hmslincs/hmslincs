@@ -13,6 +13,10 @@ img {
 	height: auto;
 }
 
+.compound_image {
+	float: right;
+}
+
 td {
 	vertical-align: top;
 }

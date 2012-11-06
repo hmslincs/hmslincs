@@ -28,6 +28,8 @@ from collections import OrderedDict
 
 import logging
 
+from db.CustomQuerySet import CustomQuerySet
+
 logger = logging.getLogger(__name__)
 APPNAME = 'db',
 COMPOUND_IMAGE_LOCATION = "compound-images-by-facility-salt-id"  
@@ -210,6 +212,7 @@ def can_access_image(request, image_filename):
     try:
         response = urllib2.urlopen(url)
         response.read()
+        #response.close() # TODO - is this needed?!
         return True
     except Exception,e:
         logger.info(str(('no image found at', url, e)))
@@ -247,12 +250,26 @@ def smallMoleculeDetail(request, facility_salt_id): # TODO: let urls.py grep the
                 details['attached_files_batch'] = AttachedFileTable(attachedFiles)        # attached file table        
         #attachedFiles = AttachedFile.objects.get(facility_id_for=facility_id, salt_id_for=salt_id)
         
+        # datasets table
+        dataset_ids = find_datasets_for_smallmolecule(sm.id)
+        if(len(dataset_ids)>0):
+            logger.info(str(('dataset ids for sm',dataset_ids)))
+            where = []
+            if(not request.user.is_authenticated()): 
+                where.append("(not is_restricted or is_restricted is NULL)")
+            queryset = DataSet.objects.filter(pk__in=list(dataset_ids)).extra(where=where,
+                       order_by=('facility_id',))        
+            details['datasets'] = DataSetTable(queryset)
+        
+        
         image_location = COMPOUND_IMAGE_LOCATION + '/HMSL%d-%d.png' % (sm.facility_id,sm.salt_id)
         if(can_access_image(request,image_location)): details['image_location'] = image_location
         return render(request,'db/smallMoleculeDetail.html', details)
 
     except SmallMolecule.DoesNotExist:
         raise Http404
+
+
     
 def get_attached_files(facility_id, salt_id=None, batch_id=None):
     return AttachedFile.objects.filter(facility_id_for=facility_id, salt_id_for=salt_id, batch_id_for=batch_id)
@@ -283,6 +300,8 @@ def libraryDetail(request, short_name):
         return render(request,'db/libraryDetail.html', response_dict)
     except Library.DoesNotExist:
         raise Http404
+
+
 
 def studyIndex(request):
     return screenIndex(request, 'study' )
@@ -495,7 +514,7 @@ class DataSetResultTable(tables.Table):
     TEMPLATE = '''
        <a href="#" onclick='window.open("https://lincs-omero.hms.harvard.edu/webclient/img_detail/{{ record.%s }}", "test","height=700,width=800")' ><img src='https://lincs-omero.hms.harvard.edu/webgateway/render_thumbnail/{{ record.%s }}/32/' alt='image if available' ></a>
     '''
-    logger.info(str(('omero_image column template', TEMPLATE % ('omero_image_id','omero_image_id'))))
+    logger.debug(str(('omero_image column template', TEMPLATE % ('omero_image_id','omero_image_id'))))
     omero_image_id = tables.TemplateColumn(TEMPLATE % ('omero_image_id','omero_image_id'))
     defined_base_columns.append('omero_image_id')
     set_field_information_to_table_column('omero_image_id', ['datarecord'], omero_image_id)
@@ -520,9 +539,9 @@ class DataSetResultTable(tables.Table):
         temp.extend(ordered_names)
         ordered_names = temp
         
-        logger.info(str(('names_to_columns', names_to_columns, 'orderedNames', ordered_names)))
+        logger.debug(str(('names_to_columns', names_to_columns, 'orderedNames', ordered_names)))
         for name,verbose_name in names_to_columns.items():
-            logger.info(str(('create column:',name,verbose_name)))
+            logger.debug(str(('create column:',name,verbose_name)))
             self.base_columns[name] = tables.Column(verbose_name=verbose_name)
         
         # Note: since every instance reuses the base_columns, each time the visibility must be set.
@@ -535,7 +554,7 @@ class DataSetResultTable(tables.Table):
         else:
             self.base_columns['protein_name'].visible = False
         self.base_columns['omero_image_id'].visible=has_omero_images
-        logger.info(str(('base columns:', self.base_columns)))
+        logger.debug(str(('base columns:', self.base_columns)))
         # Field information section: TODO: for the datasetcolumns, use the database information for these.
         # set_table_column_info(self, ['smallmolecule','cell','protein',''])  
 
@@ -649,6 +668,7 @@ class DataSetManager():
             if(show_cells):
                 queryString += " and (not cell.is_restricted or cell.is_restricted is NULL)" 
         queryString += " order by datarecord_id"
+        queryString += " LIMIT 10000 " # TODO - figure out how to paginate
         # orderedNames.append('...') # is this necessary?
         
         logger.info(str(('orderedNames',orderedNames)))
@@ -695,6 +715,67 @@ class DataSetManager():
         res= len(DataRecord.objects.all().filter(dataset_id=dataset_id).filter(omero_image_id__isnull=False))>0
         logger.info(str(('len(DataRecord.objects.all().filter(dataset_id=dataset_id).filter(omero_image_id__isnull=False))',len(DataRecord.objects.all().filter(dataset_id=dataset_id).filter(omero_image_id__isnull=False)))))
         return res
+
+# TODO: create a QuerySet that can paginate through an arbitrary sql (for the dataset results)
+#from django.db.models.query import QuerySet
+#class CustomQS(QuerySet):
+#    def __init__(self,querySet,model=None,query=None,*args, **kwargs):
+#        self.querySet=querySet
+#        logger.info(str((args,kwargs)))
+#        super(CustomQS,self).__init__(*args,**kwargs)
+#        
+#    def count(self):
+#        logger.info(str(('count')))
+#        return 100;
+#    
+#    def __len__(self):
+#        logger.info('len')
+#        return self.count()
+#    
+#    def __getitem__(self,key):
+#        # key should be a slice or an int
+#        # see django.db.models.query.QuerySet for guidance on implementation
+#        logger.info(str(('__getitem__',key)))
+#        return [key] # this should look like a row?
+#    
+#def screenTest(request, facility_id):
+#    dataset_id = 1
+#    #queryset = CustomQuerySet('select dr.*, ds.title as title from db_datarecord dr join db_dataset ds on(dr.dataset_id=ds.id) where dr.dataset_id = 1')
+#    #queryset = Cell.objects.all();
+#    queryset = CustomQS(DataRecord.objects.all())
+#    table = ScreenTestTable(queryset)
+#    table.paginate(page=request.GET.get('page', 1), per_page=25)
+#    #RequestConfig(request, paginate={"per_page": 25}).configure(table)
+#    return render(request, 'db/listIndex.html', {'table': table })
+#
+#
+#class ScreenTestTable(tables.Table):
+#    test = tables.Column()
+#    
+#    class Meta:
+#        #model = DataRecord
+#        orderable = True
+#        attrs = {'class': 'paleblue'}
+#
+#    def __init__(self, table, *args, **kwargs):
+#        super(ScreenTestTable, self).__init__(table)
+
+def find_datasets_for_smallmolecule(smallmolecule_id):
+    datasets = [x.id for x in DataSet.objects.filter(datarecord__smallmolecule_batch__smallmolecule__id=smallmolecule_id).distinct()]
+    logger.info(str(('datasets',datasets)))
+    return datasets
+    #    cursor = connection.cursor()
+    #    sql = ( 'select distinct(dataset_id) from db_datarecord dr' +  
+    #            ' join db_smallmoleculebatch smb on(dr.smallmolecule_batch_id=smb.id) ' + 
+    #            ' where smb.smallmolecule_id=%s' )
+    #    cursor.execute(sql, [smallmolecule_id])
+    #    dataset_ids = [];
+    #    for val in cursor.fetchall():
+    #        logger.info(str(('val',val)))
+    #        dataset_ids.append(val[0])
+    #        
+    #    return dataset_ids
+    
         
 class LibraryMappingSearchManager(models.Model):
     """
