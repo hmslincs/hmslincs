@@ -78,27 +78,35 @@ def main(path):
             value = record.get(key)
 
             # Todo, refactor to a method
-            logger.debug(str(('raw value', value)))
-            if(converter != None):
-                value = converter(value)
-            if(value == None ):
-                if( default != None ):
-                    value = default
-            if(value == None and  required == True):
-                raise Exception(str(('Field is required: ', key, initializer, 'record:', count)))
-            logger.debug(str(('model_field: ' , model_field, ', value: ', value)))
-            initializer[model_field] = value
-        
+            try:
+                logger.debug(str(('raw value', value)))
+                if(converter != None):
+                    value = converter(value)
+                if(value == None ):
+                    if( default != None ):
+                        value = default
+                if(value == 'n/a'): value = None
+                if(value == None and  required == True):
+                    raise Exception(str(('Field is required: ', key, initializer, 'record:', count)))
+                logger.debug(str(('model_field: ' , model_field, ', value: ', value)))
+                initializer[model_field] = value
+            except Exception, e:
+                logger.error(str(('invalid input', e, 'count', count)))
+                raise e
         # follows is a kludge, to split up the entered "chemical_name" field, on ';' - TODO: just have two fields that get entered
         if(initializer['name']):
             initializer['alternative_names']=get_alternate_names(initializer['name'])
             initializer['name']=get_primary_name(initializer['name'])
                 
         logger.debug(str(('initializer: ', initializer)))
-        sm = SmallMolecule(**initializer)
-        sm.save()
-        logger.info(str(('sm created:', sm)))
-        count += 1
+        try:
+            sm = SmallMolecule(**initializer)
+            sm.save()
+            logger.info(str(('sm created:', sm)))
+            count += 1
+        except Exception, e:
+            logger.error(str(('save failed for: ', initializer, 'error',e, 'count: ', count)))
+            raise e
     print 'small molecule definitions read: ', count
     
     # TODO - integrity checks: no differing smiles between different batches for same facility id
