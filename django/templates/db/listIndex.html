@@ -1,5 +1,6 @@
 {% extends "db/base.html" %}
 {% block content %}
+        <h2>{{ heading }}</h2>
 	<div id="search">
 		<form action="{{ request.get_full_path }}" method="get"> <!-- only needed with post requests: {% csrf_token %}  --> 
 			<table>
