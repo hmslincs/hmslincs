@@ -28,7 +28,7 @@ from collections import OrderedDict
 
 import logging
 
-from db.CustomQuerySet import CustomQuerySet
+#from db.CustomQuerySet import CustomQuerySet
 
 logger = logging.getLogger(__name__)
 APPNAME = 'db',
