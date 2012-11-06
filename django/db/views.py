@@ -96,7 +96,7 @@ def cellIndex(request):
         return send_to_file(outputType, 'cells', table, queryset, request )
     
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
-    return render(request, 'db/listIndex.html', {'table': table, 'search':search })
+    return render(request, 'db/listIndex.html', {'table': table, 'search':search, 'heading': 'Cells' })
     
 def cellDetail(request, facility_id):
     try:
@@ -142,7 +142,7 @@ def proteinIndex(request):
         return send_to_file(outputType, 'proteins', table, queryset, request )
     
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
-    return render(request, 'db/listIndex.html', {'table': table, 'search':search })
+    return render(request, 'db/listIndex.html', {'table': table, 'search':search, 'heading': 'Proteins' })
     
 def proteinDetail(request, lincs_id):
     try:
@@ -189,7 +189,7 @@ def smallMoleculeIndex(request):
         return send_to_file(outputType, 'small_molecule', table, queryset, request )
     
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
-    return render(request, 'db/listIndex.html', {'table': table, 'search':search })
+    return render(request, 'db/listIndex.html', {'table': table, 'search':search, 'heading': 'Small molecules' })
 
 #def smallMoleculeIndex(request):
 #    search = request.GET.get('search','')
@@ -267,7 +267,7 @@ def libraryIndex(request):
         return send_to_file(outputType, 'libraries', table, queryset, request )
     
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
-    return render(request, 'db/listIndex.html', {'table': table, 'search':search })
+    return render(request, 'db/listIndex.html', {'table': table, 'search':search, 'heading': 'Libraries' })
 
 def libraryDetail(request, short_name):
     try:
@@ -328,8 +328,14 @@ def screenIndex(request, type='screen'):
         return send_to_file(outputType, 'screenIndex', table, queryset, request )
         
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
-    
-    return render(request, 'db/listIndex.html', {'table': table, 'search':search, 'type': type })
+
+    heading = type[0].upper() + type[1:]
+    if heading[-1] == 'y':
+        heading = heading[:-1] + 'ies'
+    else:
+        heading = heading + 's'
+
+    return render(request, 'db/listIndex.html', {'table': table, 'search':search, 'type': type, 'heading': heading })
 
 # Follows is a messy way to differentiate each tab for the screen detail page (each tab calls it's respective method)
 def getDatasetType(facility_id):

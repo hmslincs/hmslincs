@@ -8,31 +8,36 @@
 	<title>HMS LINCS DB</title>
 {% endblock %}	
 
+{% block nav%}
+
+  {# selectedTag is a custom templatetag #}
+  <ul>
+    <li class='{% selectedTag request "^/db/$" %}'><a  href="{% url home %}">HMS LINCS DB home</a></li>
+    <li class='{% selectedTag request "^/db/libraries/" %}'><a " href="{% url listLibraries %}">Libraries</a></li>
+    <li class='{% selectedTag request "^/db/sm/" %}'><a  href="{% url listSmallMolecules %}">Small molecules</a></li>
+    <li class='{% selectedTag request "^/db/cells/" %}'><a " href="{% url listCells %}">Cells</a></li>
+    <li class='{% selectedTag request "^/db/proteins/" %}'><a " href="{% url listProteins %}">Proteins</a></li>
+    <li class='{% if type == "screen" %}selected{% endif %}'><a " href="{% url listScreens %}">Screens</a></li>
+    <li class='{% if type == "study" %}selected{% endif %}'><a " href="{% url listStudies %}">Studies</a></li>
+  </ul>
+
+{% endblock %}
+
+
+
 {% block body %}
 
-    {% block nav%}
-
-	<div id=loginmsg>
-	{% if user.is_authenticated %}
-	  logged in as: {{ user }}<br/>
-	  <a href="{% url logout %}">Log out</a>
-	{% else %}
-	  <a href="{{ login_url }}">Log in</a>
-	{% endif %}
-	</div>
-
-	{# selectedTag is a custom templatetag #}
-	<ul class="basictab">
-		<li class='{% selectedTag request "^/db/$" %}'><a  href="{% url home %}">Home</a></li>
-		<li class='{% selectedTag request "^/db/libraries/" %}'><a " href="{% url listLibraries %}">Libraries</a></li>
-		<li class='{% selectedTag request "^/db/sm/" %}'><a  href="{% url listSmallMolecules %}">Small Molecules</a></li>
-		<li class='{% selectedTag request "^/db/cells/" %}'><a " href="{% url listCells %}">Cells</a></li>
-		<li class='{% selectedTag request "^/db/proteins/" %}'><a " href="{% url listProteins %}">Proteins</a></li>
-		<li class='{% if type == "screen" %}selected{% endif %}'><a " href="{% url listScreens %}">Screens</a></li>
-		<li class='{% if type == "study" %}selected{% endif %}'><a " href="{% url listStudies %}">Studies</a></li>
-	</ul>
-
-    {% endblock %}
+  {# comment login link until after November demo #}
+  {% comment %}
+  <div id=loginmsg>
+    {% if user.is_authenticated %}
+      logged in as: {{ user }}<br/>
+      <a href="{% url logout %}">Log out</a>
+    {% else %}
+      <a href="{{ login_url }}">Log in</a>
+    {% endif %}
+  </div>
+  {% endcomment %}
 
 	<div id="innercontent">
 	    {% block content %}{% endblock %}
