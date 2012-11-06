@@ -32,25 +32,19 @@ if 'LINCS_PGSQL_DB' in environ:
     DATABASES['default']['USER'] = environ['LINCS_PGSQL_USER']
     DATABASES['default']['PASSWORD'] = environ['LINCS_PGSQL_PASSWORD']
 elif socket.getfqdn().endswith('.orchestra'):
+    DATABASES['default']['HOST'] = environ['LINCS_PGSQL_SERVER']
     if op.abspath(__file__).startswith('/www/dev.lincs'):
-        dbname = 'devlincs'
-        dbhost = 'dev.pgsql.orchestra'
         del DATABASES['default']['USER']
     elif op.abspath(__file__).startswith('/www/dev.oshernatprod'):
-	    # TODO REMOVE THIS SECTION ONCE WE HAVE A DEV/STAGING environment for LINCS
+        # TODO REMOVE THIS SECTION ONCE WE HAVE A DEV/STAGING environment for LINCS
         DATABASES['default']['NAME'] = environ['OSHERNATPROD_PGSQL_DB']
         DATABASES['default']['HOST'] = environ['OSHERNATPROD_PGSQL_SERVER']
         DATABASES['default']['USER'] = environ['OSHERNATPROD_PGSQL_USER']
         DATABASES['default']['PASSWORD'] = environ['OSHERNATPROD_PGSQL_PASSWORD']
     elif op.abspath(__file__).startswith('/www/'):
-        dbname = 'lincs'
-        dbhost = 'pgsql.orchestra'
         del DATABASES['default']['USER']
     else:
         raise RuntimeError("Please only run this from a website directory.")
-    DATABASES['default']['NAME'] = dbname
-    DATABASES['default']['HOST'] = dbhost
-    del dbname, dbhost
 
 if socket.getfqdn().endswith('.orchestra'):
 
