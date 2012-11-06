@@ -56,6 +56,17 @@ then
   export LINCS_PGSQL_SERVER=$PGHOST
   export LINCS_PGSQL_PASSWORD=`cat ~/.pgpass |grep $DB_USER| awk -F ':' '{print $5}'`
   VIRTUALENV=/www/dev.lincs.hms.harvard.edu/support/virtualenv/bin/activate
+elif [[ "$SERVER" == "DEV2" ]] || [[ "$SERVER" == "dev2" ]] 
+then
+  DATADIR=${DIR}/data/dev2
+  DB=devoshernatprod
+  DB_USER=devoshernatprodweb
+  PGHOST=dev.pgsql.orchestra
+  export LINCS_PGSQL_USER=$DB_USER
+  export LINCS_PGSQL_DB=$DB
+  export LINCS_PGSQL_SERVER=$PGHOST
+  export LINCS_PGSQL_PASSWORD=`cat ~/.pgpass |grep $DB_USER| awk -F ':' '{print $5}'`
+  VIRTUALENV=/www/dev.oshernatprod.hms.harvard.edu/support/virtualenv/bin/activate
 elif [[ "$SERVER" == "LOCAL" ]] || [[ "$SERVER" == "local" ]] 
 then
   DATADIR=${2:-/home/sde4/sean/docs/work/LINCS/data/dev2}
@@ -82,7 +93,7 @@ check_errs $? "dropdb fails"
 
 source $VIRTUALENV
 
-django/manage.py syncdb
+django/manage.py syncdb 
 check_errs $? "syncdb fails"
 
 # ============ import the field definition information =========================
@@ -145,7 +156,7 @@ else
 	check_errs $? "import smallmolecule batch fails"
 	
 	echo 'import library mapping tables...'
-	python src/import_libraries.py -f $DATADIR/libraries.xls
+	python src/import_libraries.py -f $DATADIR/libraries.sde4.xls
 	check_errs $? "import library fails"
 	
 	echo 'import kinase tables...'
@@ -161,7 +172,7 @@ else
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/Screen20003_tang_MitoApop2.xls 
+	python src/import_dataset.py -f $DATADIR/Screen20003_tang_MitoApop2.xlsx 
 	check_errs $? "import dataset fails"
 
 	echo 'import screen results...'

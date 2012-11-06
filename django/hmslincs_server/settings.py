@@ -32,24 +32,34 @@ if 'LINCS_PGSQL_DB' in environ:
     DATABASES['default']['USER'] = environ['LINCS_PGSQL_USER']
     DATABASES['default']['PASSWORD'] = environ['LINCS_PGSQL_PASSWORD']
 elif socket.getfqdn().endswith('.orchestra'):
-    if op.abspath(__file__).startswith('/www/dev.'):
+    if op.abspath(__file__).startswith('/www/dev.lincs'):
         dbname = 'devlincs'
         dbhost = 'dev.pgsql.orchestra'
+        del DATABASES['default']['USER']
+    elif op.abspath(__file__).startswith('/www/dev.oshernatprod'):
+	    # TODO REMOVE THIS SECTION ONCE WE HAVE A DEV/STAGING environment for LINCS
+        DATABASES['default']['NAME'] = environ['OSHERNATPROD_PGSQL_DB']
+        DATABASES['default']['HOST'] = environ['OSHERNATPROD_PGSQL_SERVER']
+        DATABASES['default']['USER'] = environ['OSHERNATPROD_PGSQL_USER']
+        DATABASES['default']['PASSWORD'] = environ['OSHERNATPROD_PGSQL_PASSWORD']
     elif op.abspath(__file__).startswith('/www/'):
         dbname = 'lincs'
         dbhost = 'pgsql.orchestra'
+        del DATABASES['default']['USER']
     else:
         raise RuntimeError("Please only run this from a website directory.")
     DATABASES['default']['NAME'] = dbname
     DATABASES['default']['HOST'] = dbhost
-    del DATABASES['default']['USER']
     del dbname, dbhost
+
+if socket.getfqdn().endswith('.orchestra'):
 
     # Additional locations of static files
     STATICFILES_DIRS = (
         # Put strings here, like "/home/html/static" or "C:/www/django/static".
         # Always use forward slashes, even on Windows.
         # Don't forget to use absolute paths, not relative paths.
+        op.join(_djangopath, '..', '..', 'images' ),
         '/groups/pharmacoresponse/data/images/',
         '/groups/pharmacoresponse/data/upload_files/',
     )   
