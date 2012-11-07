@@ -404,25 +404,28 @@ class Http401(Exception):
 
 def datasetDetailMain(request, facility_id):
     try:
-        details = datasetDetail(request,facility_id)
+        details = datasetDetail(request,facility_id, 'main')
         return render(request,'db/datasetDetailMain.html', details )
     except Http401, e:
         return HttpResponse('Unauthorized', status=401)
+    
 def datasetDetailCells(request, facility_id):
     try:
-        details = datasetDetail(request,facility_id)
+        details = datasetDetail(request,facility_id, 'cells')
         return render(request,'db/datasetDetailCells.html', details)
     except Http401, e:
         return HttpResponse('Unauthorized', status=401)
+    
 def datasetDetailProteins(request, facility_id):
     try:
-        details = datasetDetail(request,facility_id)
+        details = datasetDetail(request,facility_id,'proteins')
         return render(request,'db/datasetDetailProteins.html', details)
     except Http401, e:
         return HttpResponse('Unauthorized', status=401)
+    
 def datasetDetailResults(request, facility_id):
     try:
-        details = datasetDetail(request,facility_id)
+        details = datasetDetail(request,facility_id, 'results')
 
         outputType = request.GET.get('output_type','')
         if(outputType != ''):
@@ -433,7 +436,7 @@ def datasetDetailResults(request, facility_id):
     except Http401, e:
         return HttpResponse('Unauthorized', status=401)
 
-def datasetDetail(request, facility_id):
+def datasetDetail(request, facility_id, sub_page):
     try:
         dataset = DataSet.objects.get(facility_id=facility_id)
         if(dataset.is_restricted and not request.user.is_authenticated()):
@@ -451,19 +454,23 @@ def datasetDetail(request, facility_id):
     if(manager.has_proteins()):
         proteinTable = ProteinTable(manager.protein_queryset)
         RequestConfig(request, paginate={"per_page": 25}).configure(proteinTable)
-
+    
+    details =  {'object': get_detail(manager.dataset, ['dataset','']),
+                'facilityId': facility_id,
+                'type':getDatasetType(facility_id)}
+    
     # TODO: are the dataset results gonna be searchable? (no, not for now, but if so, we would look at the search string here)
     # search = request.GET.get('search','')
     
-    table = manager.get_table(request.user.is_authenticated())
-    RequestConfig(request, paginate={"per_page": 25}).configure(table)
-    
-    details =  {'object': get_detail(manager.dataset, ['dataset','']),
-                'table': table,
-                'cellTable': cellTable,
-                'proteinTable': proteinTable,
-                'facilityId': facility_id,
-                'type':getDatasetType(facility_id)}
+    if(sub_page == 'results'):
+        table = manager.get_table(request.user.is_authenticated())
+        RequestConfig(request, paginate={"per_page": 25}).configure(table)
+        details['result_table'] = table
+        
+    if(sub_page == 'results'):
+        details['cellTable'] = cellTable,
+    if(sub_page == 'results'):
+        details['proteinTable'] = proteinTable,
 
     image_location = DATASET_IMAGE_LOCATION + '/%s.png' % str(facility_id)
     if(can_access_image(request,image_location)): details['image_location'] = image_location

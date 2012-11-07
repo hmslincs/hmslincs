@@ -1,9 +1,9 @@
 {% extends "db/datasetDetailBase.html" %}
 {% block datasetContent %}
-	{% if table %}
+	{% if result_table %}
 	{% include "db/searchExportBox.html" %}
 			{% load render_table from django_tables2 %}
-		{% render_table table %}
+		{% render_table result_table %}
 	{% else %}
 	    <p>Screen Result not loaded.</p>
 	{% endif %}
