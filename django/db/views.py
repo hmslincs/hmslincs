@@ -446,18 +446,12 @@ def datasetDetail(request, facility_id, sub_page):
 
     manager = DataSetManager(dataset)
 
-    cellTable = None
-    if(manager.has_cells()):
-        cellTable = CellTable(manager.cell_queryset)
-        RequestConfig(request, paginate={"per_page": 25}).configure(cellTable)
-    proteinTable = None
-    if(manager.has_proteins()):
-        proteinTable = ProteinTable(manager.protein_queryset)
-        RequestConfig(request, paginate={"per_page": 25}).configure(proteinTable)
     
     details =  {'object': get_detail(manager.dataset, ['dataset','']),
                 'facilityId': facility_id,
-                'type':getDatasetType(facility_id)}
+                'type':getDatasetType(facility_id),
+                'has_cells':manager.has_cells(),
+                'has_proteins':manager.has_proteins()}
     
     # TODO: are the dataset results gonna be searchable? (no, not for now, but if so, we would look at the search string here)
     # search = request.GET.get('search','')
@@ -467,10 +461,16 @@ def datasetDetail(request, facility_id, sub_page):
         RequestConfig(request, paginate={"per_page": 25}).configure(table)
         details['result_table'] = table
         
-    if(sub_page == 'results'):
-        details['cellTable'] = cellTable,
-    if(sub_page == 'results'):
-        details['proteinTable'] = proteinTable,
+    if(sub_page == 'cells'):
+        if(manager.has_cells()):
+            cellTable = CellTable(manager.cell_queryset)
+            RequestConfig(request, paginate={"per_page": 25}).configure(cellTable)
+            details['cellTable'] = cellTable
+    if(sub_page == 'proteins'):
+        if(manager.has_proteins()):
+            proteinTable = ProteinTable(manager.protein_queryset)
+            RequestConfig(request, paginate={"per_page": 25}).configure(proteinTable)
+            details['proteinTable'] = proteinTable
 
     image_location = DATASET_IMAGE_LOCATION + '/%s.png' % str(facility_id)
     if(can_access_image(request,image_location)): details['image_location'] = image_location
@@ -1121,7 +1121,7 @@ def set_table_column_info(table,table_names, sequence_override=[]):
             #column.attrs['th']={'title': fieldname}  
         
     fields = OrderedDict(sorted(fields.items(), key=lambda x: x[1].order))
-    logger.info(str(('fields',fields)))
+    logger.debug(str(('fields',fields)))
     sequence = filter(lambda x: x not in sequence_override, [x for x in fields.keys()])
     sequence_override.extend(sequence)
     table.exclude = tuple(exclude_list)
