@@ -1,3 +1,7 @@
+#content {
+  overflow-x: auto; /* for pages with too many columns */
+}
+
 #loginmsg {
   float: right;
   width:200px;
