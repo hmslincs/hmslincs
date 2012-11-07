@@ -2,28 +2,36 @@
   float: right;
   width:200px;
 }
-
 img {
 	max-width: 100%;
 	height: auto;
 }
-
-.compound_image {
-	float: right;
+.noborders {
+	border: 0px;
+	border-collapse:collapse; 
 }
-
+.compound_image {
+ position:absolute;
+ top:2em;
+ right:1em;
+ height: 16em;
+}
 td {
 	vertical-align: top;
 }
-
 h2 {
   font-weight: bold;
 }
-
+#content table.search_table{
+	width:100%;
+	border:0px solid white;
+}
+#content td.search_table_td {
+	border:0px;
+}
 .table-container {
   overflow-x: auto;
 }
-
 .entity_detail_title{
 	text-indent: 5px;
 	font-size: large;
@@ -31,8 +39,8 @@ h2 {
 	border-bottom: 1px solid gray;
 }
 .propertyLabelColumn {
-        width: 160px;
-        min-width: 160px;
+  width: 160px;
+  min-width: 160px;
 	padding-bottom: 1px;
 	border-width: 1px;
 	border-style: solid;

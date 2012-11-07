@@ -1,9 +1,9 @@
 {% extends "db/base.html" %}
 {% block content %}
-<h2 class='entity_detail_title'>Small Molecule Information</h2>
 	{% if image_location %}
 		<img class='compound_image' src="{{ STATIC_URL }}{{image_location}}" />
 	{% endif %}
+<h2 class='entity_detail_title'>Small Molecule Information</h2>
 	{% include "db/detailListing.html" %}
 	{% if attached_files %}
 		<h2 class='entity_detail_title'>Attached Files</h2>
@@ -29,6 +29,5 @@
 		<h2 class='entity_detail_title'>Datasets:</h2>
 		{% render_table datasets %}
 	{% endif %}
-	
 	
 {% endblock %}

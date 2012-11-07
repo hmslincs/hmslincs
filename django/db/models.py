@@ -78,17 +78,25 @@ class FieldsManager(models.Manager):
                 logger.debug(str(('No field information for the field: ',field_or_alias,e)))
                 raise e
         else:
-            # if the table or queryset is given, alias should not be needed
             try:
                 fi = self.get_query_set().get(queryset=table_or_queryset, field=field_or_alias)
                 return fi
             except (ObjectDoesNotExist,MultipleObjectsReturned) as e:
                 logger.debug(str(('No field information for the queryset,field: ',table_or_queryset,field_or_alias, e)))
+            try:
+                fi = self.get_query_set().get(queryset=table_or_queryset, alias=field_or_alias)
+                return fi
+            except (ObjectDoesNotExist,MultipleObjectsReturned) as e:
+                logger.debug(str(('No field information for the queryset,alias: ',table_or_queryset,field_or_alias, e)))
             
             try:
                 return self.get_query_set().get(table=table_or_queryset, field=field_or_alias)
             except (ObjectDoesNotExist,MultipleObjectsReturned) as e:
                 logger.debug(str(('No field information for the table,field: ',table_or_queryset,field_or_alias, e)))
+            try:
+                return self.get_query_set().get(table=table_or_queryset, alias=field_or_alias)
+            except (ObjectDoesNotExist,MultipleObjectsReturned) as e:
+                logger.debug(str(('No field information for the table,alias: ',table_or_queryset,field_or_alias, e)))
                 raise e
         
     #TODO: link this in to the reindex process!

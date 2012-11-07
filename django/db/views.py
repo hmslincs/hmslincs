@@ -91,23 +91,38 @@ def cellIndex(request):
         queryset = Cell.objects.extra(
             where=where,
             order_by=('facility_id',))        
-    table = CellTable(queryset)
-
-    outputType = request.GET.get('output_type','')
-    if(outputType != ''):
-        return send_to_file(outputType, 'cells', table, queryset, request )
-    
-    RequestConfig(request, paginate={"per_page": 25}).configure(table)
+ 
+    if(len(queryset)>0):
+        table = CellTable(queryset)
+        RequestConfig(request, paginate={"per_page": 25}).configure(table)
+        outputType = request.GET.get('output_type','')
+        if(outputType != ''):
+            return send_to_file(outputType, 'cells', table, queryset, request )
+    else:
+        table = None
     return render(request, 'db/listIndex.html', {'table': table, 'search':search, 'heading': 'Cells' })
+
     
 def cellDetail(request, facility_id):
     try:
         cell = Cell.objects.get(facility_id=facility_id) # todo: cell here
         if(cell.is_restricted and not request.user.is_authenticated()):
             return HttpResponse('Log in required.', status=401)
+        details = {'object': get_detail(cell, ['cell',''])}
+        # datasets table
+        dataset_ids = find_datasets_for_cell(cell.id)
+        if(len(dataset_ids)>0):
+            logger.info(str(('dataset ids for sm',dataset_ids)))
+            where = []
+            if(not request.user.is_authenticated()): 
+                where.append("(not is_restricted or is_restricted is NULL)")
+            queryset = DataSet.objects.filter(pk__in=list(dataset_ids)).extra(where=where,
+                       order_by=('facility_id',))        
+            details['datasets'] = DataSetTable(queryset)
+        
+        return render(request, 'db/cellDetail.html', details)
     except Cell.DoesNotExist:
         raise Http404
-    return render(request, 'db/cellDetail.html', {'object': get_detail(cell, ['cell',''])})
 
 # TODO REFACTOR, DRY... 
 def proteinIndex(request):
@@ -136,14 +151,16 @@ def proteinIndex(request):
         if(not request.user.is_authenticated()): where.append("(not is_restricted or is_restricted is NULL)")
         queryset = Protein.objects.extra(
             where=where,
-            order_by=('lincs_id',))        
-    table = ProteinTable(queryset)
-
-    outputType = request.GET.get('output_type','')
-    if(outputType != ''):
-        return send_to_file(outputType, 'proteins', table, queryset, request )
+            order_by=('lincs_id',))
     
-    RequestConfig(request, paginate={"per_page": 25}).configure(table)
+    if(len(queryset)>0):
+        table = ProteinTable(queryset)
+        RequestConfig(request, paginate={"per_page": 25}).configure(table)
+        outputType = request.GET.get('output_type','')
+        if(outputType != ''):
+            return send_to_file(outputType, 'proteins', table, queryset, request )
+    else:
+        table = None
     return render(request, 'db/listIndex.html', {'table': table, 'search':search, 'heading': 'Proteins' })
     
 def proteinDetail(request, lincs_id):
@@ -151,9 +168,23 @@ def proteinDetail(request, lincs_id):
         protein = Protein.objects.get(lincs_id=lincs_id) # todo: cell here
         if(protein.is_restricted and not request.user.is_authenticated()):
             return HttpResponse('Log in required.', status=401)
+        details = {'object': get_detail(protein, ['protein',''])}
+        
+        # datasets table
+        dataset_ids = find_datasets_for_protein(protein.id)
+        if(len(dataset_ids)>0):
+            logger.info(str(('dataset ids for sm',dataset_ids)))
+            where = []
+            if(not request.user.is_authenticated()): 
+                where.append("(not is_restricted or is_restricted is NULL)")
+            queryset = DataSet.objects.filter(pk__in=list(dataset_ids)).extra(where=where,
+                       order_by=('facility_id',))        
+            details['datasets'] = DataSetTable(queryset)
+        
+        return render(request, 'db/proteinDetail.html', details)
+ 
     except Protein.DoesNotExist:
         raise Http404
-    return render(request, 'db/proteinDetail.html', {'object': get_detail(protein, ['protein',''])})
 
 # TODO REFACTOR, DRY... 
 def smallMoleculeIndex(request):
@@ -187,6 +218,7 @@ def smallMoleculeIndex(request):
     table = SmallMoleculeTable(queryset)
 
     outputType = request.GET.get('output_type','')
+    logger.error(str(("outputType:", outputType)))
     if(outputType != ''):
         return send_to_file(outputType, 'small_molecule', table, queryset, request )
     
@@ -277,14 +309,17 @@ def get_attached_files(facility_id, salt_id=None, batch_id=None):
 def libraryIndex(request):
     search = request.GET.get('search','')
     queryset = LibrarySearchManager().search(search, is_authenticated=request.user.is_authenticated());
-    table = LibraryTable(queryset)
 
-    outputType = request.GET.get('output_type','')
-    if(outputType != ''):
-        return send_to_file(outputType, 'libraries', table, queryset, request )
-    
-    RequestConfig(request, paginate={"per_page": 25}).configure(table)
+    if(len(queryset)>0):
+        table = LibraryTable(queryset)
+        RequestConfig(request, paginate={"per_page": 25}).configure(table)
+        outputType = request.GET.get('output_type','')
+        if(outputType != ''):
+            return send_to_file(outputType, 'libraries', table, queryset, request )
+    else:
+        table = None
     return render(request, 'db/listIndex.html', {'table': table, 'search':search, 'heading': 'Libraries' })
+
 
 def libraryDetail(request, short_name):
     try:
@@ -300,8 +335,6 @@ def libraryDetail(request, short_name):
         return render(request,'db/libraryDetail.html', response_dict)
     except Library.DoesNotExist:
         raise Http404
-
-
 
 def studyIndex(request):
     return screenIndex(request, 'study' )
@@ -407,7 +440,6 @@ def screenDetail(request, facility_id):
     except DataSet.DoesNotExist:
         raise Http404
 
-    # TODO: remove this and use left join in manager
     manager = DataSetManager(dataset)
 
     cellTable = None
@@ -765,6 +797,15 @@ class DataSetManager():
 #
 #    def __init__(self, table, *args, **kwargs):
 #        super(ScreenTestTable, self).__init__(table)
+def find_datasets_for_protein(protein_id):
+    datasets = [x.id for x in DataSet.objects.filter(datarecord__protein__id=protein_id).distinct()]
+    logger.info(str(('datasets',datasets)))
+    return datasets
+
+def find_datasets_for_cell(cell_id):
+    datasets = [x.id for x in DataSet.objects.filter(datarecord__cell__id=cell_id).distinct()]
+    logger.info(str(('datasets',datasets)))
+    return datasets
 
 def find_datasets_for_smallmolecule(smallmolecule_id):
     datasets = [x.id for x in DataSet.objects.filter(datarecord__smallmolecule_batch__smallmolecule__id=smallmolecule_id).distinct()]
@@ -781,8 +822,29 @@ def find_datasets_for_smallmolecule(smallmolecule_id):
     #        dataset_ids.append(val[0])
     #        
     #    return dataset_ids
-    
+            
+class LibraryMappingTable(tables.Table):
+    facility_salt_batch = tables.LinkColumn("sm_detail", args=[A('facility_salt_batch')]) 
+    sm_name = tables.Column()
+    is_control = tables.Column() 
+    well = tables.Column()
+    plate = tables.Column()
+    concentration = tables.Column()
+    concentration_unit = tables.Column()
         
+    snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce("+x.field+",'') ", FieldInformation.manager.get_search_fields(SmallMolecule)))) # TODO: specialized search for librarymapping, if needed
+    
+    class Meta:
+        model = SmallMoleculeBatch
+        orderable = True
+        attrs = {'class': 'paleblue'}
+        
+    def __init__(self, table, show_plate_well=False,*args, **kwargs):
+        super(LibraryMappingTable, self).__init__(table)
+        sequence_override = ['facility_salt_batch']
+        
+        set_table_column_info(self, ['smallmolecule','smallmoleculebatch','librarymapping',''],sequence_override)  
+                
 class LibraryMappingSearchManager(models.Model):
     """
     Used for librarymapping display
@@ -799,7 +861,7 @@ class LibraryMappingSearchManager(models.Model):
 #            " left join db_smallmoleculebatch smb on(smb.smallmolecule_id=sm.id)" 
 #            " left join db_librarymapping lm on(smb.id=lm.smallmolecule_batch_id) " + 
 #            " left join db_library l on(lm.library_id=l.id) ")
-        sql = "select " + facility_salt_batch_id + " as facility_salt_batch , sm.*, smb.*, lm.* "
+        sql = "select " + facility_salt_batch_id + " as facility_salt_batch , sm.name as sm_name, lm.* "
         sql += " from db_library l "
         sql += " join db_librarymapping lm on(lm.library_id=l.id) " 
         sql += " left join db_smallmoleculebatch smb on (smb.id=lm.smallmolecule_batch_id) "
@@ -879,27 +941,6 @@ class AttachedFileTable(tables.Table):
         super(AttachedFileTable, self).__init__(table)
         sequence_override = []
         set_table_column_info(self, ['attachedfile',''],sequence_override)  
-        
-class LibraryMappingTable(tables.Table):
-    facility_salt_batch = tables.LinkColumn("sm_detail", args=[A('facility_salt_batch')]) 
-    is_control = tables.Column() 
-    well = tables.Column()
-    plate = tables.Column()
-    concentration = tables.Column()
-    concentration_unit = tables.Column()
-        
-    snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce("+x.field+",'') ", FieldInformation.manager.get_search_fields(SmallMolecule)))) # TODO: specialized search for librarymapping, if needed
-    
-    class Meta:
-        model = SmallMoleculeBatch
-        orderable = True
-        attrs = {'class': 'paleblue'}
-        
-    def __init__(self, table, show_plate_well=False,*args, **kwargs):
-        super(LibraryMappingTable, self).__init__(table)
-        sequence_override = ['facility_salt_batch']
-        
-        set_table_column_info(self, ['smallmolecule','smallmoleculebatch','librarymapping',''],sequence_override)  
             
 class SmallMoleculeForm(ModelForm):
     class Meta:
@@ -955,8 +996,11 @@ class LibrarySearchManager(models.Manager):
     def search(self, query_string, is_authenticated=False):
         query_string = query_string.strip()
         cursor = connection.cursor()
-        sql = ( "select a.*, library.* from ( SELECT count(well) as well_count , max(plate)-min(plate)+ 1 as plate_count, library.id " + 
-            " from db_library library left join db_librarymapping on(library_id=library.id) ")
+        sql = ( "select a.*, b.*, l.* from " + 
+                "( SELECT count(smallmolecule_batch_id) as sm_count, library.id " +
+                " from db_library library left join db_librarymapping on (library_id=library.id) group by library.id ) b join db_library l on(b.id=l.id), "
+                "( SELECT count(well) as well_count , max(plate)-min(plate)+ 1 as plate_count, library.id " + 
+                "     from db_library library left join db_librarymapping on(library_id=library.id) ")
         where = ' where 1=1 '
         if(not is_authenticated):
             where += 'and (not library.is_restricted or library.is_restricted is NULL) '
@@ -964,7 +1008,7 @@ class LibrarySearchManager(models.Manager):
             sql += ", to_tsquery(%s) as query  " 
             where += "and library.search_vector @@ query "
         sql += where
-        sql += " group by library.id) a join db_library library on(a.id=library.id)"
+        sql += " group by library.id) a join db_library l2 on(a.id=l2.id) where l2.id=l.id"
         
         logger.info(str(('sql',sql)))
         # TODO: the way we are separating query_string out here is a kludge
@@ -981,6 +1025,7 @@ class LibraryTable(tables.Table):
     short_name = tables.LinkColumn("library_detail", args=[A('short_name')])
     well_count = tables.Column()
     plate_count = tables.Column()
+    sm_count = tables.Column()
     rank = tables.Column()
     snippet = SnippetColumn()
     
