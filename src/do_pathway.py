@@ -71,6 +71,9 @@ if __name__ == '__main__':
     img.attrib['id'] = 'pathway-img'
     img.attrib['src'] = '%spathway/img/%s' % (django.conf.settings.STATIC_URL,
                                            img.attrib['src'])
+    # FIXME read these directly from the png instead of hard-coding them here
+    img.attrib['width'] = '638'
+    img.attrib['height'] = '432'
     # turn the tree back into html source
     formatter = functools.partial(lxml.etree.tostring,
                                   pretty_print=True, method='html')
