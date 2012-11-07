@@ -16,17 +16,15 @@
     <li class='{% selectedTag request "^/db/sm/" %}'><a  href="{% url listSmallMolecules %}">Small molecules</a></li>
     <li class='{% selectedTag request "^/db/cells/" %}'><a " href="{% url listCells %}">Cells</a></li>
     <li class='{% selectedTag request "^/db/proteins/" %}'><a " href="{% url listProteins %}">Proteins</a></li>
-    <li class='{% if type == "screen" %}selected{% endif %}'><a " href="{% url listScreens %}">Screens</a></li>
-    <li class='{% if type == "study" %}selected{% endif %}'><a " href="{% url listStudies %}">Studies</a></li>
+    <li class='{% selectedTag request "^/db/datasets/" %}'><a " href="{% url listDatasets %}">Datasets</a></li>
+{#     <li class='{% if type == "screen" %}selected{% endif %}'><a " href="{% url listScreens %}">Screens</a></li> #}
+{#     <li class='{% if type == "study" %}selected{% endif %}'><a " href="{% url listStudies %}">Studies</a></li> #}
     <li class='{% selectedTag request "^/db/libraries/" %}'><a " href="{% url listLibraries %}">Libraries</a></li>
   </ul>
 
 {% endblock %}
 
-
-
 {% block body %}
-
   {# comment login link until after November demo #}
   {% comment %}
   <div id=loginmsg>

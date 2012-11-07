@@ -33,7 +33,7 @@ import logging
 logger = logging.getLogger(__name__)
 APPNAME = 'db',
 COMPOUND_IMAGE_LOCATION = "compound-images-by-facility-salt-id"  
-DATASET_IMAGE_LOCATION = "screen-images-by-facility-id" 
+DATASET_IMAGE_LOCATION = "dataset-images-by-facility-id" 
 facility_salt_id = " sm.facility_id || '-' || sm.salt_id " # Note: because we have a composite key for determining unique sm structures, we need to do this
 facility_salt_batch_id = facility_salt_id + " || '-' || smb.facility_batch_id " # Note: because we have a composite key for determining unique sm structures, we need to do this
 
@@ -336,17 +336,17 @@ def libraryDetail(request, short_name):
     except Library.DoesNotExist:
         raise Http404
 
-def studyIndex(request):
-    return screenIndex(request, 'study' )
+#def studyIndex(request):
+#    return datasetIndex(request, 'study' )
 
-def screenIndex(request, type='screen'):
+def datasetIndex(request): #, type='screen'):
     search = request.GET.get('search','')
     logger.info(str(("is_authenticated:", request.user.is_authenticated(), 'search: ', search)))
     where = []
-    if(type == 'screen'):
-        where.append(" facility_id between 10000 and 30000 ")
-    elif(type == 'study'):
-        where.append(" facility_id between 300000 and 400000 ")
+#    if(type == 'screen'):
+#        where.append(" facility_id between 10000 and 30000 ")
+#    elif(type == 'study'):
+#        where.append(" facility_id between 300000 and 400000 ")
     if(search != ''):
         criteria = "search_vector @@ plainto_tsquery(%s)"
         if(get_integer(search) != None):
@@ -377,19 +377,20 @@ def screenIndex(request, type='screen'):
     
     outputType = request.GET.get('output_type','')
     if(outputType != ''):
-        return send_to_file(outputType, 'screenIndex', table, queryset, request )
+        return send_to_file(outputType, 'datasetIndex', table, queryset, request )
         
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
 
-    heading = type[0].upper() + type[1:]
-    if heading[-1] == 'y':
-        heading = heading[:-1] + 'ies'
-    else:
-        heading = heading + 's'
+#    heading = type[0].upper() + type[1:]
+#    if heading[-1] == 'y':
+#        heading = heading[:-1] + 'ies'
+#    else:
+#        heading = heading + 's'
+    heading = 'Datasets'
 
     return render(request, 'db/listIndex.html', {'table': table, 'search':search, 'type': type, 'heading': heading })
 
-# Follows is a messy way to differentiate each tab for the screen detail page (each tab calls it's respective method)
+# Follows is a messy way to differentiate each tab for the dataset detail page (each tab calls it's respective method)
 def getDatasetType(facility_id):
     facility_id = int(facility_id)
     if(facility_id < 30000 and facility_id >=  10000 ):
@@ -401,38 +402,38 @@ def getDatasetType(facility_id):
 class Http401(Exception):
     pass
 
-def screenDetailMain(request, facility_id):
+def datasetDetailMain(request, facility_id):
     try:
-        details = screenDetail(request,facility_id)
-        return render(request,'db/screenDetailMain.html', details )
+        details = datasetDetail(request,facility_id)
+        return render(request,'db/datasetDetailMain.html', details )
     except Http401, e:
         return HttpResponse('Unauthorized', status=401)
-def screenDetailCells(request, facility_id):
+def datasetDetailCells(request, facility_id):
     try:
-        details = screenDetail(request,facility_id)
-        return render(request,'db/screenDetailCells.html', details)
+        details = datasetDetail(request,facility_id)
+        return render(request,'db/datasetDetailCells.html', details)
     except Http401, e:
         return HttpResponse('Unauthorized', status=401)
-def screenDetailProteins(request, facility_id):
+def datasetDetailProteins(request, facility_id):
     try:
-        details = screenDetail(request,facility_id)
-        return render(request,'db/screenDetailProteins.html', details)
+        details = datasetDetail(request,facility_id)
+        return render(request,'db/datasetDetailProteins.html', details)
     except Http401, e:
         return HttpResponse('Unauthorized', status=401)
-def screenDetailResults(request, facility_id):
+def datasetDetailResults(request, facility_id):
     try:
-        details = screenDetail(request,facility_id)
+        details = datasetDetail(request,facility_id)
 
         outputType = request.GET.get('output_type','')
         if(outputType != ''):
             table = details['table']
             return send_to_file(outputType, 'dataset_'+str(facility_id), table, table.data, request )
 
-        return render(request,'db/screenDetailResults.html', details)
+        return render(request,'db/datasetDetailResults.html', details)
     except Http401, e:
         return HttpResponse('Unauthorized', status=401)
 
-def screenDetail(request, facility_id):
+def datasetDetail(request, facility_id):
     try:
         dataset = DataSet.objects.get(facility_id=facility_id)
         if(dataset.is_restricted and not request.user.is_authenticated()):
@@ -451,7 +452,7 @@ def screenDetail(request, facility_id):
         proteinTable = ProteinTable(manager.protein_queryset)
         RequestConfig(request, paginate={"per_page": 25}).configure(proteinTable)
 
-    # TODO: are the screen results gonna be searchable? (no, not for now, but if so, we would look at the search string here)
+    # TODO: are the dataset results gonna be searchable? (no, not for now, but if so, we would look at the search string here)
     # search = request.GET.get('search','')
     
     table = manager.get_table(request.user.is_authenticated())
@@ -477,7 +478,7 @@ class TypeColumn(tables.Column):
     def render(self, value):
         if value == "cell_detail": return "Cell"
         elif value == "sm_detail": return "Small Molecule"
-        elif value == "screen_detail": return "Screen"
+        elif value == "dataset_detail": return "Screen"
         elif value == "protein_detail": return "Protein"
         else: raise Exception("Unknown type: "+value)
         
@@ -485,7 +486,7 @@ class TypeColumn(tables.Column):
 
 class DataSetTable(tables.Table):
     id = tables.Column(visible=False)
-    facility_id = tables.LinkColumn("screen_detail", args=[A('facility_id')])
+    facility_id = tables.LinkColumn("dataset_detail", args=[A('facility_id')])
     protocol = tables.Column(visible=False) 
     references = tables.Column(visible=False)
     rank = tables.Column()
@@ -1062,7 +1063,7 @@ class SiteSearchManager(models.Manager):
             sql += " AND (not is_restricted or is_restricted is NULL)"
         sql +=  (" UNION " +
                 " SELECT id, facility_id::text, ts_headline(" + DataSetTable.snippet_def + """, query3, 'MaxFragments=10, MinWords=1, MaxWords=20, FragmentDelimiter=" | "') as snippet, """ +
-                " ts_rank_cd(search_vector, query3, 32) AS rank, 'screen_detail' as type FROM db_dataset, to_tsquery(%s) as query3 WHERE search_vector @@ query3 " )
+                " ts_rank_cd(search_vector, query3, 32) AS rank, 'dataset_detail' as type FROM db_dataset, to_tsquery(%s) as query3 WHERE search_vector @@ query3 " )
         if(not is_authenticated): 
             sql += " AND (not is_restricted or is_restricted is NULL)"
         sql +=  (" UNION " +
