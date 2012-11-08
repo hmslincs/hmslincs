@@ -1,20 +1,38 @@
 jQuery(document).ready(function ($) {
+
     var touched = false;
+
     $('.pathway-target').mouseenter(function (e) {
 	var $popup = get_popup(e.target);
-	if ($popup !== null) {
-	    $('.signature-popup').hide();
+	if (!touched && $popup !== null) {
+            hide_popups();
 	    $popup.show();
 	}
     });
-    $('.signature-popup').mouseenter(function () {
-	touched = true;
-    });
-    $('.signature-popup').mouseleave(function () {
-	if (touched) {
-	    $('.signature-popup').hide();
-	    touched = false;
+    $('.pathway-target').click(function (e) {
+	var $popup = get_popup(e.target);
+        if ($popup !== null) {
+            hide_popups();
+	    $popup.show();
 	}
+        return false;
+    });
+
+    $('.signature-popup').mouseenter(function () {
+       touched = true;
+    });
+
+    /*
+    $('.closebutton').click(function (e) {
+	var $popup = get_popup(e.target.parentNode);
+	if ($popup !== null) {
+            hide_popups();
+	}
+    });
+    */
+
+    $('#pathway-container').click(function (e) {
+        hide_popups();
     });
 
     $('.pathway-target').each(function(idx, elt) {
@@ -32,6 +50,11 @@ jQuery(document).ready(function ($) {
     /* Return a jQuery object for the popup corresponding to an area element */
     function get_popup(area) {
 	return area.id !== null ? $('#signature-' + area.id) : null;
+    }
+
+    function hide_popups() {
+        $('.signature-popup').hide();
+        touched = false;
     }
 
 });

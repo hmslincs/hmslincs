@@ -35,13 +35,6 @@
   padding-bottom: 0.3em;
 }
 
-.signature-popup .drugclass {
-}
-
-.signature-popup .kinomescan {
-  text-align: center;
-}
-
 .signature-popup p.note {
   padding: 0 0.5em 0 1.2em;
   margin: 0;
@@ -74,5 +67,14 @@
 
 .pathway-target {
   position: absolute;
+  cursor: pointer;
+}
+
+.closebutton {
+  position: absolute;
+  top: 0.5em;
+  right: 0.5em;
+  color: #FF8216;
+  text-decoration: underline;
   cursor: pointer;
 }

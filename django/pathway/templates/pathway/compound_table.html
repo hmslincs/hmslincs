@@ -1,12 +1,12 @@
 {% for sd in compounds %}
   <tr>
     <td><a href="#">{{ sd.drug }}</a></td>
-    <td class="drugclass">
+    <td>
       {% if sd.isclinical %}
       C
       {% endif %}
     </td>
-    <td class="kinomescan">
+    <td>
       {% if sd.isselective %}
       <a href="#">yes</a>
       {% else %}
