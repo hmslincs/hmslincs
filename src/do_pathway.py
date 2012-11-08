@@ -4,6 +4,7 @@ import django.conf
 import os.path as op
 import lxml.etree
 import functools
+import math
 import signature
 
 
@@ -80,8 +81,12 @@ if __name__ == '__main__':
     pathway_source = ''.join(map(formatter, tree[0].getchildren()))
 
     signatures = map(signature.template_context, *zip(*signature_data.items()))
+    cell_lines = list(enumerate(signature.cell_lines))
+    cut_idx = int(math.ceil(len(cell_lines) / 2.0))
     ctx = {
         'signatures': signatures,
+        'cell_lines': [cell_lines[:cut_idx],
+                       cell_lines[cut_idx:]],
         'pathway_source': pathway_source,
         'STATIC_URL': django.conf.settings.STATIC_URL,
         }
@@ -93,3 +98,5 @@ if __name__ == '__main__':
     for target, compounds in signature_data.items():
         signature.signature_images(target, compounds, out_dir_image)
 
+    # generate images for the cell lines legend
+    signature.cell_line_images(out_dir_image)

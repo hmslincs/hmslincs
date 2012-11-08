@@ -1,18 +1,20 @@
 {% for sd in compounds %}
   <tr>
     <td><a href="#">{{ sd.drug }}</a></td>
-    <td>
+    <td class="drugclass">
       {% if sd.isclinical %}
-        <div style="background: #000000; color: #ffffff;">C</div>
+      C
       {% endif %}
     </td>
-    <td>
+    <td class="kinomescan">
       {% if sd.isselective %}
-        <div style="color: #800000; font-size: 500%; line-height: 20%;">&middot;</div>
+      <a href="#">yes</a>
+      {% else %}
+      no
       {% endif %}
     </td>
     <td>
-      <img src="{{ STATIC_URL }}pathway/img/{{ signature.target_name|slugify }}-{{ sd.drug|slugify }}.png"
+      <img src="{{ STATIC_URL }}pathway/img/signature-{{ signature.target_name|slugify }}-{{ sd.drug|slugify }}.png"
            width="250" height="20">
     </td>
   </tr>

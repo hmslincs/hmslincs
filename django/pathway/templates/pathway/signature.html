@@ -1,31 +1,56 @@
 <div class="signature-popup" id="signature-{{ signature.target_name }}">
 
-<table>
+<table class="plain">
 
   <tr>
     <td colspan="4">
-      <h3>Target: {{ signature.target_name }}</h3>
+      <h3><a href="#">{{ signature.target_name }}</a> inhibitors:</h3>
     </td>
   </tr>
 
   <tr>
-    <td colspan="4">
-      <h4>Primary inhibitors</h4>
+    <th>Name</th>
+    <th>C*</th>
+    <th>KS*</th>
+    <th class="signature">Signature (log<sub>10</sub> GI50)</th>
+  </tr>
+
+  <tr>
+    <td colspan="3"></td>
+    <td class="signature">
+      <img src="{{ STATIC_URL }}pathway/img/scale-{{ signature.target_name|slugify }}.png" width="250" height="20">
     </td>
   </tr>
+
   {% with compounds=signature.primary_compounds %}
     {% include "pathway/compound_table.html" %}
   {% endwith %}
   
-  <tr>
-    <td colspan="4">
-      <h4>Other inhibitors</h4>
-    </td>
-  </tr>
   {% with compounds=signature.nonprimary_compounds %}
     {% include "pathway/compound_table.html" %}
   {% endwith %}
 
+  <tr>
+    <td colspan="3"></td>
+    <td class="legend">
+      <table>
+        {% for row in cell_lines %}
+          <tr>
+            {% for index, cell_line in row %}
+              <td>
+                <img src="{{ STATIC_URL }}pathway/img/legend-cell-line-{{ index }}.png" width="14" height="14">
+                <a href="#">{{ cell_line }}</a>
+              </td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      </table>
+    </td>
+  </tr>
+
 </table>
+
+<p class="note">* C = classification (Clinical/Investigative/Research); KS =
+KinomeScan profile
 
 </div>
