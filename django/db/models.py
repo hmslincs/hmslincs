@@ -233,7 +233,7 @@ CONCENTRATION_WEIGHT_VOLUME_CHOICES = ((CONCENTRATION_GL,CONCENTRATION_GL),
 
 class SmallMoleculeBatch(models.Model):
     smallmolecule           = models.ForeignKey('SmallMolecule')
-    facility_batch_id       = _INTEGER(null=True)
+    facility_batch_id       = _INTEGER(null=True) # TODO: indexed solution
     provider                = _TEXT(**_NULLOKSTR)
     provider_catalog_id     = _CHAR(max_length=64, **_NULLOKSTR)
     provider_sample_id      = _CHAR(max_length=35, **_NULLOKSTR)
@@ -252,8 +252,6 @@ class SmallMoleculeBatch(models.Model):
     inchi                   = _TEXT(**_NULLOKSTR)
     inchi_key               = _TEXT(**_NULLOKSTR)
     smiles                  = _TEXT(**_NULLOKSTR)
-    molecular_mass          = _CHAR(max_length=35, **_NULLOKSTR)
-    molecular_formula       = _TEXT(**_NULLOKSTR)
 
     def __unicode__(self):
         return unicode(str((self.smallmolecule,self.facility_batch_id)))
@@ -379,6 +377,7 @@ class DataSet(models.Model):
     date_loaded             = models.DateField(null=True,blank=True)
     date_publicly_available = models.DateField(null=True,blank=True)
     is_restricted           = models.BooleanField()
+    dataset_type            = _TEXT(**_NULLOKSTR)
     
     def _get_lead_screener(self):
         "Returns the LS  full name."
@@ -437,7 +436,7 @@ class DataColumn(models.Model):
     description             = _TEXT(**_NULLOKSTR)
     replicate               = _INTEGER(null=True)
     time_point              = _TEXT(**_NULLOKSTR)
-    readout_type            = _TEXT(**_NOTNULLSTR)
+    readout_type            = _TEXT(**_NULLOKSTR)
     comments                = _TEXT(**_NULLOKSTR)
 
     def __unicode__(self):
@@ -445,7 +444,10 @@ class DataColumn(models.Model):
 
 class DataRecord(models.Model):
     dataset                 = models.ForeignKey('DataSet')
-    smallmolecule_batch     = models.ForeignKey('SmallMoleculeBatch', null=True)
+    smallmolecule           = models.ForeignKey('SmallMolecule', null=True)
+    
+    # TODO: need a schema that provides proper indexes
+    batch_id                = _INTEGER(null=True) # if given, denotes the batch associated with whichever entity is linked to this dataset through this recordd
     
     # NOTE: library_mapping: used in the case of control wells, if smallmolecule_batch is defined, then this must match the librarymapping to the smb
     library_mapping         = models.ForeignKey('LibraryMapping',null=True)  
@@ -456,7 +458,7 @@ class DataRecord(models.Model):
     control_type            = _CHAR(max_length=35, **_NULLOKSTR) # TODO: controlled vocabulary
     omero_image_id           = _INTEGER(null=True)
     def __unicode__(self):
-        return unicode(str((self.dataset,self.smallmolecule_batch,self.cell,self.protein,self.plate,self.well)))
+        return unicode(str((self.dataset,self.smallmolecule,self.cell,self.protein,self.batch_id,self.plate,self.well)))
     
 class DataPoint(models.Model):
     datacolumn              = models.ForeignKey('DataColumn')

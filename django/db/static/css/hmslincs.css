@@ -33,6 +33,15 @@ h2 {
 #content td.search_table_td {
 	border:0px;
 }
+.search_table a{
+color: #E6941E;
+text-decoration:none;
+}
+
+.search_table a:hover {
+	text-decoration: underline;
+}
+
 .table-container {
   overflow-x: auto;
 }

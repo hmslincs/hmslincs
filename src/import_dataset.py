@@ -48,7 +48,8 @@ def read_metadata(path):
               'Date Data Received':('date_data_received',False,None,util.date_converter),
               'Date Loaded': ('date_loaded',False,None,util.date_converter),
               'Date Publicly Available': ('date_publicly_available',False,None,util.date_converter),
-              'Is Restricted':('is_restricted',False,False,util.bool_converter)}
+              'Is Restricted':('is_restricted',False,False,util.bool_converter),
+              'Dataset Type':('dataset_type',False)}
     
     sheet_labels = []
     for row in metaSheet:
@@ -58,7 +59,7 @@ def read_metadata(path):
     # convert the definitions to fleshed out dict's, with strategies for optional, default and converter
     field_definitions = util.fill_in_column_definitions(properties,field_definitions)
     # create a dict mapping the column/row ordinal to the proper definition dict
-    cols = util.find_columns(field_definitions, sheet_labels)
+    cols = util.find_columns(field_definitions, sheet_labels,all_column_definitions_required=False)
 
     
     initializer = {}
@@ -131,11 +132,25 @@ def readDataColumns(path):
 def main(path):
     
     # read in the two columns of the meta sheet to a dict that defines a DataSet
+    # TODO: Need a transaction, in case loading fails!
     metadata = read_metadata(path)
-    dataset = DataSet(**metadata)
-    dataset.save()
-    logger.info(str(('dataset created: ', metadata)))
-    
+    dataset = None
+    try:
+        metadata = read_metadata(path)
+        try:
+            extant_dataset = DataSet.objects.get(facility_id=metadata['facility_id'])
+            if(extant_dataset):
+                logger.warn(str(('deleting extant dataset for facility id: ', metadata['facility_id'])))
+                extant_dataset.delete()
+        except Exception,e:
+            logger.info(str(('extant dataset delete error',e)))
+        
+        dataset = DataSet(**metadata)
+        dataset.save()
+        logger.info(str(('dataset created: ', metadata)))
+    except Exception, e:
+        logger.error(str(('Exception reading metadata or saving the dataset', metadata, e)))
+        raise e
     # read in the data columns sheet to an array of dict's, each dict defines a DataColumn    
     dataColumnDefinitions = readDataColumns(path)
     
@@ -154,7 +169,8 @@ def main(path):
     
     # First, map the sheet column indices to the DataColumns that were created
     dataColumnList = {}
-    metaColumnDict = {'Control Type':-1, 'omero_image_id':-1} # meta columns contain forensic information
+    # follows are optional columns
+    metaColumnDict = {'Control Type':-1, 'omero_image_id':-1, 'batch_id':-1} # meta columns contain forensic information, all are optional
     mappingColumnDict = {'Small Molecule Batch':-1, 'Plate':-1, 'Well':-1, 'Cell':-1, 'Protein':-1} # what is being studied - at least one is required
     # NOTE: this scheme is matching based on the labels between the "Data Column" sheet and the "Data" sheet
     for i,label in enumerate(dataSheet.labels):
@@ -178,7 +194,8 @@ def main(path):
                     findError = False
                     break
             if findError:    
-                raise Exception(str(( "Error: no datacolumn for ", label, dataColumns.values(), metaColumnDict.keys(),metaColumnDict.keys())))
+                #raise Exception(str(( "Error: no datacolumn for ", label, dataColumns.values(), metaColumnDict.keys(),metaColumnDict.keys())))
+                logger.warn(str(( "Warn: no datacolumn defined for the column: ", label, dataColumns.values(), metaColumnDict.keys(),metaColumnDict.keys())))
     
     found=False
     for key,value in mappingColumnDict.items():
@@ -201,20 +218,21 @@ def main(path):
                 value = util.convertdata(r[map_column].strip())
                 if(value != None and value != '' ):
                     value = value.split("-")
-                    if len(value) != 3: raise Exception('Small Molecule Batch format is #####-###-#')
+                    if len(value) < 2: raise Exception('Small Molecule (Batch) format is #####-###(-#) **Note that (batch) is optional')
                     x = value[0]
                     facility = util.convertdata(x,int) 
                     salt = value[1]
-                    batch = value[2]
                     try:
-                        sm = SmallMolecule.objects.get(facility_id=facility, salt_id=salt);
+                        dataRecord.smallmolecule = SmallMolecule.objects.get(facility_id=facility, salt_id=salt)
                     except Exception, e:
                         logger.error(str(('could not locate small molecule:', facility)))
                         raise
-                    dataRecord.smallmolecule_batch = SmallMoleculeBatch.objects.get(smallmolecule=sm, facility_batch_id=batch)
+                    if(len(value)>2):
+                        dataRecord.batch_id = util.convertdata(value[2],int)
+                        # TODO: validate that the batch exists?  (would need to do for all types, not just Small Molecule
                     mapped = True
             except Exception, e:
-                logger.error(str(("Invalid Small Molecule Batch identifiers: ", value, e,'row',current_row)))
+                logger.error(str(("Invalid Small Molecule (or batch) identifiers: ", value, e,'row',current_row)))
                 raise    
         map_column = mappingColumnDict['Plate']
         if(map_column > -1):
@@ -237,12 +255,13 @@ def main(path):
                         # TODO: what if the plate/well does not correlate to a librarymapping?  i.e. if this is the plate/well for a cell/protein study?
                         # For now, the effect of the following logic is that plate/well either maps a librarymapping, or is a an arbitrary plate/well
                         dataRecord.library_mapping = LibraryMapping.objects.get(plate=plate_id,well=well_id)
-                        if(dataRecord.smallmolecule_batch != None and (dataRecord.smallmolecule_batch != dataRecord.library_mapping.smallmolecule_batch)):
-                            raise Exception(str(('SmallMolecule batch does not match the libraryMapping.smallmolecule_batch pointed to by the plate/well:',plate_id,well_id,
-                                                 dataRecord.smallmolecule_batch,dataRecord.library_mapping.smallmolecule_batch,
-                                                 r,'row',current_row)))
-                        else:
-                            dataRecord.smallmolecule_batch = dataRecord.library_mapping.smallmolecule_batch
+                        if(dataRecord.smallmolecule != None):
+                            if(dataRecord.smallmolecule != None and dataRecord.library_mapping.smallmolecule_batch != None and (dataRecord.smallmolecule != dataRecord.library_mapping.smallmolecule_batch.smallmolecule)):
+                                raise Exception(str(('SmallMolecule does not match the libraryMapping.smallmolecule_batch.smallmolecule pointed to by the plate/well:',plate_id,well_id,
+                                                     dataRecord.smallmolecule,dataRecord.library_mapping.smallmolecule_batch.smallmolecule,
+                                                     r,'row',current_row)))
+                        elif(dataRecord.library_mapping.smallmolecule_batch != None):
+                            dataRecord.smallmolecule = dataRecord.library_mapping.smallmolecule_batch.smallmolecule
                     except ObjectDoesNotExist, e:
                         logger.warn(str(('No librarymapping defined (plate/well do not point to a librarymapping), row', current_row))) 
                     mapped = True
@@ -279,11 +298,18 @@ def main(path):
                 
         if metaColumnDict['Control Type'] > -1: 
             dataRecord.control_type = util.convertdata(r[metaColumnDict['Control Type']])
-            if(dataRecord.control_type is not None and dataRecord.smallmolecule_batch is not None):
-                raise Exception(str(('Cannot define a control type for a non-control well (well mapped to a small molecule batch)',dataRecord.smallmolecule_batch,dataRecord.control_type, 'row',current_row)))
+            if(dataRecord.control_type is not None and dataRecord.smallmolecule is not None):
+                raise Exception(str(('Cannot define a control type for a non-control well (well mapped to a small molecule batch)',dataRecord.smallmolecule,dataRecord.control_type, 'row',current_row)))
         if metaColumnDict['omero_image_id'] > -1: 
             dataRecord.omero_image_id = util.convertdata(r[metaColumnDict['omero_image_id']], int)
             logger.info(str(('recorded omero well id:', dataRecord.omero_image_id)))
+        if metaColumnDict['batch_id'] > -1: 
+            temp = util.convertdata(r[metaColumnDict['batch_id']], int)
+            if(temp != None):
+                if(dataRecord.batch_id is not None and temp is not None and dataRecord.batch_id != temp):
+                    raise Exception(str(('batch id field(1) does not match batch id set with entity(2):',temp,dataRecord.batch_id)))
+                dataRecord.batch_id = temp
+            
         dataRecord.save()
         logger.info(str(('datarecord created:', dataRecord)))
         for i,value in enumerate(r):
