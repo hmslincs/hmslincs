@@ -3,11 +3,13 @@ import argparse
 import xls2py as x2p
 import re
 import logging
+import time;  # This is required to include time module.
 
 import init_utils as iu
 import import_utils as util
 from django.core.exceptions import ObjectDoesNotExist
 from db.models import DataSet, DataColumn, DataRecord, DataPoint, SmallMolecule, SmallMoleculeBatch, Cell, Protein, LibraryMapping
+from django.db import transaction, models
 
 
 # ---------------------------------------------------------------------------
@@ -130,7 +132,8 @@ def readDataColumns(path):
 
 
 def main(path):
-    
+    datarecord_batch = []
+    save_interval = 1000
     # read in the two columns of the meta sheet to a dict that defines a DataSet
     # TODO: Need a transaction, in case loading fails!
     metadata = read_metadata(path)
@@ -147,7 +150,7 @@ def main(path):
         
         dataset = DataSet(**metadata)
         dataset.save()
-        logger.info(str(('dataset created: ', metadata)))
+        logger.info(str(('dataset created: ', dataset)))
     except Exception, e:
         logger.error(str(('Exception reading metadata or saving the dataset', metadata, e)))
         raise e
@@ -205,6 +208,8 @@ def main(path):
         raise Exception('at least one of: ' + str(mappingColumnDict.keys()) + ' must be defined and used in the Data sheet.')
     
     # Read in the Data sheet, create DataPoint values for mapped column in each row
+
+    loopStart = time.time()
     pointsSaved = 0
     rowsRead = 0
     for row in dataSheet:
@@ -253,7 +258,7 @@ def main(path):
                     dataRecord.well = well_id
                     try:
                         # TODO: what if the plate/well does not correlate to a librarymapping?  i.e. if this is the plate/well for a cell/protein study?
-                        # For now, the effect of the following logic is that plate/well either maps a librarymapping, or is a an arbitrary plate/well
+                        # For now, the effect of the followinlogger.info(str((g logic is that plate/well either maps a librarymapping, or is a an arbitrary plate/well
                         dataRecord.library_mapping = LibraryMapping.objects.get(plate=plate_id,well=well_id)
                         if(dataRecord.smallmolecule != None):
                             if(dataRecord.smallmolecule != None and dataRecord.library_mapping.smallmolecule_batch != None and (dataRecord.smallmolecule != dataRecord.library_mapping.smallmolecule_batch.smallmolecule)):
@@ -302,16 +307,17 @@ def main(path):
                 raise Exception(str(('Cannot define a control type for a non-control well (well mapped to a small molecule batch)',dataRecord.smallmolecule,dataRecord.control_type, 'row',current_row)))
         if metaColumnDict['omero_image_id'] > -1: 
             dataRecord.omero_image_id = util.convertdata(r[metaColumnDict['omero_image_id']], int)
-            logger.info(str(('recorded omero well id:', dataRecord.omero_image_id)))
+            logger.debug(str(('recorded omero well id:', dataRecord.omero_image_id)))
         if metaColumnDict['batch_id'] > -1: 
             temp = util.convertdata(r[metaColumnDict['batch_id']], int)
             if(temp != None):
                 if(dataRecord.batch_id is not None and temp is not None and dataRecord.batch_id != temp):
                     raise Exception(str(('batch id field(1) does not match batch id set with entity(2):',temp,dataRecord.batch_id)))
                 dataRecord.batch_id = temp
-            
-        dataRecord.save()
-        logger.info(str(('datarecord created:', dataRecord)))
+        
+        #dataRecord.save()
+        logger.debug(str(('datarecord created:', dataRecord)))
+        datapoint_batch = [] 
         for i,value in enumerate(r):
             # NOTE: shall there be an "empty" datapoint? no, since non-existance of data in the worksheet does not mean "null" will mean "no value entered"
             # TODO: verify/read existing code, ask Dave
@@ -336,12 +342,59 @@ def main(path):
                                           datarecord = dataRecord,
                                           text_value=util.convertdata(value))
                 
-                dataPoint.save()
+                
+                #dataPoint.save()
+                datapoint_batch.append(dataPoint)
                 if(logger.isEnabledFor(logging.DEBUG)): logger.debug(str(('datapoint created:', dataPoint)))
                 pointsSaved += 1
+        datarecord_batch.append((dataRecord,datapoint_batch))
         rowsRead += 1
+        
+        if(rowsRead % save_interval == 0 ):
+            logger.info(str(("save datarecord_batch, time:", time.time() - loopStart )))
+            new_datarecords = bulk_create_datarecords(datarecord_batch)
+#            new_dr_batch = []
+#            for dr in new_datarecords:
+#                for dr,list in datarecord_batch.items():
+#                    if(dr.)
+            logger.info(str(('new drs',new_datarecords)))
+            new_dps = bulk_create_with_manual_ids(datarecord_batch)
+            logger.info(str(('new drs',new_dps)))
+            datarecord_batch=[]
+                            
+
+    new_datarecords = bulk_create_datarecords(datarecord_batch)
+    logger.info(str(("save datarecord_batch, time:", time.time() - loopStart )))
+    logger.info(str(('new drs',new_datarecords)))
+    new_dps = bulk_create_with_manual_ids(datarecord_batch)
+    logger.info(str(('new drs',new_dps)))
     print 'Finished reading, rowsRead: ', rowsRead, ', points Saved: ', pointsSaved
+    et = time.time()-loopStart
+    print'elapsed: ',et , 'avg: ', et/rowsRead
     
+    
+@transaction.commit_on_success
+def bulk_create_with_manual_ids(datarecord_batch):
+    datapoint_id_start = DataPoint.objects.all().aggregate(models.Max('id'))['id__max']
+    if(not isinstance(datapoint_id_start ,int)): datapoint_id_start = 0
+    datapoint_id_start +=1
+    datapoint_list = []
+    for j, (datarecord,datapoints) in enumerate(datarecord_batch):
+        for i,datapoint in enumerate(datapoints): 
+            datapoint.datarecord = datarecord
+        datapoint_id_start += len(datapoints)
+        datapoint_list.extend(datapoints)
+    DataPoint.objects.bulk_create(datapoint_list)
+
+@transaction.commit_on_success
+def bulk_create_datarecords(datarecord_batch):
+    datarecord_id_start = DataRecord.objects.all().aggregate(models.Max('id'))['id__max']
+    if(not isinstance(datarecord_id_start ,int)): datarecord_id_start = 0
+    datarecord_id_start +=1
+    datarecords = []
+    for j, (datarecord,datapoints) in enumerate(datarecord_batch):
+        datarecord.id = datarecord_id_start + j
+    DataRecord.objects.bulk_create([x for (x,y) in datarecord_batch])
     
 parser = argparse.ArgumentParser(description='Import file')
 parser.add_argument('-f', action='store', dest='inputFile',
