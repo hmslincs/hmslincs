@@ -5,6 +5,7 @@ import os.path as op
 import lxml.etree
 import functools
 import math
+import PIL.Image
 import signature
 
 
@@ -52,7 +53,7 @@ if __name__ == '__main__':
     # turn <area> elts into positioned divs
     for area in map_.xpath('//area'):
         assert area.attrib['shape'] == 'poly'
-        coords = map(int, area.attrib['coords'].split(','))
+        coords = map(lambda x: float(x)/2, area.attrib['coords'].split(','))
         coords_x = coords[::2]
         coords_y = coords[1::2]
         left = min(coords_x)
@@ -61,20 +62,23 @@ if __name__ == '__main__':
         height = max(coords_y) - top
         div = lxml.etree.Element('div')
         div.attrib['id'] = area.attrib['href']
-        div.attrib['class'] = 'pathway-target'
+        div.attrib['class'] = 'pathway-hotspot'
         div.attrib['style'] = 'left: %dpx; top: %dpx; width: %dpx; height: %dpx;' % \
                               (left, top, width, height)
         img.addprevious(div)
     # delete the map since we no longer need it
     map_.getparent().remove(map_)
+
+    # TODO: use PIL to read the original png and convert to jpg
+
     # fix up <img> attribs
     del img.attrib['usemap']
     img.attrib['id'] = 'pathway-img'
     img.attrib['src'] = '%spathway/img/%s' % (django.conf.settings.STATIC_URL,
                                            img.attrib['src'])
     # FIXME read these directly from the png instead of hard-coding them here
-    img.attrib['width'] = '638'
-    img.attrib['height'] = '432'
+    img.attrib['width'] = '1276'
+    img.attrib['height'] = '864'
     # turn the tree back into html source
     formatter = functools.partial(lxml.etree.tostring,
                                   pretty_print=True, method='html')
