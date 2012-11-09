@@ -26,9 +26,6 @@ SignatureData = co.namedtuple('SignatureData',
                               'signature rangetested')
 
 dpi = 72  # 72 dpi produces perfect 1-pixel lines for 1-pt figure lines
-fig_size = (250/dpi, 20/dpi)  # inches
-radius = 0.2  # radius of the cell line triangle markers
-spine_y_offset = 0.25  # spacing from topmost line to x-axis spine
 colors = ('red', 'yellow', 'magenta', 'blue', 'green', 'cyan')  # cell line marker colors
 
 main_template = 'pathway/signature.html'
@@ -44,53 +41,82 @@ def signature_images(target_name, compounds, target_dir):
     xlimits = min(all_ranges), max(all_ranges)
     for compound in compounds:
         signature_image(target_name, compound, xlimits, target_dir)
+    signature_image(target_name, None, xlimits, target_dir, scale_only=True)
         
 
-def signature_image(target_name, compound, xlimits, target_dir):
+def signature_image(target_name, compound, xlimits, target_dir, scale_only=False):
 
-    fig = Figure(fig_size)
-    ax = fig.add_subplot(111)
+    f = plt.figure(figsize=(250/dpi, 20/dpi), dpi=dpi)
+    ax = f.add_subplot(111)
     xlimits = np.log10(xlimits)
+    # fudge the limits to allow enough room for any markers at the limit
     xlimits[0] -= 0.2
     xlimits[1] += 0.2
     ax.axis((xlimits[0], xlimits[1], -1, 0))
-    #import ipdb; ipdb.set_trace()
 
-    for ci, value in enumerate(compound.signature):
-        if value is None:
-            # don't draw any marker for None values
-            x = np.nan
-        else:
-            # explicit log10 scaling
-            x = np.log10(value)
-        ax.scatter(x, -0.5, marker='^', s=150, facecolor=colors[ci], edgecolor='black')
-        #marker = RegularPolygon([x, -radius], 3, radius=radius,
-        #                        facecolor=colors[ci], edgecolor='black')
-        #ax.add_patch(marker)
-
-    # draw the line
-    line = plt.Line2D(np.log10(compound.rangetested), [0, 0], color='black')
-    ax.add_line(line)
-
-    ax.xaxis.set_major_locator(NullLocator())
+    # hide y ticks
     ax.yaxis.set_major_locator(NullLocator())
-    # draw ticks only on every integer
-    #ax.xaxis.set_major_locator(MultipleLocator(1.0))
-    # ticks only on top with small labels
-    #ax.xaxis.tick_top()
-    #ax.xaxis.set_tick_params(labelsize=8)
-
     # tweak some other visual elements
-    for a in fig.axes:
+    for a in f.axes:
         # hide all spines (the plot borders where the ticks usually sit)
         plt.setp(a.spines.values(), 'visible', False)
-        #plt.setp(a.patch, 'facecolor', 'none', 'edgecolor', 'none')
+    # eliminate all margins
+    f.subplots_adjust(left=0, bottom=0, right=1, top=1, wspace=0, hspace=0)
+
+    if scale_only is False:
+        # draw the data markers
+        for ci, value in enumerate(compound.signature):
+            if value is None:
+                # don't draw any marker for None values
+                x = np.nan
+            else:
+                # explicit log10 scaling
+                x = np.log10(value)
+            ax.scatter(x, -0.5, marker='^', s=150, facecolor=colors[ci], edgecolor='black')
+        # draw the line
+        line = plt.Line2D(np.log10(compound.rangetested), [-0.2, -0.2], color='black')
+        ax.add_line(line)
+        # hide x ticks
+        ax.xaxis.set_major_locator(NullLocator())
+    else:
+        # draw x ticks only on every integer
+        ax.xaxis.set_major_locator(MultipleLocator(1.0))
+        # shift the tick labels inside the plot so we can see them
+        plt.setp(ax.xaxis.get_major_ticks(), 'pad', -15)
+        # ticks only on top with small labels
+        ax.xaxis.tick_bottom()
+        ax.xaxis.set_tick_params(labelsize=8)
 
     # render to png
-    filename = op.join(target_dir,
-                       '%s-%s.png' % (slugify(target_name), slugify(compound.drug)))
-    canvas = FigureCanvasAgg(fig)
-    canvas.print_figure(filename, dpi=dpi)
+    filename_data = { 'target': target_name, 'drug': compound.drug if compound else None }
+    filename_data = dict((k, slugify(v)) for k, v in filename_data.items())
+    if scale_only:
+        filename_pattern = 'scale-%(target)s.png'
+    else:
+        filename_pattern = 'signature-%(target)s-%(drug)s.png'
+    filename = op.join(target_dir, filename_pattern % filename_data)
+    canvas = FigureCanvasAgg(f)
+    canvas.print_png(filename)
+
+
+def cell_line_images(target_dir):
+    for i, color in enumerate(colors):
+        f = plt.figure(figsize=(14/dpi, 14/dpi), dpi=dpi)
+        ax = f.add_subplot(111)
+        ax.scatter(0, 0, marker='^', s=150, facecolor=color, edgecolor='black')
+
+        for axis in ax.xaxis, ax.yaxis:
+            axis.set_major_locator(NullLocator())
+        for a in f.axes:
+            # hide all spines (the plot borders where the ticks usually sit)
+            plt.setp(a.spines.values(), 'visible', False)
+        # eliminate all margins
+        f.subplots_adjust(left=0, bottom=0, right=1, top=1, wspace=0, hspace=0)
+
+        filename = op.join(target_dir, 'legend-cell-line-%d.png' % i)
+        canvas = FigureCanvasAgg(f)
+        canvas.print_png(filename)
+
 
 
 def template_context(target_name, compounds):
@@ -148,10 +174,10 @@ if __name__ == '__main__':
                        7.20E-06, None), (6.54e-10, 7.2E-06)),
         )
 
-    cell_lines = u'MCF12A HCC1569 BT474 HCC1419 600MPE ZR751'.split()
-
-    #print signature(target_name, compounds, cell_lines)
     signature_images(target_name, compounds, '.')
+
+
+cell_lines = u'MCF12A HCC1569 BT474 HCC1419 600MPE ZR751'.split()
 
 LATEST ={u'AKT': [SignatureData(drug=u'API-2(Tricir)', isclinical=False, isselective=False, isprimary=True, signature=(3.4e-07, 3.33e-05, 6.76e-07, 7.37e-06, 3.68e-06, 3.33e-05), rangetested=(8.53e-11, 3.33e-05))],
  u'AKT1-2': [SignatureData(drug=u'AKT1-2 inhibitor', isclinical=True, isselective=False, isprimary=False, signature=(9.73e-06, 8.5e-06, 8.32e-07, 9.23e-07, 7.03e-06, 7.38e-07), rangetested=(8.53e-11, 3.33e-05))],
