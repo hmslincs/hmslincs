@@ -1,0 +1,49 @@
+{% extends "db/base.html" %}
+{% block content %}
+	{% if image_location %}
+		{# TODO: window.moveTo not working in chrome #}
+		{# TODO: create a template for the popup window; title, scaling #}
+		<img class='compound_image' src="{{ STATIC_URL }}{{image_location}}" onclick="w=window.open('{{ STATIC_URL }}{{image_location}}','image','height=500,width=500');w.moveTo(500,400);"/>
+	{% endif %}
+<h2 class='entity_detail_title'>Small Molecule Information</h2>
+	{% include "db/detailListing.html" %}
+	{% if attached_files %}
+		<h2 class='entity_detail_title'>Attached Files</h2>
+		{% load render_table from django_tables2 %}
+		{% render_table attached_files %}
+	{% endif %}
+	{% if nominal_targets_table %}
+		{% load render_table from django_tables2 %}
+		<h2 class='entity_detail_title'>Nominal Targets:</h2>
+		{% render_table nominal_targets_table %}
+	{% endif %}
+	{% if other_targets_table %}
+		{% load render_table from django_tables2 %}
+		<h2 class='entity_detail_title' title='Other proteins effected'>Other Targets:</h2>
+		{% render_table other_targets_table %}
+	{% endif %}
+	{% if ambit_image_location %}
+		<h2 class='entity_detail_title'>KINOMEscan Image</h2>
+		<img src="{{ STATIC_URL }}{{ambit_image_location}} " onclick="w=window.open('{{ STATIC_URL }}{{image_location}}','image','height=400,width=800');w.moveTo(500,400);" />
+	{% endif %}
+	{% if batchTable %}
+		{% load render_table from django_tables2 %}
+		<h2 class='entity_detail_title'>Batch Information:</h2>
+		{% render_table batchTable %}
+	{% endif %}
+	{% if smallmolecule_batch %}
+		<h2 class='entity_detail_title'>Batch Information:</h2>
+		{% include "db/detailListing.html" with object=smallmolecule_batch %}
+		{% if attached_files_batch %}
+			<h2 class='entity_detail_title'>Attached Files</h2>
+			{% load render_table from django_tables2 %}
+			{% render_table attached_files_batch %}
+		{% endif %}
+	{% endif %}
+	{% if datasets %}
+		{% load render_table from django_tables2 %}
+		<h2 class='entity_detail_title'>Datasets:</h2>
+		{% render_table datasets %}
+	{% endif %}
+	
+{% endblock %}

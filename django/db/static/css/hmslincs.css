@@ -1,35 +1,59 @@
+#content {
+  overflow-x: auto; /* for pages with too many columns */
+}
+
 #loginmsg {
   float: right;
   width:200px;
 }
-
-#pagebody {
-  background: #ffffff;
-  padding: 10px 0;
-}
-
 img {
 	max-width: 100%;
 	height: auto;
 }
-
+.noborders {
+	border: 0px;
+	border-collapse:collapse; 
+}
+.compound_image {
+ position:absolute;
+ top:2em;
+ right:1em;
+ height: 16em;
+}
 td {
 	vertical-align: top;
 }
-
-.detail_table{
-	
+h2 {
+  font-weight: bold;
+}
+#content table.search_table{
+	width:100%;
+	border:0px solid white;
+}
+#content td.search_table_td {
+	border:0px;
+}
+.search_table a{
+color: #E6941E;
+text-decoration:none;
 }
 
+.search_table a:hover {
+	text-decoration: underline;
+}
+
+.table-container {
+  overflow-x: auto;
+}
 .entity_detail_title{
-/* 	text-align: center; */
 	text-indent: 5px;
 	font-size: large;
 	font-weight: bold;
 	border-bottom: 1px solid gray;
 }
 .propertyLabelColumn {
-	width: 160px;
+  width: 160px;
+  min-width: 160px;
 	padding-bottom: 1px;
 	border-width: 1px;
 	border-style: solid;
@@ -48,3 +72,33 @@ td {
 .propertyValueColumn {
 	padding-left: 3px;
 }
+
+#innercontent ul.pagination {
+  margin-left: 0;
+}
+
+ul.pagination > li {
+  display: inline;
+  padding: 0 8px;
+  border-left: 1px solid #000000;
+}
+
+ul.pagination > li:first-child {
+  padding-left: 0;
+  border-left: 0;
+}
+
+#content ul.basictab {
+  margin-left: 0;
+}
+
+/*
+.basictab li a {
+    background-color: #FFCE87;
+}
+
+.basictab li.selected a, .basictab li a:hover {
+    background-color: #E6941E;
+}
+
+*/

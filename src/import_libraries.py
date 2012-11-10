@@ -89,7 +89,7 @@ def main(path):
                         sm = SmallMolecule.objects.get(**small_molecule_lookup)
                         initializer['smallmolecule'] = sm
                     except Exception, e:
-                        raise Exception(str(('sm facility id not found', value,e,'row',current_row)))
+                        raise Exception(str(('sm facility id not found', small_molecule_lookup,e,'row',current_row)))
             elif(model_field == 'short_name'):
                 try:
                     library = libraries[value]

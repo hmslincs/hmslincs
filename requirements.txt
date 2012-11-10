@@ -5,6 +5,7 @@ django-tastypie==0.9.11
 lxml>=3.0.0
 matplotlib>=1.1.0
 numpy>=1.6.2
+Pillow==1.7.8
 psycopg2==2.4.5
 wsgiref==0.1.2
 xlrd==0.8.0

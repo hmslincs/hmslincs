@@ -98,7 +98,7 @@ def main(path):
     rows = 0
     while curr_row < num_rows:
         curr_row += 1
-        actual_row = curr_row + 2
+        actual_row = curr_row + 1
         row = worksheet.row(curr_row)
         if(logger.isEnabledFor(logging.DEBUG)): logger.debug(str(('row', row)))
         i = -1

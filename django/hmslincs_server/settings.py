@@ -16,7 +16,7 @@ ADMINS = (
 MANAGERS = ADMINS
 
 DATABASES = {
-    # for local developer workstation testing
+    # defaults for local developer workstation testing
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'django',
@@ -24,32 +24,51 @@ DATABASES = {
     }
 }
 
+# now we'll check to see if we're running in one of a few specific contexts and
+# modify the db connection settings accordingly
 if 'LINCS_PGSQL_DB' in environ:
-    # for the wsgi environment running on the web server, or command line usage
-    # on orchestra
+    # explicit db configuration for lincs site in environment variables
     DATABASES['default']['NAME'] = environ['LINCS_PGSQL_DB']
     DATABASES['default']['HOST'] = environ['LINCS_PGSQL_SERVER']
     DATABASES['default']['USER'] = environ['LINCS_PGSQL_USER']
     DATABASES['default']['PASSWORD'] = environ['LINCS_PGSQL_PASSWORD']
+elif 'OSHERNATPROD_PGSQL_DB' in environ:
+    # explicit db configuration for oshernatprod site in environment variables
+    # TODO REMOVE THIS SECTION ONCE WE HAVE A DEV/STAGING environment for LINCS
+    DATABASES['default']['NAME'] = environ['OSHERNATPROD_PGSQL_DB']
+    DATABASES['default']['HOST'] = environ['OSHERNATPROD_PGSQL_SERVER']
+    DATABASES['default']['USER'] = environ['OSHERNATPROD_PGSQL_USER']
+    DATABASES['default']['PASSWORD'] = environ['OSHERNATPROD_PGSQL_PASSWORD']
 elif socket.getfqdn().endswith('.orchestra'):
-    if op.abspath(__file__).startswith('/www/dev.'):
-        dbname = 'devlincs'
-        dbhost = 'dev.pgsql.orchestra'
+    # otherwise (no explicit db config in env vars), if we are running on
+    # orchestra we will try and set up the db config by convention
+    if op.abspath(__file__).startswith('/www/dev.lincs'):
+        # running from the dev site dir, so set up for the dev db
+        DATABASES['default']['NAME'] = 'devlincs'
+        DATABASES['default']['HOST'] = 'dev.pgsql.orchestra'
     elif op.abspath(__file__).startswith('/www/'):
-        dbname = 'lincs'
-        dbhost = 'pgsql.orchestra'
+        # running from the live site dir, so set up for the live db
+        DATABASES['default']['NAME'] = 'lincs'
+        DATABASES['default']['HOST'] = 'pgsql.orchestra'
     else:
-        raise RuntimeError("Please only run this from a website directory.")
-    DATABASES['default']['NAME'] = dbname
-    DATABASES['default']['HOST'] = dbhost
+        raise RuntimeError("Please only run this from a website directory,"
+                           "or explicitly set LINCS_PGSQL_{DB,SERVER,USER,PASSWORD}")
+    # since we have a multi-user db environment on orchestra, there is no good
+    # default for the username so we'll delete that setting to leave it
+    # empty. if you do nothing else, your unix username will just "pass through"
+    # to the db connection, which will work most of the time. if you need to set
+    # a user/password explicitly, use the PGUSER/PGPASS environment variables
+    # and/or ~/.pgpass.
     del DATABASES['default']['USER']
-    del dbname, dbhost
+
+if socket.getfqdn().endswith('.orchestra'):
 
     # Additional locations of static files
     STATICFILES_DIRS = (
         # Put strings here, like "/home/html/static" or "C:/www/django/static".
         # Always use forward slashes, even on Windows.
         # Don't forget to use absolute paths, not relative paths.
+        op.join(_djangopath, '..', '..', 'images' ),
         '/groups/pharmacoresponse/data/images/',
         '/groups/pharmacoresponse/data/upload_files/',
     )   

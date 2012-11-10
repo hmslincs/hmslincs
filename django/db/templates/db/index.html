@@ -1,0 +1,32 @@
+{% extends "db/base.html" %}
+{% block content %}
+	<div id="search">
+		<form action="{{ request.get_full_path }}" method="get"> <!-- needed for post: {% csrf_token %}  --> 
+			<p><label for="id_search">Search:</label>
+	    <input id="id_search" type="text" name="search" value="{{ search }}" maxlength="100" tabindex="1" /></p>
+		</form>
+	</div>
+	{% if table %}
+		{% load render_table from django_tables2 %}
+		{% render_table table %}
+	{% else %}
+	<H2>Welcome to the HMS LINCS Database</H2>
+		<ul>
+      <li>This database is under development, improvements are ongoing.</li>
+      <li>The HMS LINCS Database currently contains information on experimental reagents (small molecule perturbagens, cells, and proteins) and HMS LINCS datasets. A list of the datasets available via the HMS LINCS Database can be found on the "Data being collected" page of the <a href="http://lincs.hms.harvard.edu/">HMS LINCS website</a>. Other large and more complex HMS LINCS datasets are stored in the HMS LINCS Data Repository, which is also accessible via the <a href="http://lincs.hms.harvard.edu/">HMS LINCS website</a>.  In the future it will be possible to search for all metadata in Data Repository using the HMS LINCS Database. As of November 2012, this is not fully implemented.</li>
+			<li>Programmatic access to the HMS LINCS Database is detailed at the <a href='https://docs.google.com/document/d/1R_d_1UWO0C9y1TceXpKIUkhjk08DfvP1D19txi4Tbas/edit'>HMS LINCS Database URL Scheme and Access Guide</a>.</li>
+			<li>Metadata standards for the data in the HMS LINCS DB are currently being developed in collaboration with the LINCS centers.  Updated information about these standards can be found at the <a href="http://lincsproject.org/data-standards/">LINCS project website data standards page</a>.</li>
+   	</ul>
+
+    <p style="font-weight:bold; font-size:large; font-variant:small-caps">A quick guide to using the HMS LINCS Database (updated November 2012):</p>
+    <ul>
+			<li>To search for <a href='sm'>small molecule reagents</a>, <a href='cells'>cells</a>, or <a href='proteins'>proteins</a> in the repository, enter a search term in the search box on this page.</li>
+			<li>To browse a specific entity type, select from the menu on the left.</li>
+			<li>Soon, this interface will support searches for lists of reagents.</li>
+			<li>QC information for specific small molecule compound batches is accessible through the "Attached Files" links on each small molecule	detail page, in the "Batch information" section (note that not all compounds have QC information available).</li>
+			<li>Click on <a href='datasets'>datasets</a> to access assay protocols and data from the Mitchison lab Apoptosis and Mitosis assays, data from drug-target interaction profiling assays (KINOMEscan and KiNativ assays) and data on compounds profiled using the MGH/Sanger Institute growth inhibition assay.</li>
+			<li>You can download the viewed data from any page as an Excel or CSV file by clicking the respective "Export" link.</li>
+		</ul>
+	{% endif %}
+{% endblock %}
+

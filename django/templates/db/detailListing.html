@@ -1,9 +1,0 @@
-<table class="detail_table">
-{% for field,info in object.items %}
-<tr>
-    <td class="propertyLabelColumn propertyLabel" title="{{ info.fieldinformation.get_column_detail }}" ><b>{{ info.fieldinformation.get_verbose_name }}:</b>
-    </td>
-    <td class="propertyValueColumn"> {{ info.value|safe }}</td></tr>
-{% endfor %}
-</table>
-	

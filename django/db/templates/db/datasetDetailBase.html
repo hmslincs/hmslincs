@@ -1,0 +1,20 @@
+{% extends "db/base.html" %}
+{% load hms_tags %}
+{% block content %}
+{#<h2 class='entity_detail_title'>{% if type == "study" %}Study{% endif %}{% if type == "screen" %}Screen{% endif %} {{ object.facility_id.value }} - {{ object.title.value }}</h2>#}
+<h2 class='entity_detail_title'>HMSL{{ object.facility_id.value }} - {{ object.title.value }}</h2>
+	<ul class="basictab">
+		<li class='{% selectedTag request "^/db/datasets/\d+/main$"%}{%selectedTag request "^/db/datasets/\d+/$" %}'><a  href="{% url dataset_detail_main facility_id=facilityId%}">Detail</a></li>
+{% if has_cells %}
+		<li class='{% selectedTag request "^/db/datasets/\d+/cells$" %}'><a  href="{% url dataset_detail_cells   facility_id=facilityId%}">Cells Studied</a></li>
+{% endif %}
+{% if has_proteins %}
+		<li class='{% selectedTag request "^/db/datasets/\d+/proteins$" %}'><a  href="{% url dataset_detail_proteins   facility_id=facilityId%}">Proteins Studied</a></li>
+{% endif %}
+		<li class='{% selectedTag request "^/db/datasets/\d+/results$" %}'><a  href="{% url dataset_detail_results  facility_id=facilityId%}">Results</a></li>
+	</ul>
+	<div id="datasetcontent">
+	    {% block datasetContent %}{% endblock %}
+	</div>
+{% endblock %}
+	

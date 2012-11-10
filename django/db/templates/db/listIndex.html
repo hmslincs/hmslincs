@@ -1,0 +1,23 @@
+{% extends "db/base.html" %}
+{% block content %}
+<script language="javascript" type="text/javascript">
+	function submit_for(type) {
+		//document.getElementById("form1")['output_type'].value = type;
+		document.getElementById("form1").action += '&output_type=' + type
+		document.getElementById("form1").output_type.value = type
+		//window.alert('submit,' + document.getElementById("form1").output_type.value)
+		document.getElementById("form1").submit();
+		document.getElementById("form1").output_type.value = '';
+	}
+</script>
+<h2>{{ heading }}</h2>
+	{% include "db/searchExportBox.html" %}
+	{% if table %}
+		{% load render_table from django_tables2 %}
+		{% render_table table %}
+	{% else %}
+	    <p>No records are available.</p>
+	{% endif %}
+{% endblock %}
+
+

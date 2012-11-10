@@ -1,43 +1,49 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <link rel="stylesheet" href="https://lincs.hms.harvard.edu/wordpress/wp-content/themes/lincs/style.css" type="text/css" />
-    <!--[if IE 6]>
-    <link rel="stylesheet" href="https://lincs.hms.harvard.edu/wordpress/wp-content/themes/lincs/css/ie6.css" type="text/css" />
-    <![endif]-->
-    <link rel="stylesheet" href="https://lincs.hms.harvard.edu/wordpress/wp-content/themes/lincs/css/print.css" type="text/css" media="print" />
 
-    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}django_tables2/themes/paleblue/css/screen.css" />
-    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/basic_tabs.css" />
-    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/hmslincs.css" />
+<html>
 
-    <link rel="index" title="HMS LINCS Project" href="https://lincs.hms.harvard.edu/" />
+<head>
+	<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+	
+	<link rel="stylesheet" href="http://dev.lincs.hms.harvard.edu/wordpress/wp-content/themes/lincs/style.css" type="text/css" />
+	<!--[if IE 6]>
+	<link rel="stylesheet" href="http://dev.lincs.hms.harvard.edu/wordpress/wp-content/themes/lincs/css/ie6.css" type="text/css" />
+	<![endif]-->
+	<link rel="stylesheet" href="http://dev.lincs.hms.harvard.edu/wordpress/wp-content/themes/lincs/css/print.css" type="text/css" media="print" />
+	
+        <script type='text/javascript' src='http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js'></script>
+        <script type='text/javascript' src='http://dev.lincs.hms.harvard.edu/wordpress/wp-content/themes/lincs/js/main.js'></script>
+        <link rel='index' title='HMS LINCS Project' href='http://dev.lincs.hms.harvard.edu/' />
 
-    {% block head %}
-      <title>HMS LINCS Project</title>
-    {% endblock %}
+        {% block head %}
+          <title>HMS LINCS Project</title>
+        {% endblock %}
 </head>
 
-<body class="page page-template-default">
+<body>
 	<div id="header-wrap">
 		<div id="header">
-			<h1><a href="http://lincs.hms.harvard.edu/">HMS LINCS Project</a></h1>
+			<h1><a href="http://dev.lincs.hms.harvard.edu/">HMS LINCS Project</a></h1>
 			<span class="tagline">Library of Integrated Network-based Cellular Signatures</span>
-			<div id="logo-hms"><a href="http://hms.harvard.edu/hms/home.asp">
-			  <span>Harvard Medical School</span>
-			</a></div>
-			<div id="logo-nihlincs"><a href="http://commonfund.nih.gov/lincs/">
-			  <span>NIH LINCS Program</span>
-			</a></div>
-			<div id="access">
-				<div class="menu"><ul><li class="page_item page-item-32"><a href="https://lincs.hms.harvard.edu/" title="Home">Home</a></li><li class="page_item page-item-7"><a href="https://lincs.hms.harvard.edu/about/" title="About">About</a><ul class='children'><li class="page_item page-item-34"><a href="https://lincs.hms.harvard.edu/about/approach/" title="Approach">Approach</a><ul class='children'><li class="page_item page-item-178"><a href="https://lincs.hms.harvard.edu/about/approach/specific-aims/" title="Specific Aims">Specific Aims</a></li><li class="page_item page-item-206"><a href="https://lincs.hms.harvard.edu/about/approach/significance/" title="Significance">Significance</a></li><li class="page_item page-item-185"><a href="https://lincs.hms.harvard.edu/about/approach/challenges/" title="Challenges">Challenges</a></li></ul></li><li class="page_item page-item-98"><a href="https://lincs.hms.harvard.edu/about/people/" title="People">People</a></li><li class="page_item page-item-78"><a href="https://lincs.hms.harvard.edu/about/publications/" title="Publications">Publications</a></li><li class="page_item page-item-100"><a href="https://lincs.hms.harvard.edu/about/outreach/" title="Outreach">Outreach</a></li><li class="page_item page-item-102"><a href="https://lincs.hms.harvard.edu/about/funding/" title="Funding">Funding</a></li></ul></li><li class="page_item page-item-482"><a href="https://lincs.hms.harvard.edu/resources/" title="Resources">Resources</a><ul class='children'><li class="page_item page-item-88"><a href="https://lincs.hms.harvard.edu/resources/assays/" title="Assays">Assays</a></li><li class="page_item page-item-86"><a href="https://lincs.hms.harvard.edu/resources/cell-lines/" title="Cell lines">Cell lines</a><ul class='children'><li class="page_item page-item-651"><a href="https://lincs.hms.harvard.edu/resources/cell-lines/icbp45/" title="ICBP45">ICBP45</a></li></ul></li><li class="page_item page-item-84"><a href="https://lincs.hms.harvard.edu/resources/perturbagens/" title="Perturbagens">Perturbagens</a></li><li class="page_item page-item-80"><a href="https://lincs.hms.harvard.edu/resources/software/" title="Software">Software</a><ul class='children'><li class="page_item page-item-107"><a href="https://lincs.hms.harvard.edu/resources/software/hms-lincs-database/" title="HMS LINCS Database">HMS LINCS Database</a></li></ul></li></ul></li><li class="page_item page-item-370"><a href="https://lincs.hms.harvard.edu/data-types/" title="Data types">Data types</a><ul class='children'><li class="page_item page-item-386"><a href="https://lincs.hms.harvard.edu/data-types/information-perturbagens/" title="Information about perturbagens">Information about perturbagens</a></li><li class="page_item page-item-375"><a href="https://lincs.hms.harvard.edu/data-types/drug-target-interactions/" title="Drug-target interactions">Drug-target interactions</a></li><li class="page_item page-item-383"><a href="https://lincs.hms.harvard.edu/data-types/biochemical-responses/" title="Biochemical responses">Biochemical responses</a></li><li class="page_item page-item-94"><a href="https://lincs.hms.harvard.edu/data-types/mgh-sanger-gi-data/" title="MGH/Sanger Institute growth inhibition data">MGH/Sanger Institute growth inhibition data</a></li><li class="page_item page-item-70"><a href="https://lincs.hms.harvard.edu/data-types/microscopy-imaging/" title="Microscopy and imaging">Microscopy and imaging</a></li><li class="page_item page-item-389"><a href="https://lincs.hms.harvard.edu/data-types/transcriptional-responses/" title="Transcriptional responses">Transcriptional responses</a></li></ul></li><li class="page_item page-item-40"><a href="https://lincs.hms.harvard.edu/data/" title="Data">Data</a><ul class='children'><li class="page_item page-item-414"><a href="https://lincs.hms.harvard.edu/data/accessing-data/" title="Accessing data">Accessing data</a></li><li class="page_item page-item-407"><a href="https://lincs.hms.harvard.edu/data/data-being-collected/" title="Data being collected">Data being collected</a></li><li class="page_item page-item-292"><a href="https://lincs.hms.harvard.edu/data/metadata-standards/" title="Metadata and standards">Metadata and standards</a></li><li class="page_item page-item-784"><a href="https://lincs.hms.harvard.edu/data/isa-tab/" title="ISA-Tab at HMS LINCS">ISA-Tab at HMS LINCS</a></li></ul></li><li class="page_item page-item-36 current_page_ancestor current_page_parent"><a href="https://lincs.hms.harvard.edu/signatures-networks/" title="Signatures and networks">Signatures and networks</a><ul class='children'><li class="page_item page-item-74 current_page_item"><a href="https://lincs.hms.harvard.edu/signatures-networks/signatures/" title="Signatures">Signatures</a></li><li class="page_item page-item-72"><a href="https://lincs.hms.harvard.edu/signatures-networks/networks/" title="Networks">Networks</a></li></ul></li></ul></div>
-			</div>
-			<form role="search" method="get" id="searchform" action="http://lincs.hms.harvard.edu" >
-				<div><input type="text" value="" name="s" id="s" />
-				<input type="image" id="searchsubmit" src="https://lincs.hms.harvard.edu/wordpress/wp-content/themes/lincs/images/icon_search.gif" value="Search" title="Search" />
-				</div>
-			 </form>
+
+<div class="menu-mini-container">
+  <ul>
+    <li class="button" id="explore-link">
+      <a title="Explore" href="/explore/">Explore</a>
+    </li>
+    <li class="button" id="data-link">
+      <a title="Data" href="/data/">Data</a>
+    </li>
+    <li>
+      <a title="About" href="/about/">About</a>
+    </li>
+    <li>
+      <a title="Funding" href="/about/funding/">Funding</a>
+    </li>
+  </ul>
+</div>
+
+
 		</div>
 	</div><!-- end header-wrap -->
 
@@ -45,16 +51,51 @@
 	
 		<div id="pagebody">
 		
-                                  {% block body %}{% endblock %}
-							
-                </div><!-- end pagebody -->
+			<div id="content">
+
+                          {% block body %}{% endblock %}
+
+			</div><!-- end content -->
+		
+                        <ul id="sidebar" class="widget-area leftColumn">
+                          <li id="page-nav">
+                            {% block nav %}{% endblock %}
+                          </li><!-- end page-nav -->
+                        </ul><!-- end sidebar .widget-area -->			
+
+			<div class="clear-both"></div>
+		
+		</div><!-- end pagebody -->
 		
 	</div><!-- end pagebody-wrap -->
 
+
 	<div id="footer-wrap">
-		<div id="footer">
-			&copy;2012 HMS LINCS Project  | <a href="https://lincs.hms.harvard.edu/feed/">RSS</a> |  <a href="https://lincs.hms.harvard.edu/wordpress/wp-login.php">Log in</a>			
-					</div>
+
+	  <div id="footer">
+
+	    <div id="footer-decoration"></div>
+
+	    <div class="menu-topnav-container"><ul><li class="page_item page-item-32"><a href="http://dev.lincs.hms.harvard.edu/" title="Home">Home</a></li><li class="page_item page-item-7"><a href="http://dev.lincs.hms.harvard.edu/about/" title="About">About</a><ul class='children'><li class="page_item page-item-34"><a href="http://dev.lincs.hms.harvard.edu/about/approach/" title="Approach">Approach</a></li><li class="page_item page-item-98"><a href="http://dev.lincs.hms.harvard.edu/about/people/" title="People">People</a></li><li class="page_item page-item-78"><a href="http://dev.lincs.hms.harvard.edu/about/publications/" title="Publications">Publications</a></li><li class="page_item page-item-100"><a href="http://dev.lincs.hms.harvard.edu/about/outreach/" title="Outreach">Outreach</a></li><li class="page_item page-item-102"><a href="http://dev.lincs.hms.harvard.edu/about/funding/" title="Funding">Funding</a></li></ul></li><li class="page_item page-item-929 current_page_item"><a href="http://dev.lincs.hms.harvard.edu/explore/" title="Explore">Explore</a><ul class='children'><li class="page_item page-item-959"><a href="http://dev.lincs.hms.harvard.edu/explore/sensitivities/" title="Multiparameter drug sensitivities">Multiparameter drug sensitivities</a></li></ul></li><li class="page_item page-item-482"><a href="http://dev.lincs.hms.harvard.edu/resources/" title="Resources">Resources</a><ul class='children'><li class="page_item page-item-88"><a href="http://dev.lincs.hms.harvard.edu/resources/assays/" title="Assays">Assays</a></li><li class="page_item page-item-86"><a href="http://dev.lincs.hms.harvard.edu/resources/cell-lines/" title="Cell lines">Cell lines</a></li><li class="page_item page-item-84"><a href="http://dev.lincs.hms.harvard.edu/resources/perturbagens/" title="Perturbagens">Perturbagens</a></li><li class="page_item page-item-80"><a href="http://dev.lincs.hms.harvard.edu/resources/software/" title="Software">Software</a></li></ul></li><li class="page_item page-item-370"><a href="http://dev.lincs.hms.harvard.edu/data-types/" title="Data types">Data types</a><ul class='children'><li class="page_item page-item-386"><a href="http://dev.lincs.hms.harvard.edu/data-types/information-perturbagens/" title="Information about perturbagens">Information about perturbagens</a></li><li class="page_item page-item-375"><a href="http://dev.lincs.hms.harvard.edu/data-types/drug-target-interactions/" title="Drug-target interactions">Drug-target interactions</a></li><li class="page_item page-item-383"><a href="http://dev.lincs.hms.harvard.edu/data-types/biochemical-responses/" title="Biochemical responses">Biochemical responses</a></li><li class="page_item page-item-94"><a href="http://dev.lincs.hms.harvard.edu/data-types/mgh-sanger-gi-data/" title="MGH/Sanger Institute growth inhibition data">MGH/Sanger Institute growth inhibition data</a></li><li class="page_item page-item-70"><a href="http://dev.lincs.hms.harvard.edu/data-types/microscopy-imaging/" title="Microscopy and imaging">Microscopy and imaging</a></li><li class="page_item page-item-389"><a href="http://dev.lincs.hms.harvard.edu/data-types/transcriptional-responses/" title="Transcriptional responses">Transcriptional responses</a></li></ul></li><li class="page_item page-item-40"><a href="http://dev.lincs.hms.harvard.edu/data/" title="Data">Data</a><ul class='children'><li class="page_item page-item-414"><a href="http://dev.lincs.hms.harvard.edu/data/accessing-data/" title="Accessing data">Accessing data</a></li><li class="page_item page-item-407"><a href="http://dev.lincs.hms.harvard.edu/data/data-being-collected/" title="Data being collected">Data being collected</a></li><li class="page_item page-item-831"><a href="http://dev.lincs.hms.harvard.edu/data/repository/" title="Data repository">Data repository</a></li><li class="page_item page-item-292"><a href="http://dev.lincs.hms.harvard.edu/data/metadata-standards/" title="Metadata and standards">Metadata and standards</a></li><li class="page_item page-item-784"><a href="http://dev.lincs.hms.harvard.edu/data/isa-tab/" title="ISA-Tab at HMS LINCS">ISA-Tab at HMS LINCS</a></li></ul></li><li class="page_item page-item-36"><a href="http://dev.lincs.hms.harvard.edu/signatures-networks/" title="Signatures and networks">Signatures and networks</a><ul class='children'><li class="page_item page-item-74"><a href="http://dev.lincs.hms.harvard.edu/signatures-networks/signatures/" title="Signatures">Signatures</a></li><li class="page_item page-item-72"><a href="http://dev.lincs.hms.harvard.edu/signatures-networks/networks/" title="Networks">Networks</a></li></ul></li></ul></div>
+
+	    
+	    <div id="logo-hms"><a href="http://hms.harvard.edu/hms/home.asp">
+	      <span>Harvard Medical School</span>
+	    </a></div>
+	    <div id="logo-nihlincs"><a href="http://commonfund.nih.gov/lincs/">
+	      <span>NIH LINCS Program</span>
+	    </a></div>
+
+	    
+	    <div id="footer-misc">
+	      &copy;2012 HMS LINCS Project 
+	      |
+	      <a href="http://dev.lincs.hms.harvard.edu/feed/">RSS</a>
+	      |
+	      <a href="http://dev.lincs.hms.harvard.edu/wordpress/wp-login.php">Log in</a>	    </div>
+	  
+	  </div>
+
 	</div><!-- end footer-wrap -->
 	
 	

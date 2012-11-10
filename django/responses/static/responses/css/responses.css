@@ -1,0 +1,19 @@
+td {
+  border: 1px solid #808080;
+}
+
+th, td {
+  padding: 1em;
+}
+
+table {
+  margin: 2em;
+}
+
+td p {
+  margin: 0;
+}
+
+.caption {
+  padding-left: 60px;
+}
