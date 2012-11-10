@@ -33,6 +33,7 @@ if __name__ == '__main__':
     static_dir = op.join(cur_dir, '..', 'django', 'pathway', 'static', 'pathway')
     out_dir_html = static_dir
     out_dir_image = op.join(static_dir, 'img')
+    pathway_image_filename = 'pathway.jpg'
 
     # tweak some target names
     signature_data = signature.LATEST.copy()
@@ -69,16 +70,17 @@ if __name__ == '__main__':
     # delete the map since we no longer need it
     map_.getparent().remove(map_)
 
-    # TODO: use PIL to read the original png and convert to jpg
+    # convert omnigraffle png output to jpg
+    pathway_image = PIL.Image.open(op.join(data_dir, 'pathway.png'))
+    pathway_image.save(op.join(out_dir_image, pathway_image_filename))
 
     # fix up <img> attribs
     del img.attrib['usemap']
     img.attrib['id'] = 'pathway-img'
     img.attrib['src'] = '%spathway/img/%s' % (django.conf.settings.STATIC_URL,
-                                           img.attrib['src'])
-    # FIXME read these directly from the png instead of hard-coding them here
-    img.attrib['width'] = '1276'
-    img.attrib['height'] = '864'
+                                              pathway_image_filename)
+    img.attrib['width'] = str(pathway_image.size[0])
+    img.attrib['height'] = str(pathway_image.size[1])
     # turn the tree back into html source
     formatter = functools.partial(lxml.etree.tostring,
                                   pretty_print=True, method='html')

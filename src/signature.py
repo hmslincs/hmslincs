@@ -46,7 +46,7 @@ def signature_images(target_name, compounds, target_dir):
 
 def signature_image(target_name, compound, xlimits, target_dir, scale_only=False):
 
-    f = plt.figure(figsize=(250/dpi, 20/dpi), dpi=dpi)
+    f = Figure(figsize=(250/dpi, 20/dpi), dpi=dpi)
     ax = f.add_subplot(111)
     xlimits = np.log10(xlimits)
     # fudge the limits to allow enough room for any markers at the limit
@@ -101,7 +101,7 @@ def signature_image(target_name, compound, xlimits, target_dir, scale_only=False
 
 def cell_line_images(target_dir):
     for i, color in enumerate(colors):
-        f = plt.figure(figsize=(14/dpi, 14/dpi), dpi=dpi)
+        f = Figure(figsize=(14/dpi, 14/dpi), dpi=dpi)
         ax = f.add_subplot(111)
         ax.scatter(0, 0, marker='^', s=150, facecolor=color, edgecolor='black')
 
