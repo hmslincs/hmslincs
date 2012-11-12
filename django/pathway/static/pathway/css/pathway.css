@@ -5,7 +5,7 @@
   display: none;
   position: absolute;
   width: 410px;
-  z-index: 99;
+  z-index: 9999;
   line-height: 12px;
 }
 
@@ -57,6 +57,8 @@
 
 #pathway-img {
   border: 1px solid black;
+  width: 638px;
+  height: 432px;
 }
 
 #pathway-container {
@@ -65,9 +67,15 @@
   width: 640px;
 }
 
-.pathway-target {
+.pathway-hotspot {
   position: absolute;
   cursor: pointer;
+
+  /* hack to get IE8 to fire mouse events on these empty divs -- give them a
+     background but make it transparent. */
+  background: #000;
+  opacity: 0.0; /* standard CSS */
+  filter: alpha(opacity = 0); /* IE-only */
 }
 
 .closebutton {

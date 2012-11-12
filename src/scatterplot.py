@@ -1,5 +1,6 @@
 import collections as co
 import matplotlib.pyplot as plt
+from matplotlib.figure import Figure
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 import io
@@ -26,7 +27,7 @@ dpi = 72.0
 cmap_bwr = LinearSegmentedColormap.from_list('bwr', ['blue', 'white', 'red'])
 
 def scatterplot(points, metadata, lims=None, display=False):
-    f = plt.figure(figsize=(300 / dpi, 300 / dpi), dpi=dpi)
+    f = Figure(figsize=(300 / dpi, 300 / dpi), dpi=dpi)
     ax = f.gca()
     for p in points:
         ax.scatter(p.x, p.y, c=p.level, vmin=0, vmax=1,

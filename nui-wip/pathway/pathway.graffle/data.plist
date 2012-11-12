@@ -146,6 +146,41 @@
 	<key>GraphicsList</key>
 	<array>
 		<dict>
+			<key>Class</key>
+			<string>LineGraphic</string>
+			<key>ID</key>
+			<integer>86514</integer>
+			<key>Points</key>
+			<array>
+				<string>{932.697, 46.897}</string>
+				<string>{932.697, 58.6667}</string>
+				<string>{591.179, 58.6667}</string>
+			</array>
+			<key>Style</key>
+			<dict>
+				<key>stroke</key>
+				<dict>
+					<key>Color</key>
+					<dict>
+						<key>b</key>
+						<string>0.2</string>
+						<key>g</key>
+						<string>0.2</string>
+						<key>r</key>
+						<string>0.2</string>
+					</dict>
+					<key>HeadArrow</key>
+					<string>0</string>
+					<key>Legacy</key>
+					<true/>
+					<key>TailArrow</key>
+					<string>0</string>
+					<key>Width</key>
+					<real>2</real>
+				</dict>
+			</dict>
+		</dict>
+		<dict>
 			<key>Bounds</key>
 			<string>{{703.805, 452.336}, {54, 36}}</string>
 			<key>Class</key>
@@ -266,7 +301,7 @@ CHK1/2}</string>
 				<string>{\rtf1\ansi\ansicpg1252\cocoartf1038\cocoasubrtf360
 {\fonttbl\f0\fswiss\fcharset0 Helvetica;}
 {\colortbl;\red255\green255\blue255;\red51\green51\blue51;}
-\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
 
 \f0\i\fs28 \cf2 MAP3Ks}</string>
 				<key>VerticalPad</key>
@@ -448,7 +483,7 @@ CHK1/2}</string>
 			<key>Points</key>
 			<array>
 				<string>{155.678, 286.919}</string>
-				<string>{155.313, 336.631}</string>
+				<string>{155.314, 336.631}</string>
 			</array>
 			<key>Style</key>
 			<dict>
@@ -483,7 +518,7 @@ CHK1/2}</string>
 			<integer>86513</integer>
 			<key>Points</key>
 			<array>
-				<string>{82.8419, 370.19}</string>
+				<string>{82.8418, 370.19}</string>
 				<string>{115.333, 400.922}</string>
 				<string>{115.333, 440.487}</string>
 				<string>{288.667, 539.143}</string>
@@ -1036,8 +1071,9 @@ proliferation}</string>
 			<integer>86491</integer>
 			<key>Points</key>
 			<array>
-				<string>{-21.9313, 77.7697}</string>
-				<string>{358.421, 77.7697}</string>
+				<string>{24.9033, 48}</string>
+				<string>{24.9033, 59.7697}</string>
+				<string>{366.421, 59.7697}</string>
 			</array>
 			<key>Style</key>
 			<dict>
@@ -1056,44 +1092,6 @@ proliferation}</string>
 					<string>0</string>
 					<key>Legacy</key>
 					<true/>
-					<key>Pattern</key>
-					<integer>2</integer>
-					<key>TailArrow</key>
-					<string>0</string>
-					<key>Width</key>
-					<real>2</real>
-				</dict>
-			</dict>
-		</dict>
-		<dict>
-			<key>Class</key>
-			<string>LineGraphic</string>
-			<key>ID</key>
-			<integer>86490</integer>
-			<key>Points</key>
-			<array>
-				<string>{599.179, 77.7697}</string>
-				<string>{979.531, 77.7697}</string>
-			</array>
-			<key>Style</key>
-			<dict>
-				<key>stroke</key>
-				<dict>
-					<key>Color</key>
-					<dict>
-						<key>b</key>
-						<string>0.2</string>
-						<key>g</key>
-						<string>0.2</string>
-						<key>r</key>
-						<string>0.2</string>
-					</dict>
-					<key>HeadArrow</key>
-					<string>0</string>
-					<key>Legacy</key>
-					<true/>
-					<key>Pattern</key>
-					<integer>2</integer>
 					<key>TailArrow</key>
 					<string>0</string>
 					<key>Width</key>
@@ -1109,7 +1107,7 @@ proliferation}</string>
 			<key>ID</key>
 			<integer>86489</integer>
 			<key>Rotation</key>
-			<real>228.17848205566406</real>
+			<real>221.30000305175781</real>
 			<key>Shape</key>
 			<string>554283A7-2DEC-4FA3-8CDE-C9CDFF1094EB-759-00001E04AC2210D8</string>
 			<key>Style</key>
@@ -1135,7 +1133,7 @@ proliferation}</string>
 		</dict>
 		<dict>
 			<key>Bounds</key>
-			<string>{{368.597, 60.7697}, {37.2377, 34}}</string>
+			<string>{{371.264, 60.7697}, {37.2377, 34}}</string>
 			<key>Class</key>
 			<string>ShapedGraphic</string>
 			<key>HFlip</key>
@@ -1242,8 +1240,8 @@ adaptor binding}</string>
 			<integer>86457</integer>
 			<key>Points</key>
 			<array>
-				<string>{853.967, 617.663}</string>
-				<string>{870.782, 618.216}</string>
+				<string>{853.982, 617.421}</string>
+				<string>{870.782, 617.825}</string>
 			</array>
 			<key>Style</key>
 			<dict>
@@ -1585,8 +1583,8 @@ DNA repair}</string>
 			<integer>86452</integer>
 			<key>Points</key>
 			<array>
-				<string>{655.255, 390.682}</string>
-				<string>{657.534, 415.823}</string>
+				<string>{655.2, 390.685}</string>
+				<string>{657.403, 415.824}</string>
 			</array>
 			<key>Style</key>
 			<dict>
@@ -2035,7 +2033,7 @@ glycolysis}</string>
 			<array>
 				<string>{540.139, 371.62}</string>
 				<string>{668.667, 542.667}</string>
-				<string>{711.064, 558.935}</string>
+				<string>{711.065, 558.936}</string>
 			</array>
 			<key>Style</key>
 			<dict>
@@ -2228,10 +2226,10 @@ PARP}</string>
 				<key>Text</key>
 				<string>{\rtf1\ansi\ansicpg1252\cocoartf1038\cocoasubrtf360
 {\fonttbl\f0\fnil\fcharset0 Verdana;}
-{\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
+{\colortbl;\red255\green255\blue255;}
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\qc
 
-\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+\f0\fs24 \cf0 \expnd0\expndtw0\kerning0
 apoptosis}</string>
 				<key>VerticalPad</key>
 				<integer>0</integer>
@@ -3127,8 +3125,8 @@ apoptosis}</string>
 			<integer>86404</integer>
 			<key>Points</key>
 			<array>
-				<string>{477.506, 334.695}</string>
-				<string>{502.679, 347.46}</string>
+				<string>{477.502, 334.698}</string>
+				<string>{502.674, 347.467}</string>
 			</array>
 			<key>Style</key>
 			<dict>
@@ -3586,8 +3584,8 @@ p38}</string>
 			<integer>86509</integer>
 			<key>Points</key>
 			<array>
-				<string>{753.752, 513.312}</string>
-				<string>{741.123, 550.074}</string>
+				<string>{753.753, 513.313}</string>
+				<string>{741.127, 550.075}</string>
 			</array>
 			<key>Style</key>
 			<dict>
@@ -3620,7 +3618,7 @@ p38}</string>
 			<key>Points</key>
 			<array>
 				<string>{793.368, 432.088}</string>
-				<string>{751.13, 457.909}</string>
+				<string>{751.131, 457.909}</string>
 			</array>
 			<key>Style</key>
 			<dict>
@@ -4105,7 +4103,7 @@ ATM}</string>
 			<key>Points</key>
 			<array>
 				<string>{756.493, 579.552}</string>
-				<string>{804.944, 605.304}</string>
+				<string>{804.945, 605.304}</string>
 			</array>
 			<key>Style</key>
 			<dict>
@@ -5332,8 +5330,8 @@ BCL2}</string>
 			<integer>86321</integer>
 			<key>Points</key>
 			<array>
-				<string>{504.146, 364.674}</string>
-				<string>{474.299, 383.618}</string>
+				<string>{504.145, 364.673}</string>
+				<string>{474.267, 383.595}</string>
 			</array>
 			<key>Style</key>
 			<dict>
@@ -5367,8 +5365,8 @@ BCL2}</string>
 			<integer>86320</integer>
 			<key>Points</key>
 			<array>
-				<string>{454.338, 414.759}</string>
-				<string>{454.403, 432.098}</string>
+				<string>{454.287, 414.759}</string>
+				<string>{454.304, 432.098}</string>
 			</array>
 			<key>Style</key>
 			<dict>
@@ -5447,8 +5445,8 @@ BCL2}</string>
 			<integer>86318</integer>
 			<key>Points</key>
 			<array>
-				<string>{640.058, 338.599}</string>
-				<string>{649.785, 353.896}</string>
+				<string>{638.378, 339.042}</string>
+				<string>{646.4, 354.365}</string>
 			</array>
 			<key>Style</key>
 			<dict>
@@ -5487,8 +5485,8 @@ BCL2}</string>
 			<integer>86315</integer>
 			<key>Points</key>
 			<array>
-				<string>{629.254, 287.419}</string>
-				<string>{629.259, 303.1}</string>
+				<string>{629.25, 287.419}</string>
+				<string>{629.251, 303.1}</string>
 			</array>
 			<key>Style</key>
 			<dict>
@@ -6355,8 +6353,8 @@ PDK1}</string>
 			<integer>86287</integer>
 			<key>Points</key>
 			<array>
-				<string>{570.767, 209.559}</string>
-				<string>{551.185, 209.55}</string>
+				<string>{570.767, 209.573}</string>
+				<string>{551.185, 209.573}</string>
 			</array>
 			<key>Style</key>
 			<dict>
@@ -7703,7 +7701,7 @@ MEK1/2}</string>
 	<key>MasterSheets</key>
 	<array/>
 	<key>ModificationDate</key>
-	<string>2012-11-05 11:58:19 -0500</string>
+	<string>2012-11-09 10:54:23 -0500</string>
 	<key>Modifier</key>
 	<string>Jeremy Muhlich</string>
 	<key>NotesVisible</key>
@@ -7801,7 +7799,7 @@ MEK1/2}</string>
 			<array>
 				<string>Canvas 1</string>
 				<real>0.75</real>
-				<real>0.89999997615814209</real>
+				<real>0.5</real>
 			</array>
 		</array>
 	</dict>

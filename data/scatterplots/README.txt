@@ -35,11 +35,11 @@ scatterplots selected by MH for the NUI.  These scatterplots are:
   slider: use the mean ligand response and time points for
   ·         pAKT [IGF-1] vs pERK [FGF-1]
 
-Note that the file sampledata/MH/col_1_3.tsv currently includes some
+Note that the file data/scatterplots/col_1_3.tsv currently includes some
 nan values in the "GI50(AG1478)" column; they are meant as temporary
 placeholders until we get the correct values from MH:
 
-  % nl sampledata/MH/col_1_3.tsv | grep -e GI50 -e nan
+  % nl data/scatterplots/col_1_3.tsv | grep -e GI50 -e nan
        1	.	GI50(AG1478)	Subtype
        2	184B5	nan	TNBC
       13	HCC1500	nan	HR+
