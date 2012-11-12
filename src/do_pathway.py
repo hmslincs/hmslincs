@@ -116,6 +116,12 @@ if __name__ == '__main__':
         top = min(coords_y)
         width = max(coords_x) - left
         height = max(coords_y) - top
+        # grow the hotspots by 30% in each direction
+        scale = 0.30
+        left -= width * scale / 2
+        top -= height * scale / 2
+        width *= (1 + scale)
+        height *= (1 + scale)
         div = lxml.etree.Element('div')
         target_name = area.attrib['href']
         div.attrib['id'] = target_name
