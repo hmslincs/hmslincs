@@ -143,10 +143,13 @@ if __name__ == '__main__':
                                   pretty_print=True, method='html')
     pathway_source = ''.join(map(formatter, tree[0].getchildren()))
 
+    # filter signature_data down to targets that are actually in the map
+    signature_data = dict((k, v) for k,v in signature_data.items()
+                          if k in target_names)
     signatures = [{ 'target_name': k,
                     'compounds': v,
                     'show_scale': any(c.signature for c in v) }
-                  for k, v in signature_data.items() if k in target_names]
+                  for k, v in signature_data.items()]
     cell_lines = list(enumerate(signature.cell_lines))
     cut_idx = int(math.ceil(len(cell_lines) / 2.0))
     ctx = {
