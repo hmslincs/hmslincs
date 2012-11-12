@@ -183,7 +183,14 @@ def proteinDetail(request, lincs_id):
             queryset = DataSet.objects.filter(pk__in=list(dataset_ids)).extra(where=where,
                        order_by=('facility_id',))        
             details['datasets'] = DataSetTable(queryset)
-        
+
+        # add in the LIFE System link: TODO: put this into the fieldinformation
+        extralink = {   'title': 'LINCS Information Framework Page' ,
+                        'name': 'LIFE Protein Information',
+                        'link': 'http://baoquery.ccs.miami.edu/life/hms/summary?input=HMSL'+ str(protein.lincs_id) + '&mode=protein',
+                        'value': protein.lincs_id }
+        details['extralink'] = extralink
+                
         return render(request, 'db/proteinDetail.html', details)
  
     except Protein.DoesNotExist:
@@ -311,6 +318,14 @@ def smallMoleculeDetail(request, facility_salt_id): # TODO: let urls.py grep the
         if(can_access_image(request,image_location)): details['image_location'] = image_location
         ambit_image_location = AMBIT_COMPOUND_IMAGE_LOCATION + '/HMSL%d-%d.png' % (sm.facility_id,sm.salt_id)
         if(can_access_image(request,ambit_image_location)): details['ambit_image_location'] = ambit_image_location
+        
+        # add in the LIFE System link: TODO: put this into the fieldinformation
+        extralink = {   'title': 'LINCS Information Framework Structure Page' ,
+                        'name': 'LIFE Compound Information',
+                        'link': 'http://baoquery.ccs.miami.edu/life/hms/summary?input=HMSL'+ str(sm.facility_id) + '&mode=compound',
+                        'value': sm.facility_id }
+        details['extralink'] = extralink
+        
         return render(request,'db/smallMoleculeDetail.html', details)
 
     except SmallMolecule.DoesNotExist:

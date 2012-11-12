@@ -16,4 +16,12 @@
     {% endif %}
     </td></tr>
 {% endfor %}
+{% if extralink %}
+	<tr>
+    <td class="propertyLabelColumn propertyLabel" title="{{ extralink.title }}" ><b>{{ extralink.name }}:</b>
+	</td>
+  <td class="propertyValueColumn">
+		<a href="{{ extralink.link }}">{{ extralink.value }}</a>
+	</td></tr>
+{% endif %}
 </table>
