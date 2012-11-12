@@ -51,6 +51,10 @@
   display: block; /* get rid of extra vertical spacing due to text line-height issues */
 }
 
+.classification, .kinomescan {
+  text-align: center;
+}
+
 .cell-line-legend table {
   font-size: 8pt;
   margin: 4pt auto 0;
@@ -62,6 +66,11 @@
 
 .cell-line-legend img {
   vertical-align: middle;
+}
+
+.no-signature {
+  color: #ccc;
+  font-size: 8pt;
 }
 
 #pathway-img {

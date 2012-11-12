@@ -168,12 +168,12 @@ if __name__ == '__main__':
     signature_images(target_name, compounds, '.')
 
 cell_lines = [
-    CellLineData(u'50106', u'BT-474'),
-    CellLineData(u'50578', u'HCC1187'),
-    CellLineData(u'50208', u'HCC1428'),
-    CellLineData(u'50216', u'HCC38'),
-    CellLineData(u'50219', u'HCC70'),
-    CellLineData(u'50057', u'SK-BR-3'),
+    CellLineData(cell_id=u'50106', name=u'BT-474'),
+    CellLineData(cell_id=u'50578', name=u'HCC1187'),
+    CellLineData(cell_id=u'50208', name=u'HCC1428'),
+    CellLineData(cell_id=u'50216', name=u'HCC38'),
+    CellLineData(cell_id=u'50219', name=u'HCC70'),
+    CellLineData(cell_id=u'50057', name=u'SK-BR-3'),
     ]
 
 LATEST = {
