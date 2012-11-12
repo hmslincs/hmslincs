@@ -1073,7 +1073,7 @@ class LibrarySearchManager(models.Manager):
             sql += ", to_tsquery(%s) as query  " 
             where += "and library.search_vector @@ query "
         sql += where
-        sql += " group by library.id) a join db_library l2 on(a.id=l2.id) where l2.id=l.id"
+        sql += " group by library.id) a join db_library l2 on(a.id=l2.id) where l2.id=l.id order by l.short_name"
         
         logger.info(str(('sql',sql)))
         # TODO: the way we are separating query_string out here is a kludge
