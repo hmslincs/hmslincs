@@ -99,8 +99,9 @@ def readDataColumns(path):
     _typelookup = dict((f.name, iu.totype(f)) for f in _fields)
     
     # TODO: Use the import_utils methods here
-    
+    # TODO: compare and combine this with the fieldinformation entity
     labels = {'Worksheet Column':'worksheet_column',
+              'Display Order':'display_order',
               'Name':'name',
               'Data Type':'data_type',
               'Decimal Places':'precision',
@@ -159,8 +160,9 @@ def main(path):
     
     # now that the array of DataColumn dicts is created, use them to create the DataColumn instances
     dataColumns = {}
-    for dc in dataColumnDefinitions:
+    for i,dc in enumerate(dataColumnDefinitions):
         dc['dataset'] = dataset
+        if(not 'display_order' in dc or dc['display_order']==None): dc['display_order']=i
         dataColumn = DataColumn(**dc)
         dataColumn.save()
         logger.info(str(('datacolumn created:', dataColumn)))
@@ -336,6 +338,11 @@ def main(path):
                                               dataset = dataset,
                                               datarecord = dataRecord,
                                               int_value=util.convertdata(value,int))
+                elif (dataColumn.data_type == 'Image'): # TODO: define allowed "types" for the input sheet (this is listed in current SS code, but we may want to rework)
+                    dataPoint = DataPoint(datacolumn=dataColumn,
+                                          dataset = dataset,
+                                          datarecord = dataRecord,
+                                          int_value=util.convertdata(value,int))
                 else: # ONLY text, for now, we'll need to define the allowed types, next!
                     dataPoint = DataPoint(datacolumn=dataColumn,
                                           dataset = dataset,
@@ -345,29 +352,25 @@ def main(path):
                 
                 #dataPoint.save()
                 datapoint_batch.append(dataPoint)
-                if(logger.isEnabledFor(logging.DEBUG)): logger.debug(str(('datapoint created:', dataPoint)))
+                #if(logger.isEnabledFor(logging.DEBUG)): logger.debug(str(('datapoint created:', dataPoint)))
                 pointsSaved += 1
         datarecord_batch.append((dataRecord,datapoint_batch))
         rowsRead += 1
         
         if(rowsRead % save_interval == 0 ):
-            logger.info(str(("save datarecord_batch, time:", time.time() - loopStart )))
             new_datarecords = bulk_create_datarecords(datarecord_batch)
-#            new_dr_batch = []
-#            for dr in new_datarecords:
-#                for dr,list in datarecord_batch.items():
-#                    if(dr.)
-            logger.info(str(('new drs',new_datarecords)))
+            logger.info(str(("save datarecord_batch, time:", time.time() - loopStart )))
+            if(logger.isEnabledFor(logging.DEBUG)): logger.debug(str(('new drs',new_datarecords)))
             new_dps = bulk_create_with_manual_ids(datarecord_batch)
-            logger.info(str(('new drs',new_dps)))
+            if(logger.isEnabledFor(logging.DEBUG)): logger.debug(str(('new dps',new_dps)))
             datarecord_batch=[]
                             
 
     new_datarecords = bulk_create_datarecords(datarecord_batch)
     logger.info(str(("save datarecord_batch, time:", time.time() - loopStart )))
-    logger.info(str(('new drs',new_datarecords)))
+    if(logger.isEnabledFor(logging.DEBUG)): logger.debug(str(('new drs',new_datarecords)))
     new_dps = bulk_create_with_manual_ids(datarecord_batch)
-    logger.info(str(('new drs',new_dps)))
+    if(logger.isEnabledFor(logging.DEBUG)): logger.debug(str(('new dps',new_dps)))
     print 'Finished reading, rowsRead: ', rowsRead, ', points Saved: ', pointsSaved
     et = time.time()-loopStart
     print'elapsed: ',et , 'avg: ', et/rowsRead

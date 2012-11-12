@@ -438,6 +438,7 @@ class DataColumn(models.Model):
     time_point              = _TEXT(**_NULLOKSTR)
     readout_type            = _TEXT(**_NULLOKSTR)
     comments                = _TEXT(**_NULLOKSTR)
+    display_order           = _INTEGER(null=True) # an example of why fieldinformation may need to be combined with datacolumn
 
     def __unicode__(self):
         return unicode(str((self.dataset,self.name,self.data_type)))
