@@ -169,7 +169,7 @@ if __name__ == '__main__':
 
 cell_lines = [
     CellLineData(u'50106', u'BT-474'),
-    CellLineData(None, u'HCC1187'),
+    CellLineData(u'50578', u'HCC1187'),
     CellLineData(u'50208', u'HCC1428'),
     CellLineData(u'50216', u'HCC38'),
     CellLineData(u'50219', u'HCC70'),
