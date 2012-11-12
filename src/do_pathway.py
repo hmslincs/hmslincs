@@ -106,7 +106,7 @@ if __name__ == '__main__':
     map_ = tree.xpath('//map')[0]
     img = tree.xpath('//img')[0]
     # turn <area> elts into positioned divs and build a set of their ids
-    target_names = set()
+    pathway_targets = set()
     for area in map_.xpath('//area'):
         assert area.attrib['shape'] == 'poly'
         coords = map(lambda x: float(x)/2, area.attrib['coords'].split(','))
@@ -119,7 +119,7 @@ if __name__ == '__main__':
         div = lxml.etree.Element('div')
         target_name = area.attrib['href']
         div.attrib['id'] = target_name
-        target_names.add(target_name)
+        pathway_targets.add(target_name)
         div.attrib['class'] = 'pathway-hotspot'
         div.attrib['style'] = 'left: %dpx; top: %dpx; width: %dpx; height: %dpx;' % \
                               (left, top, width, height)
@@ -143,19 +143,36 @@ if __name__ == '__main__':
                                   pretty_print=True, method='html')
     pathway_source = ''.join(map(formatter, tree[0].getchildren()))
 
-    # filter signature_data down to targets that are actually in the map
-    signature_data = dict((k, v) for k,v in signature_data.items()
-                          if k in target_names)
-    signatures = [{ 'target_name': k,
-                    'compounds': v,
-                    'show_scale': any(c.signature for c in v) }
-                  for k, v in signature_data.items()]
-    cell_lines = list(enumerate(signature.cell_lines))
-    cut_idx = int(math.ceil(len(cell_lines) / 2.0))
+    # clean up signature_data and build template context data structure
+    old_signature_data = signature_data
+    signature_data = {}
+    signatures_ctx = []
+    for target, compounds in old_signature_data.items():
+        # filter signature_data down to targets that are actually in the map
+        if target not in pathway_targets:
+            continue 
+        # sort compounds by name
+        compounds = sorted(set(compounds), key=lambda c: c.drug)
+        # strip "HMSL" prefix from drug_ids
+        compounds = [c._replace(drug_id=c.drug_id.replace('HMSL', ''))
+                     for c in compounds]
+        # update new signature_data
+        signature_data[target] = compounds
+        # update context data
+        signatures_ctx.append({
+                'target_name': target,
+                'compounds': compounds,
+                'show_scale': any(c.signature for c in compounds)
+                })
+    # build context data for cell lines and calculate midpoint
+    cell_lines_ctx = list(enumerate(signature.cell_lines))
+    cut_idx = int(math.ceil(len(cell_lines_ctx) / 2.0))
+
     ctx = {
-        'signatures': signatures,
-        'cell_lines': [cell_lines[:cut_idx],
-                       cell_lines[cut_idx:]],
+        'signatures': signatures_ctx,
+        # provide cell lines in two equal-sized lists for display on two rows
+        'cell_lines': [cell_lines_ctx[:cut_idx],
+                       cell_lines_ctx[cut_idx:]],
         'pathway_source': pathway_source,
         'STATIC_URL': django.conf.settings.STATIC_URL,
         }
