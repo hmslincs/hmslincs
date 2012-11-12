@@ -4,7 +4,7 @@
   border: 2px solid #000;
   display: none;
   position: absolute;
-  width: 410px;
+  min-width: 330px;
   z-index: 9999;
   line-height: 12px;
 }
@@ -44,14 +44,23 @@
 
 .signature {
   text-align: center;
+  height: 20px;
 }
 
-.legend table {
+.signature > img {
+  display: block; /* get rid of extra vertical spacing due to text line-height issues */
+}
+
+.cell-line-legend table {
   font-size: 8pt;
   margin: 4pt auto 0;
 }
 
-.legend img {
+.cell-line-legend .caption {
+  text-align: center;
+}
+
+.cell-line-legend img {
   vertical-align: middle;
 }
 

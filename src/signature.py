@@ -24,6 +24,8 @@ FORMAT = 'png'
 SignatureData = co.namedtuple('SignatureData',
                               'drug_id drug status kinomescan '
                               'rangetested signature')
+CellLineData = co.namedtuple('CellLineData',
+                             'cell_id name')
 
 dpi = 72  # 72 dpi produces perfect 1-pixel lines for 1-pt figure lines
 colors = ('red', 'yellow', 'magenta', 'blue', 'green', 'cyan')  # cell line marker colors
@@ -165,7 +167,14 @@ if __name__ == '__main__':
 
     signature_images(target_name, compounds, '.')
 
-cell_lines = (u'BT474', u'HCC1187', u'HCC1428', u'HCC38', u'HCC70', u'SKBR3')
+cell_lines = [
+    CellLineData(u'50106', u'BT-474'),
+    CellLineData(None, u'HCC1187'),
+    CellLineData(u'50208', u'HCC1428'),
+    CellLineData(u'50216', u'HCC38'),
+    CellLineData(u'50219', u'HCC70'),
+    CellLineData(u'50057', u'SK-BR-3'),
+    ]
 
 LATEST = {
   u'JNK1': [SignatureData(drug_id=u'HMSL10058', drug=u'CG930', status=None, kinomescan=None, rangetested=None, signature=None), SignatureData(drug_id=u'HMSL10095', drug=u'ZG10', status=None, kinomescan=u'300093', rangetested=None, signature=None), SignatureData(drug_id=u'HMSL10100', drug=u'JNK9L', status=None, kinomescan=u'300030', rangetested=None, signature=None), SignatureData(drug_id=u'HMSL10162', drug=u'SP600125', status=None, kinomescan=None, rangetested=None, signature=None), SignatureData(drug_id=u'HMSL10185', drug=u'CC401', status=u'investigational', kinomescan=None, rangetested=None, signature=None)],

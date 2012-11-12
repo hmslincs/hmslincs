@@ -3,23 +3,25 @@
     <td><a href="/db/sm/{{ sd.drug_id }}/">{{ sd.drug }}</a></td>
     <td>
       {% if sd.status == "approved" %}
-      A
+        A
       {% elif sd.status == "investigational" %}
-      I
+        I
       {% else %}
-      T
+        T
       {% endif %}
     </td>
     <td>
       {% if sd.kinomescan %}
-      <a href="/db/datasets/{{ sd.kinomescan }}/">yes</a>
+        <a href="/db/datasets/{{ sd.kinomescan }}/">yes</a>
       {% else %}
-      no
+        no
       {% endif %}
     </td>
-    <td>
-      <img src="{{ STATIC_URL }}pathway/img/signature-{{ signature.target_name|slugify }}-{{ sd.drug|slugify }}.png"
-           width="250" height="20">
+    <td class="signature">
+      {% if sd.signature %}
+        <img src="{{ STATIC_URL }}pathway/img/signature-{{ signature.target_name|slugify }}-{{ sd.drug|slugify }}.png"
+             width="250" height="20">
+      {% endif %}
     </td>
   </tr>
 {% endfor %}

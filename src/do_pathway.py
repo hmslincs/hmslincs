@@ -6,6 +6,7 @@ import lxml.etree
 import functools
 import math
 import PIL.Image
+import argparse
 import signature
 
 
@@ -76,6 +77,11 @@ target_name_fixups = {
 
 if __name__ == '__main__':
 
+    parser = argparse.ArgumentParser(description='Build pathway app resources.')
+    parser.add_argument('-n', '--no-signatures', action='store_true', default=False,
+                        help='Skip building signature images')
+    args = parser.parse_args()
+
     cur_dir = op.abspath(op.dirname(__file__))
     data_dir = op.join(cur_dir, '..', 'nui-wip', 'pathway')
     static_dir = op.join(cur_dir, '..', 'django', 'pathway', 'static', 'pathway')
@@ -99,7 +105,8 @@ if __name__ == '__main__':
     tree = lxml.etree.HTML(pathway_source)
     map_ = tree.xpath('//map')[0]
     img = tree.xpath('//img')[0]
-    # turn <area> elts into positioned divs
+    # turn <area> elts into positioned divs and build a set of their ids
+    target_names = set()
     for area in map_.xpath('//area'):
         assert area.attrib['shape'] == 'poly'
         coords = map(lambda x: float(x)/2, area.attrib['coords'].split(','))
@@ -110,7 +117,9 @@ if __name__ == '__main__':
         width = max(coords_x) - left
         height = max(coords_y) - top
         div = lxml.etree.Element('div')
-        div.attrib['id'] = area.attrib['href']
+        target_name = area.attrib['href']
+        div.attrib['id'] = target_name
+        target_names.add(target_name)
         div.attrib['class'] = 'pathway-hotspot'
         div.attrib['style'] = 'left: %dpx; top: %dpx; width: %dpx; height: %dpx;' % \
                               (left, top, width, height)
@@ -134,8 +143,10 @@ if __name__ == '__main__':
                                   pretty_print=True, method='html')
     pathway_source = ''.join(map(formatter, tree[0].getchildren()))
 
-    signatures = [{'target_name': k, 'compounds': v}
-                  for k, v in signature_data.items()]
+    signatures = [{ 'target_name': k,
+                    'compounds': v,
+                    'show_scale': any(c.signature for c in v) }
+                  for k, v in signature_data.items() if k in target_names]
     cell_lines = list(enumerate(signature.cell_lines))
     cut_idx = int(math.ceil(len(cell_lines) / 2.0))
     ctx = {
@@ -150,8 +161,9 @@ if __name__ == '__main__':
     out_file.close()
 
     # generate the signature images
-    for target, compounds in signature_data.items():
-        signature.signature_images(target, compounds, out_dir_image)
+    if not args.no_signatures:
+        for target, compounds in signature_data.items():
+            signature.signature_images(target, compounds, out_dir_image)
 
     # generate images for the cell lines legend
     signature.cell_line_images(out_dir_image)

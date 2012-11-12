@@ -22,31 +22,36 @@
   <tr>
     <td colspan="3"></td>
     <td class="signature">
-      <img src="{{ STATIC_URL }}pathway/img/scale-{{ signature.target_name|slugify }}.png" width="250" height="20">
+      {% if signature.show_scale %}
+        <img src="{{ STATIC_URL }}pathway/img/scale-{{ signature.target_name|slugify }}.png" width="250" height="20">
+      {% endif %}
     </td>
   </tr>
 
   <tr>
     <td colspan="3"></td>
-    <td class="legend">
-      <table>
-        {% for row in cell_lines %}
-          <tr>
-            {% for index, cell_line in row %}
-              <td>
-                <img src="{{ STATIC_URL }}pathway/img/legend-cell-line-{{ index }}.png" width="14" height="14">
-                <a href="#">{{ cell_line }}</a>
-              </td>
-            {% endfor %}
-          </tr>
-        {% endfor %}
-      </table>
+    <td class="cell-line-legend">
+      {% if signature.show_scale %}
+        <table class="plain">
+          <tr><td colspan="3" class="caption">Cell lines:</td></tr>
+          {% for row in cell_lines %}
+            <tr>
+              {% for index, cell_line in row %}
+                <td>
+                  <img src="{{ STATIC_URL }}pathway/img/legend-cell-line-{{ index }}.png" width="14" height="14">
+                  <a href="/db/cells/{{ cell_line.cell_id }}/">{{ cell_line.name }}</a>
+                </td>
+              {% endfor %}
+            </tr>
+          {% endfor %}
+        </table>
+      {% endif %}
     </td>
   </tr>
 
 </table>
 
-<p class="note">* C = classification (Approved/Investigational/Tool); KS =
+<p class="note">* C = classification (Approved/Investigational/Tool);<br>KS =
 KinomeScan profile available
 
 {# <div class="closebutton">close [x]</div> #}
