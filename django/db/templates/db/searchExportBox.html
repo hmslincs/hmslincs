@@ -1,3 +1,17 @@
+<script language="javascript" type="text/javascript">
+	function submit_for(type) {
+		//document.getElementById("form1")['output_type'].value = type;
+		//if(document.getElementById("form1").action.indexOf('?')==-1){
+		//	document.getElementById("form1").action += '?'
+		//}
+		//document.getElementById("form1").action += '&output_type=' + type
+		document.getElementById("form1").output_type.value = type
+		//window.alert('submit,' + document.getElementById("form1").action)
+		document.getElementById("form1").submit();
+		document.getElementById("form1").output_type.value = '';
+	}
+</script>
+
 <div id="search">
 	<form id='form1' action="{{ request.get_full_path }}" method="get">
 		<table class='search_table'>

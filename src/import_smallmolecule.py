@@ -41,7 +41,7 @@ def main(path):
     labels = { s2p.MOLDATAKEY:('molfile',True),
                'facility_reagent_id': ('facility_id',True,None, lambda x: util.convertdata(x[x.index('HMSL')+4:],int)),
                'salt_id': ('salt_id',True,None, lambda x: util.convertdata(x,int)),
-               'lincs_id':('lincs_id',False,False,lambda x:util.convertdata(x,int)),
+               'lincs_id':('lincs_id',False,None,lambda x:util.convertdata(x,int)),
                'chemical_name':('name',True),
                'alternative_names':'alternative_names',
                'pubchem_cid':'pubchem_cid',
@@ -98,7 +98,7 @@ def main(path):
             initializer['alternative_names']=get_alternate_names(initializer['name'])
             initializer['name']=get_primary_name(initializer['name'])
                 
-        logger.debug(str(('initializer: ', initializer)))
+        if(logger.isEnabledFor(logging.DEBUG)): logger.debug(str(('initializer: ', initializer)))
         try:
             sm = SmallMolecule(**initializer)
             sm.save()
