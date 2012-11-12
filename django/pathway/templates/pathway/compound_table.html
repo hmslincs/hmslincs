@@ -1,14 +1,18 @@
 {% for sd in compounds %}
   <tr>
-    <td><a href="#">{{ sd.drug }}</a></td>
+    <td><a href="/db/sm/{{ sd.drug_id }}/">{{ sd.drug }}</a></td>
     <td>
-      {% if sd.isclinical %}
-      C
+      {% if sd.status == "approved" %}
+      A
+      {% elif sd.status == "investigational" %}
+      I
+      {% else %}
+      T
       {% endif %}
     </td>
     <td>
-      {% if sd.isselective %}
-      <a href="#">yes</a>
+      {% if sd.kinomescan %}
+      <a href="/db/datasets/{{ sd.kinomescan }}/">yes</a>
       {% else %}
       no
       {% endif %}

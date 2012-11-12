@@ -15,11 +15,7 @@
     <th class="signature">Signature (log<sub>10</sub> GI50)</th>
   </tr>
 
-  {% with compounds=signature.primary_compounds %}
-    {% include "pathway/compound_table.html" %}
-  {% endwith %}
-  
-  {% with compounds=signature.nonprimary_compounds %}
+  {% with compounds=signature.compounds %}
     {% include "pathway/compound_table.html" %}
   {% endwith %}
 
@@ -50,8 +46,8 @@
 
 </table>
 
-<p class="note">* C = classification (Clinical/Investigative/Research); KS =
-KinomeScan profile
+<p class="note">* C = classification (Approved/Investigational/Tool); KS =
+KinomeScan profile available
 
 {# <div class="closebutton">close [x]</div> #}
 

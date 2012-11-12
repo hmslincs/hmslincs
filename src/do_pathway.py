@@ -11,19 +11,67 @@ import signature
 
 # mapping from target names in signature.LATEST to names in the diagram
 target_name_fixups = {
-    u'AKT1-2': ['AKT'],
-    u'Aurora kinase': ['Aurora'],
-    u'CDC25S': ['Cdc25'],
-    u'CDK': ['CDK1'],
-    u'CDK1/CCNB': ['CDK1'],
-    u'EGFR/ERBB2': ['EGFR', 'ERBB2'],
-    u'FLT-3': ['FLT3'],
-    u'Hsp90': ['HSP90'],
-    u'IKK2 (IkB kinase 2)': ['IKK'],
-    u'JNK': ['JNK2', 'JNK3'],
-    u'MEK': ['MEK1', 'MEK2'],
-    u'PI3K gamma': ['PI3K'],
-    u'Ras-Net (Elk-3)': ['Ras'],
+    u'JNK1': ['JNK1-2-3'],
+    u'JNK2': ['JNK1-2-3'],
+    u'JNK3': ['JNK1-2-3'],
+    u'AKT1': ['AKT'],
+    u'AKT2': ['AKT'],
+    u'AKT3': ['AKT'],
+    u'MNK2': ['MNK1-2'],
+    u'WEE1': ['Wee1'],
+    u'CHK': ['CHK1-2'],
+    u'PI3K-ALPHA': ['PI3K'],
+    u'PI3K-BETA': ['PI3K'],
+    u'PI3K-DELTA': ['PI3K'],
+    u'PI3K-GAMMA': ['PI3K'],
+    u'C-MET': ['c-Met'],
+    u'BCR-ABL': ['c-Abl'],
+    u'ABL(T315I)': ['c-Abl'],
+    u'C-ABL': ['c-Abl'],
+    u'GSK3A': ['GSK3'],
+    u'GSK3B': ['GSK3'],
+    u'BRAF(V600E)': ['Raf'],
+    u'B-RAF': ['Raf'],
+    u'C-RAF': ['Raf'],
+    u'P38-ALPHA': ['p38'],
+    u'P38-BETA': ['p38'],
+    u'RSK2': ['P90RSK'],
+    u'JAK1': ['JAK1-2-3'],
+    u'JAK2': ['JAK1-2-3'],
+    u'JAK3': ['JAK1-2-3'],
+    u'PKC-B': ['PKC'],
+    u'C-KIT': ['c-Kit'],
+    u'CHK1': ['CHK1-2'],
+    u'SRC': ['Src'],
+    u'GSK-3': ['GSK3'],
+    u'IKK-BETA': ['IKK'],
+    u'MTOR': ['mTOR'],
+    u'MEK': ['MEK1-2'],
+    u'MEK1': ['MEK1-2'],
+    u'MEK2': ['MEK1-2'],
+    u'CDK1': ['CDK'],
+    u'CDK2': ['CDK'],
+    u'CDK4': ['CDK'],
+    u'CDK5': ['CDK'],
+    u'CDK7': ['CDK'],
+    u'CDK9': ['CDK'],
+    u'AURORA': ['Aurora'],
+    u'AURKA': ['Aurora'],
+    u'AURKB': ['Aurora'],
+    u'AURKC': ['Aurora'],
+    u'HSP90 ALPHA': ['HSP90'],
+    u'HSP90 BETA': ['HSP90'],
+    u'P53': ['p53'],
+    u'ERK1': ['ERK1-2'],
+    u'ERK2': ['ERK1-2'],
+    u'AMPK-ALPHA1': ['AMPK'],
+    u'MTORC1': ['mTOR'],
+    u'MTORC2': ['mTOR'],
+    u'P38 MAPK': ['p38'],
+
+    # TODO: PLK
+    # TODO: DNA-PK not in diagram
+    # TODO: FGFR -> FGFR1? compounds seem to be pan-FGFR or possibly FGFR1-selective
     }
 
 if __name__ == '__main__':
@@ -86,7 +134,8 @@ if __name__ == '__main__':
                                   pretty_print=True, method='html')
     pathway_source = ''.join(map(formatter, tree[0].getchildren()))
 
-    signatures = map(signature.template_context, *zip(*signature_data.items()))
+    signatures = [{'target_name': k, 'compounds': v}
+                  for k, v in signature_data.items()]
     cell_lines = list(enumerate(signature.cell_lines))
     cut_idx = int(math.ceil(len(cell_lines) / 2.0))
     ctx = {

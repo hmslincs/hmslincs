@@ -31,20 +31,20 @@ colors = ('red', 'yellow', 'magenta', 'blue', 'green', 'cyan')  # cell line mark
 main_template = 'pathway/signature.html'
 
 
-def signature(target_name, compounds, cell_lines):
-    ctx = {'signature': template_context(target_name, compounds)}
-    return render_to_string(main_template, ctx)
-
-
 def signature_images(target_name, compounds, target_dir):
-    all_ranges = list(itertools.chain(*[c.rangetested for c in compounds]))
-    xlimits = min(all_ranges), max(all_ranges)
-    for compound in compounds:
-        signature_image(target_name, compound, xlimits, target_dir)
-    signature_image(target_name, None, xlimits, target_dir, scale_only=True)
+    all_ranges = list(itertools.chain(*[c.rangetested for c in compounds
+                                        if c.rangetested is not None]))
+    if len(all_ranges) > 0:
+        xlimits = min(all_ranges), max(all_ranges)
+        for compound in compounds:
+            signature_image(target_name, compound, xlimits, target_dir)
+        signature_image(target_name, None, xlimits, target_dir, scale_only=True)
         
 
 def signature_image(target_name, compound, xlimits, target_dir, scale_only=False):
+
+    if not scale_only and compound.signature is None:
+        return
 
     f = Figure(figsize=(250/dpi, 20/dpi), dpi=dpi)
     ax = f.add_subplot(111)
@@ -116,17 +116,6 @@ def cell_line_images(target_dir):
         filename = op.join(target_dir, 'legend-cell-line-%d.png' % i)
         canvas = FigureCanvasAgg(f)
         canvas.print_png(filename)
-
-
-
-def template_context(target_name, compounds):
-    def filter_(compound):
-        return compound.isprimary
-    return {
-        'target_name': target_name,
-        'primary_compounds': itertools.ifilter(filter_, compounds),
-        'nonprimary_compounds': itertools.ifilterfalse(filter_, compounds),
-        }
 
 
 if __name__ == '__main__':
