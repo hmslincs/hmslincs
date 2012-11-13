@@ -6,11 +6,13 @@
     <td class="propertyValueColumn">
     {# TODO: Move all field type information, and link information to the fieldinformation table #}
 	  {% if info.value and info.fieldinformation.field == 'pubchem_cid' %}
-	  	<a href="http://pubchem.ncbi.nlm.nih.gov/summary/summary.cgi?cid={{ info.value }}">{{ info.value }}</a>
+	  	<a target="_blank" href="http://pubchem.ncbi.nlm.nih.gov/summary/summary.cgi?cid={{ info.value }}">{{ info.value }}</a>
 	  {% elif info.value and info.fieldinformation.field == 'chembl_id' %}
-			<a href="http://www.ebi.ac.uk/chembldb/compound/inspect/CHEMBL{{ info.value }}">{{ info.value }}</a>
+			<a target="_blank" href="http://www.ebi.ac.uk/chembldb/compound/inspect/CHEMBL{{ info.value }}">{{ info.value }}</a>
 		{% elif info.value and info.fieldinformation.field == 'chebi_id' %}
-			<a href="http://www.ebi.ac.uk/chebi/searchId.do;?chebiId=CHEBI:{{ info.value }}">{{ info.value }}</a>
+			<a target="_blank" href="http://www.ebi.ac.uk/chebi/searchId.do;?chebiId=CHEBI:{{ info.value }}">{{ info.value }}</a>
+		{% elif info.value and info.fieldinformation.field == 'uniprot_id' %}
+			<a target="_blank" href="http://www.uniprot.org/uniprot/{{ info.value }}">{{ info.value }}</a>
 	  {% else %}
     	{% firstof info.value "" %}
     {% endif %}

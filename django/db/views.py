@@ -275,10 +275,12 @@ def smallMoleculeDetail(request, facility_salt_id): # TODO: let urls.py grep the
         try:
             dataset = DataSet.objects.get(dataset_type='Nominal Targets')
             # NOTE: "col1" is "Is Nominal", also note: this column is numeric for now
-            ntable = DataSetManager(dataset).get_table(whereClause=' and dr.smallmolecule_id=%d ' % sm.id, metaWhereClause=" where col1 = '1'", column_exclusion_overrides=['facility_salt_batch','col1'])
+            ntable = DataSetManager(dataset).get_table(whereClause=' and dr.smallmolecule_id=%d ' % sm.id, metaWhereClause=" where col0 = '1'", column_exclusion_overrides=['facility_salt_batch','col1'])
+            logger.info(str(('ntable',ntable, len(ntable.data))))
             if(len(ntable.data)>0): details['nominal_targets_table']=ntable
-            ntable = DataSetManager(dataset).get_table(whereClause=' and dr.smallmolecule_id=%d '% sm.id, metaWhereClause=" where col1 != '1'", column_exclusion_overrides=['facility_salt_batch','col1','col3'])
-            if(len(ntable.data)>0): details['other_targets_table']=ntable
+            otable = DataSetManager(dataset).get_table(whereClause=' and dr.smallmolecule_id=%d '% sm.id, metaWhereClause=" where col0 != '1'", column_exclusion_overrides=['facility_salt_batch','col1','col3'])
+            logger.info(str(('otable',ntable, len(otable.data))))
+            if(len(otable.data)>0): details['other_targets_table']=otable
         except DataSet.DoesNotExist:
             logger.warn('Nominal Targets dataset does not exist')
         
@@ -634,6 +636,7 @@ class DataSetManager():
         
         cursor = self.get_cursor(is_authenticated, limit, whereClause, metaWhereClause, column_exclusion_overrides)
         queryset = dictfetchall(cursor)
+        logger.info(str(('queryset',queryset)))
         #queryset = manager.get_dataset_result_table(dataset_id, is_authenticated=request.user.is_authenticated(), **{'show_cells':show_cells, 'show_proteins':show_proteins})
         if(not self.has_omero_images(self.dataset_id)): column_exclusion_overrides.append('omero_image_id')
         if(not self.has_plate_wells_defined(self.dataset_id)): column_exclusion_overrides.extend(['plate','well'])
