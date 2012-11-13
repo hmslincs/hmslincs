@@ -15,11 +15,12 @@ ScatterplotMetaData = co.namedtuple('ScatterplotMetaData',
                                     'readout ligand concentration time')
 PointSpec = co.namedtuple('PointSpec', 'label shape level')
 ResponseData = co.namedtuple('ResponseData', 'metadata data')
+MarkerSpec = co.namedtuple('MarkerSpec', 'marker color')
 
 marker_map = {
-              'triangle': '^',
-              'circle': 'o',
-              'square': 's',
+              'triangle': MarkerSpec('^', 'orange'),
+              'circle': MarkerSpec('o', 'mediumpurple'),
+              'square': MarkerSpec('s', 'mediumseagreen'),
               }
 
 dpi = 72.0
@@ -30,8 +31,13 @@ def scatterplot(points, metadata, lims=None, display=False):
     f = Figure(figsize=(300 / dpi, 300 / dpi), dpi=dpi)
     ax = f.gca()
     for p in points:
-        ax.scatter(p.x, p.y, c=p.level, vmin=0, vmax=1,
-                   marker=marker_map[p.shape], s=100, cmap=cmap_bwr)
+        if p.level is None:
+            # overrides cmap
+            color = marker_map[p.shape].color
+        else:
+            color = p.level
+        ax.scatter(p.x, p.y, c=color, vmin=0, vmax=1, linewidth=0.5,
+                   marker=marker_map[p.shape].marker, s=100, cmap=cmap_bwr)
     if lims is None:
         all_data = sum(([p.x, p.y] for p in points), [])
         dmin = min(all_data)
