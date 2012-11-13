@@ -1,21 +1,30 @@
 {% for sd in compounds %}
   <tr>
-    <td><a href="#">{{ sd.drug }}</a></td>
-    <td>
-      {% if sd.isclinical %}
-      C
-      {% endif %}
-    </td>
-    <td>
-      {% if sd.isselective %}
-      <a href="#">yes</a>
+    {# FIXME until salt codes are included in ids <td><a href="/db/sm/{{ sd.drug_id }}/">{{ sd.drug }}</a></td> #}
+    <td><a href="/db/sm/?search={{ sd.drug_id }}">{{ sd.drug }}</a></td>
+    <td class="classification">
+      {% if sd.status == "approved" %}
+        A
+      {% elif sd.status == "investigational" %}
+        I
       {% else %}
-      no
+        T
       {% endif %}
     </td>
-    <td>
-      <img src="{{ STATIC_URL }}pathway/img/signature-{{ signature.target_name|slugify }}-{{ sd.drug|slugify }}.png"
-           width="250" height="20">
+    <td class="kinomescan">
+      {% if sd.kinomescan %}
+        <a href="/db/datasets/{{ sd.kinomescan }}/">yes</a>
+      {% else %}
+        no&nbsp; {# nbsp to tweak horizontal alignment #}
+      {% endif %}
+    </td>
+    <td class="signature">
+      {% if sd.signature %}
+        <img src="{{ STATIC_URL }}pathway/img/signature-{{ signature.target_name|slugify }}-{{ sd.drug|slugify }}.png"
+             width="250" height="20">
+      {% else %}
+        <span class="no-signature">not available</span>
+      {% endif %}
     </td>
   </tr>
 {% endfor %}

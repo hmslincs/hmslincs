@@ -24,11 +24,13 @@ _params = dict(
 
     COLHEADERROWNUM = 0,
     FIRSTDATAROWNUM = 1,
+    LEVELCOLNUM = 2,
+    CELLTYPECOLNUM = 3,
 
     # Each data row is construed as a key-value pair, where the row's
     # KEYLENGTH leftmost cells comprise the "key", and remaining cells
     # comprise the "value".
-    KEYLENGTH = 3,
+    KEYLENGTH = 4,
     LEVELFORNAN = 0.5,
 )
 _sg.setparams(_params)
@@ -66,22 +68,14 @@ def outpath(axes):
                    '%s%s' % ('__'.join(normalize(ax) for ax in axes),
                              OUTPUTEXT))
 
-def parse_header(header,
-                 _p0=re.compile(r'^\S+\s+(\S+)(?:\s+(\S+.*))?$'),
-                 _p1=re.compile(r'^([a-zA-Z].+?)(?::(\d+))?(?:\s+(\S+.*))?$'),
-                 _p2=re.compile(r'((?<=@T)\d+)?$')):
-    ret = [None] * 4
-    try:
-        ret[0], rest = _p0.search(header).groups()
-        if rest:
-            ret[1], ret[2], rest = _p1.search(rest).groups()
-            if rest:
-                ret[3] = _p2.search(rest).group(1)
-    except AttributeError, e:
-        if not "'NoneType' object has no attribute 'groups'" in str(e):
-            raise
-
+def parse_header(header, _width=4):
+    parts = header.split(',')
+    assert len(parts) <= _width
+    ret = (parts + [None] * _width)[:_width]
+    tm = ret[-1]
+    if tm and tm.startswith('t'): ret[-1] = tm[1:]
     return sp.ScatterplotMetaData(*ret)
+
 
 def readinput(path):
     with open(path) as inh:
@@ -90,6 +84,7 @@ def readinput(path):
 
 
 def _range(seq):
+    if not seq: return 0, None
     min_, max_ = mm.minmax(seq)
     return max_ - min_, min_, max_
 
@@ -101,10 +96,12 @@ def _getspecs(datarows,
                                }):
     assert len(datarows)
 
+    l = LEVELCOLNUM
+    ct = CELLTYPECOLNUM
     for row in datarows:
-        row[1] = float(row[1])
+        row[l] = float(row[l])
 
-    levelrange, minlevel = _range([n for n in (r[1] for r in datarows)
+    levelrange, minlevel = _range([n for n in (r[l] for r in datarows)
                                    if not ma.isnan(n)])[:2]
     if levelrange > 0:
         def level(lvl):
@@ -113,7 +110,7 @@ def _getspecs(datarows,
     else:
         level = lambda lvl: None
 
-    return tuple(sp.PointSpec(row[0], _celltype2shape[row[2]], level(row[1]))
+    return tuple(sp.PointSpec(row[0], _celltype2shape[row[ct]], level(row[l]))
                  for row in datarows)
 
 
