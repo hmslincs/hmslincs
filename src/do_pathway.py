@@ -86,7 +86,7 @@ if __name__ == '__main__':
 
     # tweak some target names
     signature_data = signature.LATEST.copy()
-    for name, aliase in target_name_fixups.items():
+    for name, alias in target_name_fixups.items():
         if name in signature_data:
             original_signatures = signature_data[name]
             del signature_data[name]
