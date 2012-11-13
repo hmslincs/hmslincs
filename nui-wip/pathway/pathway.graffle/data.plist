@@ -2778,7 +2778,7 @@ apoptosis}</string>
 			<key>Link</key>
 			<dict>
 				<key>url</key>
-				<string>FGFR1</string>
+				<string>FGFR</string>
 			</dict>
 			<key>Shape</key>
 			<string>Circle</string>
@@ -2810,7 +2810,7 @@ apoptosis}</string>
 {\colortbl;\red255\green255\blue255;}
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\qc\pardirnatural
 
-\f0\fs24 \cf0 FGFR1}</string>
+\f0\fs24 \cf0 FGFR}</string>
 				<key>VerticalPad</key>
 				<integer>0</integer>
 			</dict>
@@ -4563,7 +4563,7 @@ Aurora}</string>
 			<key>Link</key>
 			<dict>
 				<key>url</key>
-				<string>PLK1</string>
+				<string>PLK</string>
 			</dict>
 			<key>Shape</key>
 			<string>Circle</string>
@@ -4596,7 +4596,7 @@ Aurora}</string>
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\qc\pardirnatural
 
 \f0\fs24 \cf0 \expnd0\expndtw0\kerning0
-PLK1}</string>
+PLK}</string>
 				<key>VerticalPad</key>
 				<integer>0</integer>
 			</dict>
@@ -7782,7 +7782,7 @@ MEK1/2}</string>
 	<key>MasterSheets</key>
 	<array/>
 	<key>ModificationDate</key>
-	<string>2012-11-13 10:58:08 -0500</string>
+	<string>2012-11-13 13:57:33 -0500</string>
 	<key>Modifier</key>
 	<string>Jeremy Muhlich</string>
 	<key>NotesVisible</key>
@@ -7872,7 +7872,7 @@ MEK1/2}</string>
 		<key>SidebarWidth</key>
 		<integer>120</integer>
 		<key>VisibleRegion</key>
-		<string>{{-6, 0}, {962.667, 648}}</string>
+		<string>{{0.666667, 0}, {962.667, 648}}</string>
 		<key>Zoom</key>
 		<real>0.75</real>
 		<key>ZoomValues</key>
