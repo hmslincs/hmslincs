@@ -298,4 +298,6 @@ LATEST = {
   u'PDK1': [SignatureData(drug_id=u'HMSL10055', drug=u'BX912', status=None, kinomescan=u'300019', rangetested=None, signature=None), SignatureData(drug_id=u'HMSL10081', drug=u'KIN001244', status=None, kinomescan=None, rangetested=None, signature=None)],
   u'P38 MAPK': [SignatureData(drug_id=u'HMSL10036', drug=u'SB 239063', status=None, kinomescan=None, rangetested=None, signature=None), SignatureData(drug_id=u'HMSL10167', drug=u'SB 203580', status=None, kinomescan=None, rangetested=None, signature=None), SignatureData(drug_id=u'HMSL10168', drug=u'VX745', status=None, kinomescan=None, rangetested=None, signature=None), SignatureData(drug_id=u'HMSL10169', drug=u'BIRB 796', status=None, kinomescan=None, rangetested=None, signature=None)],
   u'BCL2': [SignatureData(drug_id=u'HMSL10179', drug=u'ABT737', status=u'investigational', kinomescan=None, rangetested=None, signature=None)],
+  # manually added, missing in compound-target map from djw11 -- JLM 2012-11-13
+  u'MDM2': [SignatureData(drug_id=u'HMSL10268', drug=u'NUTLIN3A', status=None, kinomescan=None, rangetested=(1.71e-10, 6.67e-05), signature=(1.6e-05, 1.66e-05, 3.16e-05, 2.14e-05, 1.85e-05, 4.66e-05))],
 }

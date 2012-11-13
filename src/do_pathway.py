@@ -7,6 +7,7 @@ import functools
 import math
 import PIL.Image
 import argparse
+import shutil
 import signature
 
 
@@ -19,34 +20,28 @@ target_name_fixups = {
     u'AKT2': ['AKT'],
     u'AKT3': ['AKT'],
     u'MNK2': ['MNK1-2'],
-    u'WEE1': ['Wee1'],
     u'CHK': ['CHK1-2'],
     u'PI3K-ALPHA': ['PI3K'],
     u'PI3K-BETA': ['PI3K'],
     u'PI3K-DELTA': ['PI3K'],
     u'PI3K-GAMMA': ['PI3K'],
-    u'C-MET': ['c-Met'],
-    u'BCR-ABL': ['c-Abl'],
-    u'ABL(T315I)': ['c-Abl'],
-    u'C-ABL': ['c-Abl'],
+    u'BCR-ABL': ['C-ABL'],
+    u'ABL(T315I)': ['C-ABL'],
     u'GSK3A': ['GSK3'],
     u'GSK3B': ['GSK3'],
-    u'BRAF(V600E)': ['Raf'],
-    u'B-RAF': ['Raf'],
-    u'C-RAF': ['Raf'],
-    u'P38-ALPHA': ['p38'],
+    u'BRAF(V600E)': ['RAF'],
+    u'B-RAF': ['RAF'],
+    u'C-RAF': ['RAF'],
+    u'P38-ALPHA': ['P38'],
     u'P38-BETA': ['p38'],
     u'RSK2': ['P90RSK'],
     u'JAK1': ['JAK1-2-3'],
     u'JAK2': ['JAK1-2-3'],
     u'JAK3': ['JAK1-2-3'],
     u'PKC-B': ['PKC'],
-    u'C-KIT': ['c-Kit'],
     u'CHK1': ['CHK1-2'],
-    u'SRC': ['Src'],
     u'GSK-3': ['GSK3'],
     u'IKK-BETA': ['IKK'],
-    u'MTOR': ['mTOR'],
     u'MEK': ['MEK1-2'],
     u'MEK1': ['MEK1-2'],
     u'MEK2': ['MEK1-2'],
@@ -56,22 +51,18 @@ target_name_fixups = {
     u'CDK5': ['CDK'],
     u'CDK7': ['CDK'],
     u'CDK9': ['CDK'],
-    u'AURORA': ['Aurora'],
-    u'AURKA': ['Aurora'],
-    u'AURKB': ['Aurora'],
-    u'AURKC': ['Aurora'],
+    u'AURKA': ['AURORA'],
+    u'AURKB': ['AURORA'],
+    u'AURKC': ['AURORA'],
     u'HSP90 ALPHA': ['HSP90'],
     u'HSP90 BETA': ['HSP90'],
-    u'P53': ['p53'],
     u'ERK1': ['ERK1-2'],
     u'ERK2': ['ERK1-2'],
     u'AMPK-ALPHA1': ['AMPK'],
-    u'MTORC1': ['mTOR'],
-    u'MTORC2': ['mTOR'],
-    u'P38 MAPK': ['p38'],
+    u'MTORC1': ['MTOR'],
+    u'MTORC2': ['MTOR'],
+    u'P38 MAPK': ['P38'],
 
-    # TODO: PLK
-    # TODO: DNA-PK not in diagram
     # TODO: FGFR -> FGFR1? compounds seem to be pan-FGFR or possibly FGFR1-selective
     }
 
@@ -133,9 +124,11 @@ if __name__ == '__main__':
     # delete the map since we no longer need it
     map_.getparent().remove(map_)
 
-    # convert omnigraffle png output to jpg
-    pathway_image = PIL.Image.open(op.join(data_dir, 'pathway.png'))
-    pathway_image.save(op.join(out_dir_image, pathway_image_filename))
+    # read omnigraffle jpg output metadata
+    pathway_image_path = op.join(data_dir, pathway_image_filename)
+    pathway_image = PIL.Image.open(pathway_image_path)
+    # copy jpg to static dir
+    shutil.copy(pathway_image_path, out_dir_image)
 
     # fix up <img> attribs
     del img.attrib['usemap']

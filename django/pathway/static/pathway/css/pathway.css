@@ -51,6 +51,10 @@
   display: block; /* get rid of extra vertical spacing due to text line-height issues */
 }
 
+.compound {
+  white-space: nowrap;
+}
+
 .classification, .kinomescan {
   text-align: center;
 }
