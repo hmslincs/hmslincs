@@ -22,7 +22,7 @@ import django_tables2 as tables
 from django_tables2 import RequestConfig
 from django_tables2.utils import A  # alias for Accessor
 
-from db.models import SmallMolecule, SmallMoleculeBatch, Cell, Protein, DataSet, Library, FieldInformation,AttachedFile,DataRecord
+from db.models import SmallMolecule, SmallMoleculeBatch, Cell, Protein, DataSet, Library, FieldInformation,AttachedFile,DataRecord,DataColumn
 from db.models import get_detail
 from collections import OrderedDict
 
@@ -38,7 +38,7 @@ DATASET_IMAGE_LOCATION = "dataset-images-by-facility-id"
 facility_salt_id = " sm.facility_id || '-' || sm.salt_id " # Note: because we have a composite key for determining unique sm structures, we need to do this
 facility_salt_batch_id = facility_salt_id + " || '-' || smb.facility_batch_id " # Note: because we have a composite key for determining unique sm structures, we need to do this
 facility_salt_batch_id_2 = facility_salt_id + " || trim( both '-' from ( '-' || coalesce(smb.facility_batch_id::TEXT,'')))" # need this one for datasets, since they may be linked either to sm or smb - sde4
-
+OMERO_IMAGE_COLUMN_TYPE = 'omero_image'
 
 from dump_obj import dumpObj
 def dump(obj):
@@ -183,7 +183,14 @@ def proteinDetail(request, lincs_id):
             queryset = DataSet.objects.filter(pk__in=list(dataset_ids)).extra(where=where,
                        order_by=('facility_id',))        
             details['datasets'] = DataSetTable(queryset)
-        
+
+        # add in the LIFE System link: TODO: put this into the fieldinformation
+        extralink = {   'title': 'LINCS Information Framework Page' ,
+                        'name': 'LIFE Protein Information',
+                        'link': 'http://baoquery.ccs.miami.edu/life/hms/summary?input=HMSL'+ str(protein.lincs_id) + '&mode=protein',
+                        'value': protein.lincs_id }
+        details['extralink'] = extralink
+                
         return render(request, 'db/proteinDetail.html', details)
  
     except Protein.DoesNotExist:
@@ -311,6 +318,14 @@ def smallMoleculeDetail(request, facility_salt_id): # TODO: let urls.py grep the
         if(can_access_image(request,image_location)): details['image_location'] = image_location
         ambit_image_location = AMBIT_COMPOUND_IMAGE_LOCATION + '/HMSL%d-%d.png' % (sm.facility_id,sm.salt_id)
         if(can_access_image(request,ambit_image_location)): details['ambit_image_location'] = ambit_image_location
+        
+        # add in the LIFE System link: TODO: put this into the fieldinformation
+        extralink = {   'title': 'LINCS Information Framework Structure Page' ,
+                        'name': 'LIFE Compound Information',
+                        'link': 'http://baoquery.ccs.miami.edu/life/hms/summary?input=HMSL'+ str(sm.facility_id) + '&mode=compound',
+                        'value': sm.facility_id }
+        details['extralink'] = extralink
+        
         return render(request,'db/smallMoleculeDetail.html', details)
 
     except SmallMolecule.DoesNotExist:
@@ -535,6 +550,10 @@ def set_field_information_to_table_column(fieldname,table_names,column):
     except (ObjectDoesNotExist) as e:
         raise Exception(str(('no fieldinformation found for field:', fieldname,e)))
     
+# OMERO Image: TODO: only include this if the dataset has images
+OMERO_IMAGE_TEMPLATE = '''
+   <a href="#" onclick='window.open("https://lincs-omero.hms.harvard.edu/webclient/img_detail/{{ record.%s }}", "test","height=700,width=800")' ><img src='https://lincs-omero.hms.harvard.edu/webgateway/render_thumbnail/{{ record.%s }}/32/' alt='image if available' ></a>
+'''
         
 class DataSetResultTable(tables.Table):
     """
@@ -571,20 +590,12 @@ class DataSetResultTable(tables.Table):
     defined_base_columns.append('control_type')
     set_field_information_to_table_column('control_type', ['datarecord'], control_type)
     
-    # OMERO Image: TODO: only include this if the dataset has images
-    TEMPLATE = '''
-       <a href="#" onclick='window.open("https://lincs-omero.hms.harvard.edu/webclient/img_detail/{{ record.%s }}", "test","height=700,width=800")' ><img src='https://lincs-omero.hms.harvard.edu/webgateway/render_thumbnail/{{ record.%s }}/32/' alt='image if available' ></a>
-    '''
-    logger.debug(str(('omero_image column template', TEMPLATE % ('omero_image_id','omero_image_id'))))
-    omero_image_id = tables.TemplateColumn(TEMPLATE % ('omero_image_id','omero_image_id'))
-    defined_base_columns.append('omero_image_id')
-    set_field_information_to_table_column('omero_image_id', ['datarecord'], omero_image_id)
     
     class Meta:
         orderable = True
         attrs = {'class': 'paleblue'}
     
-    def __init__(self, queryset, names_to_columns, ordered_names, 
+    def __init__(self, queryset, ordered_datacolumns, # columns_to_names, ordered_names, 
                  show_cells=False, show_proteins=False, 
                  column_exclusion_overrides=None, *args, **kwargs):
         # Follows is to deal with a bug - columns from one table appear to be injecting into other tables!!
@@ -599,14 +610,22 @@ class DataSetResultTable(tables.Table):
         temp = ['facility_salt_batch','plate','well','control_type']
         if(show_cells): temp.append('cell_name')
         if(show_proteins): temp.append('protein_name')
-        temp.extend(ordered_names)
+        temp.extend(['col'+str(i) for (i,x) in enumerate(ordered_datacolumns)])
         ordered_names = temp
         
-        logger.debug(str(('names_to_columns', names_to_columns, 'orderedNames', ordered_names)))
-        for name,verbose_name in names_to_columns.items():
-            logger.debug(str(('create column:',name,verbose_name)))
-            self.base_columns[name] = tables.Column(verbose_name=verbose_name)
-        
+        #logger.debug(str(('columns_to_names', columns_to_names, 'orderedNames', ordered_names)))
+        #for name,verbose_name in columns_to_names.items():
+        for i,dc in enumerate(ordered_datacolumns):    
+            #logger.debug(str(('create column:',name,verbose_name)))
+            col = 'col%d'%i
+            logger.warn(str(('create column', col, dc.data_type)))
+            if(dc.data_type.lower() != OMERO_IMAGE_COLUMN_TYPE):
+                self.base_columns[col] = tables.Column(verbose_name=dc.name)
+            else:
+                #logger.debug(str(('omero_image column template', TEMPLATE % ('omero_image_id','omero_image_id'))))
+                self.base_columns[col] = tables.TemplateColumn(OMERO_IMAGE_TEMPLATE % (col,col), verbose_name=dc.name)
+
+                
         # Note: since every instance reuses the base_columns, each time the visibility must be set.
         if(show_cells):
             self.base_columns['cell_name'].visible = True
@@ -663,15 +682,16 @@ class DataSetManager():
         if(not self.has_omero_images(self.dataset_id)): column_exclusion_overrides.append('omero_image_id')
         if(not self.has_plate_wells_defined(self.dataset_id)): column_exclusion_overrides.extend(['plate','well'])
         if(not self.has_control_type_defined(self.dataset_id)): column_exclusion_overrides.append('control_type')
-        return DataSetResultTable(queryset, 
-                                  dataset_info.columns_to_names, 
-                                  dataset_info.ordered_names, 
+        return DataSetResultTable(queryset,
+                                  dataset_info.datacolumns, 
+                                  #dataset_info.columns_to_names, 
+                                  #dataset_info.ordered_names, 
                                   self.has_cells(), 
                                   self.has_proteins(),
                                   column_exclusion_overrides) # TODO: again, all these flags are confusing
     
     class DatasetInfo:
-        names_to_columns = {}
+        columns_to_names = {}
         ordered_names = []
         query_sql = ''
     
@@ -681,7 +701,8 @@ class DataSetManager():
         TODO: move the logic out of the view: so that it can be shared with the tastypie api (or make this rely on tastypie)
         """
     
-        datacolumns = self.get_dataset_columns(self.dataset.id)
+        #datacolumns = self.get_dataset_columns(self.dataset.id)
+        datacolumns = DataColumn.objects.filter(dataset=self.dataset).order_by('display_order')
         # Create a query on the fly that pivots the values from the datapoint table, making one column for each datacolumn type
         # use the datacolumns to make a query on the fly (for the DataSetManager), and make a DataSetResultSearchTable on the fly.
         #dataColumnCursor = connection.cursor()
@@ -690,10 +711,10 @@ class DataSetManager():
     
         # Need to construct something like this:
         # select distinct (datarecord_id), smallmolecule_id, sm.facility_id || '-' || sm.salt_id as facility_id,
-        #        (select int_value as col1 from db_datapoint dp1 where dp1.datacolumn_id=2 and dp1.datarecord_id = dp0.datarecord_id) as col1, 
-        #        (select int_value as col2 from db_datapoint dp2 where dp2.datarecord_id=dp0.datarecord_id and dp2.datacolumn_id=3) as col2 
-        #        from db_datapoint dp0 join db_datarecord dr on(datarecord_id=dr.id) join db_smallmoleculebatch smb on(smb.id=dr.smallmolecule_batch_id) join db_smallmolecule sm on(sm.id=smb.smallmolecule_id) 
-        #        where dp0.dataset_id = 1 order by datarecord_id;
+        #        (select int_value as col1 from db_datapoint dp1 where dp1.datacolumn_id=2 and dp1.datarecord_id = dp.datarecord_id) as col1, 
+        #        (select int_value as col2 from db_datapoint dp2 where dp2.datarecord_id=dp.datarecord_id and dp2.datacolumn_id=3) as col2 
+        #        from db_datapoint dp join db_datarecord dr on(datarecord_id=dr.id) join db_smallmoleculebatch smb on(smb.id=dr.smallmolecule_batch_id) join db_smallmolecule sm on(sm.id=smb.smallmolecule_id) 
+        #        where dp.dataset_id = 1 order by datarecord_id;
         queryString =   "select distinct (datarecord_id) as datarecord_id, sm.id as smallmolecule_id ,"
         queryString +=  facility_salt_batch_id_2 +' as facility_salt_batch' # Note: because we have a composite key for determining unique sm structures, we need to do this
         queryString +=  ', plate, well, control_type, omero_image_id '
@@ -701,18 +722,17 @@ class DataSetManager():
         show_proteins = self.has_proteins()
         if(show_cells): queryString += ", cell_id, cell.name as cell_name, cell.facility_id as cell_facility_id " 
         if(show_proteins): queryString += ", protein_id, protein.name as protein_name, protein.lincs_id as protein_lincs_id " 
-        i = 0
-        columns_to_names = {}
-        orderedNames = []
-        for datacolumn_id, name, datatype, precision in datacolumns:
-            i += 1
+        #columns_to_names = {}
+        #orderedNames = ["col%d"%(i) for (i,x) in enumerate(datacolumns)]
+        #logger.info(str((orderedNames)))
+        for i,dc in enumerate(datacolumns):
             alias = "dp"+str(i)
             columnName = "col" + str(i)
-            columns_to_names[columnName] = name
-            orderedNames.append(columnName)
+            #columns_to_names[columnName] = dc.name
+            #orderedNames.append(columnName)
             column_to_select = None
-            if(datatype == 'Numeric'):
-                if precision == 0:
+            if(dc.data_type == 'Numeric' or dc.data_type == 'Image'):
+                if dc.precision == 0 or dc.data_type == 'Image':
                     column_to_select = "int_value"
                 else:
                     column_to_select = "round( float_value::numeric, 2 )"
@@ -720,8 +740,8 @@ class DataSetManager():
                 column_to_select = "text_value"
             # TODO: use params
             queryString +=  (",(select " + column_to_select + " from db_datapoint " + alias + 
-                                " where " + alias + ".datacolumn_id="+str(datacolumn_id) + " and " + alias + ".datarecord_id=dp0.datarecord_id) as " + columnName )
-        queryString += " from db_datapoint dp0 join db_datarecord dr on(datarecord_id=dr.id) "
+                                " where " + alias + ".datacolumn_id="+str(dc.id) + " and " + alias + ".datarecord_id=dp.datarecord_id) as " + columnName )
+        queryString += " from db_datapoint dp join db_datarecord dr on(datarecord_id=dr.id) "
         # LEAVE LM out, so can also serve un-mapped studies  queryString += " join db_librarymapping lm on(dr.librarymapping_id=lm.id) "
         queryString += " left join db_smallmolecule sm on(dr.smallmolecule_id = sm.id) "
         queryString += " left join db_smallmoleculebatch smb on(smb.smallmolecule_id=sm.id and smb.facility_batch_id=dr.batch_id) " # TODO: need indexes on these fields
@@ -731,7 +751,7 @@ class DataSetManager():
         if(self.has_proteins()): 
             queryString += " left join db_protein protein on(protein.id=dr.protein_id) " # TODO: change to left join
             # orderedNames.insert(1,'protein_name')
-        where = " where dp0.dataset_id = " + str(self.dataset.id)
+        where = " where dp.dataset_id = " + str(self.dataset.id)
         if(not is_authenticated): 
             where += " and ( not sm.is_restricted or sm.is_restricted is NULL)"
             if(show_proteins):
@@ -746,16 +766,16 @@ class DataSetManager():
         queryString += " LIMIT 10000 " # TODO - figure out how to paginate
         # orderedNames.append('...') # is this necessary?
         
-        logger.info(str(('orderedNames',orderedNames)))
-        logger.info(str(('columns_to_names',columns_to_names)))
+        #logger.info(str(('orderedNames',orderedNames)))
+        #logger.info(str(('columns_to_names',columns_to_names)))
     
         if(logger.isEnabledFor(logging.DEBUG)): logger.debug( "queryString: "+ queryString)
         logger.info( "queryString: "+ queryString)
         dataset_info = self.DatasetInfo()
-        dataset_info.columns_to_names = columns_to_names
-        dataset_info.ordered_names = orderedNames
+        #dataset_info.columns_to_names = columns_to_names
+        #dataset_info.ordered_names = orderedNames
         dataset_info.query_sql = queryString
-        
+        dataset_info.datacolumns = datacolumns
         return dataset_info
    
 
@@ -1053,7 +1073,7 @@ class LibrarySearchManager(models.Manager):
             sql += ", to_tsquery(%s) as query  " 
             where += "and library.search_vector @@ query "
         sql += where
-        sql += " group by library.id) a join db_library l2 on(a.id=l2.id) where l2.id=l.id"
+        sql += " group by library.id) a join db_library l2 on(a.id=l2.id) where l2.id=l.id order by l.short_name"
         
         logger.info(str(('sql',sql)))
         # TODO: the way we are separating query_string out here is a kludge

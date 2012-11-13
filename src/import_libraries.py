@@ -110,7 +110,7 @@ def main(path):
                     search[val]=initializer[val]
                 initializer['smallmolecule_batch'] = SmallMoleculeBatch.objects.get(**search)
             except Exception, e:
-                logger.error(str(('smallmolecule batch not found: ', search, 'initializer', initializer)))    
+                logger.error(str(('smallmolecule batch not found: ', search, 'initializer', initializer, current_row)))    
                 raise
         lm_initializer = {}
         try:
@@ -137,6 +137,7 @@ def readLibraries(path, sheetName):
     date_parser = lambda x : util.convertdata(x,date)
     column_definitions = {'Name': ('name',True), # TODO use the model to determine if req'd
                           'ShortName': ('short_name',True),
+                          'Library Type':'type',
                           'Date First Plated': ('date_first_plated',False,None,date_parser),
                           'Date Data Received':('date_data_received',False,None,date_parser),
                           'Date Loaded': ('date_loaded',False,None,date_parser),

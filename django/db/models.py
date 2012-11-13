@@ -186,7 +186,7 @@ class SmallMolecule(models.Model):
     nominal_target          = models.ForeignKey('Protein', null=True)
     facility_id             = _INTEGER(null=False) # center compound id
     salt_id                 = _INTEGER(null=True)
-    lincs_id                = _INTEGER(null=True)
+    lincs_id                = _INTEGER(null=True,default=None)
     name                    = _TEXT(**_NOTNULLSTR) 
     alternative_names       = _TEXT(**_NULLOKSTR) 
     #facility_batch_id       = _INTEGER(null=True)
@@ -394,9 +394,18 @@ class DataSet(models.Model):
     def __unicode__(self):
         return unicode(self.facility_id)
 
+LIBRARY_TYPE_PLATED = 'plated'
+LIBRARY_TYPE_NON_PLATED = 'non-plated'
+LIBRARY_TYPE_VIAL  = 'vial'
+LIBRARY_TYPES = ((LIBRARY_TYPE_PLATED, LIBRARY_TYPE_PLATED),
+                 (LIBRARY_TYPE_NON_PLATED, LIBRARY_TYPE_NON_PLATED),
+                 (LIBRARY_TYPE_VIAL, LIBRARY_TYPE_VIAL),)
 class Library(models.Model):
     name                    = _TEXT(unique=True,**_NOTNULLSTR)
     short_name              = _CHAR(max_length=35,unique=True, **_NOTNULLSTR)
+    type                    = models.CharField(null=True, max_length=24,
+                                      choices=LIBRARY_TYPES,
+                                      default=LIBRARY_TYPE_NON_PLATED)
     date_first_plated       = models.DateField(null=True,blank=True)
     date_data_received      = models.DateField(null=True,blank=True)
     date_loaded             = models.DateField(null=True,blank=True)
@@ -438,6 +447,7 @@ class DataColumn(models.Model):
     time_point              = _TEXT(**_NULLOKSTR)
     readout_type            = _TEXT(**_NULLOKSTR)
     comments                = _TEXT(**_NULLOKSTR)
+    display_order           = _INTEGER(null=True) # an example of why fieldinformation may need to be combined with datacolumn
 
     def __unicode__(self):
         return unicode(str((self.dataset,self.name,self.data_type)))

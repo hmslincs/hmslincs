@@ -160,11 +160,13 @@ else
 	check_errs $? "import smallmolecule batch fails"
 	
 	echo 'import library mapping tables...'
-	python src/import_libraries.py -f $DATADIR/libraries.sde4.xls
+	#python src/import_libraries.py -f $DATADIR/libraries.sde4.xls
+	python src/import_libraries.py -f $DATADIR/libraries.xls
 	check_errs $? "import library fails"
 	
 	echo 'import kinase tables...'
-	python src/import_protein.py -f $DATADIR/HMS-LINCS_KinaseMetadata_forLoading.xls
+	python src/import_protein.py -f $DATADIR/HMS-LINCS_KinaseMetadata_forLoading_old.xls
+	#python src/import_protein.py -f $DATADIR/HMS-LINCS_KinaseMetadata_forLoading.xls
 	check_errs $? 'import kinases fails'
 	
 	echo 'import targets_test_dataset.xls...'
@@ -430,7 +432,7 @@ else
 	echo 'import screen results...'
 	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20078_HMSL10095_kinomescan.xlsx
 	check_errs $? "import dataset fails"
-	
+
 fi
 
 python src/create_indexes.py | psql -U$DB_USER  $DB -h $PGHOST  -v ON_ERROR_STOP=1

@@ -24,6 +24,8 @@ FORMAT = 'png'
 SignatureData = co.namedtuple('SignatureData',
                               'drug_id drug status kinomescan '
                               'rangetested signature')
+CellLineData = co.namedtuple('CellLineData',
+                             'cell_id name')
 
 dpi = 72  # 72 dpi produces perfect 1-pixel lines for 1-pt figure lines
 colors = ('red', 'yellow', 'magenta', 'blue', 'green', 'cyan')  # cell line marker colors
@@ -31,20 +33,20 @@ colors = ('red', 'yellow', 'magenta', 'blue', 'green', 'cyan')  # cell line mark
 main_template = 'pathway/signature.html'
 
 
-def signature(target_name, compounds, cell_lines):
-    ctx = {'signature': template_context(target_name, compounds)}
-    return render_to_string(main_template, ctx)
-
-
 def signature_images(target_name, compounds, target_dir):
-    all_ranges = list(itertools.chain(*[c.rangetested for c in compounds]))
-    xlimits = min(all_ranges), max(all_ranges)
-    for compound in compounds:
-        signature_image(target_name, compound, xlimits, target_dir)
-    signature_image(target_name, None, xlimits, target_dir, scale_only=True)
+    all_ranges = list(itertools.chain(*[c.rangetested for c in compounds
+                                        if c.rangetested is not None]))
+    if len(all_ranges) > 0:
+        xlimits = min(all_ranges), max(all_ranges)
+        for compound in compounds:
+            signature_image(target_name, compound, xlimits, target_dir)
+        signature_image(target_name, None, xlimits, target_dir, scale_only=True)
         
 
 def signature_image(target_name, compound, xlimits, target_dir, scale_only=False):
+
+    if not scale_only and compound.signature is None:
+        return
 
     f = Figure(figsize=(250/dpi, 20/dpi), dpi=dpi)
     ax = f.add_subplot(111)
@@ -118,17 +120,6 @@ def cell_line_images(target_dir):
         canvas.print_png(filename)
 
 
-
-def template_context(target_name, compounds):
-    def filter_(compound):
-        return compound.isprimary
-    return {
-        'target_name': target_name,
-        'primary_compounds': itertools.ifilter(filter_, compounds),
-        'nonprimary_compounds': itertools.ifilterfalse(filter_, compounds),
-        }
-
-
 if __name__ == '__main__':
     if not django.conf.settings.configured:
         django.conf.settings.configure(
@@ -176,7 +167,14 @@ if __name__ == '__main__':
 
     signature_images(target_name, compounds, '.')
 
-cell_lines = (u'BT474', u'HCC1187', u'HCC1428', u'HCC38', u'HCC70', u'SKBR3')
+cell_lines = [
+    CellLineData(cell_id=u'50106', name=u'BT-474'),
+    CellLineData(cell_id=u'50578', name=u'HCC1187'),
+    CellLineData(cell_id=u'50208', name=u'HCC1428'),
+    CellLineData(cell_id=u'50216', name=u'HCC38'),
+    CellLineData(cell_id=u'50219', name=u'HCC70'),
+    CellLineData(cell_id=u'50057', name=u'SK-BR-3'),
+    ]
 
 LATEST = {
   u'JNK1': [SignatureData(drug_id=u'HMSL10058', drug=u'CG930', status=None, kinomescan=None, rangetested=None, signature=None), SignatureData(drug_id=u'HMSL10095', drug=u'ZG10', status=None, kinomescan=u'300093', rangetested=None, signature=None), SignatureData(drug_id=u'HMSL10100', drug=u'JNK9L', status=None, kinomescan=u'300030', rangetested=None, signature=None), SignatureData(drug_id=u'HMSL10162', drug=u'SP600125', status=None, kinomescan=None, rangetested=None, signature=None), SignatureData(drug_id=u'HMSL10185', drug=u'CC401', status=u'investigational', kinomescan=None, rangetested=None, signature=None)],
