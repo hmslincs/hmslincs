@@ -344,7 +344,7 @@ class Protein(models.Model):
     amino_acid_sequence = _TEXT(**_NULLOKSTR)
     gene_symbol         = _CHAR(max_length=35, **_NULLOKSTR)
     gene_id             = _CHAR(max_length=35, **_NULLOKSTR)
-    protein_source      = _CHAR(max_length=35, **_NULLOKSTR)
+    protein_source      = _CHAR(max_length=65, **_NULLOKSTR)
     protein_form        = _TEXT(**_NULLOKSTR) #TODO: controlled vocabulary
     protein_purity      = _TEXT(**_NULLOKSTR)
     protein_complex     = _TEXT(**_NULLOKSTR)
