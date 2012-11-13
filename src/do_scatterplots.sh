@@ -1,5 +1,8 @@
 #!/usr/bin/env zsh
 
+# NOTE: this script is probably not portable enough to run
+# "out-of-the-box"; I'm committing it to git as documentation.
+
 # set -x
 set -e
 
