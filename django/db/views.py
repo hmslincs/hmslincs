@@ -1,34 +1,28 @@
-import os.path as op
-#from django.template import Context, loader
-#from django.http import HttpResponse
-from django.core.exceptions import ObjectDoesNotExist,MultipleObjectsReturned
-#from django.shortcuts import render_to_response
+import urllib2
+import csv
+import xlwt
+import re
+
+from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render
 from django.db import models
 from django.db import connection
-#from django.forms.models import model_to_dict
+from django.utils.encoding import smart_str
 from django.forms import ModelForm
-#from django.forms import Field
 from django.http import Http404,HttpResponseRedirect
 from django.utils.safestring import mark_safe
 from django.http import HttpResponse
 from django.conf import settings
-
-import urllib2
-import csv
-import xlwt
-#from django.template import RequestContext
 import django_tables2 as tables
 from django_tables2 import RequestConfig
 from django_tables2.utils import A  # alias for Accessor
 
 from db.models import SmallMolecule, SmallMoleculeBatch, Cell, Protein, DataSet, Library, FieldInformation,AttachedFile,DataRecord,DataColumn
+#from db.CustomQuerySet import CustomQuerySet
 from db.models import get_detail
 from collections import OrderedDict
 
 import logging
-
-#from db.CustomQuerySet import CustomQuerySet
 
 logger = logging.getLogger(__name__)
 APPNAME = 'db',
@@ -43,7 +37,6 @@ OMERO_IMAGE_COLUMN_TYPE = 'omero_image'
 from dump_obj import dumpObj
 def dump(obj):
     dumpObj(obj)
-
 
 # --------------- View Functions -----------------------------------------------
 
@@ -235,31 +228,6 @@ def smallMoleculeIndex(request):
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
     return render(request, 'db/listIndex.html', {'table': table, 'search':search, 'heading': 'Small molecules' })
 
-#def smallMoleculeIndex(request):
-#    search = request.GET.get('search','')
-#    queryset = SmallMoleculeSearchManager().search(search, is_authenticated=request.user.is_authenticated());
-#    table = SmallMoleculeTable(queryset)
-#
-#    outputType = request.GET.get('output_type','')
-#    if(outputType != ''):
-#        return send_to_file(outputType, 'small_molecule', table, queryset, request )
-#    
-#    RequestConfig(request, paginate={"per_page": 25}).configure(table)
-#    return render(request, 'db/listIndex.html', {'table': table, 'search':search })
-
-def can_access_image(request, image_filename):
-    #dump(settings)
-    url = request.build_absolute_uri(settings.STATIC_URL + image_filename)
-    logger.info(str(('try to open url',url))) 
-    try:
-        response = urllib2.urlopen(url)
-        response.read()
-        #response.close() # TODO - is this needed?!
-        return True
-    except Exception,e:
-        logger.info(str(('no image found at', url, e)))
-    return False
-       
 def smallMoleculeDetail(request, facility_salt_id): # TODO: let urls.py grep the facility and the salt
     try:
         temp = facility_salt_id.split('-') # TODO: let urls.py grep the facility and the salt
@@ -331,11 +299,6 @@ def smallMoleculeDetail(request, facility_salt_id): # TODO: let urls.py grep the
     except SmallMolecule.DoesNotExist:
         raise Http404
 
-
-    
-def get_attached_files(facility_id, salt_id=None, batch_id=None):
-    return AttachedFile.objects.filter(facility_id_for=facility_id, salt_id_for=salt_id, batch_id_for=batch_id)
-
 def libraryIndex(request):
     search = request.GET.get('search','')
     queryset = LibrarySearchManager().search(search, is_authenticated=request.user.is_authenticated());
@@ -349,7 +312,6 @@ def libraryIndex(request):
     else:
         table = None
     return render(request, 'db/listIndex.html', {'table': table, 'search':search, 'heading': 'Libraries' })
-
 
 def libraryDetail(request, short_name):
     try:
@@ -366,17 +328,10 @@ def libraryDetail(request, short_name):
     except Library.DoesNotExist:
         raise Http404
 
-#def studyIndex(request):
-#    return datasetIndex(request, 'study' )
-
 def datasetIndex(request): #, type='screen'):
     search = request.GET.get('search','')
     logger.info(str(("is_authenticated:", request.user.is_authenticated(), 'search: ', search)))
     where = []
-#    if(type == 'screen'):
-#        where.append(" facility_id between 10000 and 30000 ")
-#    elif(type == 'study'):
-#        where.append(" facility_id between 300000 and 400000 ")
     if(search != ''):
         criteria = "search_vector @@ plainto_tsquery(%s)"
         if(get_integer(search) != None):
@@ -410,14 +365,7 @@ def datasetIndex(request): #, type='screen'):
         return send_to_file(outputType, 'datasetIndex', table, queryset, request )
         
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
-
-#    heading = type[0].upper() + type[1:]
-#    if heading[-1] == 'y':
-#        heading = heading[:-1] + 'ies'
-#    else:
-#        heading = heading + 's'
     heading = 'Datasets'
-
     return render(request, 'db/listIndex.html', {'table': table, 'search':search, 'type': type, 'heading': heading })
 
 # Follows is a messy way to differentiate each tab for the dataset detail page (each tab calls it's respective method)
@@ -455,18 +403,26 @@ def datasetDetailProteins(request, facility_id):
     
 def datasetDetailResults(request, facility_id):
     try:
-        details = datasetDetail(request,facility_id, 'results')
+        details = None
 
         outputType = request.GET.get('output_type','')
         if(outputType != ''):
-            table = details['table']
-            return send_to_file(outputType, 'dataset_'+str(facility_id), table, table.data, request )
+            dataset = DataSet.objects.get(facility_id=facility_id)
+            if(dataset.is_restricted and not request.user.is_authenticated()):
+                raise Http401
+            manager = DataSetManager(dataset)
+            #table = manager.get_table(is_authenticated=request.user.is_authenticated(), limit=1) # TODO: using the table *only* to get the columns defined, (refactor this right away) -sde4
+            cursor = manager.get_cursor(is_authenticated=request.user.is_authenticated(), limit=1000000)
+            datacolumns = DataColumn.objects.filter(dataset=dataset).order_by('display_order')
+            return send_to_file1(outputType, 'dataset_'+str(facility_id), datacolumns, cursor, request )
+        
+        details = datasetDetail(request,facility_id, 'results')
 
         return render(request,'db/datasetDetailResults.html', details)
     except Http401, e:
         return HttpResponse('Unauthorized', status=401)
 
-def datasetDetail(request, facility_id, sub_page):
+def datasetDetail(request, facility_id, sub_page, limit=10000):
     try:
         dataset = DataSet.objects.get(facility_id=facility_id)
         if(dataset.is_restricted and not request.user.is_authenticated()):
@@ -487,7 +443,7 @@ def datasetDetail(request, facility_id, sub_page):
     # search = request.GET.get('search','')
     
     if(sub_page == 'results'):
-        table = manager.get_table(request.user.is_authenticated())
+        table = manager.get_table(request.user.is_authenticated(), limit)
         RequestConfig(request, paginate={"per_page": 25}).configure(table)
         details['result_table'] = table
         
@@ -518,8 +474,6 @@ class TypeColumn(tables.Column):
         elif value == "dataset_detail": return "Screen"
         elif value == "protein_detail": return "Protein"
         else: raise Exception("Unknown type: "+value)
-        
-        
 
 class DataSetTable(tables.Table):
     id = tables.Column(visible=False)
@@ -618,7 +572,7 @@ class DataSetResultTable(tables.Table):
         for i,dc in enumerate(ordered_datacolumns):    
             #logger.debug(str(('create column:',name,verbose_name)))
             col = 'col%d'%i
-            logger.warn(str(('create column', col, dc.data_type)))
+            logger.info(str(('create column', col, dc.data_type)))
             if(dc.data_type.lower() != OMERO_IMAGE_COLUMN_TYPE):
                 self.base_columns[col] = tables.Column(verbose_name=dc.name)
             else:
@@ -650,7 +604,6 @@ class DataSetResultTable(tables.Table):
 # TODO: this class has grown - needs refactoring to allow ability to filter in a less clumsy way
 # (who are we kidding, this is raw sql, after all).
 class DataSetManager():
-
     
     def __init__(self,dataset,is_authenticated=False):
         self.dataset = dataset
@@ -670,20 +623,23 @@ class DataSetManager():
     def has_proteins(self):
         return len(self.protein_queryset) > 0
     
-    def get_table(self, is_authenticated=False,whereClause='',metaWhereClause=None,column_exclusion_overrides=[]): # TODO: 
+    def get_cursor(self, is_authenticated=False,limit=10000, whereClause='',metaWhereClause=None,column_exclusion_overrides=[]): # TODO: 
         
-        dataset_info = self._get_query_info(is_authenticated,whereClause,metaWhereClause)
+        self.dataset_info = self._get_query_info(is_authenticated,limit, whereClause,metaWhereClause)
         cursor = connection.cursor()
-        cursor.execute(dataset_info.query_sql)
-        # TODO: all dictfetchall calls to be replaced with pageable cursor implementation
-    
+        cursor.execute(self.dataset_info.query_sql)
+        return cursor
+
+    def get_table(self, is_authenticated=False,limit=10000, whereClause='',metaWhereClause=None,column_exclusion_overrides=[]): # TODO: 
+        
+        cursor = self.get_cursor(is_authenticated, limit, whereClause, metaWhereClause, column_exclusion_overrides)
         queryset = dictfetchall(cursor)
         #queryset = manager.get_dataset_result_table(dataset_id, is_authenticated=request.user.is_authenticated(), **{'show_cells':show_cells, 'show_proteins':show_proteins})
         if(not self.has_omero_images(self.dataset_id)): column_exclusion_overrides.append('omero_image_id')
         if(not self.has_plate_wells_defined(self.dataset_id)): column_exclusion_overrides.extend(['plate','well'])
         if(not self.has_control_type_defined(self.dataset_id)): column_exclusion_overrides.append('control_type')
         return DataSetResultTable(queryset,
-                                  dataset_info.datacolumns, 
+                                  self.dataset_info.datacolumns, 
                                   #dataset_info.columns_to_names, 
                                   #dataset_info.ordered_names, 
                                   self.has_cells(), 
@@ -695,7 +651,7 @@ class DataSetManager():
         ordered_names = []
         query_sql = ''
     
-    def _get_query_info(self, is_authenticated=False, whereClause='',metaWhereClause=None):
+    def _get_query_info(self, is_authenticated=False, limit=10000, whereClause='',metaWhereClause=None):
         """
         generate a django tables2 table
         TODO: move the logic out of the view: so that it can be shared with the tastypie api (or make this rely on tastypie)
@@ -763,7 +719,7 @@ class DataSetManager():
         queryString += " order by datarecord_id"
         if(metaWhereClause != None):
             queryString = "select * from ( " + queryString + ") a " + metaWhereClause
-        queryString += " LIMIT 10000 " # TODO - figure out how to paginate
+        queryString += " LIMIT " + str(limit) # TODO - figure out how to paginate
         # orderedNames.append('...') # is this necessary?
         
         #logger.info(str(('orderedNames',orderedNames)))
@@ -862,6 +818,7 @@ class DataSetManager():
 #
 #    def __init__(self, table, *args, **kwargs):
 #        super(ScreenTestTable, self).__init__(table)
+
 def find_datasets_for_protein(protein_id):
     datasets = [x.id for x in DataSet.objects.filter(datarecord__protein__id=protein_id).distinct()]
     logger.info(str(('datasets',datasets)))
@@ -1152,6 +1109,22 @@ class SiteSearchTable(tables.Table):
         attrs = {'class': 'paleblue'}
         exclude = {'rank'}
 
+def can_access_image(request, image_filename):
+    #dump(settings)
+    url = request.build_absolute_uri(settings.STATIC_URL + image_filename)
+    logger.info(str(('try to open url',url))) 
+    try:
+        response = urllib2.urlopen(url)
+        response.read()
+        #response.close() # TODO - is this needed?!
+        return True
+    except Exception,e:
+        logger.info(str(('no image found at', url, e)))
+    return False
+    
+def get_attached_files(facility_id, salt_id=None, batch_id=None):
+    return AttachedFile.objects.filter(facility_id_for=facility_id, salt_id_for=salt_id, batch_id_for=batch_id)
+
 def set_table_column_info(table,table_names, sequence_override=[]):
     # TODO: set_table_column info could pick the columns to include from the fieldinformation as well
     """
@@ -1201,6 +1174,13 @@ def download_attached_file(request, path):
         pass
     return HttpResponseRedirect("/_static/"+path)
         
+# TODO: currently, send_to_file1 is used specifically to export the large datasets; but would like for everything to use this method
+def send_to_file1(outputType, name, ordered_datacolumns, cursor, request):
+    if(outputType == 'csv'):
+        return export_as_csv1(name,ordered_datacolumns , request, cursor)
+    elif(outputType == 'xls'):
+        return export_as_xls1(name, ordered_datacolumns, request, cursor)
+    
 def send_to_file(outputType, name, table, queryset, request):
     # ordered list (field,verbose_name)
     columns = map(lambda (x,y): (x, y.verbose_name), filter(lambda (x,y): x != 'rank' and x!= 'snippet' and y.visible, table.base_columns.items()))
@@ -1231,7 +1211,9 @@ def export_as_xls(name,columnNames, request, queryset):
         sheet.write(0, i, verbose_name)        
         
     # Write data rows
-    for row,obj in enumerate(queryset):
+    debug_interval=1000
+    row = 0
+    for obj in queryset:
         if isinstance(obj, dict):
             vals = [obj[field] for (field,verbose_name) in columnNames]
         else:
@@ -1239,6 +1221,9 @@ def export_as_xls(name,columnNames, request, queryset):
         
         for i,column in enumerate(vals):
             sheet.write(row+1, i, column )
+        if(row % debug_interval == 0):
+            logger.info("row: " + str(row))
+        row += 1
     wbk.save(response)
     return response
 
@@ -1252,9 +1237,91 @@ def export_as_csv(name,columnNames, request, queryset):
     # Write a first row with header information
     writer.writerow([verbose_name for (field,verbose_name) in columnNames])
     # Write data rows
+    debug_interval=1000
+    row = 0
     for obj in queryset:
         if isinstance(obj, dict):
             writer.writerow([obj[field] for (field,verbose_name) in columnNames])
         else:
             writer.writerow([getattr(obj, field) for (field,verbose_name) in columnNames])
+        if(row % debug_interval == 0):
+            logger.info("row: " + str(row))
+        row += 1
+    return response
+
+def get_cols_to_write(cursor, fieldinformation_tables=[''], ordered_datacolumns=None):
+    header_row = {}
+    for i,col in enumerate(cursor.description):
+        if(ordered_datacolumns != None and col.name.find('col')==0):
+            #cols_to_write.append(i)
+            j = int(re.match(r'col(\d+)',col.name).group(1))
+            dc = ordered_datacolumns[j]
+            header_row[i] = dc.name
+        else:
+            try:
+                fi = FieldInformation.manager.get_column_fieldinformation_by_priority(col.name,fieldinformation_tables)
+                if(fi.show_in_detail):
+                    #cols_to_write.append(i)
+                    header_row[i] = fi.get_verbose_name()
+            except (ObjectDoesNotExist) as e:
+                logger.warn(str(('no fieldinformation found for field:', col.name)))
+         
+    return OrderedDict(sorted(header_row.items(),key=lambda x: x[0]))
+     
+
+
+# TODO: is a cursor a queryset? if so then refactor all methods to use this
+def export_as_xls1(name,ordered_datacolumns, request, cursor):
+    """
+    Generic xls export admin action.
+    """
+    response = HttpResponse(mimetype='application/Excel')
+    response['Content-Disposition'] = 'attachment; filename=%s.xls' % unicode(name).replace('.', '_')
+
+    cols_to_names = get_cols_to_write(cursor, ['dataset','smallmolecule','datarecord','smallmoleculebatch','protein','cell',''], ordered_datacolumns)   
+    
+    wbk = xlwt.Workbook()
+    sheet = wbk.add_sheet('sheet 1')    # Write a first row with header information
+    for i,name in enumerate(cols_to_names.values()):
+        sheet.write(0, i, name)   
+            
+    debug_interval=1000
+    row = 0
+    obj=cursor.fetchone()
+    keys = cols_to_names.keys()
+    logger.info(str(('keys',keys)))
+    while obj:
+        for i,key in enumerate(keys):
+            sheet.write(row+1,i,obj[key])
+        if(row % debug_interval == 0):
+            logger.info("row: " + str(row))
+        row += 1
+        obj=cursor.fetchone()
+    wbk.save(response)
+    return response
+
+def export_as_csv1(name,ordered_datacolumns, request, cursor):
+    """
+    Generic csv export admin action.
+    """
+    response = HttpResponse(mimetype='text/csv')
+    response['Content-Disposition'] = 'attachment; filename=%s.csv' % unicode(name).replace('.', '_')
+
+    cols_to_names = get_cols_to_write(cursor, ['dataset','smallmolecule','datarecord','smallmoleculebatch','protein','cell',''], ordered_datacolumns)   
+
+    writer = csv.writer(response)
+    # Write a first row with header information
+    writer.writerow(cols_to_names.values())
+    # Write data rows
+    debug_interval=1000
+    row = 0
+    obj=cursor.fetchone()
+    keys = cols_to_names.keys()
+    logger.info(str(('keys',keys,obj)))
+    while obj:
+        writer.writerow([smart_str(obj[int(key)], 'utf-8', errors='ignore') for key in keys])
+        if(row % debug_interval == 0):
+            logger.info("row: " + str(row))
+        row += 1
+        obj=cursor.fetchone()
     return response

@@ -335,7 +335,7 @@ class Cell(models.Model):
 class Protein(models.Model):
     name                = _TEXT(**_NOTNULLSTR)
     lincs_id            = _INTEGER(null=False, unique=True)
-    uniprot_id          = _CHAR(max_length=6, **_NULLOKSTR)
+    uniprot_id          = _CHAR(max_length=13, **_NULLOKSTR) # Note: UNIPROT ID's are 6 chars long, but we have a record with two in it, see issue #74
     alternate_name      = _TEXT(**_NULLOKSTR)
     alternate_name_2    = _TEXT(**_NULLOKSTR)
     provider            = _TEXT(**_NULLOKSTR)
@@ -344,7 +344,7 @@ class Protein(models.Model):
     amino_acid_sequence = _TEXT(**_NULLOKSTR)
     gene_symbol         = _CHAR(max_length=35, **_NULLOKSTR)
     gene_id             = _CHAR(max_length=35, **_NULLOKSTR)
-    protein_source      = _CHAR(max_length=35, **_NULLOKSTR)
+    protein_source      = _CHAR(max_length=65, **_NULLOKSTR)
     protein_form        = _TEXT(**_NULLOKSTR) #TODO: controlled vocabulary
     protein_purity      = _TEXT(**_NULLOKSTR)
     protein_complex     = _TEXT(**_NULLOKSTR)

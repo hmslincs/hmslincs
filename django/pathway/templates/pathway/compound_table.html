@@ -1,7 +1,9 @@
 {% for sd in compounds %}
   <tr>
     {# FIXME until salt codes are included in ids <td><a href="/db/sm/{{ sd.drug_id }}/">{{ sd.drug }}</a></td> #}
-    <td><a href="/db/sm/?search={{ sd.drug_id }}">{{ sd.drug }}</a></td>
+    <td class="compound">
+      <a href="/db/sm/?search={{ sd.drug_id }}">{{ sd.drug }}</a>
+    </td>
     <td class="classification">
       {% if sd.status == "approved" %}
         A
