@@ -13,57 +13,61 @@ import signature
 
 # mapping from target names in signature.LATEST to names in the diagram
 target_name_fixups = {
-    u'JNK1': ['JNK1-2-3'],
-    u'JNK2': ['JNK1-2-3'],
-    u'JNK3': ['JNK1-2-3'],
-    u'AKT1': ['AKT'],
-    u'AKT2': ['AKT'],
-    u'AKT3': ['AKT'],
-    u'MNK2': ['MNK1-2'],
-    u'CHK': ['CHK1-2'],
-    u'PI3K-ALPHA': ['PI3K'],
-    u'PI3K-BETA': ['PI3K'],
-    u'PI3K-DELTA': ['PI3K'],
-    u'PI3K-GAMMA': ['PI3K'],
-    u'BCR-ABL': ['C-ABL'],
-    u'ABL(T315I)': ['C-ABL'],
-    u'GSK3A': ['GSK3'],
-    u'GSK3B': ['GSK3'],
-    u'BRAF(V600E)': ['RAF'],
-    u'B-RAF': ['RAF'],
-    u'C-RAF': ['RAF'],
-    u'P38-ALPHA': ['P38'],
-    u'P38-BETA': ['p38'],
-    u'RSK2': ['P90RSK'],
-    u'JAK1': ['JAK1-2-3'],
-    u'JAK2': ['JAK1-2-3'],
-    u'JAK3': ['JAK1-2-3'],
-    u'PKC-B': ['PKC'],
-    u'CHK1': ['CHK1-2'],
-    u'GSK-3': ['GSK3'],
-    u'IKK-BETA': ['IKK'],
-    u'MEK': ['MEK1-2'],
-    u'MEK1': ['MEK1-2'],
-    u'MEK2': ['MEK1-2'],
-    u'CDK1': ['CDK'],
-    u'CDK2': ['CDK'],
-    u'CDK4': ['CDK'],
-    u'CDK5': ['CDK'],
-    u'CDK7': ['CDK'],
-    u'CDK9': ['CDK'],
-    u'AURKA': ['AURORA'],
-    u'AURKB': ['AURORA'],
-    u'AURKC': ['AURORA'],
-    u'HSP90 ALPHA': ['HSP90'],
-    u'HSP90 BETA': ['HSP90'],
-    u'ERK1': ['ERK1-2'],
-    u'ERK2': ['ERK1-2'],
-    u'AMPK-ALPHA1': ['AMPK'],
-    u'MTORC1': ['MTOR'],
-    u'MTORC2': ['MTOR'],
-    u'P38 MAPK': ['P38'],
-
-    # TODO: FGFR -> FGFR1? compounds seem to be pan-FGFR or possibly FGFR1-selective
+    u'JNK1': 'JNK1-2-3',
+    u'JNK2': 'JNK1-2-3',
+    u'JNK3': 'JNK1-2-3',
+    u'AKT1': 'AKT',
+    u'AKT2': 'AKT',
+    u'AKT3': 'AKT',
+    u'MNK2': 'MNK1-2',
+    u'CHK': 'CHK1-2',
+    u'PI3K-ALPHA': 'PI3K',
+    u'PI3K-BETA': 'PI3K',
+    u'PI3K-DELTA': 'PI3K',
+    u'PI3K-GAMMA': 'PI3K',
+    u'BCR-ABL': 'C-ABL',
+    u'ABL(T315I)': 'C-ABL',
+    u'GSK3A': 'GSK3',
+    u'GSK3B': 'GSK3',
+    u'BRAF(V600E)': 'RAF',
+    u'B-RAF': 'RAF',
+    u'C-RAF': 'RAF',
+    u'P38-ALPHA': 'P38',
+    u'P38-BETA': 'p38',
+    u'RSK2': 'P90RSK',
+    u'JAK1': 'JAK1-2-3',
+    u'JAK2': 'JAK1-2-3',
+    u'JAK3': 'JAK1-2-3',
+    u'PKC-B': 'PKC',
+    u'CHK1': 'CHK1-2',
+    u'GSK-3': 'GSK3',
+    u'IKK-BETA': 'IKK',
+    u'MEK': 'MEK1-2',
+    u'MEK1': 'MEK1-2',
+    u'MEK2': 'MEK1-2',
+    u'CDK1': 'CDK',
+    u'CDK2': 'CDK',
+    u'CDK4': 'CDK',
+    u'CDK5': 'CDK',
+    u'CDK7': 'CDK',
+    u'CDK9': 'CDK',
+    u'AURKA': 'AURORA',
+    u'AURKB': 'AURORA',
+    u'AURKC': 'AURORA',
+    u'HSP90 ALPHA': 'HSP90',
+    u'HSP90 BETA': 'HSP90',
+    u'ERK1': 'ERK1-2',
+    u'ERK2': 'ERK1-2',
+    u'AMPK-ALPHA1': 'AMPK',
+    u'MTORC1': 'MTOR',
+    u'MTORC2': 'MTOR',
+    u'P38 MAPK': 'P38',
+    u'FGFR3': 'FGFR',
+    u'ALK': 'ALK2',
+    u'ALK': 'ALK5',
+    u'PLK1': 'PLK',
+    u'PLK2': 'PLK',
+    # didn't map PARP-2 to PARP since compound lists for both are currently identical
     }
 
 if __name__ == '__main__':
@@ -82,13 +86,12 @@ if __name__ == '__main__':
 
     # tweak some target names
     signature_data = signature.LATEST.copy()
-    for name, aliases in target_name_fixups.items():
+    for name, aliase in target_name_fixups.items():
         if name in signature_data:
             original_signatures = signature_data[name]
             del signature_data[name]
-            for alias in aliases:
-                alias_signatures = signature_data.setdefault(alias, [])
-                alias_signatures += original_signatures
+            alias_signatures = signature_data.setdefault(alias, [])
+            alias_signatures += original_signatures
 
     # load OmniGraffle-exported html
     pathway_source_file = open(op.join(data_dir, 'pathway.html'))
