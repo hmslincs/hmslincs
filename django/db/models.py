@@ -335,7 +335,7 @@ class Cell(models.Model):
 class Protein(models.Model):
     name                = _TEXT(**_NOTNULLSTR)
     lincs_id            = _INTEGER(null=False, unique=True)
-    uniprot_id          = _CHAR(max_length=6, **_NULLOKSTR)
+    uniprot_id          = _CHAR(max_length=13, **_NULLOKSTR) # Note: UNIPROT ID's are 6 chars long, but we have a record with two in it, see issue #74
     alternate_name      = _TEXT(**_NULLOKSTR)
     alternate_name_2    = _TEXT(**_NULLOKSTR)
     provider            = _TEXT(**_NULLOKSTR)
