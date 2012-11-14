@@ -65,7 +65,15 @@ def scatterplot(points, metadata, lims=None, display=False):
         return output
 
 def build_label(metadata):
-    label = '/'.join(map(str, metadata))
+    readout, ligand, concentration, time = metadata
+    if readout is not None and all(x is None for x in (ligand, concentration, time)):
+        # basal
+        label = 'basal %s (a.u.)' % readout
+    elif all(x is not None for x in metadata):
+        # ligand response
+        label = '%s [%s]\n(fold change over basal)' % (readout, ligand)
+    else:
+        raise ValueError("unknown combination of metadata values")
     return label
 
 if __name__ == '__main__':

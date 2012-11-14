@@ -94,6 +94,10 @@ ul.pagination > li:first-child {
   margin-left: 0;
 }
 
+td.facility_salt_batch {
+  white-space: nowrap;
+}
+
 /*
 .basictab li a {
     background-color: #FFCE87;
