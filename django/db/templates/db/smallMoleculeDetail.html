@@ -24,7 +24,7 @@
 	{% endif %}
 	{% if ambit_image_location %}
 		<h2 class='entity_detail_title'>KINOMEscan Image</h2>
-		<img src="{{ STATIC_URL }}{{ambit_image_location}} " onclick="w=window.open('{{ STATIC_URL }}{{image_location}}','image','height=400,width=800');w.moveTo(500,400);" />
+		<img src="{{ STATIC_URL }}{{ambit_image_location}} " onclick="w=window.open('{{ STATIC_URL }}{{ambit_image_location}}','image','height=400,width=800');w.moveTo(500,400);" />
 	{% endif %}
 	{% if batchTable %}
 		{% load render_table from django_tables2 %}

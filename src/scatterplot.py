@@ -53,7 +53,7 @@ def scatterplot(points, metadata, lims=None, display=False):
         ax.spines[loc].set_color('none')
     ax.xaxis.set_ticks_position('bottom')
     ax.yaxis.set_ticks_position('left')
-    f.subplots_adjust(left=0.2, bottom=0.1, right=1, top=1, wspace=0, hspace=0)
+    f.subplots_adjust(left=0.2, bottom=0.15, right=1, top=1, wspace=0, hspace=0)
     plt.setp(f, 'facecolor', 'none')
     if display:
         plt.show()
