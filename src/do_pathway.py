@@ -63,8 +63,8 @@ target_name_fixups = {
     u'MTORC2': 'MTOR',
     u'P38 MAPK': 'P38',
     u'FGFR3': 'FGFR',
-    u'ALK': 'ALK2',
-    u'ALK': 'ALK5',
+    u'ALK2': 'ALK',
+    u'ALK5': 'ALK',
     u'PLK1': 'PLK',
     u'PLK3': 'PLK',
     u'BCL2': 'BCL-2',
@@ -92,6 +92,7 @@ target_display_names = {
 
 target_protein_ids = {
     'AKT': (('200482', 'AKT1'), ('200483', 'AKT2'), ('200484', 'AKT3')),
+    'ALK': (('200562', 'ALK2'), ('200563', 'ALK3'), ('200564', 'ALK5')),
     'AMPK': (('200486', 'AMPK-alpha1'), ('200487', 'AMPK-alpha2')),
     'ATM': '200488',
     'AURORA': (('200489', 'AURKA'), ('200490', 'AURKB'), ('200491', 'AURKC')),
