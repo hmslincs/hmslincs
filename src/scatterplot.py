@@ -53,7 +53,7 @@ def scatterplot(points, metadata, lims=None, display=False):
         ax.spines[loc].set_color('none')
     ax.xaxis.set_ticks_position('bottom')
     ax.yaxis.set_ticks_position('left')
-    f.subplots_adjust(left=0.2, bottom=0.1, right=1, top=1, wspace=0, hspace=0)
+    f.subplots_adjust(left=0.2, bottom=0.15, right=1, top=1, wspace=0, hspace=0)
     plt.setp(f, 'facecolor', 'none')
     if display:
         plt.show()
@@ -65,7 +65,15 @@ def scatterplot(points, metadata, lims=None, display=False):
         return output
 
 def build_label(metadata):
-    label = '/'.join(map(str, metadata))
+    readout, ligand, concentration, time = metadata
+    if readout is not None and all(x is None for x in (ligand, concentration, time)):
+        # basal
+        label = 'basal %s (a.u.)' % readout
+    elif all(x is not None for x in metadata):
+        # ligand response
+        label = '%s [%s]\n(fold change over basal)' % (readout, ligand)
+    else:
+        raise ValueError("unknown combination of metadata values")
     return label
 
 if __name__ == '__main__':

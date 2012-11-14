@@ -4,7 +4,21 @@
 
   <tr>
     <td colspan="4">
-      <h3><a href="#">{{ signature.target_name }}</a> inhibitors:</h3>
+      <h3>Inhibitors of
+      {% spaceless %}
+      {% if signature.protein_id_single %}
+        <a href="/db/proteins/{{ signature.protein_id_single }}/">{{ signature.target_display }}</a>:
+      {% else %}
+        {{ signature.target_display }}
+        <span>(</span>
+        {% for id, name in signature.protein_id_list %}
+          <a href="/db/proteins/{{ id }}/">{{ name }}</a>
+          {% if not forloop.last %}<span>, </span>{% endif %}
+        {% endfor %}
+        <span>):</span>
+      {% endif %}
+      {% endspaceless %}
+      </h3>
     </td>
   </tr>
 
@@ -13,7 +27,7 @@
      {# nbsps to tweak horizontal alignment #}
     <th class="classification">&nbsp;C*</th>
     <th class="kinomescan">&nbsp;KS*</th>
-    <th class="signature">Signature (log<sub>10</sub> GI50)</th>
+    <th class="signature">Signature [GI50, log<sub>10</sub>(M)]</th>
   </tr>
 
   {% with compounds=signature.compounds %}

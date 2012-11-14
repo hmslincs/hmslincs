@@ -1,5 +1,5 @@
-td {
-  border: 1px solid #808080;
+h2 {
+  margin-bottom: 2em;
 }
 
 th, td {
@@ -14,6 +14,48 @@ td p {
   margin: 0;
 }
 
-.caption {
-  padding-left: 60px;
+#content td.featured {
+  padding-bottom: 40px;
+}
+
+#content td.righthand {
+  padding-right: 40px;
+}
+
+#content td.featured p {
+  margin-bottom: 20px;
+}
+
+#content td.matrix {
+  padding: 0 40px 40px 60px;
+}
+
+#content td.matrix img {
+  margin-left: -60px;
+}
+
+#content td.matrix p {
+  font-size: 8pt;
+}
+
+#slider {
+  width: 100px;
+  left: 130px;
+  margin-top: -16px;
+}
+
+#slider.ui-widget-content {
+  background: #F7AB53;
+
+}
+
+#slider-wrap {
+  margin-left: 60px;
+}
+
+#timepoint {
+  border: 0;
+  color: #f6931f;
+  font-weight: bold;
+  width: 65px;
 }

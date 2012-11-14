@@ -31,7 +31,9 @@ _params = dict(
     # KEYLENGTH leftmost cells comprise the "key", and remaining cells
     # comprise the "value".
     KEYLENGTH = 4,
+
     LEVELFORNAN = 0.5,
+    CLOBBEROK = False,
 )
 _sg.setparams(_params)
 del _sg, _params
@@ -46,7 +48,8 @@ def _seq2type(seq, type_):
     assert tc.issequence(seq)
     return type(seq)([type_(v) for v in seq])
 
-def write_scatterplot(output, points, metadata, lims=None):
+def write_scatterplot(output, points, metadata,
+                      lims=None):
     # calls sp.scatterplot
     # outputs a scatterplot to output
     with open(output, 'w') as out_fh:
@@ -161,8 +164,12 @@ def main(argv=sys.argv[1:]):
         if md[0] >= md[1]: continue
         if md[0].time != md[1].time: continue
         output = outpath(md)
+
+        if not CLOBBEROK and op.exists(output):
+            raise Exception("won't clobber %s" % output)
+
         points = tuple(spd(*(k + (x, y))) for k, x, y in zip(specs, *vs))
-        write_scatterplot(output, points, md)
+        write_scatterplot(output, points, md, lims)
 
 
 if __name__ == '__main__':
