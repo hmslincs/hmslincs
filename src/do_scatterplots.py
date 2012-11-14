@@ -162,7 +162,7 @@ def main(argv=sys.argv[1:]):
         if md[0].time != md[1].time: continue
         output = outpath(md)
         points = tuple(spd(*(k + (x, y))) for k, x, y in zip(specs, *vs))
-        write_scatterplot(output, points, md)
+        write_scatterplot(output, points, md, lims)
 
 
 if __name__ == '__main__':

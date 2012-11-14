@@ -2,35 +2,52 @@
 
 {% block head %}
   <link rel="stylesheet" href="{{ STATIC_URL }}responses/css/responses.css"/>
+  <link rel="stylesheet" href="//code.jquery.com/ui/1.9.1/themes/base/jquery-ui.css" />
+  <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.9.1/jquery-ui.min.js"></script>
   <script src="{{ STATIC_URL }}responses/js/responses.js"></script>
 {% endblock %}
 
 {% block body %}
 
+<h1>Cell/Ligand responses</h1>
+
 <table class="plain">
 
   <tr>
-    <td>
-      <img src="{{ STATIC_URL }}responses/img/slider/pakt,igf-1,100,10__perk,fgf-1,100,10.png">
+    <td colspan="2"><h2>Lapatinib sensitivity</h2></td>
+  </tr>
+  <tr>
+    <td class="featured">
+      <img id="slider-img" src="{{ STATIC_URL }}responses/img/slider/pakt,igf-1,100,10__perk,fgf-1,100,10.png">
+      <div id="slider-wrap">
+        <label for="timepoint">Time point:</label>
+        <input type="text" id="timepoint"/>
+        <div id="slider"></div>
+      </div>
     </td>
-    <td>
-      <h3>pERK response to FGF-1 vs. pAKT response to IGF-1 (over time)</h3>
+    <td class="featured righthand">
+      <h3>pERK response to FGF-1 vs. pAKT response to IGF-1, over time</h3>
 
-      The pERK response to FGF-1 (y-axis) occurs early, while the pAKT response
-      to IGF-1 occurs at the last time point. In general, the Her2amp cell lines
-      (triangles) that are the most responsive to Lapatinib (in red) are the
-      weakest responders to FGF-1 or IGF-1.
+      <p>The pERK response to FGF-1 (y-axis) is strongest at the first time
+      point (10 minutes) and decreases thereafter, while the pAKT response to
+      IGF-1 occurs only at the last time point and is much weaker. In general,
+      the Her2amp cell lines (triangles) that are the most responsive to
+      Lapatinib (in red) are the weakest responders to FGF-1 or IGF-1.
+
+      <p>Move the slider to view the response at the different timepoints (10,
+      30 and 90 minutes).
 
     </td>
   </tr>
 
   <tr>
-    <td>
+    <td class="featured">
       <img src="{{ STATIC_URL }}responses/img/basal_graded/erbb2__perbb2.png">
     </td>
-    <td>
+    <td class="featured righthand">
       <h3>Basal pErbB2 vs. ErbB2</h3>
 
+      <p>
       Basal expression levels and phosphorylation levels of ErbB2 are strongly
       correlated. The cell lines responsive to Lapatinib (red) are the ones with
       the highest levels of ErbB2 which are mainly Her2amp (triangles).
@@ -42,10 +59,10 @@
     <td colspan="2"><h2>Ligand responses</h2></td>
   </tr>
   <tr>
-    <td>
-      <p><img src="{{ STATIC_URL }}responses/img/perk,btc,100,m__perk,egf,100,m.png">
+    <td class="matrix">
       <h3>pERK responses, to EGF vs. BTC</h3>
-      <p class="caption">
+      <p><img src="{{ STATIC_URL }}responses/img/perk,btc,100,m__perk,egf,100,m.png">
+      <p>
 
       Average pERK fold-change response to BTC and EGF are strongly correlated,
       suggesting strong similarities in the response to ErbB ligands targeting
@@ -53,10 +70,10 @@
       responsive cell lines.
       
     </td>
-    <td>
-      <p><img src="{{ STATIC_URL }}responses/img/pakt,egf,100,m__pakt,hrg,100,m.png">
+    <td class="matrix">
       <h3>pAKT response, to HRG vs. EGF</h3>
-      <p class="caption">
+      <p><img src="{{ STATIC_URL }}responses/img/pakt,egf,100,m__pakt,hrg,100,m.png">
+      <p>
 
       Average pAKT fold-change response to EFG and HRG are not correlated,
       showing that HRG is significantly different from other ErbB ligands. The
@@ -65,20 +82,20 @@
     </td>
   </tr>
   <tr>
-    <td>
-      <p><img src="{{ STATIC_URL }}responses/img/pakt,fgf-1,100,m__perk,fgf-1,100,m.png">
+    <td class="matrix">
       <h3>pERK response vs. pAKT response, to FGF-1</h3>
-      <p class="caption">
+      <p><img src="{{ STATIC_URL }}responses/img/pakt,fgf-1,100,m__perk,fgf-1,100,m.png">
+      <p>
 
       FGFs predominantly signal to pERK, but not to pAKT. Cells are responding
       by pERK (y-axis) to stimulation by FGF-1, but pAKT (x-axis) is hardly
       increased.
 
     </td>
-    <td>
-      <p><img src="{{ STATIC_URL }}responses/img/pakt,igf-1,100,m__perk,igf-1,100,m.png">
+    <td class="matrix">
       <h3>pERK response vs. pAKT response, to IGF-1</h3>
-      <p class="caption">
+      <p><img src="{{ STATIC_URL }}responses/img/pakt,igf-1,100,m__perk,igf-1,100,m.png">
+      <p>
       
       IGFs signal predominantly to AKT. Simulation with IGF-1 activates more
       pAKT (x-axis) than pERK (y-axis). In general, the Her2amp cell lines
@@ -91,19 +108,19 @@
     <td colspan="2"><h2>Basal protein levels</h2></td>
   </tr>
   <tr>
-    <td>
-      <p><img src="{{ STATIC_URL }}responses/img/akt__pakt.png">
+    <td class="matrix">
       <h3>Basal pAKT vs. AKT</h3>
-      <p class="caption">
+      <p><img src="{{ STATIC_URL }}responses/img/akt__pakt.png">
+      <p>
 
       Basal expression levels and phosphorylation levels of AKT are not
       correlated. The Her2amp cell lines (triangle) are generally high in pAKT.
 
     </td>
-    <td>
-      <p><img src="{{ STATIC_URL }}responses/img/pakt__perbb2.png">
+    <td class="matrix">
       <h3>Basal pErbB2 vs. pAKT</h3>
-      <p class="caption">
+      <p><img src="{{ STATIC_URL }}responses/img/pakt__perbb2.png">
+      <p>
       
       The Her2amp cell lines (triangle) are generally high in pErbB2 and also
       have a high pAKT basal level. The HR+ (squares) and TNBC (circles) have
@@ -112,20 +129,20 @@
     </td>
   </tr>
   <tr>
-    <td>
-      <p><img src="{{ STATIC_URL }}responses/img/erbb2__perbb2.png">
+    <td class="matrix">
       <h3>Basal pErbB2 vs. ErbB2</h3>
-      <p class="caption">
+      <p><img src="{{ STATIC_URL }}responses/img/erbb2__perbb2.png">
+      <p>
 
       The Her2amp cell lines (triangle) are generally high in ErbB2 and also
       have a high pErbB2 basal level. The HR+ (squares) and TNBC (circles) have
       low ErbB2 basal levels and are also low in pErbB2 levels.
 
     </td>
-    <td>
-      <p><img src="{{ STATIC_URL }}responses/img/perbb2__perbb3.png">
+    <td class="matrix">
       <h3>Basal pErbB3 vs. pErbB2</h3>
-      <p class="caption">
+      <p><img src="{{ STATIC_URL }}responses/img/perbb2__perbb3.png">
+      <p>
 
       Basal levels of pErbB3 are generally below the detection threshold expect
       for a majority of Her2amp cell lines (triangles) that have high pErbB2.
