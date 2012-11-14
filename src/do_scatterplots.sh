@@ -115,6 +115,7 @@ python src/do_scatterplots.py $DATADIR1/picks_for_basal.tsv
 python src/do_scatterplots.py $DATADIR1/picks_for_responses.tsv
 WITHLIMITS=1 OUTPUTDIR=$OUTPUTDIR/slider \
   python src/do_scatterplots.py $DATADIR1/picks_for_slider.tsv
-python src/do_scatterplots.py $DATADIR1/picks_for_basal_w_color.tsv
+OUTPUTDIR=$OUTPUTDIR/basal_graded \
+  python src/do_scatterplots.py $DATADIR1/picks_for_basal_w_color.tsv
 
 echo done
