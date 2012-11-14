@@ -17,7 +17,7 @@ import django_tables2 as tables
 from django_tables2 import RequestConfig
 from django_tables2.utils import A  # alias for Accessor
 
-from db.models import SmallMolecule, SmallMoleculeBatch, Cell, Protein, DataSet, Library, FieldInformation,AttachedFile,DataRecord,DataColumn
+from db.models import SmallMolecule, SmallMoleculeBatch, Cell, Protein, DataSet, Library, FieldInformation,AttachedFile,DataRecord,DataColumn,LibraryMapping
 #from db.CustomQuerySet import CustomQuerySet
 from db.models import get_detail
 from collections import OrderedDict
@@ -31,7 +31,7 @@ AMBIT_COMPOUND_IMAGE_LOCATION = "ambit-study-compound-images-by-facility-salt-id
 DATASET_IMAGE_LOCATION = "dataset-images-by-facility-id" 
 facility_salt_id = " sm.facility_id || '-' || sm.salt_id " # Note: because we have a composite key for determining unique sm structures, we need to do this
 facility_salt_batch_id = facility_salt_id + " || '-' || smb.facility_batch_id " # Note: because we have a composite key for determining unique sm structures, we need to do this
-facility_salt_batch_id_2 = facility_salt_id + " || trim( both '-' from ( '-' || coalesce(smb.facility_batch_id::TEXT,'')))" # need this one for datasets, since they may be linked either to sm or smb - sde4
+facility_salt_batch_id_2 = " trim( both '-' from (" + facility_salt_id + " || '-' || coalesce(smb.facility_batch_id::TEXT,'')))" # need this one for datasets, since they may be linked either to sm or smb - sde4
 OMERO_IMAGE_COLUMN_TYPE = 'omero_image'
 
 from dump_obj import dumpObj
@@ -193,10 +193,12 @@ def proteinDetail(request, lincs_id):
 def smallMoleculeIndex(request):
     search = request.GET.get('search','')
     logger.info(str(("is_authenticated:", request.user.is_authenticated(), 'search: ', search)))
+
     if(search != ''):
         criteria = "search_vector @@ to_tsquery(%s)"
         if(get_integer(search) != None):
             criteria = '(' + criteria + ' OR facility_id='+str(get_integer(search)) + ')' # TODO: seems messy here
+            logger.info(str(('criteria',criteria)))
         where = [criteria]
         if(not request.user.is_authenticated()): 
             where.append("(not is_restricted or is_restricted is NULL)")
@@ -274,11 +276,16 @@ def smallMoleculeDetail(request, facility_salt_id): # TODO: let urls.py grep the
         # nominal target dataset results information
         try:
             dataset = DataSet.objects.get(dataset_type='Nominal Targets')
-            # NOTE: "col1" is "Is Nominal", also note: this column is numeric for now
-            ntable = DataSetManager(dataset).get_table(whereClause=' and dr.smallmolecule_id=%d ' % sm.id, metaWhereClause=" where col0 = '1'", column_exclusion_overrides=['facility_salt_batch','col1'])
+            # NOTE: "col2" is "Is Nominal" (because of "Display Order"), also note: this column is numeric for now
+            # TODO: column aliases should be set in the datacolumns worksheet (in a fieldinformation object, eventually)
+            ntable = DataSetManager(dataset).get_table(whereClause=' and dr.smallmolecule_id=%d ' % sm.id,
+                                                       metaWhereClause=" where col2 = '1'", 
+                                                       column_exclusion_overrides=['facility_salt_batch','col2']) # exclude "is_nominal"
             logger.info(str(('ntable',ntable, len(ntable.data))))
             if(len(ntable.data)>0): details['nominal_targets_table']=ntable
-            otable = DataSetManager(dataset).get_table(whereClause=' and dr.smallmolecule_id=%d '% sm.id, metaWhereClause=" where col0 != '1'", column_exclusion_overrides=['facility_salt_batch','col1','col3'])
+            otable = DataSetManager(dataset).get_table(whereClause=' and dr.smallmolecule_id=%d '% sm.id, 
+                                                       metaWhereClause=" where col2 != '1'", 
+                                                       column_exclusion_overrides=['facility_salt_batch','col0','col2']) # exclude "effective conc", "is_nominal"
             logger.info(str(('otable',ntable, len(otable.data))))
             if(len(otable.data)>0): details['other_targets_table']=otable
         except DataSet.DoesNotExist:
@@ -316,16 +323,23 @@ def libraryIndex(request):
     return render(request, 'db/listIndex.html', {'table': table, 'search':search, 'heading': 'Libraries' })
 
 def libraryDetail(request, short_name):
+    search = request.GET.get('search','')
     try:
         library = Library.objects.get(short_name=short_name)
         if(library.is_restricted and not request.user.is_authenticated()):
             return HttpResponse('Unauthorized', status=401)
         response_dict = {'object': get_detail(library, ['library',''])}
-        queryset = LibraryMappingSearchManager().search(is_authenticated=request.user.is_authenticated,library_id=library.id);
+        queryset = LibraryMappingSearchManager().search(query_string=search, is_authenticated=request.user.is_authenticated,library_id=library.id);
         if(len(queryset)>0): 
             table = LibraryMappingTable(queryset)
             RequestConfig(request, paginate={"per_page": 25}).configure(table)
             response_dict['table']=table
+            
+            outputType = request.GET.get('output_type','')
+            logger.error(str(("outputType:", outputType)))
+            if(outputType != ''):
+                return send_to_file(outputType, 'library_'+library.short_name , table, queryset, request )
+        
         return render(request,'db/libraryDetail.html', response_dict)
     except Library.DoesNotExist:
         raise Http404
@@ -424,7 +438,7 @@ def datasetDetailResults(request, facility_id):
     except Http401, e:
         return HttpResponse('Unauthorized', status=401)
 
-def datasetDetail(request, facility_id, sub_page, limit=10000):
+def datasetDetail(request, facility_id, sub_page, limit=5000):
     try:
         dataset = DataSet.objects.get(facility_id=facility_id)
         if(dataset.is_restricted and not request.user.is_authenticated()):
@@ -508,7 +522,7 @@ def set_field_information_to_table_column(fieldname,table_names,column):
     
 # OMERO Image: TODO: only include this if the dataset has images
 OMERO_IMAGE_TEMPLATE = '''
-   <a href="#" onclick='window.open("https://lincs-omero.hms.harvard.edu/webclient/img_detail/{{ record.%s }}", "test","height=700,width=800")' ><img src='https://lincs-omero.hms.harvard.edu/webgateway/render_thumbnail/{{ record.%s }}/32/' alt='image if available' ></a>
+   <a href="#" onclick='window.open("https://lincs-omero.hms.harvard.edu/webclient/img_detail/{{ record.%s }}", "Image","height=700,width=800")' ><img src='https://lincs-omero.hms.harvard.edu/webgateway/render_thumbnail/{{ record.%s }}/32/' alt='image if available' ></a>
 '''
         
 class DataSetResultTable(tables.Table):
@@ -538,6 +552,7 @@ class DataSetResultTable(tables.Table):
     plate = tables.Column()
     defined_base_columns.append('plate')
     set_field_information_to_table_column('plate', ['datarecord'], plate)
+    
     well = tables.Column()
     defined_base_columns.append('well')
     set_field_information_to_table_column('well', ['datarecord'], well)
@@ -545,13 +560,12 @@ class DataSetResultTable(tables.Table):
     control_type = tables.Column()
     defined_base_columns.append('control_type')
     set_field_information_to_table_column('control_type', ['datarecord'], control_type)
-    
-    
+        
     class Meta:
         orderable = True
         attrs = {'class': 'paleblue'}
     
-    def __init__(self, queryset, ordered_datacolumns, # columns_to_names, ordered_names, 
+    def __init__(self, queryset, ordered_datacolumns,  
                  show_cells=False, show_proteins=False, 
                  column_exclusion_overrides=None, *args, **kwargs):
         # Follows is to deal with a bug - columns from one table appear to be injecting into other tables!!
@@ -625,20 +639,19 @@ class DataSetManager():
     def has_proteins(self):
         return len(self.protein_queryset) > 0
     
-    def get_cursor(self, is_authenticated=False,limit=10000, whereClause='',metaWhereClause=None,column_exclusion_overrides=[]): # TODO: 
+    def get_cursor(self, is_authenticated=False,limit=5000, whereClause='',metaWhereClause=None,column_exclusion_overrides=[]): # TODO: 
         
         self.dataset_info = self._get_query_info(is_authenticated,limit, whereClause,metaWhereClause)
         cursor = connection.cursor()
         cursor.execute(self.dataset_info.query_sql)
         return cursor
 
-    def get_table(self, is_authenticated=False,limit=10000, whereClause='',metaWhereClause=None,column_exclusion_overrides=[]): # TODO: 
+    def get_table(self, is_authenticated=False,limit=5000, whereClause='',metaWhereClause=None,column_exclusion_overrides=[]): # TODO: 
         
         cursor = self.get_cursor(is_authenticated, limit, whereClause, metaWhereClause, column_exclusion_overrides)
         queryset = dictfetchall(cursor)
-        logger.info(str(('queryset',queryset)))
         #queryset = manager.get_dataset_result_table(dataset_id, is_authenticated=request.user.is_authenticated(), **{'show_cells':show_cells, 'show_proteins':show_proteins})
-        if(not self.has_omero_images(self.dataset_id)): column_exclusion_overrides.append('omero_image_id')
+        #if(not self.has_omero_images(self.dataset_id)): column_exclusion_overrides.append('omero_image_id')
         if(not self.has_plate_wells_defined(self.dataset_id)): column_exclusion_overrides.extend(['plate','well'])
         if(not self.has_control_type_defined(self.dataset_id)): column_exclusion_overrides.append('control_type')
         return DataSetResultTable(queryset,
@@ -654,7 +667,7 @@ class DataSetManager():
         ordered_names = []
         query_sql = ''
     
-    def _get_query_info(self, is_authenticated=False, limit=10000, whereClause='',metaWhereClause=None):
+    def _get_query_info(self, is_authenticated=False, limit=5000, whereClause='',metaWhereClause=None):
         """
         generate a django tables2 table
         TODO: move the logic out of the view: so that it can be shared with the tastypie api (or make this rely on tastypie)
@@ -676,7 +689,7 @@ class DataSetManager():
         #        where dp.dataset_id = 1 order by datarecord_id;
         queryString =   "select distinct (datarecord_id) as datarecord_id, sm.id as smallmolecule_id ,"
         queryString +=  facility_salt_batch_id_2 +' as facility_salt_batch' # Note: because we have a composite key for determining unique sm structures, we need to do this
-        queryString +=  ', plate, well, control_type, omero_image_id '
+        queryString +=  ', plate, well, control_type '
         show_cells = self.has_cells()
         show_proteins = self.has_proteins()
         if(show_cells): queryString += ", cell_id, cell.name as cell_name, cell.facility_id as cell_facility_id " 
@@ -690,8 +703,8 @@ class DataSetManager():
             #columns_to_names[columnName] = dc.name
             #orderedNames.append(columnName)
             column_to_select = None
-            if(dc.data_type == 'Numeric' or dc.data_type == 'Image'):
-                if dc.precision == 0 or dc.data_type == 'Image':
+            if(dc.data_type == 'Numeric' or dc.data_type == 'omero_image'):
+                if dc.precision == 0 or dc.data_type == 'omero_image':
                     column_to_select = "int_value"
                 else:
                     column_to_select = "round( float_value::numeric, 2 )"
@@ -765,10 +778,11 @@ class DataSetManager():
         cursor.execute(sql, [dataset_id])
         return dictfetchall(cursor)
     
-    def has_omero_images(self, dataset_id):
-        res= len(DataRecord.objects.all().filter(dataset_id=dataset_id).filter(omero_image_id__isnull=False))>0
-        logger.info(str(('len(DataRecord.objects.all().filter(dataset_id=dataset_id).filter(omero_image_id__isnull=False))',len(DataRecord.objects.all().filter(dataset_id=dataset_id).filter(omero_image_id__isnull=False)))))
-        return res
+#    def has_omero_images(self, dataset_id):
+#        res = len(DataSet.objects.get(id=dataset_id).datacolumn_set.filter(data_type='omero_image'))
+#        #res = len(DataColumn.objects.all().filter(dataset_id=dataset_id, data_type=))
+#        logger.info(str(('len(DataRecord.objects.all().filter(dataset_id=dataset_id).filter(omero_image_id__isnull=False))',len(DataRecord.objects.all().filter(dataset_id=dataset_id).filter(omero_image_id__isnull=False)))))
+#        return res
     
     def has_plate_wells_defined(self, dataset_id):
         res= len(DataRecord.objects.all().filter(dataset_id=dataset_id).filter(plate__isnull=False).filter(well__isnull=False))>0
@@ -854,13 +868,14 @@ class LibraryMappingTable(tables.Table):
     is_control = tables.Column() 
     well = tables.Column()
     plate = tables.Column()
-    concentration = tables.Column()
-    concentration_unit = tables.Column()
+    display_concentration = tables.Column(order_by='concentration')
+    #concentration = tables.Column()
+    #concentration_unit = tables.Column()
         
     snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce("+x.field+",'') ", FieldInformation.manager.get_search_fields(SmallMolecule)))) # TODO: specialized search for librarymapping, if needed
     
     class Meta:
-        model = SmallMoleculeBatch
+        #model = LibraryMapping
         orderable = True
         attrs = {'class': 'paleblue'}
         
@@ -879,32 +894,20 @@ class LibraryMappingSearchManager(models.Model):
             raise Exception('Must define a library id to use the LibraryMappingSearchManager')
 
         query_string = query_string.strip()
-        cursor = connection.cursor()
-        
-#        sql = "select l.short_name, l.id as library_id," + facility_salt_batch_id + " as facility_salt , sm.*, smb.id as smb_id, smb.* " # TODO: remove the _id columns, not needed
-#        sql += (" from db_smallmolecule sm " +
-#            " left join db_smallmoleculebatch smb on(smb.smallmolecule_id=sm.id)" 
-#            " left join db_librarymapping lm on(smb.id=lm.smallmolecule_batch_id) " + 
-#            " left join db_library l on(lm.library_id=l.id) ")
-        sql = "select " + facility_salt_batch_id + " as facility_salt_batch , sm.name as sm_name, lm.* "
+        sql = "select " + facility_salt_batch_id + " as facility_salt_batch , sm.name as sm_name, lm.concentration ||' '||lm.concentration_unit as display_concentration, lm.* "
         sql += " from db_library l "
         sql += " join db_librarymapping lm on(lm.library_id=l.id) " 
         sql += " left join db_smallmoleculebatch smb on (smb.id=lm.smallmolecule_batch_id) "
         sql += " left join db_smallmolecule sm on(smb.smallmolecule_id=sm.id) " 
         
-#        sql += " from db_smallmolecule sm " 
-#        sql += (" left join db_smallmoleculebatch smb on(smb.smallmolecule_id=sm.id) ") 
-#        sql += (" left join db_librarymapping lm on(smb.id=lm.smallmolecule_batch_id) " + 
-#                " left join db_library l on(lm.library_id=l.id) ")
-
-        where = ' where 1=1 '
+        where = 'where 1=1 '
         if(query_string != '' ):
             # TODO: how to include the smb snippet (once it's created)
-            where += " and sm.search_vector @@ query "
             if(get_integer(query_string) != None):
-                where = '(' + where + ' OR sm.facility_id='+str(get_integer(query_string)) + ')' # TODO: seems messy here
+                where = ' where sm.facility_id='+str(get_integer(query_string)) 
+            else: 
+                where = ", to_tsquery(%s) as query  where sm.search_vector @@ query "
             # TODO: search by facility-salt-batch
-            where = ", to_tsquery(%s) as query  where " + where
         where += ' and library_id='+ str(library_id)
         if(not is_authenticated):
             where += ' and ( not sm.is_restricted or sm.is_restricted is NULL)' # TODO: NOTE, not including: ' and not l.is_restricted'; library restriction will only apply to viewing the library explicitly (the meta data, and selection of compounds)
@@ -914,8 +917,10 @@ class LibraryMappingSearchManager(models.Model):
         if(library_id != None):
             sql += "plate, well, smb.facility_batch_id, "
         sql += " sm.facility_id, sm.salt_id "
-        logger.debug(str(('sql',sql)))
+        
+        logger.info(str(('sql',sql)))
         # TODO: the way we are separating query_string out here is a kludge
+        cursor = connection.cursor()
         if(query_string != ''):
             cursor.execute(sql, [query_string + ':*'])
         else:
@@ -938,7 +943,8 @@ class SmallMoleculeBatchTable(tables.Table):
         set_table_column_info(self, ['smallmolecule','smallmoleculebatch',''],sequence_override)  
 
 class SmallMoleculeTable(tables.Table):
-    facility_salt = tables.LinkColumn("sm_detail", args=[A('facility_salt')]) 
+    #facility_id = tables.Column(visible=False)
+    facility_salt = tables.LinkColumn("sm_detail", args=[A('facility_salt')], order_by=['facility_id','salt_id']) 
     rank = tables.Column()
     snippet = tables.Column()
 

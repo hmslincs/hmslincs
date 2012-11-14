@@ -135,7 +135,7 @@ class LibraryResource(ModelResource):
 class DataSetResource(ModelResource):
     
     class Meta:
-        queryset = DataSet.objects.all()
+        queryset = DataSet.objects.all() #.filter(is_restricted==False)
         # TODO: authorization
         # TODO: it would be good to feed these from the view/tables2 code; or vice versa
         excludes = ['lead_screener_firstname','lead_screener_lastname','lead_screener_email']

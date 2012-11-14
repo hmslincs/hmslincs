@@ -431,6 +431,12 @@ class LibraryMapping(models.Model):
     concentration_unit      = models.CharField(null=True, max_length=2,
                                       choices=CONCENTRATION_CHOICES,
                                       default=CONCENTRATION_UM)
+    
+    def _get_display_concentration(self):
+        return "%d %s" %(self.concentration,self.concentration_unit)
+
+    display_concentration = property(_get_display_concentration)
+    
     def __unicode__(self):
         return unicode(str((self.library,self.smallmolecule_batch)))
     #class Meta:
@@ -466,7 +472,6 @@ class DataRecord(models.Model):
     plate                   = _INTEGER(null=True)
     well                    = _CHAR(max_length=4, **_NULLOKSTR) # AA99
     control_type            = _CHAR(max_length=35, **_NULLOKSTR) # TODO: controlled vocabulary
-    omero_image_id           = _INTEGER(null=True)
     def __unicode__(self):
         return unicode(str((self.dataset,self.smallmolecule,self.cell,self.protein,self.batch_id,self.plate,self.well)))
     
