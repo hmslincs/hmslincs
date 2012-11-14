@@ -7,6 +7,8 @@
 
 {% block body %}
 
+<h1>Kinase inhibitor pathways</h1>
+
 <div id="pathway-container">
   {% for signature in signatures %}
     {% include "pathway/signature.html" %}
@@ -30,13 +32,21 @@ transduction cascade.
 
 <h2>Instructions</h2>
 
-<p>Click on a kinase shaded in orange to view a box listing compounds in the HMS
-LINCS library which inhibit the activity of that kinase. For each compound, the
-box shows the following summary information: an indication of whether the
-inhibitor is in clinical use, a link to a KinomeScan profile of the compound (if
-available), a graphical visualization of the compound's ability to inhibit
-growth of a panel of six breast cancer cell lines, and a link to the HMS LINCS
-Database for detailed information.
+<p>Hover or tap on a kinase shaded in orange to view a box listing compounds in
+the HMS LINCS library which inhibit the activity of that kinase. For each
+compound, the box shows the following summary information: the inhibitor's
+classification (Approved/Investigational/Tool - see below), a link to a
+KinomeScan profile of the compound (if available), and a graphical visualization
+of the compound's ability to inhibit growth of a panel of six breast cancer cell
+lines. Protein, compound and cell line names are all hyperlinked to entries in
+the HMS LINCS Database which contain detailed information.
+
+<p>Compound classifications:
+<ul>
+  <li><strong>Approved:</strong> FDA approved for use in human subjects</li>
+  <li><strong>Investigational:</strong> Undergoing clinical trials</li>
+  <li><strong>Tool:</strong> Only suitable for research in cell culture</li>
+</ul>
 
 <p>You may also use our full database search engine to
 find <a href="/db/sm/">compounds</a> or <a href="/db/proteins/">protein
