@@ -160,17 +160,15 @@ else
 	check_errs $? "import smallmolecule batch fails"
 	
 	echo 'import library mapping tables...'
-	#python src/import_libraries.py -f $DATADIR/libraries.sde4.xls
 	python src/import_libraries.py -f $DATADIR/libraries.xls
 	check_errs $? "import library fails"
 	
 	echo 'import kinase tables...'
-	python src/import_protein.py -f $DATADIR/HMS-LINCS_KinaseMetadata_forLoading_old.xls
-	#python src/import_protein.py -f $DATADIR/HMS-LINCS_KinaseMetadata_forLoading.xls
+	python src/import_protein.py -f $DATADIR/HMS-LINCS_ProteinMetadata_forLoading.xls
 	check_errs $? 'import kinases fails'
 	
-	echo 'import targets_test_dataset.xls...'
-	python src/import_dataset.py -f sampledata/targets_test_dataset.xls 
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/Study20000_NominalTargets_forLoading.xlsx 
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
@@ -195,6 +193,10 @@ else
 	
 	echo 'import screen results...'
 	python src/import_dataset.py -f $DATADIR/Screen20006_CMT_GrowthInhibition-3dose.xlsx 
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/Screen20007_CMT_GrowthInhibition-3dose.xlsx 
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
@@ -432,7 +434,43 @@ else
 	echo 'import screen results...'
 	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20078_HMSL10095_kinomescan.xlsx
 	check_errs $? "import dataset fails"
-
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20079_HMSL10064_kinomescan.xlsx
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20080_HMSL10101_kinomescan.xlsx
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20081_HMSL10208_kinomescan.xlsx
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20082_HMSL10140_kinomescan.xlsx
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20083_HMSL10035_kinomescan.xlsx
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20084_HMSL10146_kinomescan.xlsx
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20085_HMSL10172_kinomescan.xlsx
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20086_HMSL10223_kinomescan.xlsx
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/Screen20087_kinativ.xlsx
+	check_errs $? "import dataset fails"
+	
 fi
 
 python src/create_indexes.py | psql -U$DB_USER  $DB -h $PGHOST  -v ON_ERROR_STOP=1
