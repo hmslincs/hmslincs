@@ -278,12 +278,12 @@ def smallMoleculeDetail(request, facility_salt_id): # TODO: let urls.py grep the
             dataset = DataSet.objects.get(dataset_type='Nominal Targets')
             # NOTE: "col2" is "Is Nominal" (because of "Display Order"), also note: this column is numeric for now
             # TODO: column aliases should be set in the datacolumns worksheet (in a fieldinformation object, eventually)
-            ntable = DataSetManager(dataset).get_table(whereClause=' and dr.smallmolecule_id=%d ' % sm.id,
+            ntable = DataSetManager(dataset).get_table(whereClause=' and x.smallmolecule_id=%d ' % sm.id,
                                                        metaWhereClause=" where col2 = '1'", 
                                                        column_exclusion_overrides=['facility_salt_batch','col2']) # exclude "is_nominal"
             logger.info(str(('ntable',ntable, len(ntable.data))))
             if(len(ntable.data)>0): details['nominal_targets_table']=ntable
-            otable = DataSetManager(dataset).get_table(whereClause=' and dr.smallmolecule_id=%d '% sm.id, 
+            otable = DataSetManager(dataset).get_table(whereClause=' and x.smallmolecule_id=%d '% sm.id, 
                                                        metaWhereClause=" where col2 != '1'", 
                                                        column_exclusion_overrides=['facility_salt_batch','col0','col2']) # exclude "effective conc", "is_nominal"
             logger.info(str(('otable',ntable, len(otable.data))))
@@ -427,7 +427,6 @@ def datasetDetailResults(request, facility_id):
             if(dataset.is_restricted and not request.user.is_authenticated()):
                 raise Http401
             manager = DataSetManager(dataset)
-            #table = manager.get_table(is_authenticated=request.user.is_authenticated(), limit=1) # TODO: using the table *only* to get the columns defined, (refactor this right away) -sde4
             cursor = manager.get_cursor(is_authenticated=request.user.is_authenticated(), limit=1000000)
             datacolumns = DataColumn.objects.filter(dataset=dataset).order_by('display_order')
             return send_to_file1(outputType, 'dataset_'+str(facility_id), datacolumns, cursor, request )
@@ -438,7 +437,7 @@ def datasetDetailResults(request, facility_id):
     except Http401, e:
         return HttpResponse('Unauthorized', status=401)
 
-def datasetDetail(request, facility_id, sub_page, limit=5000):
+def datasetDetail(request, facility_id, sub_page, limit=1000000):
     try:
         dataset = DataSet.objects.get(facility_id=facility_id)
         if(dataset.is_restricted and not request.user.is_authenticated()):
@@ -588,7 +587,7 @@ class DataSetResultTable(tables.Table):
         for i,dc in enumerate(ordered_datacolumns):    
             #logger.debug(str(('create column:',name,verbose_name)))
             col = 'col%d'%i
-            logger.info(str(('create column', col, dc.data_type)))
+            logger.info(str(('create column', col, dc.id, dc.data_type)))
             if(dc.data_type.lower() != OMERO_IMAGE_COLUMN_TYPE):
                 self.base_columns[col] = tables.Column(verbose_name=dc.name)
             else:
@@ -667,7 +666,7 @@ class DataSetManager():
         ordered_names = []
         query_sql = ''
     
-    def _get_query_info(self, is_authenticated=False, limit=5000, whereClause='',metaWhereClause=None):
+    def _get_query_info_old(self, is_authenticated=False, limit=5000, whereClause='',metaWhereClause=None):
         """
         generate a django tables2 table
         TODO: move the logic out of the view: so that it can be shared with the tastypie api (or make this rely on tastypie)
@@ -679,7 +678,7 @@ class DataSetManager():
         # use the datacolumns to make a query on the fly (for the DataSetManager), and make a DataSetResultSearchTable on the fly.
         #dataColumnCursor = connection.cursor()
         #dataColumnCursor.execute("SELECT id, name, data_type, precision from db_datacolumn where dataset_id = %s order by id asc", [dataset_id])
-        logger.debug(str(('dataset columns:', datacolumns)))
+        logger.info(str(('dataset columns:', datacolumns)))
     
         # Need to construct something like this:
         # select distinct (datarecord_id), smallmolecule_id, sm.facility_id || '-' || sm.salt_id as facility_id,
@@ -746,6 +745,79 @@ class DataSetManager():
         dataset_info = self.DatasetInfo()
         #dataset_info.columns_to_names = columns_to_names
         #dataset_info.ordered_names = orderedNames
+        dataset_info.query_sql = queryString
+        dataset_info.datacolumns = datacolumns
+        return dataset_info
+   
+
+    def _get_query_info(self, is_authenticated=False, limit=5000, whereClause='',metaWhereClause=None):
+        """
+        generate a django tables2 table
+        TODO: move the logic out of the view: so that it can be shared with the tastypie api (or make this rely on tastypie)
+        """
+    
+        #datacolumns = self.get_dataset_columns(self.dataset.id)
+        datacolumns = DataColumn.objects.filter(dataset=self.dataset).order_by('display_order')
+        # Create a query on the fly that pivots the values from the datapoint table, making one column for each datacolumn type
+        # use the datacolumns to make a query on the fly (for the DataSetManager), and make a DataSetResultSearchTable on the fly.
+        #dataColumnCursor = connection.cursor()
+        #dataColumnCursor.execute("SELECT id, name, data_type, precision from db_datacolumn where dataset_id = %s order by id asc", [dataset_id])
+        logger.info(str(('dataset columns:', datacolumns)))
+    
+        # Need to construct something like this:
+        # select distinct (datarecord_id), smallmolecule_id, sm.facility_id || '-' || sm.salt_id as facility_id,
+        #        (select int_value as col1 from db_datapoint dp1 where dp1.datacolumn_id=2 and dp1.datarecord_id = dp.datarecord_id) as col1, 
+        #        (select int_value as col2 from db_datapoint dp2 where dp2.datarecord_id=dp.datarecord_id and dp2.datacolumn_id=3) as col2 
+        #        from db_datapoint dp join db_datarecord dr on(datarecord_id=dr.id) join db_smallmoleculebatch smb on(smb.id=dr.smallmolecule_batch_id) join db_smallmolecule sm on(sm.id=smb.smallmolecule_id) 
+        #        where dp.dataset_id = 1 order by datarecord_id;
+        
+        queryString =   "select distinct (dr_id) as datarecord_id,"
+        queryString +=  " trim( both '-' from ( sm_facility_id || '-' || salt_id  || '-' || coalesce(smb_facility_batch_id::TEXT,''))) as facility_salt_batch " # Note: because we have a composite key for determining unique sm structures, we need to do this
+        queryString +=  ', plate, well, control_type '
+        show_cells = self.has_cells()
+        show_proteins = self.has_proteins()
+        if(show_cells): queryString += ", cell_id, cell_name, cell_facility_id " 
+        if(show_proteins): queryString += ", protein_id,  protein_name,  protein_lincs_id " 
+
+        for i,dc in enumerate(datacolumns):
+            alias = "dp"+str(i)
+            columnName = "col" + str(i)
+            column_to_select = None
+            if(dc.data_type == 'Numeric' or dc.data_type == 'omero_image'):
+                if dc.precision == 0 or dc.data_type == 'omero_image':
+                    column_to_select = "int_value"
+                else:
+                    column_to_select = "round( float_value::numeric, 2 )"
+            else:
+                column_to_select = "text_value"
+            # TODO: use params
+            queryString +=  (",(select " + column_to_select + " from db_datapoint " + alias + 
+                                " where " + alias + ".datacolumn_id="+str(dc.id) + " and " + alias + ".datarecord_id=dr_id) as " + columnName )
+        queryString += " from  ( select dr.id as dr_id, "
+        queryString += " sm.id as smallmolecule_id, sm.facility_id as sm_facility_id, sm.salt_id, smb.facility_batch_id as smb_facility_batch_id, " 
+        queryString += " plate, well, control_type " 
+        if(show_cells):     queryString += " ,cell_id, cell.name as cell_name, cell.facility_id as cell_facility_id " 
+        if(show_proteins):  queryString += " ,protein.name as protein_name, protein.lincs_id as protein_lincs_id, protein.id as protein_id "
+        queryString += " from db_datarecord dr " 
+        queryString += " left join db_smallmolecule sm on(dr.smallmolecule_id = sm.id) "
+        queryString += " left join db_smallmoleculebatch smb on(smb.smallmolecule_id=sm.id and smb.facility_batch_id=dr.batch_id) "
+        if(show_cells):     queryString += " left join db_cell cell on(cell.id=dr.cell_id ) "
+        if(show_proteins):  queryString += " left join db_protein protein on (protein.id=dr.protein_id) "
+        queryString += " where dr.dataset_id = " + str(self.dataset.id)
+        queryString += " and ( not sm.is_restricted or sm.is_restricted is NULL) "
+        if(show_cells): queryString += " and (not cell.is_restricted or cell.is_restricted is NULL) "
+        if(show_proteins): queryString += " and (not protein.is_restricted or protein.is_restricted is NULL) "
+        queryString += "   order by dr.id ) as x " #LIMIT 5000 ) as x """        
+        where = 'where 1=1 ' + whereClause # extra filters
+        queryString += where
+        queryString += " order by datarecord_id"
+        if(metaWhereClause != None):
+            queryString = "select * from ( " + queryString + ") a " + metaWhereClause
+        queryString += " LIMIT " + str(limit) # TODO - figure out how to paginate
+    
+        if(logger.isEnabledFor(logging.DEBUG)): logger.debug( "queryString: "+ queryString)
+        logger.info( "queryString: "+ queryString)
+        dataset_info = self.DatasetInfo()
         dataset_info.query_sql = queryString
         dataset_info.datacolumns = datacolumns
         return dataset_info
@@ -1177,7 +1249,7 @@ def dictfetchall(cursor): #TODO modify this to stream results properly
 
 def download_attached_file(request, path):
     # TODO Authorization
-    dump(request.user)
+    #dump(request.user)
     logger.info(str(('download_attached_file',path,request.user)))
     if(request.user.is_authenticated()):
         pass
@@ -1250,9 +1322,9 @@ def export_as_csv(name,columnNames, request, queryset):
     row = 0
     for obj in queryset:
         if isinstance(obj, dict):
-            writer.writerow([obj[field] for (field,verbose_name) in columnNames])
+            writer.writerow([smart_str(obj[field], 'utf-8', errors='ignore') for (field,verbose_name) in columnNames])
         else:
-            writer.writerow([getattr(obj, field) for (field,verbose_name) in columnNames])
+            writer.writerow([smart_str(getattr(obj, field), 'utf-8', errors='ignore') for (field,verbose_name) in columnNames])
         if(row % debug_interval == 0):
             logger.info("row: " + str(row))
         row += 1
