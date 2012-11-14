@@ -255,7 +255,7 @@ LOGGING = {
             'propagate': True,
             'level': 'WARN',
         },
-        '': {  
+        'xx': {  
             'handlers': ['console'],
             'propagate': True,
             'level': 'INFO',

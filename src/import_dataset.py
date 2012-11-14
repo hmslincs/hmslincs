@@ -175,7 +175,7 @@ def main(path):
     # First, map the sheet column indices to the DataColumns that were created
     dataColumnList = {}
     # follows are optional columns
-    metaColumnDict = {'Control Type':-1, 'omero_image_id':-1, 'batch_id':-1} # meta columns contain forensic information, all are optional
+    metaColumnDict = {'Control Type':-1, 'batch_id':-1} # meta columns contain forensic information, all are optional
     mappingColumnDict = {'Small Molecule Batch':-1, 'Plate':-1, 'Well':-1, 'Cell':-1, 'Protein':-1} # what is being studied - at least one is required
     # NOTE: this scheme is matching based on the labels between the "Data Column" sheet and the "Data" sheet
     for i,label in enumerate(dataSheet.labels):
@@ -307,9 +307,6 @@ def main(path):
             dataRecord.control_type = util.convertdata(r[metaColumnDict['Control Type']])
             if(dataRecord.control_type is not None and dataRecord.smallmolecule is not None):
                 raise Exception(str(('Cannot define a control type for a non-control well (well mapped to a small molecule batch)',dataRecord.smallmolecule,dataRecord.control_type, 'row',current_row)))
-        if metaColumnDict['omero_image_id'] > -1: 
-            dataRecord.omero_image_id = util.convertdata(r[metaColumnDict['omero_image_id']], int)
-            logger.debug(str(('recorded omero well id:', dataRecord.omero_image_id)))
         if metaColumnDict['batch_id'] > -1: 
             temp = util.convertdata(r[metaColumnDict['batch_id']], int)
             if(temp != None):
@@ -338,7 +335,7 @@ def main(path):
                                               dataset = dataset,
                                               datarecord = dataRecord,
                                               int_value=util.convertdata(value,int))
-                elif (dataColumn.data_type == 'Image'): # TODO: define allowed "types" for the input sheet (this is listed in current SS code, but we may want to rework)
+                elif (dataColumn.data_type == 'omero_image'): # TODO: define allowed "types" for the input sheet (this is listed in current SS code, but we may want to rework)
                     dataPoint = DataPoint(datacolumn=dataColumn,
                                           dataset = dataset,
                                           datarecord = dataRecord,
