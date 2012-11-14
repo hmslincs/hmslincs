@@ -19,6 +19,11 @@
   <tr>
     <td class="featured">
       <img id="slider-img" src="{{ STATIC_URL }}responses/img/slider/pakt,igf-1,100,10__perk,fgf-1,100,10.png">
+
+      <!-- hack to preload the images -->
+      <img style="display: none" src="{{ STATIC_URL }}responses/img/slider/pakt,igf-1,100,30__perk,fgf-1,100,30.png">
+      <img style="display: none" src="{{ STATIC_URL }}responses/img/slider/pakt,igf-1,100,90__perk,fgf-1,100,90.png">
+
       <div id="slider-wrap">
         <label for="timepoint">Time point:</label>
         <input type="text" id="timepoint"/>

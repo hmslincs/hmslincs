@@ -21,7 +21,6 @@ jQuery(document).ready(function ($) {
         var $img = $("#slider-img");
         var src = $img.attr('src');
         var new_src = src.substr(0, src.lastIndexOf('/') + 1) + slider_images[value];
-        console.log(src, src.lastIndexOf('/'), src.substr(0, src.lastIndexOf('/') + 1));
         $img.attr('src', new_src);
         $("#timepoint").val(timepoints[value] + " min");
     }
