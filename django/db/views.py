@@ -537,6 +537,7 @@ class DataSetResultTable(tables.Table):
     defined_base_columns.append('id')
     
     facility_salt_batch = tables.LinkColumn('sm_detail', args=[A('facility_salt_batch')])
+    facility_salt_batch.attrs['td'] = {'nowrap': 'nowrap'}
     defined_base_columns.append('facility_salt_batch')
     set_field_information_to_table_column('facility_salt_batch', ['smallmoleculebatch'], facility_salt_batch)
     
@@ -1003,6 +1004,7 @@ class LibraryMappingSearchManager(models.Model):
 class SmallMoleculeBatchTable(tables.Table):
     
     facility_salt_batch = tables.LinkColumn("sm_detail", args=[A('facility_salt_batch')])
+    facility_salt_batch.attrs['td'] = {'nowrap': 'nowrap'}
     
     class Meta:
         model = SmallMoleculeBatch
@@ -1017,6 +1019,7 @@ class SmallMoleculeBatchTable(tables.Table):
 class SmallMoleculeTable(tables.Table):
     #facility_id = tables.Column(visible=False)
     facility_salt = tables.LinkColumn("sm_detail", args=[A('facility_salt')], order_by=['facility_id','salt_id']) 
+    facility_salt.attrs['td'] = {'nowrap': 'nowrap'}
     rank = tables.Column()
     snippet = tables.Column()
 
