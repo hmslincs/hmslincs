@@ -141,12 +141,13 @@ class DataSetResource(ModelResource):
         excludes = ['lead_screener_firstname','lead_screener_lastname','lead_screener_email']
     def dehydrate(self, bundle):
         # TODO: the following call executes the query *just* to get the column names
+        _id =str(bundle.data['id'])
         visibleColumns = get_visible_columns(views.DataSetManager(bundle.obj).get_table())
-        bundle.data['endpointFile'] = {'uri':'http://localhost/db/api/v1/datasetdata/'+str(bundle.data['id']),
+        bundle.data = get_detail_bundle(bundle.obj, ['dataset',''])
+        bundle.data['endpointFile'] = {'uri':'db/api/v1/datasetdata/'+ _id,
                                        'noCols':len(visibleColumns),
                                        'cols':visibleColumns.values()
                                        }
-        bundle.data = get_detail_bundle(bundle.obj, ['dataset',''])
         return bundle
 
     def build_schema(self):
