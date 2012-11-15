@@ -76,7 +76,7 @@ def parse_header(header, _width=4):
     assert len(parts) <= _width
     ret = (parts + [None] * _width)[:_width]
     tm = ret[-1]
-    if tm and tm.startswith('t'): ret[-1] = tm[1:]
+    if tm and tm.lower().startswith('t'): ret[-1] = tm[1:]
     return sp.ScatterplotMetaData(*ret)
 
 
