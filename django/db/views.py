@@ -200,8 +200,9 @@ def smallMoleculeIndex(request):
             criteria = '(' + criteria + ' OR facility_id='+str(get_integer(search)) + ')' # TODO: seems messy here
             logger.info(str(('criteria',criteria)))
         where = [criteria]
-        if(not request.user.is_authenticated()): 
-            where.append("(not is_restricted or is_restricted is NULL)")
+        #if(not request.user.is_authenticated()): 
+        #    where.append("(not is_restricted or is_restricted is NULL)")
+        
         # postgres fulltext search with rank and snippets
         logger.info(str(("SmallMoleculeTable.snippet_def:",SmallMoleculeTable.snippet_def)))
         queryset = SmallMolecule.objects.extra(
@@ -216,7 +217,7 @@ def smallMoleculeIndex(request):
             )        
     else:
         where = []
-        if(not request.user.is_authenticated()): where.append("(not is_restricted or is_restricted is NULL)")
+        #if(not request.user.is_authenticated()): where.append("(not is_restricted or is_restricted is NULL)")
         queryset = SmallMolecule.objects.extra(
             where=where,
             order_by=('facility_id','salt_id'))        
@@ -237,14 +238,16 @@ def smallMoleculeDetail(request, facility_salt_id): # TODO: let urls.py grep the
         facility_id = temp[0]
         salt_id = temp[1]
         sm = SmallMolecule.objects.get(facility_id=facility_id, salt_id=salt_id) 
-        if(sm.is_restricted and not request.user.is_authenticated()):
-            return HttpResponse('Log in required.', status=401)
+        #if(sm.is_restricted and not request.user.is_authenticated()):
+        #    return HttpResponse('Log in required.', status=401)
         smb = None
         if(len(temp)>2):
             smb = SmallMoleculeBatch.objects.get(smallmolecule=sm,facility_batch_id=temp[2]) 
         
     
         details = {'object': get_detail(sm, ['smallmolecule',''])}
+        #TODO: set is_restricted if the user is not logged in only
+        details['is_restricted'] = sm.is_restricted
         
         attachedFiles = get_attached_files(sm.facility_id,sm.salt_id)
         if(len(attachedFiles)>0):
