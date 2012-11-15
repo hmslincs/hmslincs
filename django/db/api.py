@@ -192,7 +192,7 @@ class DataSetDataResource(Resource):
                 if(dataset.is_restricted and not request.user.is_authenticated()):
                     raise Http401
                 manager = views.DataSetManager(dataset)
-                return manager.get_table()
+                return manager.get_table(limit=1000000)
             except DataSet.DoesNotExist, e:
                 logger.error(str(('no such facility id', facility_id)))
                 raise
