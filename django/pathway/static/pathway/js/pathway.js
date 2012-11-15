@@ -57,6 +57,10 @@ jQuery(document).ready(function ($) {
 	    if (left + $popup.width() >= $('#pathway-container').width()) {
 		left = target_pos.left - $popup.width() - 15;
 	    }
+	    // move popup above hotspot if it's very close to the bottom
+	    if (top >= $('#pathway-container').height() - 100) {
+		top = target_pos.top - $popup.height() + 10;
+	    }
             var offset = {'left': left, 'top': top};
             $popup.offset(offset);
         }
