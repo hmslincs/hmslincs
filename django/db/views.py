@@ -727,12 +727,12 @@ class DataSetManager():
             queryString += " left join db_protein protein on(protein.id=dr.protein_id) " # TODO: change to left join
             # orderedNames.insert(1,'protein_name')
         where = " where dp.dataset_id = " + str(self.dataset.id)
-        if(not is_authenticated): 
-            where += " and ( not sm.is_restricted or sm.is_restricted is NULL)"
-            if(show_proteins):
-                where += " and (not protein.is_restricted or protein.is_restricted is NULL) "
-            if(show_cells):
-                where += " and (not cell.is_restricted or cell.is_restricted is NULL) " 
+#        if(not is_authenticated): 
+#            where += " and ( not sm.is_restricted or sm.is_restricted is NULL)"
+#            if(show_proteins):
+#                where += " and (not protein.is_restricted or protein.is_restricted is NULL) "
+#            if(show_cells):
+#                where += " and (not cell.is_restricted or cell.is_restricted is NULL) " 
         where += whereClause # extra filters
         queryString += where
         queryString += " order by datarecord_id"
@@ -808,9 +808,9 @@ class DataSetManager():
         if(show_cells):     queryString += " left join db_cell cell on(cell.id=dr.cell_id ) "
         if(show_proteins):  queryString += " left join db_protein protein on (protein.id=dr.protein_id) "
         queryString += " where dr.dataset_id = " + str(self.dataset.id)
-        queryString += " and ( not sm.is_restricted or sm.is_restricted is NULL) "
-        if(show_cells): queryString += " and (not cell.is_restricted or cell.is_restricted is NULL) "
-        if(show_proteins): queryString += " and (not protein.is_restricted or protein.is_restricted is NULL) "
+#        queryString += " and ( not sm.is_restricted or sm.is_restricted is NULL) "
+#        if(show_cells): queryString += " and (not cell.is_restricted or cell.is_restricted is NULL) "
+#        if(show_proteins): queryString += " and (not protein.is_restricted or protein.is_restricted is NULL) "
         queryString += "   order by dr.id ) as x " #LIMIT 5000 ) as x """        
         where = 'where 1=1 ' + whereClause # extra filters
         queryString += where
