@@ -238,7 +238,7 @@ def smallMoleculeDetail(request, facility_salt_id): # TODO: let urls.py grep the
         salt_id = temp[1]
         sm = SmallMolecule.objects.get(facility_id=facility_id, salt_id=salt_id) 
         if(sm.is_restricted and not request.user.is_authenticated()):
-            return HttpResponse('Log in required.', status=401)
+            return HttpResponse('Restricted Small Molecule - Log in required.', status=401)
         smb = None
         if(len(temp)>2):
             smb = SmallMoleculeBatch.objects.get(smallmolecule=sm,facility_batch_id=temp[2]) 
