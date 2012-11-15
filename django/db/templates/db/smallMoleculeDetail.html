@@ -6,6 +6,9 @@
 		<img class='compound_image' src="{{ STATIC_URL }}{{image_location}}" onclick="w=window.open('{{ STATIC_URL }}{{image_location}}','image','height=500,width=500');w.moveTo(500,400);"/>
 	{% endif %}
 <h2 class='entity_detail_title'>Small Molecule Information</h2>
+	{% if is_restricted %}
+		Detailed information for this Small Molecule is restricted at this time.
+	{% endif %}
 	{% include "db/detailListing.html" %}
 	{% if attached_files  and not is_restricted  %}
 		<h2 class='entity_detail_title'>Attached Files</h2>
