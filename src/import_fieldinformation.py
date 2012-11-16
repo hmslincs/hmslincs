@@ -58,6 +58,7 @@ def main(path):
                           'show in detail':('show_in_detail',True,False,util.bool_converter),
                           'show in list':('show_in_list',True,False,util.bool_converter),
                           'is_lincs_field':('is_lincs_field',True,False,util.bool_converter),
+                          'is_unrestricted':('is_unrestricted',False,False,util.bool_converter),
                           'order':('order',True,None,lambda x:util.convertdata(x,int)),
                           'use_for_search_index':('use_for_search_index',True,False,util.bool_converter),
                           'Data Working Group version':'dwg_version',

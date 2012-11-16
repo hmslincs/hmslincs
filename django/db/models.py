@@ -137,6 +137,7 @@ class FieldInformation(models.Model):
     ontologies              = _TEXT(**_NULLOKSTR)
     ontology_reference      = _TEXT(**_NULLOKSTR)
     additional_notes        = _TEXT(**_NULLOKSTR)
+    is_unrestricted         = models.BooleanField(default=False, null=False)
     class Meta:
         unique_together = (('table', 'field','queryset'),('field','alias'))    
     def __unicode__(self):
@@ -559,7 +560,7 @@ def get_fielddata(model_object, search_tables, is_detail=False):
     #dump(self.dataset)
     #data=model_to_dict(self.dataset)
     property_dict = get_properties(model_object)
-    ui_dict = {}
+    ui_dict = { }
     for field,value in property_dict.iteritems():
         details = {}
         try:
@@ -575,6 +576,7 @@ def get_fielddata(model_object, search_tables, is_detail=False):
         except (ObjectDoesNotExist,MultipleObjectsReturned) as e:
             logger.debug(str(('no field information defined for: ', field, value)))
     ui_dict = OrderedDict(sorted(ui_dict.items(), key=lambda x: x[1]['fieldinformation'].order))
+    logger.info(str(('ui_dict',ui_dict)))
     return ui_dict
     #return self.DatasetForm(data)
    

@@ -9,7 +9,7 @@
 
 {% block body %}
 
-<h1>Cell/Ligand responses</h1>
+<h1>Cell-ligand responses</h1>
 
 <table class="plain">
 
@@ -18,7 +18,8 @@
   </tr>
   <tr>
     <td class="featured">
-      <img id="slider-img" src="{{ STATIC_URL }}responses/img/slider/pakt,igf-1,100,10__perk,fgf-1,100,10.png">
+      <img id="slider-img" src="{{ STATIC_URL }}responses/img/slider/pakt,igf-1,100,10__perk,fgf-1,100,10.png" width="300" height="300">
+      <img src="{{ STATIC_URL }}responses/img/legends/graded.png" width="300" height="64">
 
       <!-- hack to preload the images -->
       <img style="display: none" src="{{ STATIC_URL }}responses/img/slider/pakt,igf-1,100,30__perk,fgf-1,100,30.png">
@@ -39,15 +40,16 @@
       the Her2amp cell lines (triangles) that are the most responsive to
       Lapatinib (in red) are the weakest responders to FGF-1 or IGF-1.
 
-      <p>Move the slider to view the response at the different timepoints (10,
-      30 and 90 minutes).
+      <p>Move the time point slider to view the response at the
+      different time points (10, 30 and 90 minutes).
 
     </td>
   </tr>
 
   <tr>
     <td class="featured">
-      <img src="{{ STATIC_URL }}responses/img/basal_graded/erbb2__perbb2.png">
+      <img src="{{ STATIC_URL }}responses/img/basal_graded/erbb2__perbb2.png" width="300" height="300">
+      <img src="{{ STATIC_URL }}responses/img/legends/graded.png" width="300" height="64">
     </td>
     <td class="featured righthand">
       <h3>Basal pErbB2 vs. ErbB2</h3>
@@ -66,7 +68,8 @@
   <tr>
     <td class="matrix">
       <h3>pERK responses, to EGF vs. BTC</h3>
-      <p><img src="{{ STATIC_URL }}responses/img/perk,btc,100,m__perk,egf,100,m.png">
+      <p><img src="{{ STATIC_URL }}responses/img/perk,btc,100,m__perk,egf,100,m.png" width="300" height="300">
+      <img src="{{ STATIC_URL }}responses/img/legends/categorical.png" width="300" height="13">
       <p>
 
       Average pERK fold-change response to BTC and EGF are strongly correlated,
@@ -77,7 +80,8 @@
     </td>
     <td class="matrix">
       <h3>pAKT response, to HRG vs. EGF</h3>
-      <p><img src="{{ STATIC_URL }}responses/img/pakt,egf,100,m__pakt,hrg,100,m.png">
+      <p><img src="{{ STATIC_URL }}responses/img/pakt,egf,100,m__pakt,hrg,100,m.png" width="300" height="300">
+      <img src="{{ STATIC_URL }}responses/img/legends/categorical.png" width="300" height="13">
       <p>
 
       Average pAKT fold-change response to EFG and HRG are not correlated,
@@ -89,7 +93,8 @@
   <tr>
     <td class="matrix">
       <h3>pERK response vs. pAKT response, to FGF-1</h3>
-      <p><img src="{{ STATIC_URL }}responses/img/pakt,fgf-1,100,m__perk,fgf-1,100,m.png">
+      <p><img src="{{ STATIC_URL }}responses/img/pakt,fgf-1,100,m__perk,fgf-1,100,m.png" width="300" height="300">
+      <img src="{{ STATIC_URL }}responses/img/legends/categorical.png" width="300" height="13">
       <p>
 
       FGFs predominantly signal to pERK, but not to pAKT. Cells are responding
@@ -99,7 +104,8 @@
     </td>
     <td class="matrix">
       <h3>pERK response vs. pAKT response, to IGF-1</h3>
-      <p><img src="{{ STATIC_URL }}responses/img/pakt,igf-1,100,m__perk,igf-1,100,m.png">
+      <p><img src="{{ STATIC_URL }}responses/img/pakt,igf-1,100,m__perk,igf-1,100,m.png" width="300" height="300">
+      <img src="{{ STATIC_URL }}responses/img/legends/categorical.png" width="300" height="13">
       <p>
       
       IGFs signal predominantly to AKT. Simulation with IGF-1 activates more
@@ -115,7 +121,8 @@
   <tr>
     <td class="matrix">
       <h3>Basal pAKT vs. AKT</h3>
-      <p><img src="{{ STATIC_URL }}responses/img/akt__pakt.png">
+      <p><img src="{{ STATIC_URL }}responses/img/akt__pakt.png" width="300" height="300">
+      <img src="{{ STATIC_URL }}responses/img/legends/categorical.png" width="300" height="13">
       <p>
 
       Basal expression levels and phosphorylation levels of AKT are not
@@ -124,7 +131,8 @@
     </td>
     <td class="matrix">
       <h3>Basal pErbB2 vs. pAKT</h3>
-      <p><img src="{{ STATIC_URL }}responses/img/pakt__perbb2.png">
+      <p><img src="{{ STATIC_URL }}responses/img/pakt__perbb2.png" width="300" height="300">
+      <img src="{{ STATIC_URL }}responses/img/legends/categorical.png" width="300" height="13">
       <p>
       
       The Her2amp cell lines (triangle) are generally high in pErbB2 and also
@@ -136,7 +144,8 @@
   <tr>
     <td class="matrix">
       <h3>Basal pErbB2 vs. ErbB2</h3>
-      <p><img src="{{ STATIC_URL }}responses/img/erbb2__perbb2.png">
+      <p><img src="{{ STATIC_URL }}responses/img/erbb2__perbb2.png" width="300" height="300">
+      <img src="{{ STATIC_URL }}responses/img/legends/categorical.png" width="300" height="13">
       <p>
 
       The Her2amp cell lines (triangle) are generally high in ErbB2 and also
@@ -146,7 +155,8 @@
     </td>
     <td class="matrix">
       <h3>Basal pErbB3 vs. pErbB2</h3>
-      <p><img src="{{ STATIC_URL }}responses/img/perbb2__perbb3.png">
+      <p><img src="{{ STATIC_URL }}responses/img/perbb2__perbb3.png" width="300" height="300">
+      <img src="{{ STATIC_URL }}responses/img/legends/categorical.png" width="300" height="13">
       <p>
 
       Basal levels of pErbB3 are generally below the detection threshold expect

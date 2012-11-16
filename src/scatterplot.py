@@ -2,7 +2,9 @@ import collections as co
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 from matplotlib.colors import LinearSegmentedColormap
+from matplotlib.ticker import NullLocator
 from matplotlib.backends.backend_agg import FigureCanvasAgg
+import os.path as op
 import io
 # ---------------------------------------------------------------------------
 
@@ -75,6 +77,45 @@ def build_label(metadata):
     else:
         raise ValueError("unknown combination of metadata values")
     return label
+
+
+def legend_categorical(target_dir):
+    # this just generates pieces, still need to manually assemble them
+    # into the final result
+    f = Figure(figsize=(300/dpi, 300/dpi), dpi=dpi)
+    ax = f.gca()
+    for subtype, shape in (('HER2amp', 'triangle'),
+                            ('TN', 'circle'),
+                            ('HR+', 'square')):
+        ax.plot(0, 0, marker=marker_map[shape].marker, mfc=marker_map[shape].color,
+                label=subtype, ls='none')
+    ax.legend(prop={'size': 12})
+    filename = op.join(target_dir, 'legend-categorical.png')
+    canvas = FigureCanvasAgg(f)
+    canvas.print_png(filename)
+
+
+def legend_graded(target_dir):
+    # this just generates pieces, still need to manually assemble them
+    # into the final result
+    f = Figure(figsize=(300/dpi, 300/dpi), dpi=dpi)
+    ax = f.gca()
+    for subtype, shape in (('HER2amp', 'triangle'),
+                            ('TN', 'circle'),
+                            ('HR+', 'square')):
+        ax.plot(0, 0, marker=marker_map[shape].marker, label=subtype, mfc='none', ls='none')
+    ax.set_xlabel('Subtype')
+    cax = ax.imshow([[0,1]], cmap=cmap_bwr)
+    cbar = f.colorbar(cax, ticks=[0, 0.5, 1], orientation='horizontal')
+    cbar.ax.set_xticklabels(['Weak', 'Medium', 'Strong'])
+    cbar.ax.set_xlabel('Lapatinib response')
+    plt.setp(cbar.ax.get_xticklines(), alpha=0)
+    ax.legend(prop={'size': 12})
+    f.set_facecolor('none')
+    filename = op.join(target_dir, 'legend-graded.png')
+    canvas = FigureCanvasAgg(f)
+    canvas.print_png(filename)
+
 
 if __name__ == '__main__':
     points = (ScatterplotData('AU-565', 'triangle', 0.554, 4.308, 4.311),

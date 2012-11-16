@@ -53,6 +53,14 @@ jQuery(document).ready(function ($) {
             var target_pos = $elt.position()
             var left = target_pos.left + $elt.width() + 15;
             var top = target_pos.top;
+	    // move popup left of hotspot if it would extend off the right side of the map
+	    if (left + $popup.width() >= $('#pathway-container').width()) {
+		left = target_pos.left - $popup.width() - 15;
+	    }
+	    // move popup above hotspot if it's very close to the bottom
+	    if (top >= $('#pathway-container').height() - 100) {
+		top = target_pos.top - $popup.height() + 10;
+	    }
             var offset = {'left': left, 'top': top};
             $popup.offset(offset);
         }
