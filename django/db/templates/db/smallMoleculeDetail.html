@@ -1,13 +1,16 @@
 {% extends "db/base.html" %}
 {% block content %}
-	{% if image_location %}
+	{% if image_location and not is_restricted %}
 		{# TODO: window.moveTo not working in chrome #}
 		{# TODO: create a template for the popup window; title, scaling #}
 		<img class='compound_image' src="{{ STATIC_URL }}{{image_location}}" onclick="w=window.open('{{ STATIC_URL }}{{image_location}}','image','height=500,width=500');w.moveTo(500,400);"/>
 	{% endif %}
 <h2 class='entity_detail_title'>Small Molecule Information</h2>
+	{% if is_restricted %}
+		Detailed information for this Small Molecule is restricted at this time.
+	{% endif %}
 	{% include "db/detailListing.html" %}
-	{% if attached_files %}
+	{% if attached_files  and not is_restricted  %}
 		<h2 class='entity_detail_title'>Attached Files</h2>
 		{% load render_table from django_tables2 %}
 		{% render_table attached_files %}
@@ -22,7 +25,7 @@
 		<h2 class='entity_detail_title' title='Other proteins effected'>Other Targets:</h2>
 		{% render_table other_targets_table %}
 	{% endif %}
-	{% if ambit_image_location %}
+	{% if ambit_image_location  and not is_restricted %}
 		<h2 class='entity_detail_title'>KINOMEscan Image</h2>
 		<img src="{{ STATIC_URL }}{{ambit_image_location}} " onclick="w=window.open('{{ STATIC_URL }}{{ambit_image_location}}','image','height=400,width=800');w.moveTo(500,400);" />
 	{% endif %}

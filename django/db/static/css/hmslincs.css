@@ -71,8 +71,9 @@ text-decoration:none;
 
 .propertyValueColumn {
 	padding-left: 3px;
-        word-wrap: break-word;
-        max-width: 476px;
+  word-wrap: break-word;
+  width: 476px;
+  max-width: 476px;
 }
 
 #innercontent ul.pagination {
