@@ -143,12 +143,13 @@ def main(path):
         metadata = read_metadata(path)
         try:
             extant_dataset = DataSet.objects.get(facility_id=metadata['facility_id'])
+            logger.info(str(('extent_dataset',extant_dataset)))
             if(extant_dataset):
                 logger.warn(str(('deleting extant dataset for facility id: ', metadata['facility_id'])))
                 extant_dataset.delete()
         except Exception,e:
-            logger.info(str(('extant dataset delete error',e)))
-        
+            logger.info(str(('on trying to delete',e)))
+#            raise e
         dataset = DataSet(**metadata)
         dataset.save()
         logger.info(str(('dataset created: ', dataset)))
@@ -200,7 +201,8 @@ def main(path):
                     break
             if findError:    
                 #raise Exception(str(( "Error: no datacolumn for ", label, dataColumns.values(), metaColumnDict.keys(),metaColumnDict.keys())))
-                logger.warn(str(( "Warn: no datacolumn defined for the column: ", label, dataColumns.values(), metaColumnDict.keys(),metaColumnDict.keys())))
+                logger.warn(str(( "Warn: ignoring undefined column: ", label, " (not found in the datacolumns sheet), columns: ", 
+                                  dataColumns.values(), metaColumnDict.keys(),metaColumnDict.keys())))
     
     found=False
     for key,value in mappingColumnDict.items():
