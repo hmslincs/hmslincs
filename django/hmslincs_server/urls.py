@@ -26,15 +26,13 @@ urlpatterns = patterns('',
 
     # Login / logout.
     # Note: the name "login_url" name is set to the request by the registered hmslincs.context_procesor.login_url_with_redirect
-    (r'^login/$', 'django.contrib.auth.views.login', {'template_name': 'db/login.html'}),
-    url(r'^logout/$', logout_page, name='logout'),
+    (r'^db/login/$', 'django.contrib.auth.views.login', {'template_name': 'db/login.html'}),
+    url(r'^db/logout/$', logout_page, name='logout'),
 
     # Uncomment the admin/doc line below to enable admin documentation:
     # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
-
-    # url(r'^???/', include('???.urls')),
-    url(r'^admin/doc/', include('django.contrib.admindocs.urls')), 
-    url(r'^admin/', include(admin.site.urls)),
+    url(r'^db/admin/doc/', include('django.contrib.admindocs.urls')), 
+    url(r'^db/admin/', include(admin.site.urls)),
     url(r'^db/$', 'db.views.main', name="home"),
     url(r'^db/sm/$','db.views.smallMoleculeIndex', name="listSmallMolecules" ),
     url(r'^db/sm/(?P<facility_salt_id>[0-9\-]+)/$', 'db.views.smallMoleculeDetail', name="sm_detail"),

@@ -83,6 +83,11 @@ else:
         '/home/sde4/docs/work/LINCS/data/upload_files/',
     )   
 
+# add our custom hmslincs project library path
+import sys
+sys.path.append(op.join(_djangopath, '..','src'))
+
+
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
 # although not all choices may be available on all operating systems.
@@ -166,11 +171,15 @@ MIDDLEWARE_CLASSES = (
 
 # uncomment to enable - this is the default, but we'll override 
 # AUTHENTICATION_BACKENDS = ('django.contrib.auth.backends.ModelBackend',) # Note, this is the default
-
+# our custom backend checks the user table, then authenticates with ECommons
+AUTHENTICATION_BACKENDS = ('db.auth.CustomAuthenticationBackend',)  
 ROOT_URLCONF = 'hmslincs_server.urls'
 
 # URL of the login page.
-LOGIN_URL = '/login/'
+LOGIN_URL = '/db/login/'
+LOGOUT_URL = '/db/logout/'
+LOGIN_REDIRECT_URL = '/db/'
+
 
 # Python dotted path to the WSGI application used by Django's runserver.
 WSGI_APPLICATION = 'hmslincs_server.wsgi.application'
@@ -255,10 +264,10 @@ LOGGING = {
             'propagate': True,
             'level': 'WARN',
         },
-        'xx': {  
-            'handlers': ['console'],
-            'propagate': True,
-            'level': 'INFO',
-        },
+#        'db.PagedRawQuerySet': {  
+#            'handlers': ['console'],
+#            'propagate': True,
+#            'level': 'DEBUG',
+#        },
     }
 }
