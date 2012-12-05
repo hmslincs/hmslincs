@@ -24,7 +24,7 @@ SERVER=$1
 
 if [[ "$SERVER" == "PROD" ]] || [[ "$SERVER" == "prod" ]] 
 then
-  DATADIR=${DIR}/data/prod
+  DATADIR=${DIR}/data/prod2
   DB=lincs
   DB_USER=lincsweb
   LINCS_PGSQL_USER=lincsweb
@@ -32,7 +32,7 @@ then
   export LINCS_PGSQL_USER=$DB_USER
   export LINCS_PGSQL_DB=$DB
   export LINCS_PGSQL_SERVER=$PGHOST
-  export LINCS_PGSQL_PASSWORD=`cat ~/.pgpass |grep $DB_USER| awk -F ':' '{print $5}'`
+  export LINCS_PGSQL_PASSWORD=`cat ~/.pgpass |grep "\W$DB_USER\W" | awk -F ':' '{print $5}'`
   VIRTUALENV=/www/dev.lincs.hms.harvard.edu/support/virtualenv/bin/activate
 elif [[ "$SERVER" == "DEVTEST" ]] || [[ "$SERVER" == "devtest" ]] 
 then

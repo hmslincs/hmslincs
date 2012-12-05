@@ -576,7 +576,7 @@ def get_fielddata(model_object, search_tables, is_detail=False):
         except (ObjectDoesNotExist,MultipleObjectsReturned) as e:
             logger.debug(str(('no field information defined for: ', field, value)))
     ui_dict = OrderedDict(sorted(ui_dict.items(), key=lambda x: x[1]['fieldinformation'].order))
-    logger.info(str(('ui_dict',ui_dict)))
+    if(logger.isEnabledFor(logging.DEBUG)): logger.debug(str(('ui_dict',ui_dict)))
     return ui_dict
     #return self.DatasetForm(data)
    
