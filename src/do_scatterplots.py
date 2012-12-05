@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+from __future__ import division
 import sys
 import os
 import os.path as op
@@ -5,6 +7,8 @@ import re
 import itertools as it
 import csv
 import math as ma
+import collections as co
+import json
 
 import shell_utils as su
 import typecheck as tc
@@ -17,13 +21,16 @@ import minmax as mm
 import setparams as _sg
 _params = dict(
     VERBOSE = False,
+    TEST = False,
     APPNAME = 'responses',
+    IDPREFIX = '',
     OUTPUTDIR = None,
     OUTPUTEXT = '.%s' % sp.FORMAT.lower(),
     WITHLIMITS = False,
 
     COLHEADERROWNUM = 0,
     FIRSTDATAROWNUM = 1,
+    CELLLINECOLNUM = 0,
     LEVELCOLNUM = 2,
     CELLTYPECOLNUM = 3,
 
@@ -42,34 +49,36 @@ if OUTPUTDIR is None:
     OUTPUTDIR = op.join(op.dirname(op.dirname(op.abspath(__file__))),
                         'django', APPNAME, 'static', APPNAME, 'img')
 
+SHAPELOOKUP = {
+               'HER2amp': 'triangle',
+               'TNBC': 'circle',
+               'HR+': 'square',
+              }
+
 # ---------------------------------------------------------------------------
+
+CellLineMetadata = co.namedtuple('CellLineMetadata',
+                                 'cell_line_name cell_line_classification '
+                                 'sensitivity')
 
 def _seq2type(seq, type_):
     assert tc.issequence(seq)
     return type(seq)([type_(v) for v in seq])
 
-def write_scatterplot(output, points, metadata,
-                      lims=None):
-    # calls sp.scatterplot
-    # outputs a scatterplot to output
-    with open(output, 'w') as out_fh:
-        fig_fh = sp.scatterplot(points, metadata, lims)
-        while True:
-            buf = fig_fh.read1(4096)
-            if len(buf) == 0:
-                break
-            out_fh.write(buf)
 
 def normalize(ax, _nre=re.compile(r'[/\s]')):
     # returns a string
     return ','.join(_nre.sub('_', s.lower()) for s in ax if s is not None)
 
 
-def outpath(axes):
+def outpath(base_id, outputdir=OUTPUTDIR, outputext=OUTPUTEXT):
     # returns a filepath
-    return op.join(OUTPUTDIR,
-                   '%s%s' % ('__'.join(normalize(ax) for ax in axes),
-                             OUTPUTEXT))
+    return op.join(outputdir, '%s%s' % (base_id, outputext))
+
+
+def _base_id(axes):
+    return '__'.join(normalize(ax) for ax in axes)
+
 
 def parse_header(header, _width=4):
     parts = header.split(',')
@@ -92,19 +101,11 @@ def _range(seq):
     return max_ - min_, min_, max_
 
 
-def _getspecs(datarows,
-              _celltype2shape={'HER2amp': 'triangle',
-                               'TNBC': 'circle',
-                               'HR+': 'square',
-                               }):
-    assert len(datarows)
+def get_specs(cell_line_metadata, _shapelookup=SHAPELOOKUP):
+    assert len(cell_line_metadata)
 
-    l = LEVELCOLNUM
-    ct = CELLTYPECOLNUM
-    for row in datarows:
-        row[l] = float(row[l])
-
-    levelrange, minlevel = _range([n for n in (r[l] for r in datarows)
+    levelrange, minlevel = _range([n for n in (r.sensitivity
+                                               for r in cell_line_metadata)
                                    if not ma.isnan(n)])[:2]
     if levelrange > 0:
         def level(lvl):
@@ -113,18 +114,19 @@ def _getspecs(datarows,
     else:
         level = lambda lvl: None
 
-    return tuple(sp.PointSpec(row[0], _celltype2shape[row[ct]], level(row[l]))
-                 for row in datarows)
+    return tuple(sp.PointSpec(md.cell_line_name,
+                              _shapelookup[md.cell_line_classification],
+                              level(md.sensitivity))
+                 for md in cell_line_metadata)
 
 
-def process(rows, withlimits=WITHLIMITS):
+def parse(rows):
     # returns:
-    # specs: tuple of sp.PointSpec instances (triples)
-    # data: tuple of sp.ResponseData instances (pairs)
-    # lims: pair of floats
+    # cl_metadata: tuple of CellLineMetadata instances (triples)
+    # responses: tuple of sp.ResponseData instances (pairs)
 
-    # The components of a sp.PointSpec instance are 'label'
-    # (=cell line), 'shape' (=cell type), 'level' (=sensitivity score).
+    # The components of a CellLineMetadata instance are 'cell_line_name'
+    # (='cell line name'), 'cell_line_classification', 'sensitivity'.
 
     # The components of a sp.ResponseData are 'metadata' (a
     # sp.ScatterplotMetaData object, initialized with info parsed from
@@ -133,18 +135,74 @@ def process(rows, withlimits=WITHLIMITS):
     r0 = COLHEADERROWNUM
     r1 = FIRSTDATAROWNUM
 
-    specs = _getspecs(rows[r1:])
+    cl = CELLLINECOLNUM
+    ll = LEVELCOLNUM
+    ct = CELLTYPECOLNUM
 
-    data = tuple(sp.ResponseData(parse_header(col[r0]),
+    cl_metadata = tuple(CellLineMetadata(row[cl], row[ct], float(row[ll]))
+                        for row in rows[r1:])
+
+    responses = tuple(sp.ResponseData(parse_header(col[r0]),
                                  _seq2type(col[r1:], float))
-                 for col in zip(*rows)[KEYLENGTH:])
+                      for col in zip(*rows)[KEYLENGTH:])
 
-    if withlimits:
-        lims = _range(sum([pair[1] for pair in data], ()))[1:]
-    else:
-        lims = None
+    return cl_metadata, responses
 
-    return specs, data, lims
+def limits(readouts):
+    return _range(sum(readouts, ()))[1:]
+
+def _one_scatterplot(cl_metadata, xy_data, xy_metadata,
+                     output=None,
+                     lims=None, specs=None,
+
+                     _spd=sp.ScatterplotData,
+                     _anno=co.namedtuple('_annotation',
+                                         CellLineMetadata._fields +
+                                         ('x', 'y')),
+                     _annopxl=co.namedtuple('_annotated_pixel',
+                                            'coords annotation')):
+    if specs is None:
+        specs = get_specs(cl_metadata)
+
+    readouts = zip(*xy_data)
+    if lims is None and WITHLIMITS:
+        lims = limits(readouts)
+
+    points = tuple(_spd(*(k + (x, y))) for k, x, y in zip(specs, *xy_data))
+
+    fig = sp.scatterplot(points, xy_metadata, lims=lims, outpath=output)
+    pixels = tuple(p for p in sp.pixels(points, fig))
+
+    annotations = tuple(_anno(*(m + r))
+                        for m, r in zip(cl_metadata, readouts))
+
+    return tuple(sorted([_annopxl(p, a) for p, a in zip(pixels, annotations)],
+                        key=lambda r: (-r.coords.y, r.coords.x,
+                                        r.annotation.cell_line_name)))
+
+def print_pixel_annotations(pixel_maps):
+    for imgid, pixel_map in pixel_maps.items():
+        rows = [dict(coords=p.coords._asdict(),
+                     row=('<tr>'
+                          '<td>%(cell_line_name)s</td>'
+                          '<td>%(cell_line_classification)s</td>'
+                          '<td>%(sensitivity).3f</td>'
+                          '<td>(%(x).3f, %(y).3f)</td>'
+                          '</tr>'
+                          % p.annotation._asdict())) for p in pixel_map]
+
+        print '        %s: %s,' % (json.dumps(imgid), json.dumps(rows))
+
+
+def do_scatterplots(cl_metadata, responses, to_do, withlimits=None):
+    specs = get_specs(cl_metadata)
+    lims = (limits(tuple(r.data for r in responses))
+            if withlimits else None)
+    return dict([(item.imgid,
+                  _one_scatterplot(cl_metadata, *item.args,
+                                   lims=lims, specs=specs))
+                 for item in to_do])
+                                                  
 
 
 #------------------------------------------------------------------------------
@@ -155,22 +213,50 @@ def main(argv=sys.argv[1:]):
     su.mkdirp(OUTPUTDIR)
 
     rows = readinput(argv[0])
-    specs, data, lims = process(rows, withlimits=WITHLIMITS)
+    cl_metadata, responses = parse(rows)
 
-    spd = sp.ScatterplotData
-
-    for pair in it.product(data, data):
-        md, vs = zip(*pair)
-        if md[0] >= md[1]: continue
-        if md[0].time != md[1].time: continue
-        output = outpath(md)
-
+    _to_do = co.namedtuple('_to_do', 'args imgid')
+    _args = co.namedtuple('_args', 'xy_data xy_metadata output')
+    to_do = []
+    for xr, yr in it.product(responses, responses):
+        (xmd, ymd), (xs, ys) = zip(xr, yr)
+        if xmd >= ymd or xmd.time != ymd.time: continue
+        base_id = _base_id((xmd, ymd))
+        output = outpath(base_id)
         if not CLOBBEROK and op.exists(output):
             raise Exception("won't clobber %s" % output)
 
-        points = tuple(spd(*(k + (x, y))) for k, x, y in zip(specs, *vs))
-        write_scatterplot(output, points, md, lims)
+        img_id = IDPREFIX + base_id
+        to_do.append(_to_do(_args((xs, ys), (xmd, ymd), output), img_id))
+
+    pixel_maps = do_scatterplots(cl_metadata, responses, to_do, WITHLIMITS)
+    print_pixel_annotations(pixel_maps)
 
 
 if __name__ == '__main__':
-    main()
+
+    if not TEST:
+        main()
+        exit(0)
+
+    OUTPUTPATH = '/Users/berriz/Work/Sites/hmslincs/tmp/png/test.png'
+
+    metadata = (sp.ScatterplotMetaData(readout='pErk', ligand='EGF',
+                                       concentration='100', time='m'),
+                sp.ScatterplotMetaData(readout='pErk', ligand='EPR',
+                                       concentration='100', time='m'))
+
+    x0, x1 = 3.092, 4.308
+    m = (x0 + x1)/2
+    xy = zip((x0, x0), (x0, x1), (x1, x1), (x1, x0), (m, m))
+    cl_metadata = tuple(CellLineMetadata(cl, ct, lv)
+                        for cl, ct, lv in
+                        zip(tuple('AU-565 BT-20 BT-474 BT-483 BT-549'.split()),
+                            tuple('HR+ HER2amp TNBC HR+ TNBC'.split()),
+                            (0, 1, 1, 0, 0.5)))
+
+    responses = zip(*(metadata, xy))
+    to_do = [co.namedtuple('_to_do', 'args imgid')
+             ((xy, metadata, OUTPUTPATH), 'test')]
+    pixel_maps = do_scatterplots(cl_metadata, responses, to_do)
+    print_pixel_annotations(pixel_maps)

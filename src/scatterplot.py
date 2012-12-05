@@ -13,6 +13,7 @@ FORMAT = 'png'
 # ---------------------------------------------------------------------------
 
 ScatterplotData = co.namedtuple('ScatterplotData', 'label shape level x y')
+Pixel = co.namedtuple('Pixel', 'x y')
 ScatterplotMetaData = co.namedtuple('ScatterplotMetaData',
                                     'readout ligand concentration time')
 PointSpec = co.namedtuple('PointSpec', 'label shape level')
@@ -29,7 +30,7 @@ dpi = 72.0
 
 cmap_bwr = LinearSegmentedColormap.from_list('bwr', ['blue', 'white', 'red'])
 
-def scatterplot(points, metadata, lims=None, display=False):
+def scatterplot(points, metadata, lims=None, outpath=None, display=False):
     f = Figure(figsize=(300 / dpi, 300 / dpi), dpi=dpi)
     ax = f.gca()
     for p in points:
@@ -57,14 +58,24 @@ def scatterplot(points, metadata, lims=None, display=False):
     ax.yaxis.set_ticks_position('left')
     f.subplots_adjust(left=0.2, bottom=0.15, right=1, top=1, wspace=0, hspace=0)
     plt.setp(f, 'facecolor', 'none')
+
+    canvas = FigureCanvasAgg(f)
+    f.set_canvas(canvas)
+
+    if outpath:
+        canvas.print_png(outpath)
+
     if display:
         plt.show()
-    else:
-        output = io.BytesIO()
-        canvas = FigureCanvasAgg(f)
-        canvas.print_png(output)
-        output.seek(0)
-        return output
+
+    return f
+
+def pixels(points, figure):
+    transform = figure.gca().transData.transform
+    height = figure.canvas.get_width_height()[1]
+    return tuple(Pixel(int(round(q[0])), int(round(height - q[1])))
+                 for q in transform([(p.x, p.y) for p in points]))
+
 
 def build_label(metadata):
     readout, ligand, concentration, time = metadata

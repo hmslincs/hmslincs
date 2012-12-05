@@ -103,7 +103,8 @@ make_w_nan   3,7,13,23,33,39,43,53 $MFC   | tee $DATADIR1/picks_for_responses.ts
 make_w_level 5,12 $BASAL                  | tee $DATADIR1/picks_for_basal_w_color.tsv | show
 make_w_level 23,43 $MFC 65-67,125-127 $FC | tee $DATADIR1/picks_for_slider.tsv        | show
 
-echo -n "making $OUTPUTDIR/**/*.png files... "
+SCRIPT=$( basename $0 )
+echo "$SCRIPT: making $OUTPUTDIR/**/*.png files... "
 
 [[ -n $DEBUG ]] && echo $DATADIR1
 
@@ -113,9 +114,9 @@ rm -f ${DEBUG:+-v} $OUTPUTDIR/**/*.png(N)
 
 python src/do_scatterplots.py $DATADIR1/picks_for_basal.tsv
 python src/do_scatterplots.py $DATADIR1/picks_for_responses.tsv
-WITHLIMITS=1 OUTPUTDIR=$OUTPUTDIR/slider \
+IDPREFIX='slider/' WITHLIMITS=1 OUTPUTDIR=$OUTPUTDIR/slider \
   python src/do_scatterplots.py $DATADIR1/picks_for_slider.tsv
-OUTPUTDIR=$OUTPUTDIR/basal_graded \
+IDPREFIX='basal_graded/' OUTPUTDIR=$OUTPUTDIR/basal_graded \
   python src/do_scatterplots.py $DATADIR1/picks_for_basal_w_color.tsv
 
-echo done
+echo "$SCRIPT: done"
