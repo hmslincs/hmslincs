@@ -22,11 +22,11 @@ td p {
 
   padding: 0.4ex;
 
-  background-color: #eeeeee;
+  background-color: #f7ab53;
   border: 0px;
 
-  /* -webkit-box-shadow: 1px 1px 1px #000; */
-  /* box-shadow: 1px 1px 1px #000; */
+  -webkit-box-shadow: 1px 1px 1px #000;
+  box-shadow: 1px 1px 1px #000;
 
   -webkit-border-radius: 2px;
   border-radius: 2px;
@@ -43,9 +43,9 @@ td p {
 #popup td {
   border: 0;
   margin: 0;
-  padding: 0px 5px;
-  font-size: 7pt;
-  line-height: 9pt;
+  padding: 0em 0.4em;
+  font-size: 10pt;
+  line-height: 11pt;
 }
 
 #content td.featured {
