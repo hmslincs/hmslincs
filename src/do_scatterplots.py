@@ -180,16 +180,21 @@ def _one_scatterplot(cl_metadata, xy_data, xy_metadata,
                         key=lambda r: (r.coords.y, r.coords.x,
                                        r.annotation.cell_line_name)))
 
+def make_row(annotation):
+    return ((('<tr>'
+              '<td>%(cell_line_name)s</td>'
+              '<td>%(cell_line_classification)s</td>') +
+             ('<td>n/a</td>' if ma.isnan(annotation.sensitivity)
+                             else '<td>%(sensitivity).3f</td>') +
+             ('<td>(%(x).3f, %(y).3f)</td>'
+              '</tr>'))
+            % annotation._asdict())
+    
+
 def print_pixel_annotations(pixel_maps):
     for imgid, pixel_map in pixel_maps.items():
         rows = [dict(coords=p.coords._asdict(),
-                     row=('<tr>'
-                          '<td>%(cell_line_name)s</td>'
-                          '<td>%(cell_line_classification)s</td>'
-                          '<td>%(sensitivity).3f</td>'
-                          '<td>(%(x).3f, %(y).3f)</td>'
-                          '</tr>'
-                          % p.annotation._asdict())) for p in pixel_map]
+                     row=make_row(p.annotation)) for p in pixel_map]
 
         print '        %s: %s,' % (json.dumps(imgid), json.dumps(rows))
 
