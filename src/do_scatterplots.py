@@ -177,8 +177,8 @@ def _one_scatterplot(cl_metadata, xy_data, xy_metadata,
                         for m, r in zip(cl_metadata, readouts))
 
     return tuple(sorted([_annopxl(p, a) for p, a in zip(pixels, annotations)],
-                        key=lambda r: (-r.coords.y, r.coords.x,
-                                        r.annotation.cell_line_name)))
+                        key=lambda r: (r.coords.y, r.coords.x,
+                                       r.annotation.cell_line_name)))
 
 def print_pixel_annotations(pixel_maps):
     for imgid, pixel_map in pixel_maps.items():
