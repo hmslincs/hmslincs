@@ -4,6 +4,7 @@
   <link rel="stylesheet" href="{{ STATIC_URL }}responses/css/responses.css"/>
   <link rel="stylesheet" href="//code.jquery.com/ui/1.9.1/themes/base/jquery-ui.css" />
   <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.9.1/jquery-ui.min.js"></script>
+  <script>var IMGBASE = "{{ STATIC_URL }}responses/img/";</script>
   <script src="{{ STATIC_URL }}responses/js/responses.js"></script>
 {% endblock %}
 
@@ -18,12 +19,12 @@
   </tr>
   <tr>
     <td class="featured">
-      <img id="slider-img" src="{{ STATIC_URL }}responses/img/slider/pakt,igf-1,100,10__perk,fgf-1,100,10.png" width="300" height="300">
+      <img class="scatterplot" id="slider-img" src="{{ STATIC_URL }}responses/img/slider/pakt,igf-1,100,10__perk,fgf-1,100,10.png" width="300" height="300">
       <img src="{{ STATIC_URL }}responses/img/legends/graded.png" width="300" height="64">
 
       <!-- hack to preload the images -->
-      <img style="display: none" src="{{ STATIC_URL }}responses/img/slider/pakt,igf-1,100,30__perk,fgf-1,100,30.png">
-      <img style="display: none" src="{{ STATIC_URL }}responses/img/slider/pakt,igf-1,100,90__perk,fgf-1,100,90.png">
+      <img class="scatterplot" style="display: none" src="{{ STATIC_URL }}responses/img/slider/pakt,igf-1,100,30__perk,fgf-1,100,30.png">
+      <img class="scatterplot" style="display: none" src="{{ STATIC_URL }}responses/img/slider/pakt,igf-1,100,90__perk,fgf-1,100,90.png">
 
       <div id="slider-wrap">
         <label for="timepoint">Time point:</label>
@@ -48,7 +49,7 @@
 
   <tr>
     <td class="featured">
-      <img src="{{ STATIC_URL }}responses/img/basal_graded/erbb2__perbb2.png" width="300" height="300">
+      <img class="scatterplot" src="{{ STATIC_URL }}responses/img/basal_graded/erbb2__perbb2.png" width="300" height="300">
       <img src="{{ STATIC_URL }}responses/img/legends/graded.png" width="300" height="64">
     </td>
     <td class="featured righthand">
@@ -68,7 +69,7 @@
   <tr>
     <td class="matrix">
       <h3>pERK responses, to EGF vs. BTC</h3>
-      <p><img src="{{ STATIC_URL }}responses/img/perk,btc,100,m__perk,egf,100,m.png" width="300" height="300">
+      <p><img class="scatterplot" src="{{ STATIC_URL }}responses/img/perk,btc,100,m__perk,egf,100,m.png" width="300" height="300">
       <img src="{{ STATIC_URL }}responses/img/legends/categorical.png" width="300" height="13">
       <p>
 
@@ -80,7 +81,7 @@
     </td>
     <td class="matrix">
       <h3>pAKT response, to HRG vs. EGF</h3>
-      <p><img src="{{ STATIC_URL }}responses/img/pakt,egf,100,m__pakt,hrg,100,m.png" width="300" height="300">
+      <p><img class="scatterplot" src="{{ STATIC_URL }}responses/img/pakt,egf,100,m__pakt,hrg,100,m.png" width="300" height="300">
       <img src="{{ STATIC_URL }}responses/img/legends/categorical.png" width="300" height="13">
       <p>
 
@@ -93,7 +94,7 @@
   <tr>
     <td class="matrix">
       <h3>pERK response vs. pAKT response, to FGF-1</h3>
-      <p><img src="{{ STATIC_URL }}responses/img/pakt,fgf-1,100,m__perk,fgf-1,100,m.png" width="300" height="300">
+      <p><img class="scatterplot" src="{{ STATIC_URL }}responses/img/pakt,fgf-1,100,m__perk,fgf-1,100,m.png" width="300" height="300">
       <img src="{{ STATIC_URL }}responses/img/legends/categorical.png" width="300" height="13">
       <p>
 
@@ -104,7 +105,7 @@
     </td>
     <td class="matrix">
       <h3>pERK response vs. pAKT response, to IGF-1</h3>
-      <p><img src="{{ STATIC_URL }}responses/img/pakt,igf-1,100,m__perk,igf-1,100,m.png" width="300" height="300">
+      <p><img class="scatterplot" src="{{ STATIC_URL }}responses/img/pakt,igf-1,100,m__perk,igf-1,100,m.png" width="300" height="300">
       <img src="{{ STATIC_URL }}responses/img/legends/categorical.png" width="300" height="13">
       <p>
       
@@ -121,7 +122,7 @@
   <tr>
     <td class="matrix">
       <h3>Basal pAKT vs. AKT</h3>
-      <p><img src="{{ STATIC_URL }}responses/img/akt__pakt.png" width="300" height="300">
+      <p><img class="scatterplot" src="{{ STATIC_URL }}responses/img/akt__pakt.png" width="300" height="300">
       <img src="{{ STATIC_URL }}responses/img/legends/categorical.png" width="300" height="13">
       <p>
 
@@ -131,7 +132,7 @@
     </td>
     <td class="matrix">
       <h3>Basal pErbB2 vs. pAKT</h3>
-      <p><img src="{{ STATIC_URL }}responses/img/pakt__perbb2.png" width="300" height="300">
+      <p><img class="scatterplot" src="{{ STATIC_URL }}responses/img/pakt__perbb2.png" width="300" height="300">
       <img src="{{ STATIC_URL }}responses/img/legends/categorical.png" width="300" height="13">
       <p>
       
@@ -144,7 +145,7 @@
   <tr>
     <td class="matrix">
       <h3>Basal pErbB2 vs. ErbB2</h3>
-      <p><img src="{{ STATIC_URL }}responses/img/erbb2__perbb2.png" width="300" height="300">
+      <p><img class="scatterplot" src="{{ STATIC_URL }}responses/img/erbb2__perbb2.png" width="300" height="300">
       <img src="{{ STATIC_URL }}responses/img/legends/categorical.png" width="300" height="13">
       <p>
 
@@ -155,7 +156,7 @@
     </td>
     <td class="matrix">
       <h3>Basal pErbB3 vs. pErbB2</h3>
-      <p><img src="{{ STATIC_URL }}responses/img/perbb2__perbb3.png" width="300" height="300">
+      <p><img class="scatterplot" src="{{ STATIC_URL }}responses/img/perbb2__perbb3.png" width="300" height="300">
       <img src="{{ STATIC_URL }}responses/img/legends/categorical.png" width="300" height="13">
       <p>
 
