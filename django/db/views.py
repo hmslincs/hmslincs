@@ -83,7 +83,7 @@ def cellIndex(request):
             order_by=('facility_id',))        
  
     if(len(queryset)>0):
-        table = CellTable(queryset)
+        table = CellTable(queryset, template="db/custom_tables2_template.html")
         RequestConfig(request, paginate={"per_page": 25}).configure(table)
         outputType = request.GET.get('output_type','')
         if(outputType != ''):
@@ -486,7 +486,43 @@ class TypeColumn(tables.Column):
         elif value == "protein_detail": return "Protein"
         else: raise Exception("Unknown type: "+value)
 
-class DataSetTable(tables.Table):
+from math import log, pow
+
+class PagedTable(tables.Table):
+    
+    def __init__(self,*args,**kwargs):
+        kwargs['template']="db/custom_tables2_template.html"
+        super(PagedTable,self).__init__(*args,**kwargs)
+
+    def previous_ten_page_number(self):
+        if(self.page):
+            temp = self.page.number-10
+            if(temp<1): temp=1
+            return temp
+
+    def next_ten_page_number(self):
+        if(self.page):
+            temp = self.page.number+10
+            jump_exp = int(log(self.paginator.num_pages,10))
+            if(jump_exp > 1): temp = self.page.number + int(pow(10,(jump_exp-1)))
+            logger.info(str(('self.page.next_page_number()', self.page.next_page_number(),self.paginator.num_pages, temp)))
+            if( temp > self.paginator.num_pages ): 
+                temp=self.paginator.num_pages
+            return temp
+        
+    def page_start(self):
+        if(self.page):
+            return self.paginator.per_page * (self.page.number-1)
+        
+    def page_end(self):
+        if(self.page):
+            temp = self.page_start()+self.paginator.per_page
+            logger.info(str(('page_end:' , temp, self.paginator.count )))
+            if(temp > self.paginator.count): return self.paginator.count
+            return temp
+
+
+class DataSetTable(PagedTable):
     id = tables.Column(visible=False)
     facility_id = tables.LinkColumn("dataset_detail", args=[A('facility_id')])
     protocol = tables.Column(visible=False) 
@@ -524,7 +560,7 @@ class TestColumn(tables.Column):
         return 'xxx'
 #        return value.upper()
         
-class DataSetResultTable(tables.Table):
+class DataSetResultTable(PagedTable):
     """
     Override of the tables.Table - columns are defined manually to conform to the DataSetManager query fields; 
     fields are added as Table "base_columns" in the __init__ method.
@@ -574,7 +610,7 @@ class DataSetResultTable(tables.Table):
         # For now, what is done is the "defined_base_columns" are preserved, then others are added.
         for name in self.base_columns.keys():
             if name not in self.defined_base_columns:
-                logger.warn(str(('deleting column from the table', name)))
+                logger.debug(str(('deleting column from the table', name,self.defined_base_columns)))
                 del self.base_columns[name]
         
         temp = ['facility_salt_batch','plate','well','control_type']
@@ -588,7 +624,7 @@ class DataSetResultTable(tables.Table):
         for i,dc in enumerate(ordered_datacolumns):    
             #logger.debug(str(('create column:',name,verbose_name)))
             col = 'col%d'%i
-            logger.info(str(('create column', col, dc.id, dc.data_type)))
+            logger.debug(str(('create column', col, dc.id, dc.data_type)))
             if(dc.data_type.lower() != OMERO_IMAGE_COLUMN_TYPE):
                 self.base_columns[col] = tables.Column(verbose_name=dc.name)
             else:
@@ -840,7 +876,7 @@ def find_datasets_for_smallmolecule(smallmolecule_id):
     #        
     #    return dataset_ids
             
-class LibraryMappingTable(tables.Table):
+class LibraryMappingTable(PagedTable):
     facility_salt_batch = tables.LinkColumn("sm_detail", args=[A('facility_salt_batch')]) 
     sm_name = tables.Column()
     is_control = tables.Column() 
@@ -906,7 +942,7 @@ class LibraryMappingSearchManager(models.Model):
         v = dictfetchall(cursor)
         return v
     
-class SmallMoleculeBatchTable(tables.Table):
+class SmallMoleculeBatchTable(PagedTable):
     
     facility_salt_batch = tables.LinkColumn("sm_detail", args=[A('facility_salt_batch')])
     facility_salt_batch.attrs['td'] = {'nowrap': 'nowrap'}
@@ -921,7 +957,7 @@ class SmallMoleculeBatchTable(tables.Table):
         sequence_override = ['facility_salt_batch']
         set_table_column_info(self, ['smallmolecule','smallmoleculebatch',''],sequence_override)  
 
-class SmallMoleculeTable(tables.Table):
+class SmallMoleculeTable(PagedTable):
     #facility_id = tables.Column(visible=False)
     facility_salt = tables.LinkColumn("sm_detail", args=[A('facility_salt')], order_by=['facility_id','salt_id']) 
     facility_salt.attrs['td'] = {'nowrap': 'nowrap'}
@@ -939,7 +975,7 @@ class SmallMoleculeTable(tables.Table):
         sequence_override = ['facility_salt']
         set_table_column_info(self, ['smallmolecule','smallmoleculebatch',''],sequence_override)  
 
-class AttachedFileTable(tables.Table):
+class AttachedFileTable(PagedTable):
     filename=tables.LinkColumn("download_attached_file", args=[A('filename')])
     #snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce("+x.field+",'') ", FieldInformation.manager.get_search_fields(SmallMolecule)))) # TODO: specialized search for librarymapping, if needed
     
@@ -959,11 +995,12 @@ class SmallMoleculeForm(ModelForm):
         order = ('facility_id', '...')
         exclude = ('id', 'molfile') 
 
-class CellTable(tables.Table):
+class CellTable(PagedTable):
     facility_id = tables.LinkColumn("cell_detail", args=[A('facility_id')])
     rank = tables.Column()
     snippet = SnippetColumn()
     id = tables.Column(verbose_name='CLO Id')
+    
     # TODO: define the snippet dynamically, using all the text fields from the model
     # TODO: add the facility_id
 #    snippet_def = ("coalesce(name,'') || ' ' || coalesce(id,'') || ' ' || coalesce(alternate_name,'') || ' ' || " +  
@@ -980,12 +1017,12 @@ class CellTable(tables.Table):
         attrs = {'class': 'paleblue'}
         #sequence = ('facility_id', '...')
         #exclude = ('id','recommended_culture_conditions', 'verification_reference_profile', 'mutations_explicit', 'mutations_reference')
-    def __init__(self, table):
-        super(CellTable, self).__init__(table)
+    def __init__(self, table,*args,**kwargs):
+        super(CellTable, self).__init__(table,*args,**kwargs)
         sequence_override = ['facility_id']    
         set_table_column_info(self, ['cell',''], sequence_override)  
                         
-class ProteinTable(tables.Table):
+class ProteinTable(PagedTable):
     lincs_id = tables.LinkColumn("protein_detail", args=[A('lincs_id')])
     rank = tables.Column()
     snippet = SnippetColumn()
@@ -1031,7 +1068,7 @@ class LibrarySearchManager(models.Manager):
         #print 'dict: ', v, ', query: ', query_string
         return v
     
-class LibraryTable(tables.Table):
+class LibraryTable(PagedTable):
     id = tables.Column(visible=False)
     short_name = tables.LinkColumn("library_detail", args=[A('short_name')])
     well_count = tables.Column()
@@ -1086,7 +1123,7 @@ class SiteSearchManager(models.Manager):
                        sql , [queryString + ":*", queryString + ":*", queryString + ":*", queryString + ":*"])
         return dictfetchall(cursor)
 
-class SiteSearchTable(tables.Table):
+class SiteSearchTable(PagedTable):
     id = tables.Column(visible=False)
     #Note: using the expediency here: the "type" column holds the subdirectory for that to make the link for type, so "sm", "cell", etc., becomes "/db/sm", "/db/cell", etc.
     facility_id = tables.LinkColumn(A('type'), args=[A('facility_id')])  
@@ -1164,11 +1201,40 @@ def dictfetchall(cursor): #TODO modify this to stream results properly
 
 def download_attached_file(request, path):
     # TODO Authorization
-    #dump(request.user)
     logger.info(str(('download_attached_file',path,request.user)))
-    if(request.user.is_authenticated()):
+    if(not request.user.is_authenticated()):
         pass
     return HttpResponseRedirect("/_static/"+path)
+        
+def download_file(request, path):
+    logger.info(str(('download_attached_file',path,request.user)))
+    if(not request.user.is_authenticated()):
+        pass
+    return HttpResponseRedirect("/_static/"+path)
+
+
+#x-sendfile option
+# http://blog.zacharyvoase.com/2009/09/08/sendfile/
+# This would be best placed in your settings file.
+import os
+
+def get_absolute_filename(filename='', safe=True):
+    if not filename:
+        return os.path.join(settings.STATIC_ROOT1, 'index')
+    if safe and '..' in filename.split(os.path.sep):
+        return get_absolute_filename(filename='')
+    return os.path.join(settings.STATIC_ROOT1, filename)
+
+from django.contrib.auth.decorators import login_required
+@login_required
+def retrieve_file(request, path=''):
+    logger.info(str(('get file', smart_str(path,'utf-8', errors='ignore'))))
+    abs_filename = get_absolute_filename(path)
+    response = HttpResponse() # 200 OK
+    del response['content-type'] # We'll let the web server guess this.
+    response['X-Sendfile'] = abs_filename
+    logger.info(str(('get file', abs_filename)))
+    return response
         
 # TODO: currently, send_to_file1 is used specifically to export the large datasets; but would like for everything to use this method
 def send_to_file1(outputType, name, ordered_datacolumns, cursor, request):

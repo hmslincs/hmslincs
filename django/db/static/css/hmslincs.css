@@ -42,6 +42,17 @@ text-decoration:none;
 	text-decoration: underline;
 }
 
+th.asc {
+	font-style: italic;
+	background: url("/_static/images/arrow-up_icon.png") no-repeat scroll right bottom transparent;
+}
+
+th.desc {
+	font-style: italic;
+	background: url("/_static/images/arrow-down_icon.png") no-repeat scroll right bottom transparent;
+}
+
+
 .table-container {
   overflow-x: auto;
 }
@@ -98,6 +109,7 @@ ul.pagination > li:first-child {
 td.facility_salt_batch {
   white-space: nowrap;
 }
+
 
 /*
 .basictab li a {
