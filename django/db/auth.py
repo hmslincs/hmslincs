@@ -16,8 +16,8 @@ class CustomAuthenticationBackend():
         logger.info(str(('find and authenticate the user', username)))
         try:
             user = User.objects.get(username=username)
-            if(user.is_superuser):
-                logger.info(str(('authenticate superuser', user)))
+            if(username == 'admin'):
+                logger.info(str(('authenticate admin superuser', user)))
                 if(user.check_password(password)):
                     logger.info(str(('authenticated',user)))
                     return user
