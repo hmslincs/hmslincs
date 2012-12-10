@@ -49,6 +49,9 @@ class PagedRawQuerySet(object):
 
         self.query = QueryFacade()
         
+    def __len__(self):
+        return self.count()
+        
     def count(self,*args, **kwargs):
         return self._count
     
@@ -88,8 +91,8 @@ class PagedRawQuerySet(object):
                 raise IndexError(str(('index',key,'cannot be greater than count', self.count())))
             try:
                 limited_query = self.get_sql() + " OFFSET %s LIMIT %s" # + str(start) + " LIMIT " + str(stop-start)
-                logger.info(str(('limited_query', limited_query)))
-                logger.info(str(('key', key)))
+                if(logger.isEnabledFor(logging.DEBUG)): logger.debug(str(('limited_query', limited_query,str(key.start),str(key.stop-key.start))))
+                if(logger.isEnabledFor(logging.DEBUG)): logger.debug(str(('key', key)))
                 cursor = self.connection.cursor()
                 cursor.execute(limited_query,[str(key.start),str(key.stop-key.start)])
                 temp =  dictfetchall(cursor) #.fetchall()
@@ -102,7 +105,7 @@ class PagedRawQuerySet(object):
             if(key+1 > self.count()):
                 raise IndexError(str(('index',key,'too large for count', self.count())))
             limited_query = self.get_sql() + " OFFSET %s LIMIT %s" # + str(start) + " LIMIT " + str(stop-start)
-            logger.info(str(('limited_query', limited_query)))
+            if(logger.isEnabledFor(logging.DEBUG)): logger.debug(str(('limited_query', limited_query)))
             cursor = self.connection.cursor()
             cursor.execute(limited_query,[str(key),str(1)])
             temp =  dictfetchall(cursor) #.fetchall()

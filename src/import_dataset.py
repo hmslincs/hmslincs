@@ -1,9 +1,7 @@
-import sys
 import argparse
-import xls2py as x2p
 import re
 import logging
-import time;  # This is required to include time module.
+import time;  
 
 import init_utils as iu
 import import_utils as util
@@ -88,7 +86,77 @@ def read_metadata(path):
         logger.debug(str(('model_field: ' , model_field, ', value: ', value)))
         initializer[model_field] = value
 
-    return initializer            
+    return initializer 
+
+#def read_metadata(worksheet):
+#    """
+#    Read in the DataSets, Datacolumns, and Data sheets.  In the Data sheet, rows are DataRecords, and columns are DataPoints
+#    """
+##    # Read in the DataSet
+##    sheetname = 'Meta'
+##    metaSheet = iu.readtable([path, sheetname]) # Note, skipping the header row by default
+#
+#    # Define the Column Names -> model fields mapping
+#    properties = ('model_field','required','default','converter')
+#    field_definitions = {'Lead Screener First': 'lead_screener_firstname',
+#              'Lead Screener Last': 'lead_screener_lastname',
+#              'Lead Screener Email': 'lead_screener_email',
+#              'Lab Head First': 'lab_head_firstname',
+#              'Lab Head Last': 'lab_head_lastname',
+#              'Lab Head Email': 'lab_head_email',
+#              'Title': 'title',
+#              'Facility ID': ('facility_id',True,None, lambda x: util.convertdata(x,int)),
+#              'Summary': 'summary',
+#              'Protocol': 'protocol',
+#              'References': 'protocol_references',
+#              'Date Data Received':('date_data_received',False,None,util.date_converter),
+#              'Date Loaded': ('date_loaded',False,None,util.date_converter),
+#              'Date Publicly Available': ('date_publicly_available',False,None,util.date_converter),
+#              'Is Restricted':('is_restricted',False,False,util.bool_converter),
+#              'Dataset Type':('dataset_type',False)}
+#    
+#    sheet_labels = []
+#    curr_row = 1 # note zero indexed
+#    row = worksheet.row(curr_row)
+#    while curr_row < worksheet.nrows:
+#        sheet_labels.append(str(worksheet.cell_value(curr_row, 0)))
+#        curr_row += 1
+#    
+#    for row in metaSheet:
+#        rowAsUnicode = util.make_row(row)
+#        sheet_labels.append(rowAsUnicode[0])
+#
+#    # convert the definitions to fleshed out dict's, with strategies for optional, default and converter
+#    field_definitions = util.fill_in_column_definitions(properties,field_definitions)
+#    # create a dict mapping the column/row ordinal to the proper definition dict
+#    cols = util.find_columns(field_definitions, sheet_labels,all_column_definitions_required=False)
+#
+#    
+#    initializer = {}
+#    for i,row in enumerate(metaSheet):
+#        rowAsUnicode = util.make_row(row)
+#        properties = cols[i]
+#        value = rowAsUnicode[1]
+#        
+#        logger.debug(str(('read col: ', i, ', ', properties)))
+#        required = properties['required']
+#        default = properties['default']
+#        converter = properties['converter']
+#        model_field = properties['model_field']
+#
+#        # Todo, refactor to a method
+#        logger.debug(str(('raw value', value)))
+#        if(converter != None):
+#            value = converter(value)
+#        if(value == None ):
+#            if( default != None ):
+#                value = default
+#        if(value == None and  required == True):
+#            raise Exception('Field is required: %s, record: %d' % (properties['column_label'],row))
+#        logger.debug(str(('model_field: ' , model_field, ', value: ', value)))
+#        initializer[model_field] = value
+#
+#    return initializer            
 
 def readDataColumns(path):
     # Read in the DataColumn Sheet
@@ -131,12 +199,20 @@ def readDataColumns(path):
     
     return dataColumnDefinitions
 
+import xlrd
+
 
 def main(path):
     datarecord_batch = []
     save_interval = 1000
     # read in the two columns of the meta sheet to a dict that defines a DataSet
     # TODO: Need a transaction, in case loading fails!
+    logger.info('read metadata...')
+
+#    book = xlrd.open_workbook(path) #open our xls file, there's lots of extra default options in this call, for logging etc. take a look at the docs
+#    sheetname = 'Meta'
+#    worksheet = book.sheet_by_name(sheetname) #we can pull by name
+
     metadata = read_metadata(path)
     dataset = None
     try:
@@ -156,7 +232,9 @@ def main(path):
     except Exception, e:
         logger.error(str(('Exception reading metadata or saving the dataset', metadata, e)))
         raise e
+    
     # read in the data columns sheet to an array of dict's, each dict defines a DataColumn    
+    logger.info('read data columns...')
     dataColumnDefinitions = readDataColumns(path)
     
     # now that the array of DataColumn dicts is created, use them to create the DataColumn instances
@@ -169,7 +247,7 @@ def main(path):
         logger.info(str(('datacolumn created:', dataColumn)))
         dataColumns[dataColumn.name] = dataColumn    
 
-    # read the Data sheet
+    logger.info('read the Data sheet')
     sheetname = 'Data'
     dataSheet = iu.readtable([path, sheetname])
     
@@ -212,7 +290,7 @@ def main(path):
         raise Exception('at least one of: ' + str(mappingColumnDict.keys()) + ' must be defined and used in the Data sheet.')
     
     # Read in the Data sheet, create DataPoint values for mapped column in each row
-
+    logger.info(str(('data sheet columns identified, read rows, save_interval:', save_interval)))
     loopStart = time.time()
     pointsSaved = 0
     rowsRead = 0

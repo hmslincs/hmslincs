@@ -4,6 +4,8 @@ from tastypie.serializers import Serializer
 from django.utils.datastructures import SortedDict
 import logging
 import django_tables2 as tables
+from django.db import connection
+from db.PagedRawQuerySet import PagedRawQuerySet
 
 logger = logging.getLogger(__name__)
 
@@ -61,7 +63,7 @@ class DjangoTables2Serializer(Serializer):
             return raw_data.getvalue() 
         
 
-        data = table.data.list
+        data = table.data.data
         if(len(data)==0):
             return
         writer = csv.writer(raw_data)
@@ -70,12 +72,20 @@ class DjangoTables2Serializer(Serializer):
         
         writer.writerow(visibleColumns.values())
 
-        for i,item in enumerate(data):
-            row = []
-            for fieldname in visibleColumns.keys():
-                row.append(item[fieldname])
-            writer.writerow(row)
-            #if i == 10: break
+        i=0
+        if(isinstance(data, PagedRawQuerySet)): # if PRQS, then bypass and just iterate over the cursor (note, this still doesn't accomplish streaming)
+            cursor = connection.cursor()   
+            cursor.execute(data.get_sql())
+            for row in cursor:
+                writer.writerow(row)
+                i += 1
+        else: # list of dicts - use non-paged iteration
+            for i,item in enumerate(data):
+                row = []
+                for fieldname in visibleColumns.keys():
+                    row.append(item[fieldname])
+                writer.writerow(row)
+                #if i == 10: break
 
         logger.info('done, wrote: %d' % i)
         return raw_data.getvalue()
