@@ -125,7 +125,7 @@ MEDIA_URL = ''
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/home/media/media.lawrence.com/static/"
 STATIC_ROOT = op.join(_djangopath, '..', '..', '..', 'docroot', '_static')
-STATIC_ROOT1= op.join(_djangopath, '..', '..', '..', 'docroot', '_static')
+STATIC_AUTHENTICATED_FILE_DIR= op.join(_djangopath, 'authenticated_static_files')
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
 STATIC_URL = '/_static/'

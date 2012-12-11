@@ -3,11 +3,11 @@
 <ul class="pagination">
     {% if table.page.has_previous or table.page.has_next %}
     	{% if table.page.has_previous %}
-	    {% nospaceless %}{% block pagination.first %}<li class="previous"><a href="{% querystring table.prefixed_page_field=1 %}">{% trans "|<" %}</a></li>{% endblock pagination.first %}{% endnospaceless %}
-	    {% nospaceless %}{% block pagination.previous_10 %}<li class="previous"><a href="{% querystring table.prefixed_page_field=table.previous_ten_page_number %}">{% trans "<<" %}</a></li>{% endblock pagination.previous_10 %}{% endnospaceless %}
-	    {% nospaceless %}{% block pagination.previous %}
-	    <li class="previous"><a href="{% querystring table.prefixed_page_field=table.page.previous_page_number %}">{% trans "Previous" %}</a></li>
-	    {% endblock pagination.previous %}{% endnospaceless %}
+		    {% nospaceless %}{% block pagination.first %}<li class="previous"><a href="{% querystring table.prefixed_page_field=1 %}">{% trans "|<" %}</a></li>{% endblock pagination.first %}{% endnospaceless %}
+		    {% nospaceless %}{% block pagination.previous_10 %}<li class="previous"><a href="{% querystring table.prefixed_page_field=table.previous_ten_page_number %}">{% trans "<<" %}</a></li>{% endblock pagination.previous_10 %}{% endnospaceless %}
+		    {% nospaceless %}{% block pagination.previous %}
+		    <li class="previous"><a href="{% querystring table.prefixed_page_field=table.page.previous_page_number %}">{% trans "Previous" %}</a></li>
+		    {% endblock pagination.previous %}{% endnospaceless %}
 			{% else %}
 				<li class="previous">&nbsp;<</li>
 				<li class="previous"><<</li>
@@ -26,9 +26,14 @@
 	    {% nospaceless %}{% block pagination.last %}
 	    <li class="next"><a href="{% querystring table.prefixed_page_field=table.paginator.num_pages %}">{% trans ">|" %}</a></li>
 	    {% endblock pagination.last %}{% endnospaceless %}
+
+	    {% nospaceless %}{% block pagination.cardinality %}
+	    <li class="cardinality">{% if total != count %}{{ table.page_start }} to {{ table.page_end }} of {{ total }}{% else %}{{ total }}{% endif %} {% if total == 1 %}{{ table.data.verbose_name }}{% else %}{{ table.data.verbose_name_plural }}{% endif %}</li>
+	    {% endblock pagination.cardinality %}{% endnospaceless %}
+    {% else %}
+    
+	    <li class="cardinality">{{ total }} {% if total == 1 %}{{ table.verbose_name }}{% else %}{{ table.verbose_name_plural }}{% endif %}</li>
+    
     {% endif %}
 
-    {% nospaceless %}{% block pagination.cardinality %}
-    <li class="cardinality">{% if total != count %}{{ table.page_start }} to {{ table.page_end }} of {{ total }}{% else %}{{ total }}{% endif %} {% if total == 1 %}{{ table.data.verbose_name }}{% else %}{{ table.data.verbose_name_plural }}{% endif %}</li>
-    {% endblock pagination.cardinality %}{% endnospaceless %}
 </ul>

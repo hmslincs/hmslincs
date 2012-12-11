@@ -4,16 +4,20 @@
 		{# TODO: window.moveTo not working in chrome #}
 		{# TODO: create a template for the popup window; title, scaling #}
 		<img class='compound_image' src="{{ STATIC_URL }}{{image_location}}" onclick="w=window.open('{{ STATIC_URL }}{{image_location}}','image','height=500,width=500');w.moveTo(500,400);"/>
+	{% elif image_location and is_restricted and user.is_authenticated %}
+		<img class='compound_image' src="{% url restricted_image filepath=image_location %}" onclick="w=window.open('{% url restricted_image filepath=image_location %}','image','height=500,width=500');w.moveTo(500,400);"/>
 	{% endif %}
 <h2 class='entity_detail_title'>Small Molecule Information</h2>
 	{% if is_restricted  and not user.is_authenticated %}
 		Detailed information for this Small Molecule is restricted at this time.
 	{% endif %}
 	{% include "db/detailListing.html" %}
-	{% if attached_files  and not is_restricted  and not user.is_authenticated  %}
-		<h2 class='entity_detail_title'>Attached Files</h2>
-		{% load render_table from django_tables2 %}
-		{% render_table attached_files %}
+	{% if attached_files %}
+	  {% if not is_restricted  or  user.is_authenticated and is_restricted  %}
+			<h2 class='entity_detail_title'>Attached Files</h2>
+			{% load render_table from django_tables2 %}
+			{% render_table attached_files %}
+		{% endif %}
 	{% endif %}
 	{% if nominal_targets_table %}
 		{% load render_table from django_tables2 %}

@@ -470,6 +470,13 @@ else
 	echo 'import screen results...'
 	python src/import_dataset.py -f $DATADIR/Screen20087_kinativ.xlsx
 	check_errs $? "import dataset fails"
+
+# Example:	
+#	echo 'import attached file...'
+#	python src/import_attachedfiles.py -f attach_test_1.txt -fi 10001 -ft "text"  -fd '2012-12-10' -si 101 -bi 1
+#	check_errs $? "import attached file fails"
+# if restricted:
+#	python src/import_attachedfiles.py -f attach_test_1.txt -fi 10001 -ft "text"  -fd '2012-12-10' -si 101 -bi 1 --restricted
 	
 fi
 

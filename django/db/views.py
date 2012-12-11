@@ -16,6 +16,8 @@ from django.conf import settings
 import django_tables2 as tables
 from django_tables2 import RequestConfig
 from django_tables2.utils import A  # alias for Accessor
+from django.core.servers.basehttp import FileWrapper
+from os import path
 
 from db.models import SmallMolecule, SmallMoleculeBatch, Cell, Protein, DataSet, Library, FieldInformation,AttachedFile,DataRecord,DataColumn,LibraryMapping
 #from db.CustomQuerySet import CustomQuerySet
@@ -423,7 +425,8 @@ def datasetDetailResults(request, facility_id):
             if(dataset.is_restricted and not request.user.is_authenticated()):
                 raise Http401
             manager = DataSetManager(dataset)
-            cursor = manager.get_cursor()
+            search = request.GET.get('search','')
+            cursor = manager.get_cursor(search=search)
             datacolumns = DataColumn.objects.filter(dataset=dataset).order_by('display_order')
             return send_to_file1(outputType, 'dataset_'+str(facility_id), datacolumns, cursor, request )
         
@@ -454,7 +457,8 @@ def datasetDetail(request, facility_id, sub_page):
     # search = request.GET.get('search','')
     
     if(sub_page == 'results'):
-        table = manager.get_table()
+        search = request.GET.get('search','')
+        table = manager.get_table(search=search,metaWhereClause=[],parameters=[]) # TODO: not sure why have to set metaWhereClause=[] to erase former where clause (it is persistent somewhere?) - sde4
         RequestConfig(request, paginate={"per_page": 25}).configure(table)
         details['result_table'] = table
         
@@ -676,41 +680,61 @@ class DataSetManager():
     def has_proteins(self):
         return len(self.protein_queryset) > 0
     
-    def get_cursor(self, whereClause=[],metaWhereClause=[],column_exclusion_overrides=[]): 
+    def get_cursor(self, whereClause=[],metaWhereClause=[],column_exclusion_overrides=[],parameters=[],search=''): 
+        if(search != ''):
+            searchParam = '%'+search+'%'
+            searchClause = "facility_salt_batch like %s or sm_name like %s or sm_alternative_names like %s "
+            searchParams = [searchParam,searchParam,searchParam]
+            if(self.has_cells()): 
+                searchClause += " or cell_facility_id::TEXT like %s or cell_name like %s "
+                searchParams += [searchParam,searchParam]
+            if(self.has_proteins()): 
+                searchClause += " or protein_name like %s or protein_lincs_id::TEXT like %s"
+                searchParams += [searchParam,searchParam]
+                
+            logger.info(str(('proteins', self.protein_queryset)))
+            metaWhereClause.append(searchClause)
+            parameters += searchParams
+            
+        logger.info(str(('search',search,'metaWhereClause',metaWhereClause,'parameters',parameters)))
         
         self.dataset_info = self._get_query_info(whereClause,metaWhereClause) # TODO: column_exclusion_overrides
         cursor = connection.cursor()
-        cursor.execute(self.dataset_info.query_sql)
+        cursor.execute(self.dataset_info.query_sql,parameters)
         return cursor
 
-    def get_table(self, whereClause=[],metaWhereClause=[],column_exclusion_overrides=[]): 
+    def get_table(self, whereClause=[],metaWhereClause=[],column_exclusion_overrides=[],parameters=[],search=''): 
+        if(search != ''):
+            searchParam = '%'+search+'%'
+            searchClause = "facility_salt_batch like %s or sm_name like %s or sm_alternative_names like %s "
+            searchParams = [searchParam,searchParam,searchParam]
+            if(self.has_cells()): 
+                searchClause += " or cell_facility_id::TEXT like %s or cell_name like %s "
+                searchParams += [searchParam,searchParam]
+            if(self.has_proteins()): 
+                searchClause += " or protein_name like %s or protein_lincs_id::TEXT like %s"
+                searchParams += [searchParam,searchParam]
+                
+            logger.info(str(('proteins', self.protein_queryset)))
+            metaWhereClause.append(searchClause)
+            parameters += searchParams
+            
+        logger.info(str(('search',search,'metaWhereClause',metaWhereClause,'parameters',parameters)))
         self.dataset_info = self._get_query_info(whereClause,metaWhereClause)
         #sql_for_count = 'SELECT count(distinct id) from db_datarecord where dataset_id ='+ str(self.dataset_id)
-        queryset = PagedRawQuerySet(self.dataset_info.query_sql,self.dataset_info.count_query_sql, connection,order_by=['datarecord_id'], verbose_name_plural='records')
+        queryset = PagedRawQuerySet(self.dataset_info.query_sql,self.dataset_info.count_query_sql, connection, 
+                                    parameters=parameters,order_by=['datarecord_id'], verbose_name_plural='records')
         if(not self.has_plate_wells_defined(self.dataset_id)): column_exclusion_overrides.extend(['plate','well'])
         if(not self.has_control_type_defined(self.dataset_id)): column_exclusion_overrides.append('control_type')
-        return DataSetResultTable(queryset,
+        _table = DataSetResultTable(queryset,
                                   self.dataset_info.datacolumns, 
                                   self.has_cells(), 
                                   self.has_proteins(),
                                   column_exclusion_overrides) # TODO: again, all these flags are confusing
+        setattr(_table,'verbose_name_plural','records')
+        setattr(_table,'verbose_name','record')
+        return _table
 
-#    def get_table_old(self, is_authenticated=False,limit=5000, whereClause='',metaWhereClause=[],column_exclusion_overrides=[]): # TODO: 
-#        
-#        cursor = self.get_cursor(is_authenticated, limit, whereClause, metaWhereClause, column_exclusion_overrides)
-#        queryset = dictfetchall(cursor)
-#        #queryset = manager.get_dataset_result_table(dataset_id, is_authenticated=request.user.is_authenticated(), **{'show_cells':show_cells, 'show_proteins':show_proteins})
-#        #if(not self.has_omero_images(self.dataset_id)): column_exclusion_overrides.append('omero_image_id')
-#        if(not self.has_plate_wells_defined(self.dataset_id)): column_exclusion_overrides.extend(['plate','well'])
-#        if(not self.has_control_type_defined(self.dataset_id)): column_exclusion_overrides.append('control_type')
-#        return DataSetResultTable(queryset,
-#                                  self.dataset_info.datacolumns, 
-#                                  #dataset_info.columns_to_names, 
-#                                  #dataset_info.ordered_names, 
-#                                  self.has_cells(), 
-#                                  self.has_proteins(),
-#                                  column_exclusion_overrides) # TODO: again, all these flags are confusing
-    
     class DatasetInfo:
         # TODO: should be a fieldinformation here
         # An ordered list of DataColumn entities for this Dataset
@@ -724,6 +748,9 @@ class DataSetManager():
         """
         generate a django tables2 table
         TODO: move the logic out of the view: so that it can be shared with the tastypie api (or make this rely on tastypie)
+        params:
+        whereClause: use this to filter datarecords in the inner query
+        metaWhereClause: use this to filter over the entire resultset: any column (as the entire query is made into a subquery)
         """
         logger.debug(str(('_get_query_info', whereClause,metaWhereClause)))
     
@@ -746,7 +773,7 @@ class DataSetManager():
 #        queryString =   "SELECT distinct (dr_id) as datarecord_id,"
         queryString =   "SELECT dr_id as datarecord_id,"
         queryString +=  " trim( both '-' from ( sm_facility_id || '-' || salt_id  || '-' || coalesce(smb_facility_batch_id::TEXT,''))) as facility_salt_batch " # Note: because we have a composite key for determining unique sm structures, we need to do this
-        queryString +=  ', plate, well, control_type '
+        queryString +=  ' ,sm_name, sm_alternative_names, plate, well, control_type '
         show_cells = self.has_cells()
         show_proteins = self.has_proteins()
         if(show_cells): queryString += ", cell_id, cell_name, cell_facility_id " 
@@ -760,15 +787,14 @@ class DataSetManager():
                 if dc.precision == 0 or dc.data_type == 'omero_image':
                     column_to_select = "int_value"
                 else:
-                    column_to_select = "round( float_value::numeric, 2 )"
+                    column_to_select = "round( float_value::numeric, 2 )" # TODO: specify the precision in the fieldinformation for this column
             else:
                 column_to_select = "text_value"
-            # TODO: use params
             queryString +=  (",(SELECT " + column_to_select + " FROM db_datapoint " + alias + 
                                 " where " + alias + ".datacolumn_id="+str(dc.id) + " and " + alias + ".datarecord_id=dr_id) as " + columnName )
         queryString += " FROM  ( SELECT dr.id as dr_id, "
-        queryString += " sm.id as smallmolecule_id, sm.facility_id as sm_facility_id, sm.salt_id, smb.facility_batch_id as smb_facility_batch_id, " 
-        queryString += " plate, well, control_type " 
+        queryString += " sm.id as smallmolecule_id, sm.facility_id as sm_facility_id, sm.salt_id, smb.facility_batch_id as smb_facility_batch_id, sm.name as sm_name, sm.alternative_names as sm_alternative_names " 
+        queryString += " ,plate, well, control_type " 
         if(show_cells):     queryString += " ,cell_id, cell.name as cell_name, cell.facility_id as cell_facility_id " 
         if(show_proteins):  queryString += " ,protein.name as protein_name, protein.lincs_id as protein_lincs_id, protein.id as protein_id "
         fromClause = " FROM db_datarecord dr " 
@@ -976,7 +1002,7 @@ class SmallMoleculeTable(PagedTable):
         set_table_column_info(self, ['smallmolecule','smallmoleculebatch',''],sequence_override)  
 
 class AttachedFileTable(PagedTable):
-    filename=tables.LinkColumn("download_attached_file", args=[A('filename')])
+    filename=tables.LinkColumn("download_attached_file", args=[A('id')])
     #snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce("+x.field+",'') ", FieldInformation.manager.get_search_fields(SmallMolecule)))) # TODO: specialized search for librarymapping, if needed
     
     class Meta:
@@ -1199,42 +1225,84 @@ def dictfetchall(cursor): #TODO modify this to stream results properly
         dict(zip([col[0] for col in desc], row)) for row in cursor.fetchall()
     ]
 
-def download_attached_file(request, path):
+from django.contrib.auth.decorators import login_required
+#@login_required
+def restricted_image(request, filepath):
+    if(not request.user.is_authenticated()):
+        logger.warn(str(('access to restricted file for user is denied', request.user, filepath)))
+        return HttpResponse('Log in required.', status=401)
+    
+    logger.info(str(('send requested file:', settings.STATIC_AUTHENTICATED_FILE_DIR, filepath, request.user.is_authenticated())))
+    _path = path.join(settings.STATIC_AUTHENTICATED_FILE_DIR,filepath)
+    _file = file(_path)
+    logger.info(str(('download image',_path,_file)))
+    wrapper = FileWrapper(_file)
+    response = HttpResponse(wrapper,content_type='image/png') # use the same type for all files
+    response['Content-Length'] = path.getsize(_path)
+    return response
+
+def download_attached_file(request, file_id):
+    """                                                                         
+    Send a file through Django without loading the whole file into              
+    memory at once. The FileWrapper will turn the file object into an           
+    iterator for chunks of 8KB.                                                 
+    """
+    try:
+        af = AttachedFile.objects.get(id=file_id)
+        logger.info(str(('send the attached file:', af, request.user.is_authenticated())))
+        if(af.is_restricted and not request.user.is_authenticated()):
+            logger.warn(str(('access to restricted file for user is denied', request.user, af)))
+            return HttpResponse('Log in required.', status=401)
+
+        _path = path.join(settings.STATIC_AUTHENTICATED_FILE_DIR,af.filename)
+        if(af.relative_path):
+            _path = path.join(settings.STATIC_AUTHENTICATED_FILE_DIR,af.relative_path)
+        _file = file(_path)
+        logger.info(str(('download_attached_file',_path,_file)))
+        wrapper = FileWrapper(_file)
+        response = HttpResponse(wrapper, content_type='text/plain') # use the same type for all files
+        response['Content-Disposition'] = 'attachment; filename=%s' % unicode(af.filename)
+        response['Content-Length'] = path.getsize(_path)
+        return response
+    except Exception,e:
+        logger.error(str(('could not find attached file object for id', file_id, e)))
+        raise e
+
+# todo, not used    
+def download_attached_file_simple(request, path):
     # TODO Authorization
-    logger.info(str(('download_attached_file',path,request.user)))
+    logger.info(str(('download_attached_file',path)))
     if(not request.user.is_authenticated()):
         pass
-    return HttpResponseRedirect("/_static/"+path)
+    return HttpResponseRedirect(settings.STATIC_ROOT+path)
         
-def download_file(request, path):
-    logger.info(str(('download_attached_file',path,request.user)))
-    if(not request.user.is_authenticated()):
-        pass
-    return HttpResponseRedirect("/_static/"+path)
+#def download_file(request, path):
+#    logger.info(str(('download_attached_file',path,request.user)))
+#    if(not request.user.is_authenticated()):
+#        pass
+#    return HttpResponseRedirect("/_static/"+path)
 
 
 #x-sendfile option
 # http://blog.zacharyvoase.com/2009/09/08/sendfile/
 # This would be best placed in your settings file.
-import os
-
-def get_absolute_filename(filename='', safe=True):
-    if not filename:
-        return os.path.join(settings.STATIC_ROOT1, 'index')
-    if safe and '..' in filename.split(os.path.sep):
-        return get_absolute_filename(filename='')
-    return os.path.join(settings.STATIC_ROOT1, filename)
-
-from django.contrib.auth.decorators import login_required
-@login_required
-def retrieve_file(request, path=''):
-    logger.info(str(('get file', smart_str(path,'utf-8', errors='ignore'))))
-    abs_filename = get_absolute_filename(path)
-    response = HttpResponse() # 200 OK
-    del response['content-type'] # We'll let the web server guess this.
-    response['X-Sendfile'] = abs_filename
-    logger.info(str(('get file', abs_filename)))
-    return response
+#def get_absolute_filename(filename='', safe=True):
+#    if not filename:
+#        return path.join(settings.STATIC_ROOT1, 'index')
+#    if safe and '..' in filename.split(path.sep):
+#        return get_absolute_filename(filename='')
+#    return path.join(settings.STATIC_ROOT1, filename)
+#
+#from django.contrib.auth.decorators import login_required
+#@login_required
+#def retrieve_file(request, path=''):
+#    logger.info(str(('get file', smart_str(path,'utf-8', errors='ignore'))))
+#    abs_filename = get_absolute_filename(path)
+#    response = HttpResponse() # 200 OK
+#    del response['content-type'] # We'll let the web server guess this.
+#    response['X-Sendfile'] = abs_filename
+#    logger.info(str(('get file', abs_filename)))
+#    return response
         
 # TODO: currently, send_to_file1 is used specifically to export the large datasets; but would like for everything to use this method
 def send_to_file1(outputType, name, ordered_datacolumns, cursor, request):

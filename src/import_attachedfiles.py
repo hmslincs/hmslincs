@@ -1,13 +1,20 @@
-import sys
-import os
+#import os
+from os import path, environ
+from shutil import copy
 import argparse
-import xls2py as x2p
-import re
-from datetime import date
 import logging
 from django.core.exceptions import ObjectDoesNotExist
+from django.conf import settings
 
-import init_utils as iu
+import sys
+_mydir = path.abspath(path.dirname(__file__))
+_djangodir = path.normpath(path.join(_mydir, '../django'))
+sys.path.insert(0, _djangodir)
+import chdir as cd
+with cd.chdir(_djangodir):
+    environ.setdefault('DJANGO_SETTINGS_MODULE', 'hmslincs_server.settings')
+del _mydir, _djangodir
+
 import import_utils as util
 from db.models import SmallMolecule, SmallMoleculeBatch, Cell, Protein, DataSet, Library, AttachedFile
 
@@ -41,8 +48,12 @@ parser.add_argument('-f', action='store', dest='inputFile',
                     help='attached file path')
 
 parser.add_argument('-rp', action='store', dest='relativePath',
-                    metavar='RELPATH', required=True,
-                    help='relative path of this file from the server/_static directory')
+                    metavar='RELPATH', required=False,
+                    help='if set, relative path of this file from the [STATIC_AUTHENTICATED_FILE_DIR:'+ settings.STATIC_AUTHENTICATED_FILE_DIR + '] directory')
+
+parser.add_argument('-dp', action='store', dest='deployPath',
+                    metavar='DEPLOYPATH', required=False,
+                    help='if set, path to "deploy" (copy) to, otherwise, set to [STATIC_AUTHENTICATED_FILE_DIR:'+ settings.STATIC_AUTHENTICATED_FILE_DIR + '] directory')
 
 parser.add_argument('-d', action='store', dest='description',
                     metavar='DESCRIPTION', required=False,
@@ -68,6 +79,10 @@ parser.add_argument('-fd', action='store', dest='fileDate',
                     metavar='FILE_DATE', required=True,
                     help='the date to record for the file')
 
+parser.add_argument('-r', '--restricted', action='store_true', dest='isRestricted',
+                    required=False,
+                    help='set to restrict access to authorized users only')
+
 parser.add_argument('-v', '--verbose', dest='verbose', action='count',
                 help="Increase verbosity (specify multiple times for more)")    
 
@@ -91,10 +106,30 @@ if __name__ == "__main__":
     relativePath = args.relativePath
 
     print 'importing ', inputFile
-    if(not os.path.exists(inputFile)):
+    if(not path.exists(inputFile)):
         raise Exception(str(('file does not exist',inputFile)))
-    filename = os.path.basename(inputFile)
-    attachedFile = AttachedFile(filename=filename,facility_id_for=facilityId, relative_path=relativePath)
+    else:
+        # deploy the file
+        filename = path.basename(inputFile)
+        deploy_dir = settings.STATIC_AUTHENTICATED_FILE_DIR
+        if(args.deployPath):
+            deploy_dir = args.deployPath
+        if not path.isdir(deploy_dir):
+            raise Exception(str(('no such deploy directory, please create it', deploy_dir)))
+        deployed_path = path.join(deploy_dir, filename)
+        if(relativePath):
+            deployed_path = path.join(deploy_dir, relativePath)
+            
+        logger.info(str(('deploy to', deployed_path)))
+        copy(inputFile,deployed_path)
+#        os.system ("copy %s %s" % (inputFile, deployed_path ))
+        if not path.isfile (deployed_path):
+            raise Exception(str(('could not deploy to', deployed_path)))
+        else:
+            logger.info(str(('successfully deployed to', deployed_path)))
+            
+    filename = path.basename(inputFile)
+    attachedFile = AttachedFile(filename=filename,facility_id_for=facilityId, relative_path=relativePath, is_restricted=args.isRestricted)
     # lookup the Entity
     
     if(facilityId <= 30000 ): # SM or Screen

@@ -498,9 +498,10 @@ class AttachedFile(models.Model):
     batch_id_for            = _INTEGER(null=True)
     file_type               = _TEXT(**_NULLOKSTR)
     file_date               = models.DateField(null=True,blank=True)
+    is_restricted           = models.BooleanField(default=False) # Note: default=False are not set at the db level, only at the Db-api level
     
     def __unicode__(self):
-        return unicode(str((self.filename,self.relative_path,self.file_type,self.description,self.file_date)))
+        return unicode(str((self.filename,self.relative_path,self.is_restricted, self.file_type,self.description,self.file_date)))
     
     def _get_relative_path_to_file(self):
         "Returns the 'id string'"

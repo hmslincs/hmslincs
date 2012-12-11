@@ -29,6 +29,7 @@ class PagedRawQuerySet(object):
                  sql_for_count=None, 
                  connection=None,
                  order_by = [],
+                 parameters = [],
                  *args,**kwargs):
         if(logger.isEnabledFor(logging.DEBUG)): 
             logger.debug(str(('--PagedRawQuerySet---',sql, sql_for_count, order_by)))
@@ -37,10 +38,11 @@ class PagedRawQuerySet(object):
         self.sql_for_count = sql_for_count
         self.kwargs = kwargs
         self._order_by = order_by
+        self._parameters = parameters
         
         try:
             cursor = connection.cursor()
-            cursor.execute(sql_for_count)
+            cursor.execute(sql_for_count, parameters)
             self._count = cursor.fetchone()[0]
             logger.info(str(('self count:', self._count)))
         except Exception, e:
@@ -94,7 +96,8 @@ class PagedRawQuerySet(object):
                 if(logger.isEnabledFor(logging.DEBUG)): logger.debug(str(('limited_query', limited_query,str(key.start),str(key.stop-key.start))))
                 if(logger.isEnabledFor(logging.DEBUG)): logger.debug(str(('key', key)))
                 cursor = self.connection.cursor()
-                cursor.execute(limited_query,[str(key.start),str(key.stop-key.start)])
+                full_params = self._parameters + [str(key.start),str(key.stop-key.start)]
+                cursor.execute(limited_query,full_params)
                 temp =  dictfetchall(cursor) #.fetchall()
                 #logger.debug(str(('result',temp)))
                 return temp
@@ -107,7 +110,8 @@ class PagedRawQuerySet(object):
             limited_query = self.get_sql() + " OFFSET %s LIMIT %s" # + str(start) + " LIMIT " + str(stop-start)
             if(logger.isEnabledFor(logging.DEBUG)): logger.debug(str(('limited_query', limited_query)))
             cursor = self.connection.cursor()
-            cursor.execute(limited_query,[str(key),str(1)])
+            full_params = self._parameters + [str(key),str(1)]
+            cursor.execute(limited_query, full_params)
             temp =  dictfetchall(cursor) #.fetchall()
             #logger.debug(str(('result',temp)))
             if(len(temp)==0): 

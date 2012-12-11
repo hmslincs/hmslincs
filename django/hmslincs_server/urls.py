@@ -29,8 +29,6 @@ urlpatterns = patterns('',
     (r'^db/login/$', 'django.contrib.auth.views.login', {'template_name': 'db/login.html'}),
     url(r'^db/logout/$', logout_page, name='logout'),
 
-    # Uncomment the admin/doc line below to enable admin documentation:
-    # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
     url(r'^db/admin/doc/', include('django.contrib.admindocs.urls')), 
     url(r'^db/admin/', include(admin.site.urls)),
     url(r'^db/$', 'db.views.main', name="home"),
@@ -48,12 +46,14 @@ urlpatterns = patterns('',
     url(r'^db/datasets/(?P<facility_id>\d+)/cells$', 'db.views.datasetDetailCells', name="dataset_detail_cells"),
     url(r'^db/datasets/(?P<facility_id>\d+)/proteins$', 'db.views.datasetDetailProteins', name="dataset_detail_proteins"),
     url(r'^db/datasets/(?P<facility_id>\d+)/results$', 'db.views.datasetDetailResults', name="dataset_detail_results"),
-    #url(r'^db/study/$','db.views.studyIndex', name="listStudies"),
-    url(r'^db/downloadattached/(?P<path>.*)/$', 'db.views.download_attached_file', name='download_attached_file'),
-    #url(r'^db/search/', include('haystack.urls'), name="haystackSearch"),
+    # TODO: if we install x-sendfile on the apache server, we can serve these files with an x-sendfile redirect
+    url(r'^db/downloadattached/(?P<id>\d+)/$', 'db.views.download_attached_file', name='download_attached_file'),
+    # TODO: if we install x-sendfile on the apache server, we can serve these files with an x-sendfile redirect
+     url(r'^db/restrictedimage/(?P<filepath>\S+)$', 'db.views.restricted_image', name="restricted_image"),
+    
+    # this method uses the x-sendfile header to apache to serve files, see views.py
+    # url(r'^db/retrievefile/(?P<path>.*)/$', 'db.views.retrieve_file', name='retrieve_file'),
 
-# TODO: override 
-#    url(r'^db/screentest/(?P<facility_id>\d+)/$', 'db.views.screenTest', name="screentest"),
     
     (r'^db/api/', include(v1_api.urls)),
 
