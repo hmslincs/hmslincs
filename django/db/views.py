@@ -17,7 +17,7 @@ import django_tables2 as tables
 from django_tables2 import RequestConfig
 from django_tables2.utils import A  # alias for Accessor
 from django.core.servers.basehttp import FileWrapper
-from os import path
+import os
 
 from db.models import SmallMolecule, SmallMoleculeBatch, Cell, Protein, DataSet, Library, FieldInformation,AttachedFile,DataRecord,DataColumn,LibraryMapping
 #from db.CustomQuerySet import CustomQuerySet
@@ -291,9 +291,10 @@ def smallMoleculeDetail(request, facility_salt_id): # TODO: let urls.py grep the
             logger.warn('Nominal Targets dataset does not exist')
         
         image_location = COMPOUND_IMAGE_LOCATION + '/HMSL%d-%d.png' % (sm.facility_id,sm.salt_id)
-        if(can_access_image(request,image_location)): details['image_location'] = image_location
-        ambit_image_location = AMBIT_COMPOUND_IMAGE_LOCATION + '/HMSL%d-%d.png' % (sm.facility_id,sm.salt_id)
-        if(can_access_image(request,ambit_image_location)): details['ambit_image_location'] = ambit_image_location
+        if(not sm.is_restricted or ( sm.is_restricted and request.user.is_authenticated())):
+            if(can_access_image(request,image_location, sm.is_restricted)): details['image_location'] = image_location
+            ambit_image_location = AMBIT_COMPOUND_IMAGE_LOCATION + '/HMSL%d-%d.png' % (sm.facility_id,sm.salt_id)
+            if(can_access_image(request,ambit_image_location, sm.is_restricted)): details['ambit_image_location'] = ambit_image_location
         
         # add in the LIFE System link: TODO: put this into the fieldinformation
         extralink = {   'title': 'LINCS Information Framework Structure Page' ,
@@ -1168,19 +1169,25 @@ def get_integer(stringValue):
         logger.debug(str(('stringValue: ',stringValue,'is not an integer')))
     return None    
 
-def can_access_image(request, image_filename):
-    #dump(settings)
-    url = request.build_absolute_uri(settings.STATIC_URL + image_filename)
-    logger.info(str(('try to open url',url))) 
-    try:
-        response = urllib2.urlopen(url)
-        response.read()
-        #response.close() # TODO - is this needed?!
-        return True
-    except Exception,e:
-        logger.info(str(('no image found at', url, e)))
-    return False
-    
+def can_access_image(request, image_filename, is_restricted=False):
+    if(not is_restricted):
+        url = request.build_absolute_uri(settings.STATIC_URL + image_filename)
+        logger.info(str(('try to open url',url))) 
+        try:
+            response = urllib2.urlopen(url)
+            response.read()
+            #response.close() # TODO - is this needed?!
+            logger.debug(str(('found image at', url)))
+            return True
+        except Exception,e:
+            logger.info(str(('no image found at', url, e)))
+        return False
+    else:
+        _path = os.path.join(settings.STATIC_AUTHENTICATED_FILE_DIR,image_filename)
+        v = os.path.exists(_path)
+        if(not v): logger.info(str(('could not find path', _path)))
+        return v
+
 def get_attached_files(facility_id, salt_id=None, batch_id=None):
     return AttachedFile.objects.filter(facility_id_for=facility_id, salt_id_for=salt_id, batch_id_for=batch_id)
 
@@ -1233,12 +1240,12 @@ def restricted_image(request, filepath):
         return HttpResponse('Log in required.', status=401)
     
     logger.info(str(('send requested file:', settings.STATIC_AUTHENTICATED_FILE_DIR, filepath, request.user.is_authenticated())))
-    _path = path.join(settings.STATIC_AUTHENTICATED_FILE_DIR,filepath)
+    _path = os.path.join(settings.STATIC_AUTHENTICATED_FILE_DIR,filepath)
     _file = file(_path)
     logger.info(str(('download image',_path,_file)))
     wrapper = FileWrapper(_file)
-    response = HttpResponse(wrapper,content_type='image/png') # use the same type for all files
-    response['Content-Length'] = path.getsize(_path)
+    response = HttpResponse(wrapper,content_type='image/png') # todo: determine the type on the fly. (if ommitted, the browser sometimes doesn't know what to do with the image bytes)
+    response['Content-Length'] = os.path.getsize(_path)
     return response
 
 def download_attached_file(request, file_id):
@@ -1254,34 +1261,34 @@ def download_attached_file(request, file_id):
             logger.warn(str(('access to restricted file for user is denied', request.user, af)))
             return HttpResponse('Log in required.', status=401)
 
-        _path = path.join(settings.STATIC_AUTHENTICATED_FILE_DIR,af.filename)
+        _path = os.path.join(settings.STATIC_AUTHENTICATED_FILE_DIR,af.filename)
         if(af.relative_path):
-            _path = path.join(settings.STATIC_AUTHENTICATED_FILE_DIR,af.relative_path)
+            _path = os.path.join(settings.STATIC_AUTHENTICATED_FILE_DIR,af.relative_path)
         _file = file(_path)
         logger.info(str(('download_attached_file',_path,_file)))
         wrapper = FileWrapper(_file)
         response = HttpResponse(wrapper, content_type='text/plain') # use the same type for all files
         response['Content-Disposition'] = 'attachment; filename=%s' % unicode(af.filename)
-        response['Content-Length'] = path.getsize(_path)
+        response['Content-Length'] = os.path.getsize(_path)
         return response
     except Exception,e:
         logger.error(str(('could not find attached file object for id', file_id, e)))
         raise e
 
 # todo, not used    
-def download_attached_file_simple(request, path):
-    # TODO Authorization
-    logger.info(str(('download_attached_file',path)))
-    if(not request.user.is_authenticated()):
-        pass
-    return HttpResponseRedirect(settings.STATIC_ROOT+path)
+#def download_attached_file_simple(request, path):
+#    # TODO Authorization
+#    logger.info(str(('download_attached_file',path)))
+#    if(not request.user.is_authenticated()):
+#        pass
+#    return HttpResponseRedirect(settings.STATIC_ROOT+path)
         
+# works, can't ensure authorization however
 #def download_file(request, path):
 #    logger.info(str(('download_attached_file',path,request.user)))
 #    if(not request.user.is_authenticated()):
 #        pass
 #    return HttpResponseRedirect("/_static/"+path)
-
 
 #x-sendfile option
 # http://blog.zacharyvoase.com/2009/09/08/sendfile/

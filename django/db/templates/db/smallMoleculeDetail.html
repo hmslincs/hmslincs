@@ -1,11 +1,13 @@
 {% extends "db/base.html" %}
 {% block content %}
-	{% if image_location and not is_restricted and not user.is_authenticated %}
-		{# TODO: window.moveTo not working in chrome #}
-		{# TODO: create a template for the popup window; title, scaling #}
-		<img class='compound_image' src="{{ STATIC_URL }}{{image_location}}" onclick="w=window.open('{{ STATIC_URL }}{{image_location}}','image','height=500,width=500');w.moveTo(500,400);"/>
-	{% elif image_location and is_restricted and user.is_authenticated %}
-		<img class='compound_image' src="{% url restricted_image filepath=image_location %}" onclick="w=window.open('{% url restricted_image filepath=image_location %}','image','height=500,width=500');w.moveTo(500,400);"/>
+	{% if image_location %}
+		{% if not is_restricted %}
+			{# TODO: window.moveTo not working in chrome #}
+			{# TODO: create a template for the popup window; title, scaling #}
+			<img class='compound_image' src="{{ STATIC_URL }}{{image_location}}" onclick="w=window.open('{{ STATIC_URL }}{{image_location}}','image','height=500,width=500');w.moveTo(500,400);"/>
+		{% elif is_restricted and user.is_authenticated %}
+			<img class='compound_image' src="{% url restricted_image filepath=image_location %}" onclick="w=window.open('{% url restricted_image filepath=image_location %}','image','height=500,width=500');w.moveTo(500,400);"/>
+		{% endif %}
 	{% endif %}
 <h2 class='entity_detail_title'>Small Molecule Information</h2>
 	{% if is_restricted  and not user.is_authenticated %}
