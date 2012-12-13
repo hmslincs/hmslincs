@@ -4,7 +4,7 @@
     <td class="propertyLabelColumn propertyLabel" title="{{ info.fieldinformation.get_column_detail }}" ><b>{{ info.fieldinformation.get_verbose_name }}:</b>
     </td>
     <td class="propertyValueColumn">
-    {% if not is_restricted or info.fieldinformation.is_unrestricted %}
+    {% if not is_restricted or info.fieldinformation.is_unrestricted or user.is_authenticated %}
 	    {# TODO: Move all field type information, and link information to the fieldinformation table #}
 		  {% if info.value and info.fieldinformation.field == 'pubchem_cid' %}
 		  	<a target="_blank" href="http://pubchem.ncbi.nlm.nih.gov/summary/summary.cgi?cid={{ info.value }}">{{ info.value }}</a>
