@@ -379,6 +379,7 @@ class DataSet(models.Model):
     date_publicly_available = models.DateField(null=True,blank=True)
     is_restricted           = models.BooleanField()
     dataset_type            = _TEXT(**_NULLOKSTR)
+    usage_message           = _TEXT(**_NULLOKSTR)
     
     def _get_lead_screener(self):
         "Returns the LS  full name."

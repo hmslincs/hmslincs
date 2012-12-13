@@ -110,6 +110,10 @@ td.facility_salt_batch {
   white-space: nowrap;
 }
 
+.usage_message {
+  border: 1px solid black ;
+  padding: 4px;
+}
 
 /*
 .basictab li a {

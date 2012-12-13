@@ -120,8 +120,9 @@ def proteinIndex(request):
     search = request.GET.get('search','')
     logger.info(str(("is_authenticated:", request.user.is_authenticated(), 'search: ', search)))
     if(search != ''):
-        # NOTE: I've found that the "plainto_tsquery" is not matching partial words as well as the regular to_tsquery
-        # plainto_tsquery attempts to simplify the interpretation of the input (no boolean or weight operators) but this is messing something up!
+        # NOTE: - change plaintext search to use "to_tsquery" as opposed to
+        # "plainto_tsquery".  The "plain" version does not recognized the ":*"
+        # syntax (override of the weighting syntax to do a greedy search)
         #        criteria = "search_vector @@ plainto_tsquery(%s)"
         criteria = "search_vector @@ to_tsquery(%s)"
         if(get_integer(search) != None):
@@ -456,14 +457,12 @@ def datasetDetail(request, facility_id, sub_page):
                 'has_cells':manager.has_cells(),
                 'has_proteins':manager.has_proteins()}
     
-    # TODO: are the dataset results gonna be searchable? (no, not for now, but if so, we would look at the search string here)
-    # search = request.GET.get('search','')
-    
     if(sub_page == 'results'):
         search = request.GET.get('search','')
         table = manager.get_table(search=search,metaWhereClause=[],parameters=[]) # TODO: not sure why have to set metaWhereClause=[] to erase former where clause (it is persistent somewhere?) - sde4
         RequestConfig(request, paginate={"per_page": 25}).configure(table)
         details['result_table'] = table
+        details['search'] = search
         
     if(sub_page == 'cells'):
         if(manager.has_cells()):
@@ -584,13 +583,25 @@ class DataSetResultTable(PagedTable):
     defined_base_columns.append('facility_salt_batch')
     set_field_information_to_table_column('facility_salt_batch', ['smallmoleculebatch'], facility_salt_batch)
     
+    sm_name = tables.LinkColumn('sm_detail', args=[A('facility_salt_batch')])
+    defined_base_columns.append('sm_name')
+    set_field_information_to_table_column('name', ['smallmolecule'], sm_name)
+
     cell_name = tables.LinkColumn('cell_detail',args=[A('cell_facility_id')], visible=False, verbose_name='Cell Name') 
     defined_base_columns.append('cell_name')
     set_field_information_to_table_column('name', ['cell'], cell_name)
     
+    cell_facility_id = tables.LinkColumn('cell_detail',args=[A('cell_facility_id')], visible=False, verbose_name='Cell Facility ID') 
+    defined_base_columns.append('cell_facility_id')
+    set_field_information_to_table_column('facility_id', ['cell'], cell_facility_id)
+    
     protein_name = tables.LinkColumn('protein_detail',args=[A('protein_lincs_id')], visible=False, verbose_name='Protein Name') 
     defined_base_columns.append('protein_name')
     set_field_information_to_table_column('name', ['protein'], protein_name)
+    
+    protein_lincs_id = tables.LinkColumn('protein_detail',args=[A('protein_lincs_id')], visible=False, verbose_name='Protein LINCS ID') 
+    defined_base_columns.append('protein_lincs_id')
+    set_field_information_to_table_column('lincs_id', ['protein'], protein_lincs_id)
     
     plate = tables.Column()
     defined_base_columns.append('plate')
@@ -620,10 +631,15 @@ class DataSetResultTable(PagedTable):
                 logger.debug(str(('deleting column from the table', name,self.defined_base_columns)))
                 del self.base_columns[name]
         
-        temp = ['facility_salt_batch','plate','well','control_type']
-        if(show_cells): temp.append('cell_name')
-        if(show_proteins): temp.append('protein_name')
+        temp = ['facility_salt_batch','sm_name']
+        if(show_cells): 
+            temp.append('cell_name')
+            temp.append('cell_facility_id')
+        if(show_proteins): 
+            temp.append('protein_name')
+            temp.append('protein_lincs_id')
         temp.extend(['col'+str(i) for (i,x) in enumerate(ordered_datacolumns)])
+        temp.extend(['plate','well','control_type'])
         ordered_names = temp
         
         #logger.debug(str(('columns_to_names', columns_to_names, 'orderedNames', ordered_names)))
@@ -643,12 +659,16 @@ class DataSetResultTable(PagedTable):
         # Todo: these colums should be controlled by the column_exclusion_overrides
         if(show_cells):
             self.base_columns['cell_name'].visible = True
+            self.base_columns['cell_facility_id'].visible = True
         else:
             self.base_columns['cell_name'].visible = False
+            self.base_columns['cell_facility_id'].visible = False
         if(show_proteins):
             self.base_columns['protein_name'].visible = True
+            self.base_columns['protein_lincs_id'].visible = True
         else:
             self.base_columns['protein_name'].visible = False
+            self.base_columns['protein_lincs_id'].visible = False
         logger.debug(str(('base columns:', self.base_columns)))
         # Field information section: TODO: for the datasetcolumns, use the database information for these.
         # set_table_column_info(self, ['smallmolecule','cell','protein',''])  
@@ -709,13 +729,13 @@ class DataSetManager():
     def get_table(self, whereClause=[],metaWhereClause=[],column_exclusion_overrides=[],parameters=[],search=''): 
         if(search != ''):
             searchParam = '%'+search+'%'
-            searchClause = "facility_salt_batch like %s or sm_name like %s or sm_alternative_names like %s "
+            searchClause = "facility_salt_batch like %s or lower(sm_name) like lower(%s) or lower(sm_alternative_names) like lower(%s) "
             searchParams = [searchParam,searchParam,searchParam]
             if(self.has_cells()): 
-                searchClause += " or cell_facility_id::TEXT like %s or cell_name like %s "
+                searchClause += " or cell_facility_id::TEXT like %s or lower(cell_name) like lower(%s) "
                 searchParams += [searchParam,searchParam]
             if(self.has_proteins()): 
-                searchClause += " or protein_name like %s or protein_lincs_id::TEXT like %s"
+                searchClause += " or protein_lincs_id::TEXT like %s or lower(protein_name) like lower(%s) "
                 searchParams += [searchParam,searchParam]
                 
             logger.info(str(('proteins', self.protein_queryset)))

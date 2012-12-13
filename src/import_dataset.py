@@ -49,7 +49,9 @@ def read_metadata(path):
               'Date Loaded': ('date_loaded',False,None,util.date_converter),
               'Date Publicly Available': ('date_publicly_available',False,None,util.date_converter),
               'Is Restricted':('is_restricted',False,False,util.bool_converter),
-              'Dataset Type':('dataset_type',False)}
+              'Dataset Type':('dataset_type',False),
+              'Usage Message':('usage_message',False),
+              }
     
     sheet_labels = []
     for row in metaSheet:
@@ -436,12 +438,11 @@ def main(path):
         
         if(rowsRead % save_interval == 0 ):
             new_datarecords = bulk_create_datarecords(datarecord_batch)
-            logger.info(str(("save datarecord_batch, time:", time.time() - loopStart )))
+            logger.info(str(("save datarecord_batch, rowsRead", rowsRead, "time:", time.time() - loopStart )))
             if(logger.isEnabledFor(logging.DEBUG)): logger.debug(str(('new drs',new_datarecords)))
             new_dps = bulk_create_with_manual_ids(datarecord_batch)
             if(logger.isEnabledFor(logging.DEBUG)): logger.debug(str(('new dps',new_dps)))
             datarecord_batch=[]
-                            
 
     new_datarecords = bulk_create_datarecords(datarecord_batch)
     logger.info(str(("save datarecord_batch, time:", time.time() - loopStart )))
