@@ -60,7 +60,7 @@ def cellIndex(request):
     search = request.GET.get('search','')
     logger.info(str(("is_authenticated:", request.user.is_authenticated(), 'search: ', search)))
     if(search != ''):
-        criteria = "search_vector @@ plainto_tsquery(%s)"
+        criteria = "search_vector @@ to_tsquery(%s)"
         if(get_integer(search) != None):
             criteria = '(' + criteria + ' OR facility_id='+str(get_integer(search)) + ')' # TODO: seems messy here
         where = [criteria]
@@ -69,8 +69,8 @@ def cellIndex(request):
         # postgres fulltext search with rank and snippets
         queryset = Cell.objects.extra(    # TODO: evaluate using django query language, not extra clause
             select={
-                'snippet': "ts_headline(" + CellTable.snippet_def + ", plainto_tsquery(%s))",
-                'rank': "ts_rank_cd(search_vector, plainto_tsquery(%s), 32)",
+                'snippet': "ts_headline(" + CellTable.snippet_def + ", to_tsquery(%s))",
+                'rank': "ts_rank_cd(search_vector, to_tsquery(%s), 32)",
                 },
             where=where,
             params=[search+":*"],
@@ -101,7 +101,6 @@ def cellDetail(request, facility_id):
         if(cell.is_restricted and not request.user.is_authenticated()):
             return HttpResponse('Log in required.', status=401)
         details = {'object': get_detail(cell, ['cell',''])}
-        # datasets table
         dataset_ids = find_datasets_for_cell(cell.id)
         if(len(dataset_ids)>0):
             logger.info(str(('dataset ids for sm',dataset_ids)))
@@ -116,12 +115,15 @@ def cellDetail(request, facility_id):
     except Cell.DoesNotExist:
         raise Http404
 
-# TODO REFACTOR, DRY... 
+ 
 def proteinIndex(request):
     search = request.GET.get('search','')
     logger.info(str(("is_authenticated:", request.user.is_authenticated(), 'search: ', search)))
     if(search != ''):
-        criteria = "search_vector @@ plainto_tsquery(%s)"
+        # NOTE: I've found that the "plainto_tsquery" is not matching partial words as well as the regular to_tsquery
+        # plainto_tsquery attempts to simplify the interpretation of the input (no boolean or weight operators) but this is messing something up!
+        #        criteria = "search_vector @@ plainto_tsquery(%s)"
+        criteria = "search_vector @@ to_tsquery(%s)"
         if(get_integer(search) != None):
             criteria = '(' + criteria + ' OR lincs_id='+str(get_integer(search)) + ')' # TODO: seems messy here
         where = [criteria]
@@ -130,8 +132,8 @@ def proteinIndex(request):
         # postgres fulltext search with rank and snippets
         queryset = Protein.objects.extra(
             select={
-                'snippet': "ts_headline(" + ProteinTable.snippet_def + ", plainto_tsquery(%s))",
-                'rank': "ts_rank_cd(search_vector, plainto_tsquery(%s), 32)",
+                'snippet': "ts_headline(" + ProteinTable.snippet_def + ", to_tsquery(%s))",
+                'rank': "ts_rank_cd(search_vector, to_tsquery(%s), 32)",
                 },
             where=where,
             params=[search+":*"],
@@ -349,7 +351,7 @@ def datasetIndex(request): #, type='screen'):
     logger.info(str(("is_authenticated:", request.user.is_authenticated(), 'search: ', search)))
     where = []
     if(search != ''):
-        criteria = "search_vector @@ plainto_tsquery(%s)"
+        criteria = "search_vector @@ to_tsquery(%s)"
         if(get_integer(search) != None):
             criteria = '(' + criteria + ' OR facility_id='+str(get_integer(search)) + ')' # TODO: seems messy here
         where.append(criteria)
@@ -359,8 +361,8 @@ def datasetIndex(request): #, type='screen'):
         # postgres fulltext search with rank and snippets
         queryset = DataSet.objects.extra(
             select={
-                'snippet': "ts_headline(" + DataSetTable.snippet_def + ", plainto_tsquery(%s) )",
-                'rank': "ts_rank_cd(search_vector, plainto_tsquery(%s), 32)",
+                'snippet': "ts_headline(" + DataSetTable.snippet_def + ", to_tsquery(%s) )",
+                'rank': "ts_rank_cd(search_vector, to_tsquery(%s), 32)",
                 },
             where=where,
             params=[search+":*"],
