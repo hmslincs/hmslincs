@@ -9,8 +9,8 @@ Login page to authenticate users.
 
 {% block nav %}
     <header>
-        <h1>HMS Users</h1>
-        <h2>Login Page</h2>
+        <h1>Login Page</h1>
+        <h2>For HMS LINCS users</h2>
     </header>
 {% endblock %}
 {% block content %}
@@ -35,7 +35,10 @@ Login page to authenticate users.
 			    <td>{{ form.password }}</td>
 			</tr>
 			</table>
-			
+			<div class='usage_message'>
+        Confidentiality Agreement: Some compound structures in this database are confidential and to be shared only among members of the HMS LINCS community. Those which are not confidential are publicly available without logging in as an HMS LINCS user. By logging into this database, I am agreeing to hold in confidence all restricted structure information until it is publicly available. 
+			</div>
+			<br/>
 			<input type="submit" value="login" />
 			<input type="hidden" name="next" value="{{ next }}" />
 		</form>

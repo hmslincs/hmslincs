@@ -115,7 +115,7 @@
 							{% if user.is_authenticated %}							
 								<li class="page_item page-item-784">Logged in as {{ user }}: <a href="/db/logout" title="Logout">Logout</a></li>
 							{% else %}
-								<li class="page_item page-item-784"><a href="{{ login_url }}" title="Login (HMS users only)">Login (HMS users only)</a></li>
+								<li class="page_item page-item-784"><a href="{{ login_url }}" title="Login (HMS LINCS users only)">Login (HMS users only)</a></li>
 							{% endif %}
 							{% if user.is_authenticated and user.is_superuser %}							
 								<li class="page_item page-item-784"><a href="/db/admin" title="Admin">Admin (HMS users only)</a></li>
