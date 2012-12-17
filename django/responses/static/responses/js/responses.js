@@ -62,8 +62,10 @@ jQuery(document).ready(function ($) {
         $('#popup').remove();
     }
 
-    $('body').bind({
+    $(window).bind({
         mousedown: remove_popup,
+        resize: remove_popup,
+        scroll: remove_popup,
     });
 
     $('.scatterplot').bind({
