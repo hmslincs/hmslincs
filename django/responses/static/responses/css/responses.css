@@ -47,6 +47,7 @@ td p {
   font-family: Consolas, Monaco, "Andale Mono WT", "Andale Mono", "Nimbus Mono L", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Courier New", Courier, monospace;
   font-size: 10pt;
   line-height: 11pt;
+  white-space: nowrap;
 }
 
 #content td.featured {
