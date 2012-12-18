@@ -30,7 +30,8 @@ dpi = 72.0
 
 cmap_bwr = LinearSegmentedColormap.from_list('bwr', ['blue', 'white', 'red'])
 
-def scatterplot(points, metadata, lims=None, outpath=None, display=False):
+def scatterplot(points, metadata, lims=None, outpath='/dev/null',
+                display=False):
     f = Figure(figsize=(300 / dpi, 300 / dpi), dpi=dpi)
     ax = f.gca()
     for p in points:
@@ -62,8 +63,9 @@ def scatterplot(points, metadata, lims=None, outpath=None, display=False):
     canvas = FigureCanvasAgg(f)
     f.set_canvas(canvas)
 
-    if outpath:
-        canvas.print_png(outpath)
+    # must always be called, even if outpath is '/dev/null', so that the
+    # returned figure object yields consistent pixel coordinates
+    canvas.print_png(outpath)
 
     if display:
         plt.show()
