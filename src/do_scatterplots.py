@@ -171,7 +171,7 @@ def _one_scatterplot(cl_metadata, xy_data, xy_metadata,
     points = tuple(_spd(*(k + (x, y))) for k, x, y in zip(specs, *xy_data))
 
     fig = sp.scatterplot(points, xy_metadata, lims=lims, outpath=output)
-    pixels = tuple(p for p in sp.pixels(points, fig))
+    pixels = sp.pixels(points, fig)
 
     annotations = tuple(_anno(*(m + r))
                         for m, r in zip(cl_metadata, readouts))
