@@ -1270,14 +1270,14 @@ def restricted_image(request, filepath):
     response['Content-Length'] = os.path.getsize(_path)
     return response
 
-def download_attached_file(request, file_id):
+def download_attached_file(request, id):
     """                                                                         
     Send a file through Django without loading the whole file into              
     memory at once. The FileWrapper will turn the file object into an           
     iterator for chunks of 8KB.                                                 
     """
     try:
-        af = AttachedFile.objects.get(id=file_id)
+        af = AttachedFile.objects.get(id=id)
         logger.info(str(('send the attached file:', af, request.user.is_authenticated())))
         if(af.is_restricted and not request.user.is_authenticated()):
             logger.warn(str(('access to restricted file for user is denied', request.user, af)))
@@ -1294,7 +1294,7 @@ def download_attached_file(request, file_id):
         response['Content-Length'] = os.path.getsize(_path)
         return response
     except Exception,e:
-        logger.error(str(('could not find attached file object for id', file_id, e)))
+        logger.error(str(('could not find attached file object for id', id, e)))
         raise e
 
 # todo, not used    
