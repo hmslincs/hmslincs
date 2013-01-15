@@ -200,6 +200,26 @@ else
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/Screen20008_CMT_9dose-1.xlsx 
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/Screen20009_CMT_9dose-2.xlsx 
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/Screen20010_CMT_9dose-3.xlsx 
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/Screen20011_CMT_9dose-4.xlsx 
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/Screen20012_CMT_9dose-5.xlsx 
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
 	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20020_HMSL10008_kinomescan.xlsx
 	check_errs $? "import dataset fails"
 	
@@ -468,13 +488,68 @@ else
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/Screen20087_kinativ.xlsx
+	python src/import_dataset.py -f $DATADIR/kinativ/Screen20087_HMSL10008_kinativ.xlsx
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/kinativ/Screen20088_HMSL10029_kinativ.xlsx
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/kinativ/Screen20089_HMSL10046_kinativ.xlsx
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/kinativ/Screen20090_HMSL10049_kinativ.xlsx
 	check_errs $? "import dataset fails"
 
 # Example:	
 #	echo 'import attached file...'
 #	python src/import_attachedfiles.py -f attach_test_1.txt -fi 10001 -ft "text"  -fd '2012-12-10' -si 101 -bi 1
 #	check_errs $? "import attached file fails"
+# if restricted:
+#	python src/import_attachedfiles.py -f attach_test_1.txt -fi 10001 -ft "text"  -fd '2012-12-10' -si 101 -bi 1 --restricted
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/kinativ/Screen20091_HMSL10050_kinativ.xlsx
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/kinativ/Screen20092_HMSL10068_kinativ.xlsx
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/kinativ/Screen20093_HMSL10017_kinativ.xlsx
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/kinativ/Screen20094_HMSL10079_kinativ.xlsx
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/kinativ/Screen20095_HMSL10080_kinativ.xlsx
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20096_HMSL10232_kinomescan.xlsx
+	check_errs $? "import dataset fails"
+	
+	#echo 'import attached file...'
+	#python src/import_attachedfiles.py -f $DATADIR/qc/NMR_HMSL10001.101.01.pdf -fi 10001 -ft "QC-NMR"  -fd '2012-12-21' -si 101 -bi 1 --restricted
+	#check_errs $? "import attached file fails"
+	
+	#echo 'import attached file...'
+	#python src/import_attachedfiles.py -f $DATADIR/qc/HPLC_HMSL10001.101.01.pdf -fi 10001 -ft "QC-HPLC"  -fd '2012-12-21' -si 101 -bi 1 --restricted
+	#check_errs $? "import attached file fails"
+	
+	#echo 'import attached file...'
+	#python src/import_attachedfiles.py -f $DATADIR/qc/NMR_HMSL10004.101.01.pdf -fi 10004 -ft "QC-NMR"  -fd '2012-12-21' -si 101 -bi 1 --restricted
+	#check_errs $? "import attached file fails"
+	
+	#echo 'import attached file...'
+	#python src/import_attachedfiles.py -f $DATADIR/qc/HPLC_HMSL10004.101.01.pdf -fi 10004 -ft "QC-HPLC"  -fd '2012-12-21' -si 101 -bi 1 --restricted
+	#check_errs $? "import attached file fails"
+	
 # if restricted:
 #	python src/import_attachedfiles.py -f attach_test_1.txt -fi 10001 -ft "text"  -fd '2012-12-10' -si 101 -bi 1 --restricted
 	
