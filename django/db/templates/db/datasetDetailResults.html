@@ -10,6 +10,8 @@
 		{% include "db/searchExportBox.html" %}
 			{% load render_table from django_tables2 %}
 		{% render_table result_table %}
+	{% elif search %}
+	  No records were found for the search term: "{{search}}"
 	{% else %}
 	    <p>Screen Result not loaded.</p>
 	{% endif %}

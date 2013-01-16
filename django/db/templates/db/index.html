@@ -9,6 +9,8 @@
 	{% if table %}
 		{% load render_table from django_tables2 %}
 		{% render_table table %}
+	{% elif search %}
+	  No records were found for the search term: "{{search}}"
 	{% else %}
 	<H2>Welcome to the HMS LINCS Database</H2>
 		<ul>

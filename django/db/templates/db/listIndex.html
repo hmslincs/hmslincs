@@ -5,8 +5,8 @@
 	{% if table %}
 		{% load render_table from django_tables2 %}
 		{% render_table table %}
-	{% else %}
-	    <p>No records are available.</p>
+	{% elif search %}
+	    <p>No records were found for the search term "{{search}}"</p>
 	{% endif %}
 {% endblock %}
 
