@@ -47,12 +47,15 @@ def main(request):
     search = request.GET.get('search','')
     if(search != ''):
         queryset = SiteSearchManager().search(search, is_authenticated=request.user.is_authenticated());
+#        if(len(queryset) > 0):
         table = SiteSearchTable(queryset)
         if(len(table.data)>0):
             RequestConfig(request, paginate={"per_page": 25}).configure(table)
         else:
             table = None
         return render(request, 'db/index.html', {'table': table, 'search':search })
+#        else:
+#            return render(request, 'db/index.html')
     else:
         return render(request, 'db/index.html')
 
@@ -84,18 +87,24 @@ def cellIndex(request):
             where=where,
             order_by=('facility_id',))        
  
+#    if(len(queryset)>0):
     table = CellTable(queryset, template="db/custom_tables2_template.html")
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
     outputType = request.GET.get('output_type','')
     if(outputType != ''):
         return send_to_file(outputType, 'cells', table, queryset, request )
-    return render_list_index(request, table,search,'Cells')
+#    else:
+#        table = None
+    return render_list_index(request, table,search,'Cell','Cells')
 
-def render_list_index(request, table, search, heading):
+def render_list_index(request, table, search, name, name_plural):
     if(len(table.data)>0):
-        return render(request, 'db/listIndex.html', {'table': table, 'search':search, 'heading': heading })
+        setattr(table,'verbose_name_plural',name_plural)
+        setattr(table,'verbose_name',name)
+
+        return render(request, 'db/listIndex.html', {'table': table, 'search':search, 'heading': name_plural })
     else:
-        return render(request, 'db/listIndex.html', { 'search':search, 'heading': heading })
+        return render(request, 'db/listIndex.html', { 'search':search, 'heading': name_plural })
     
     
 def cellDetail(request, facility_id):
@@ -151,12 +160,16 @@ def proteinIndex(request):
             where=where,
             order_by=('lincs_id',))
     
+#    if(len(queryset)>0):
     table = ProteinTable(queryset)
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
     outputType = request.GET.get('output_type','')
     if(outputType != ''):
         return send_to_file(outputType, 'proteins', table, queryset, request )
-    return render_list_index(request, table,search,'Proteins')
+#    else:
+#        table = None
+#    return render(request, 'db/listIndex.html', {'table': table, 'search':search, 'heading': 'Proteins' })
+    return render_list_index(request, table,search,'Protein','Proteins')
     
 def proteinDetail(request, lincs_id):
     try:
@@ -228,7 +241,8 @@ def smallMoleculeIndex(request):
         return send_to_file(outputType, 'small_molecule', table, queryset, request )
     
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
-    return render_list_index(request, table,search,'Small molecules')
+#    return render(request, 'db/listIndex.html', {'table': table, 'search':search, 'heading': 'Small molecules' })
+    return render_list_index(request, table,search,'Small molecule','Small molecules')
 
 def smallMoleculeDetail(request, facility_salt_id): # TODO: let urls.py grep the facility and the salt
     try:
@@ -315,12 +329,16 @@ def libraryIndex(request):
     search = request.GET.get('search','')
     queryset = LibrarySearchManager().search(search, is_authenticated=request.user.is_authenticated());
 
+#    if(len(queryset)>0):
     table = LibraryTable(queryset)
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
     outputType = request.GET.get('output_type','')
     if(outputType != ''):
         return send_to_file(outputType, 'libraries', table, queryset, request )
-    return render_list_index(request, table,search,'Libraries')
+#    else:
+#        table = None
+#    return render(request, 'db/listIndex.html', {'table': table, 'search':search, 'heading': 'Libraries' })
+    return render_list_index(request, table,search,'Library','Libraries')
 
 def libraryDetail(request, short_name):
     search = request.GET.get('search','')
@@ -350,6 +368,8 @@ def datasetIndex(request): #, type='screen'):
     where = []
     if(search != ''):
         criteria = "search_vector @@ to_tsquery(%s)"
+#        if(get_integer(search) != None):
+#            criteria = '(' + criteria + ' OR facility_id='+str(get_integer(search)) + ')' # TODO: seems messy here
         where.append(criteria)
         if(not request.user.is_authenticated()): 
             where.append("(not is_restricted or is_restricted is NULL)")
@@ -378,7 +398,9 @@ def datasetIndex(request): #, type='screen'):
         return send_to_file(outputType, 'datasetIndex', table, queryset, request )
         
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
-    return render_list_index(request, table,search,'Datasets')
+#    heading = 'Datasets'
+#    return render(request, 'db/listIndex.html', {'table': table, 'search':search, 'type': type, 'heading': heading })
+    return render_list_index(request, table,search,'Dataset','Datasets')
 
 # Follows is a messy way to differentiate each tab for the dataset detail page (each tab calls it's respective method)
 def getDatasetType(facility_id):
