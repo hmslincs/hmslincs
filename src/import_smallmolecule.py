@@ -39,7 +39,9 @@ def main(path):
     get_alternate_names = lambda x: ';'.join([x.strip() for x in x.split(';')[1:]])
     
     labels = { s2p.MOLDATAKEY:('molfile',True),
-               'facility_reagent_id': ('facility_id',True,None, lambda x: util.convertdata(x[x.index('HMSL')+4:],int)),
+              # NOTE: even though these db field are not integers, 
+              # it is convenient to convert the read in values to INT to make sure they are not interpreted as float values
+               'facility_reagent_id': ('facility_id',True,None, lambda x: util.convertdata(x[x.index('HMSL')+4:],int)), 
                'salt_id': ('salt_id',True,None, lambda x: util.convertdata(x,int)),
                'lincs_id':('lincs_id',False,None,lambda x:util.convertdata(x,int)),
                'chemical_name':('name',True),

@@ -37,6 +37,8 @@ def main(path):
 
     properties = ('model_field','required','default','converter')
     column_definitions = { 
+              # NOTE: even though these db field are not integers, 
+              # it is convenient to convert the read in values to INT to make sure they are not interpreted as float values
                           'facility_id': ('facility_id',True,None, lambda x: util.convertdata(x,int)),
                           'salt_id': ('salt_id',True,None, lambda x: util.convertdata(x,int)),
                           'facility_batch_id':('facility_batch_id',True,None, lambda x: util.convertdata(x,int)),

@@ -13,6 +13,10 @@ _CHAR       = models.CharField
 _INTEGER    = models.IntegerField
 _TEXT       = models.TextField
 
+_FACILITY_ID_LENGTH = 15
+_SALT_ID_LENGTH = 10
+_BATCH_ID_LENGTH = 5
+
 # the only purpose for the two temporary shorthand definitions
 # below is to make clear how we are translating the SQL NULL and
 # NOT NULL qualifiers to Django's representation (in fact, for
@@ -185,16 +189,16 @@ class FieldInformation(models.Model):
         
 class SmallMolecule(models.Model):
     nominal_target          = models.ForeignKey('Protein', null=True)
-    facility_id             = _INTEGER(null=False) # center compound id
-    salt_id                 = _INTEGER(null=True)
-    lincs_id                = _INTEGER(null=True,default=None)
+    facility_id             = _CHAR(max_length=_FACILITY_ID_LENGTH, **_NOTNULLSTR)
+    salt_id                 = _CHAR(max_length=_SALT_ID_LENGTH, **_NOTNULLSTR)
+    lincs_id                = _CHAR(max_length=15, **_NULLOKSTR)
     name                    = _TEXT(**_NOTNULLSTR) 
     alternative_names       = _TEXT(**_NULLOKSTR) 
     #facility_batch_id       = _INTEGER(null=True)
     molfile                 = _TEXT(**_NULLOKSTR)
-    pubchem_cid             = _INTEGER(null=True)
-    chembl_id               = _INTEGER(null=True)
-    chebi_id                = _INTEGER(null=True)
+    pubchem_cid             = _CHAR(max_length=15, **_NULLOKSTR)
+    chembl_id               = _CHAR(max_length=15, **_NULLOKSTR)
+    chebi_id                = _CHAR(max_length=15, **_NULLOKSTR)
     inchi                   = _TEXT(**_NULLOKSTR)
     inchi_key               = _TEXT(**_NULLOKSTR)
     smiles                  = _TEXT(**_NULLOKSTR)
@@ -216,7 +220,7 @@ class SmallMolecule(models.Model):
     
     def _get_facility_salt(self):
         "Returns the 'facilty_id-salt_id'"
-        return '%d-%d' % (self.facility_id, self.salt_id)
+        return '%s-%s' % (self.facility_id, self.salt_id)
     
     facility_salt = property(_get_facility_salt) 
     
@@ -234,7 +238,7 @@ CONCENTRATION_WEIGHT_VOLUME_CHOICES = ((CONCENTRATION_GL,CONCENTRATION_GL),
 
 class SmallMoleculeBatch(models.Model):
     smallmolecule           = models.ForeignKey('SmallMolecule')
-    facility_batch_id       = _INTEGER(null=True) # TODO: indexed solution
+    facility_batch_id       = _CHAR(max_length=_BATCH_ID_LENGTH, **_NOTNULLSTR)
     provider                = _TEXT(**_NULLOKSTR)
     provider_catalog_id     = _CHAR(max_length=64, **_NULLOKSTR)
     provider_sample_id      = _CHAR(max_length=35, **_NULLOKSTR)
@@ -261,7 +265,7 @@ class SmallMoleculeBatch(models.Model):
 
     def _get_facility_salt_batch(self):
         "Returns the 'facilty_id-salt_id'"
-        return '%s-%d' % (self.smallmolecule.facility_salt, self.facility_batch_id)
+        return '%s-%s' % (self.smallmolecule.facility_salt, self.facility_batch_id)
     
     facility_salt_batch = property(_get_facility_salt_batch)    
 
@@ -269,14 +273,14 @@ class Cell(models.Model):
     # ----------------------------------------------------------------------------------------------------------------------
     #                                                                          EXAMPLE VALUES:
     # ----------------------------------------------------------------------------------------------------------------------
-    facility_id                    = _INTEGER(null=False, unique=True)
+    facility_id                    = _CHAR(max_length=_FACILITY_ID_LENGTH, unique=True, **_NOTNULLSTR)
     name                           = _CHAR(max_length=35, unique=True, **_NOTNULLSTR)    # 5637
     cl_id                          = _CHAR(max_length=35, **_NULLOKSTR)     # CLO_0003703
     alternate_name                 = _CHAR(max_length=35, **_NULLOKSTR)     # CaSki
-    alternate_id                   = _CHAR(max_length=100, **_NULLOKSTR)    # COSMIC:687452
-    center_name                    = _CHAR(max_length=35, **_NOTNULLSTR)    # HMS
-    center_specific_id             = _CHAR(max_length=35, **_NOTNULLSTR)    # HMSL50001
-    mgh_id                         = _INTEGER(null=True)                    # 6
+    alternate_id                   = _CHAR(max_length=50, **_NULLOKSTR)     # COSMIC:687452
+    center_name                    = _CHAR(max_length=20, **_NOTNULLSTR)    # HMS
+    center_specific_id             = _CHAR(max_length=15, **_NOTNULLSTR)    # HMSL50001
+    mgh_id                         = _CHAR(max_length=15, **_NULLOKSTR)     # 6
     assay                          = _TEXT(**_NULLOKSTR)                    # Mitchison Mitosis-apoptosis Img; Mitchison 
                                                                             # Prolif-Mitosis Img; Mitchison 2-3 color apo
                                                                             # pt Img
@@ -335,7 +339,7 @@ class Cell(models.Model):
 
 class Protein(models.Model):
     name                = _TEXT(**_NOTNULLSTR)
-    lincs_id            = _INTEGER(null=False, unique=True)
+    lincs_id            = _CHAR(max_length=_FACILITY_ID_LENGTH, unique=True, **_NOTNULLSTR)
     uniprot_id          = _CHAR(max_length=13, **_NULLOKSTR) # Note: UNIPROT ID's are 6 chars long, but we have a record with two in it, see issue #74
     alternate_name      = _TEXT(**_NULLOKSTR)
     alternate_name_2    = _TEXT(**_NULLOKSTR)
@@ -363,7 +367,7 @@ class Protein(models.Model):
 
 class DataSet(models.Model):
     #cells                   = models.ManyToManyField(Cell, verbose_name="Cells screened")
-    facility_id             = _INTEGER(null=False, unique=True)
+    facility_id             = _CHAR(max_length=_FACILITY_ID_LENGTH, unique=True, **_NOTNULLSTR)
     title                   = _TEXT(unique=True, **_NOTNULLSTR)
     lead_screener_firstname = _TEXT(**_NULLOKSTR)
     lead_screener_lastname  = _TEXT(**_NULLOKSTR)
@@ -427,7 +431,7 @@ class LibraryMapping(models.Model):
     library                 = models.ForeignKey('Library',null=True)
     smallmolecule_batch     = models.ForeignKey('SmallMoleculeBatch',null=True)
     is_control              = models.BooleanField()
-    plate                   = _INTEGER(null=True)
+    plate                   = _INTEGER(null=True) # TODO: this doesn't necessarily have to be an Integer
     well                    = _CHAR(max_length=4, **_NULLOKSTR) # AA99
     concentration           = models.DecimalField(max_digits=4, decimal_places=2, null=True)
     concentration_unit      = models.CharField(null=True, max_length=2,
@@ -465,7 +469,7 @@ class DataRecord(models.Model):
     smallmolecule           = models.ForeignKey('SmallMolecule', null=True)
     
     # TODO: need a schema that provides proper indexes
-    batch_id                = _INTEGER(null=True) # if given, denotes the batch associated with whichever entity is linked to this dataset through this recordd
+    batch_id                = _CHAR(max_length=_BATCH_ID_LENGTH, **_NULLOKSTR) # if given, denotes the batch associated with whichever entity is linked to this dataset through this recordd
     
     # NOTE: library_mapping: used in the case of control wells, if smallmolecule_batch is defined, then this must match the librarymapping to the smb
     library_mapping         = models.ForeignKey('LibraryMapping',null=True)  
@@ -494,9 +498,9 @@ class AttachedFile(models.Model):
     filename                = _TEXT(unique=True,**_NOTNULLSTR)
     description             = _TEXT(**_NULLOKSTR)
     relative_path           = _TEXT(**_NULLOKSTR)
-    facility_id_for         = _INTEGER(null=False)
-    salt_id_for             = _INTEGER(null=True)
-    batch_id_for            = _INTEGER(null=True)
+    facility_id_for         = _CHAR(max_length=_FACILITY_ID_LENGTH, **_NULLOKSTR)
+    salt_id_for             = _CHAR(max_length=_SALT_ID_LENGTH, **_NULLOKSTR)
+    batch_id_for            = _CHAR(max_length=_BATCH_ID_LENGTH, **_NULLOKSTR)
     file_type               = _TEXT(**_NULLOKSTR)
     file_date               = models.DateField(null=True,blank=True)
     is_restricted           = models.BooleanField(default=False) # Note: default=False are not set at the db level, only at the Db-api level

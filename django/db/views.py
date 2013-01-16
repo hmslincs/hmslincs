@@ -61,8 +61,8 @@ def cellIndex(request):
     logger.info(str(("is_authenticated:", request.user.is_authenticated(), 'search: ', search)))
     if(search != ''):
         criteria = "search_vector @@ to_tsquery(%s)"
-        if(get_integer(search) != None):
-            criteria = '(' + criteria + ' OR facility_id='+str(get_integer(search)) + ')' # TODO: seems messy here
+#        if(get_integer(search) != None):
+#            criteria = '(' + criteria + ' OR facility_id='+str(get_integer(search)) + ')' # TODO: seems messy here
         where = [criteria]
         if(not request.user.is_authenticated()): 
             where.append("( not is_restricted or is_restricted is NULL )")
@@ -125,8 +125,8 @@ def proteinIndex(request):
         # syntax (override of the weighting syntax to do a greedy search)
         #        criteria = "search_vector @@ plainto_tsquery(%s)"
         criteria = "search_vector @@ to_tsquery(%s)"
-        if(get_integer(search) != None):
-            criteria = '(' + criteria + ' OR lincs_id='+str(get_integer(search)) + ')' # TODO: seems messy here
+#        if(get_integer(search) != None):
+#            criteria = '(' + criteria + ' OR lincs_id='+str(get_integer(search)) + ')' # TODO: seems messy here
         where = [criteria]
         if(not request.user.is_authenticated()): 
             where.append("(not is_restricted or is_restricted is NULL)")
@@ -195,9 +195,9 @@ def smallMoleculeIndex(request):
 
     if(search != ''):
         criteria = "search_vector @@ to_tsquery(%s)"
-        if(get_integer(search) != None):
-            criteria = '(' + criteria + ' OR facility_id='+str(get_integer(search)) + ')' # TODO: seems messy here
-            logger.info(str(('criteria',criteria)))
+#        if(get_integer(search) != None):
+#            criteria = '(' + criteria + ' OR facility_id='+str(get_integer(search)) + ')' # TODO: seems messy here
+#            logger.info(str(('criteria',criteria)))
         where = [criteria]
         #if(not request.user.is_authenticated()): 
         #    where.append("(not is_restricted or is_restricted is NULL)")
@@ -219,7 +219,8 @@ def smallMoleculeIndex(request):
         #if(not request.user.is_authenticated()): where.append("(not is_restricted or is_restricted is NULL)")
         queryset = SmallMolecule.objects.extra(
             where=where,
-            order_by=('facility_id','salt_id'))        
+            order_by=('facility_id','salt_id')) 
+#    logger.info(str(("smt queryset: ",queryset)       
     table = SmallMoleculeTable(queryset)
 
     outputType = request.GET.get('output_type','')
@@ -293,10 +294,10 @@ def smallMoleculeDetail(request, facility_salt_id): # TODO: let urls.py grep the
         except DataSet.DoesNotExist:
             logger.warn('Nominal Targets dataset does not exist')
         
-        image_location = COMPOUND_IMAGE_LOCATION + '/HMSL%d-%d.png' % (sm.facility_id,sm.salt_id)
+        image_location = COMPOUND_IMAGE_LOCATION + '/HMSL%s-%s.png' % (sm.facility_id,sm.salt_id)
         if(not sm.is_restricted or ( sm.is_restricted and request.user.is_authenticated())):
             if(can_access_image(request,image_location, sm.is_restricted)): details['image_location'] = image_location
-            ambit_image_location = AMBIT_COMPOUND_IMAGE_LOCATION + '/HMSL%d-%d.png' % (sm.facility_id,sm.salt_id)
+            ambit_image_location = AMBIT_COMPOUND_IMAGE_LOCATION + '/HMSL%s-%s.png' % (sm.facility_id,sm.salt_id)
             if(can_access_image(request,ambit_image_location, sm.is_restricted)): details['ambit_image_location'] = ambit_image_location
         
         # add in the LIFE System link: TODO: put this into the fieldinformation
@@ -353,8 +354,8 @@ def datasetIndex(request): #, type='screen'):
     where = []
     if(search != ''):
         criteria = "search_vector @@ to_tsquery(%s)"
-        if(get_integer(search) != None):
-            criteria = '(' + criteria + ' OR facility_id='+str(get_integer(search)) + ')' # TODO: seems messy here
+#        if(get_integer(search) != None):
+#            criteria = '(' + criteria + ' OR facility_id='+str(get_integer(search)) + ')' # TODO: seems messy here
         where.append(criteria)
         if(not request.user.is_authenticated()): 
             where.append("(not is_restricted or is_restricted is NULL)")
@@ -966,10 +967,10 @@ class LibraryMappingSearchManager(models.Model):
         where = 'WHERE 1=1 '
         if(query_string != '' ):
             # TODO: how to include the smb snippet (once it's created)
-            if(get_integer(query_string) != None):
-                where = ' WHERE sm.facility_id='+str(get_integer(query_string)) 
-            else: 
-                where = ", to_tsquery(%s) as query  WHERE sm.search_vector @@ query "
+#            if(get_integer(query_string) != None):
+#                where = ' WHERE sm.facility_id='+str(get_integer(query_string)) 
+#            else: 
+            where = ", to_tsquery(%s) as query  WHERE sm.search_vector @@ query "
             # TODO: search by facility-salt-batch
         where += ' and library_id='+ str(library_id)
         if(not is_authenticated):
@@ -1184,12 +1185,12 @@ class SiteSearchTable(PagedTable):
         attrs = {'class': 'paleblue'}
         exclude = {'rank'}
 
-def get_integer(stringValue):
-    try:
-        return int(float(stringValue))
-    except:
-        logger.debug(str(('stringValue: ',stringValue,'is not an integer')))
-    return None    
+#def get_integer(stringValue):
+#    try:
+#        return int(float(stringValue))
+#    except:
+#        logger.debug(str(('stringValue: ',stringValue,'is not an integer')))
+#    return None    
 
 def can_access_image(request, image_filename, is_restricted=False):
     if(not is_restricted):

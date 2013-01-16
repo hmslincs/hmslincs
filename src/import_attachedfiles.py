@@ -101,7 +101,7 @@ if __name__ == "__main__":
     logging.basicConfig(level=log_level, format='%(msecs)d:%(module)s:%(lineno)d:%(levelname)s: %(message)s')        
     logger.setLevel(log_level)
 
-    facilityId = util.int_converter(args.facilityId);
+    facilityId = util.int_converter(args.facilityId); # NOTE: TODO: we have made facility id a text field in the DB
     inputFile = args.inputFile
     relativePath = args.relativePath
 
