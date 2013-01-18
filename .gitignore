@@ -10,3 +10,4 @@ temp/*
 .settings/*
 bak/*
 .DS_Store
+src/onetime/makepng
