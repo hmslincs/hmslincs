@@ -204,7 +204,7 @@ class SmallMolecule(models.Model):
     smiles                  = _TEXT(**_NULLOKSTR)
     software                = _TEXT(**_NULLOKSTR)
     # Following fields not listed for the canonical information in the DWG, but per HMS policy will be - sde4
-    molecular_mass          = _CHAR(max_length=35, **_NULLOKSTR)
+    molecular_mass          = models.DecimalField(max_digits=8, decimal_places=2, null=True) # Note: FloatField results in a (postgres) double precision datatype - 8 bytes; approx 15 digits of decimal precision
     molecular_formula       = _TEXT(**_NULLOKSTR)
     # concentration          = _CHAR(max_length=35, **_NULLOKSTR)
     #plate                   = _INTEGER(null=True)
@@ -427,11 +427,13 @@ CONCENTRATION_MM = 'mM'
 CONCENTRATION_CHOICES = ((CONCENTRATION_NM,CONCENTRATION_NM),
                          (CONCENTRATION_UM,CONCENTRATION_UM),
                          (CONCENTRATION_MM,CONCENTRATION_MM))
+
+# LibraryMapping is equivalent to a "Well"; it details how the SmallMolecule is mapped in the Library
 class LibraryMapping(models.Model):
     library                 = models.ForeignKey('Library',null=True)
     smallmolecule_batch     = models.ForeignKey('SmallMoleculeBatch',null=True)
     is_control              = models.BooleanField()
-    plate                   = _INTEGER(null=True) # TODO: this doesn't necessarily have to be an Integer
+    plate                   = _INTEGER(null=True)
     well                    = _CHAR(max_length=4, **_NULLOKSTR) # AA99
     concentration           = models.DecimalField(max_digits=4, decimal_places=2, null=True)
     concentration_unit      = models.CharField(null=True, max_length=2,
@@ -486,7 +488,7 @@ class DataPoint(models.Model):
     dataset                 = models.ForeignKey('DataSet') # TODO: are we using this? Note, Screen is being included here for convenience
     datarecord              = models.ForeignKey('DataRecord') 
     int_value               = _INTEGER(null=True)
-    float_value             = models.FloatField(null=True)
+    float_value             = models.FloatField(null=True) # Note: this results in a (postgres) double precision datatype - 8 bytes; approx 15 digits of decimal precision
     text_value              = _TEXT(**_NULLOKSTR)
     
     def __unicode__(self):

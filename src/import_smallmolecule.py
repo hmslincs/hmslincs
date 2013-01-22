@@ -52,7 +52,7 @@ def main(path):
                'inchi':'inchi',
                'inchi_key':'inchi_key',
                'smiles': ('smiles',True),
-               'molecular_mass':'molecular_mass',
+               'molecular_mass':('molecular_mass',False,None, lambda x: round(util.convertdata(x, float),2)),
                'molecular_formula':'molecular_formula',
                'software':'software',
                # 'concentration':'concentration',
