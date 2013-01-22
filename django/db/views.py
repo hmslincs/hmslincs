@@ -512,7 +512,7 @@ def datasetDetail(request, facility_id, sub_page):
 class PaginationForm(forms.Form):
     items_per_page = forms.ChoiceField(widget=forms.Select(attrs={'onchange': 'this.form.submit();'}), 
                                        choices=(('25','25'),('50','50'),('100','100'),('250','250'),('1000','1000')),
-                                       required=False, label=None)
+                                       required=False, label='per page')
 
 class SnippetColumn(tables.Column):
     def render(self, value):
