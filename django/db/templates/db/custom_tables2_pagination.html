@@ -24,16 +24,16 @@
 	    <li class="next"><a href="{% querystring table.prefixed_page_field=table.next_ten_page_number %}">{% trans ">>" %}</a></li>
 	    {% endblock pagination.next_10 %}{% endnospaceless %}
 	    {% nospaceless %}{% block pagination.last %}
-	    <li class="next"><a href="{% querystring table.prefixed_page_field=table.paginator.num_pages %}">{% trans ">|" %}</a></li>
+	    <li class="next"><a href="{% querystring table.prefixed_page_field=table.paginator.num_pages %}">{% trans ">" %}</a></li>
 	    {% endblock pagination.last %}{% endnospaceless %}
 
 	    {% nospaceless %}{% block pagination.cardinality %}
 	    <li class="cardinality">{% if total != count %}{{ table.page_start }} to {{ table.page_end }} of {{ total }}{% else %}{{ total }}{% endif %} {% if total == 1 %}{{ table.data.verbose_name }}{% else %}{{ table.data.verbose_name_plural }}{% endif %}</li>
 	    {% endblock pagination.cardinality %}{% endnospaceless %}
+   		 - <form action="#" method="get" STYLE="display: inline; margin: 0px; padding: 0px;" >{{ items_per_page_form }}</form>    	
     {% else %}
     
-	    <li class="cardinality">{{ total }} {% if total == 1 %}{{ table.verbose_name }}{% else %}{{ table.verbose_name_plural }}{% endif %}</li>
-    
+	    <li class="cardinality">{{ total }} {% if total == 1 %}{{ table.data.verbose_name }}{% else %}{{ table.data.verbose_name_plural }}{% endif %}</li>
     {% endif %}
 
 </ul>

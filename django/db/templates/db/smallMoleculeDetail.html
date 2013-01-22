@@ -34,10 +34,10 @@
 	{% if ambit_image_location %}
 		{% if not is_restricted %}
 			<h2 class='entity_detail_title'>KINOMEscan Image</h2>
-			<img src="{{ STATIC_URL }}{{ambit_image_location}} " onclick="w=window.open('{{ STATIC_URL }}{{ambit_image_location}}','image','height=400,width=800');w.moveTo(500,400);" />
+			<img src="{{ STATIC_URL }}{{ambit_image_location}} " onclick="w=window.open('{{ STATIC_URL }}{{ambit_image_location}}','image','height=600,width=1200');w.moveTo(500,400);" />
 		{% elif is_restricted and user.is_authenticated %}
 			<h2 class='entity_detail_title'>KINOMEscan Image</h2>
-			<img src="{% url restricted_image filepath=ambit_image_location %}" onclick="w=window.open('{% url restricted_image filepath=ambit_image_location %}','image','height=400,width=800');w.moveTo(500,400);"/>
+			<img src="{% url restricted_image filepath=ambit_image_location %}" onclick="w=window.open('{% url restricted_image filepath=ambit_image_location %}','image','height=600,width=1200');w.moveTo(500,400);"/>
 		{% endif %}
 	{% endif %}
 	{% if batchTable %}

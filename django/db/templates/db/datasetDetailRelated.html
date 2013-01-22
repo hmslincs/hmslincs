@@ -1,11 +1,11 @@
 {% extends "db/datasetDetailBase.html" %}
 {% block datasetContent %}
-{% if proteinTable %}
-	<h2>Proteins Studied</h2>
+{% if table %}
+	<h2>{{ heading }} Studied</h2>
 	{% load render_table from django_tables2 %}
-	{% render_table proteinTable %}
+	{% render_table table %}
 {% else %}
-  <h2>No Proteins Studied</h2>
+  <h2>No {{ heading }} Studied</h2>
 {% endif %}
 {% endblock %}
 	

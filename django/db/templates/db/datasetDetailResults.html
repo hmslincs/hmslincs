@@ -1,6 +1,6 @@
 {% extends "db/datasetDetailBase.html" %}
 {% block datasetContent %}
-	{% if result_table %}
+	{% if table %}
 	  {% if object.usage_message.value %}
 	  <div class='usage_message'>
 	  {{ object.usage_message.value }}
@@ -8,8 +8,8 @@
 	  <br/>
 	  {% endif %}
 		{% include "db/searchExportBox.html" %}
-			{% load render_table from django_tables2 %}
-		{% render_table result_table %}
+		{% load render_table from django_tables2 %}
+		{% render_table table %}
 	{% elif search %}
 	  No records were found for the search term: "{{search}}"
 	{% else %}

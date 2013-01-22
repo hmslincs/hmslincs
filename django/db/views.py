@@ -2,7 +2,9 @@ import urllib2
 import csv
 import xlwt
 import re
+from math import log, pow
 
+from django import forms
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render
 from django.db import models
@@ -47,15 +49,12 @@ def main(request):
     search = request.GET.get('search','')
     if(search != ''):
         queryset = SiteSearchManager().search(search, is_authenticated=request.user.is_authenticated());
-#        if(len(queryset) > 0):
         table = SiteSearchTable(queryset)
         if(len(table.data)>0):
             RequestConfig(request, paginate={"per_page": 25}).configure(table)
         else:
             table = None
         return render(request, 'db/index.html', {'table': table, 'search':search })
-#        else:
-#            return render(request, 'db/index.html')
     else:
         return render(request, 'db/index.html')
 
@@ -64,8 +63,6 @@ def cellIndex(request):
     logger.info(str(("is_authenticated:", request.user.is_authenticated(), 'search: ', search)))
     if(search != ''):
         criteria = "search_vector @@ to_tsquery(%s)"
-#        if(get_integer(search) != None):
-#            criteria = '(' + criteria + ' OR facility_id='+str(get_integer(search)) + ')' # TODO: seems messy here
         where = [criteria]
         if(not request.user.is_authenticated()): 
             where.append("( not is_restricted or is_restricted is NULL )")
@@ -87,24 +84,35 @@ def cellIndex(request):
             where=where,
             order_by=('facility_id',))        
  
-#    if(len(queryset)>0):
     table = CellTable(queryset, template="db/custom_tables2_template.html")
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
     outputType = request.GET.get('output_type','')
     if(outputType != ''):
         return send_to_file(outputType, 'cells', table, queryset, request )
-#    else:
-#        table = None
     return render_list_index(request, table,search,'Cell','Cells')
 
-def render_list_index(request, table, search, name, name_plural):
-    if(len(table.data)>0):
-        setattr(table,'verbose_name_plural',name_plural)
-        setattr(table,'verbose_name',name)
+def render_list_index(request, table, search, name, name_plural, **requestArgs):
+    items_per_page = 25
+    form = PaginationForm(request.GET)
+#        form = PaginationForm(initial={'items_per_page': str(items_per_page)})
+    if(form.is_valid()):
+        if(form.cleaned_data['items_per_page']): # TODO: is there another way to determine if the form has been used yet?
+            items_per_page = int(form.cleaned_data['items_per_page'])
 
-        return render(request, 'db/listIndex.html', {'table': table, 'search':search, 'heading': name_plural })
-    else:
-        return render(request, 'db/listIndex.html', { 'search':search, 'heading': name_plural })
+    
+    if( not requestArgs):
+        requestArgs = dict()
+    requestArgs.setdefault('search',search)
+    requestArgs.setdefault('heading', name_plural)
+
+    if(len(table.data)>0):
+        RequestConfig(request, paginate={"per_page": items_per_page}).configure(table)
+        setattr(table.data,'verbose_name_plural',name_plural)
+        setattr(table.data,'verbose_name',name)
+        requestArgs.setdefault('table',table)
+        requestArgs.setdefault('items_per_page_form',form )
+        logger.info(str(('requestArgs', requestArgs)))
+    return render(request, 'db/listIndex.html', requestArgs)
     
     
 def cellDetail(request, facility_id):
@@ -137,8 +145,6 @@ def proteinIndex(request):
         # syntax (override of the weighting syntax to do a greedy search)
         #        criteria = "search_vector @@ plainto_tsquery(%s)"
         criteria = "search_vector @@ to_tsquery(%s)"
-#        if(get_integer(search) != None):
-#            criteria = '(' + criteria + ' OR lincs_id='+str(get_integer(search)) + ')' # TODO: seems messy here
         where = [criteria]
         if(not request.user.is_authenticated()): 
             where.append("(not is_restricted or is_restricted is NULL)")
@@ -160,15 +166,11 @@ def proteinIndex(request):
             where=where,
             order_by=('lincs_id',))
     
-#    if(len(queryset)>0):
     table = ProteinTable(queryset)
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
     outputType = request.GET.get('output_type','')
     if(outputType != ''):
         return send_to_file(outputType, 'proteins', table, queryset, request )
-#    else:
-#        table = None
-#    return render(request, 'db/listIndex.html', {'table': table, 'search':search, 'heading': 'Proteins' })
     return render_list_index(request, table,search,'Protein','Proteins')
     
 def proteinDetail(request, lincs_id):
@@ -204,16 +206,11 @@ def proteinDetail(request, lincs_id):
 # TODO REFACTOR, DRY... 
 def smallMoleculeIndex(request):
     search = request.GET.get('search','')
-    logger.info(str(("is_authenticated:", request.user.is_authenticated(), 'search: ', search)))
+    logger.info(str(("is_authenticated:", request.user.is_authenticated(), 'search: ', search))) #, 'items_per_page', items_per_page)))
 
     if(search != ''):
         criteria = "search_vector @@ to_tsquery(%s)"
-#        if(get_integer(search) != None):
-#            criteria = '(' + criteria + ' OR facility_id='+str(get_integer(search)) + ')' # TODO: seems messy here
-#            logger.info(str(('criteria',criteria)))
         where = [criteria]
-        #if(not request.user.is_authenticated()): 
-        #    where.append("(not is_restricted or is_restricted is NULL)")
         
         # postgres fulltext search with rank and snippets
         logger.info(str(("SmallMoleculeTable.snippet_def:",SmallMoleculeTable.snippet_def)))
@@ -240,9 +237,7 @@ def smallMoleculeIndex(request):
     if(outputType != ''):
         return send_to_file(outputType, 'small_molecule', table, queryset, request )
     
-    RequestConfig(request, paginate={"per_page": 25}).configure(table)
-#    return render(request, 'db/listIndex.html', {'table': table, 'search':search, 'heading': 'Small molecules' })
-    return render_list_index(request, table,search,'Small molecule','Small molecules')
+    return render_list_index(request, table,search,'Small molecule','Small molecules') #, **kwargs )
 
 def smallMoleculeDetail(request, facility_salt_id): # TODO: let urls.py grep the facility and the salt
     try:
@@ -251,8 +246,6 @@ def smallMoleculeDetail(request, facility_salt_id): # TODO: let urls.py grep the
         facility_id = temp[0]
         salt_id = temp[1]
         sm = SmallMolecule.objects.get(facility_id=facility_id, salt_id=salt_id) 
-        #if(sm.is_restricted and not request.user.is_authenticated()):
-        #    return HttpResponse('Log in required.', status=401)
         smb = None
         if(len(temp)>2):
             smb = SmallMoleculeBatch.objects.get(smallmolecule=sm,facility_batch_id=temp[2]) 
@@ -328,16 +321,10 @@ def smallMoleculeDetail(request, facility_salt_id): # TODO: let urls.py grep the
 def libraryIndex(request):
     search = request.GET.get('search','')
     queryset = LibrarySearchManager().search(search, is_authenticated=request.user.is_authenticated());
-
-#    if(len(queryset)>0):
     table = LibraryTable(queryset)
-    RequestConfig(request, paginate={"per_page": 25}).configure(table)
     outputType = request.GET.get('output_type','')
     if(outputType != ''):
         return send_to_file(outputType, 'libraries', table, queryset, request )
-#    else:
-#        table = None
-#    return render(request, 'db/listIndex.html', {'table': table, 'search':search, 'heading': 'Libraries' })
     return render_list_index(request, table,search,'Library','Libraries')
 
 def libraryDetail(request, short_name):
@@ -368,8 +355,6 @@ def datasetIndex(request): #, type='screen'):
     where = []
     if(search != ''):
         criteria = "search_vector @@ to_tsquery(%s)"
-#        if(get_integer(search) != None):
-#            criteria = '(' + criteria + ' OR facility_id='+str(get_integer(search)) + ')' # TODO: seems messy here
         where.append(criteria)
         if(not request.user.is_authenticated()): 
             where.append("(not is_restricted or is_restricted is NULL)")
@@ -397,9 +382,6 @@ def datasetIndex(request): #, type='screen'):
     if(outputType != ''):
         return send_to_file(outputType, 'datasetIndex', table, queryset, request )
         
-    RequestConfig(request, paginate={"per_page": 25}).configure(table)
-#    heading = 'Datasets'
-#    return render(request, 'db/listIndex.html', {'table': table, 'search':search, 'type': type, 'heading': heading })
     return render_list_index(request, table,search,'Dataset','Datasets')
 
 # Follows is a messy way to differentiate each tab for the dataset detail page (each tab calls it's respective method)
@@ -424,14 +406,24 @@ def datasetDetailMain(request, facility_id):
 def datasetDetailCells(request, facility_id):
     try:
         details = datasetDetail(request,facility_id, 'cells')
-        return render(request,'db/datasetDetailCells.html', details)
+        details.setdefault('heading', 'Cells')
+        return render(request,'db/datasetDetailRelated.html', details)
     except Http401, e:
         return HttpResponse('Unauthorized', status=401)
     
 def datasetDetailProteins(request, facility_id):
     try:
         details = datasetDetail(request,facility_id,'proteins')
-        return render(request,'db/datasetDetailProteins.html', details)
+        details.setdefault('heading', 'Proteins')
+        return render(request,'db/datasetDetailRelated.html', details)
+    except Http401, e:
+        return HttpResponse('Unauthorized', status=401)
+    
+def datasetDetailSmallMolecules(request, facility_id):
+    try:
+        details = datasetDetail(request,facility_id,'small_molecules')
+        details.setdefault('heading', 'Small Molecules')
+        return render(request,'db/datasetDetailRelated.html', details)
     except Http401, e:
         return HttpResponse('Unauthorized', status=401)
     
@@ -470,32 +462,57 @@ def datasetDetail(request, facility_id, sub_page):
     details =  {'object': get_detail(manager.dataset, ['dataset','']),
                 'facilityId': facility_id,
                 'type':getDatasetType(facility_id),
+                'has_small_molecules':manager.has_small_molecules(),
                 'has_cells':manager.has_cells(),
                 'has_proteins':manager.has_proteins()}
+
+    items_per_page = 25
+    form = PaginationForm(request.GET)
+    details['items_per_page_form'] = form
+    if(form.is_valid()):
+        if(form.cleaned_data['items_per_page']): # TODO: is there another way to determine if the form has been used yet?
+            items_per_page = int(form.cleaned_data['items_per_page'])
     
     if(sub_page == 'results'):
         search = request.GET.get('search','')
         table = manager.get_table(search=search,metaWhereClause=[],parameters=[]) # TODO: not sure why have to set metaWhereClause=[] to erase former where clause (it is persistent somewhere?) - sde4
-        RequestConfig(request, paginate={"per_page": 25}).configure(table)
         if(len(table.data)>0):
-            details['result_table'] = table
+            details['table'] = table
+            RequestConfig(request, paginate={"per_page": items_per_page}).configure(table)
         details['search'] = search
         
     if(sub_page == 'cells'):
         if(manager.has_cells()):
-            cellTable = CellTable(manager.cell_queryset)
-            RequestConfig(request, paginate={"per_page": 25}).configure(cellTable)
-            details['cellTable'] = cellTable
+            table = CellTable(manager.cell_queryset)
+            setattr(table.data,'verbose_name_plural','Cells')
+            setattr(table.data,'verbose_name','Cells')
+            details['table'] = table
+            RequestConfig(request, paginate={"per_page": items_per_page}).configure(table)
     if(sub_page == 'proteins'):
         if(manager.has_proteins()):
-            proteinTable = ProteinTable(manager.protein_queryset)
-            RequestConfig(request, paginate={"per_page": 25}).configure(proteinTable)
-            details['proteinTable'] = proteinTable
+            table = ProteinTable(manager.protein_queryset)
+            setattr(table.data,'verbose_name_plural','Proteins')
+            setattr(table.data,'verbose_name','Protein')
+            details['table'] = table
+            RequestConfig(request, paginate={"per_page": items_per_page}).configure(table)
+    if(sub_page == 'small_molecules'):
+        if(manager.has_small_molecules()):
+            table = SmallMoleculeTable(manager.small_molecule_queryset)
+            setattr(table.data,'verbose_name_plural','Small Molecules')
+            setattr(table.data,'verbose_name','Small Molecule')
+            details['table'] = table
+            RequestConfig(request, paginate={"per_page": items_per_page}).configure(table)
 
     image_location = DATASET_IMAGE_LOCATION + '/%s.png' % str(facility_id)
     if(can_access_image(request,image_location)): details['image_location'] = image_location
     
     return details
+
+
+class PaginationForm(forms.Form):
+    items_per_page = forms.ChoiceField(widget=forms.Select(attrs={'onchange': 'this.form.submit();'}), 
+                                       choices=(('25','25'),('50','50'),('100','100'),('250','250'),('1000','1000')),
+                                       required=False, label=None)
 
 class SnippetColumn(tables.Column):
     def render(self, value):
@@ -508,8 +525,6 @@ class TypeColumn(tables.Column):
         elif value == "dataset_detail": return "Screen"
         elif value == "protein_detail": return "Protein"
         else: raise Exception("Unknown type: "+value)
-
-from math import log, pow
 
 class PagedTable(tables.Table):
     
@@ -578,10 +593,6 @@ def set_field_information_to_table_column(fieldname,table_names,column):
 OMERO_IMAGE_TEMPLATE = '''
    <a href="#" onclick='window.open("https://lincs-omero.hms.harvard.edu/webclient/img_detail/{{ record.%s }}", "Image","height=700,width=800")' ><img src='https://lincs-omero.hms.harvard.edu/webgateway/render_thumbnail/{{ record.%s }}/32/' alt='image if available' ></a>
 '''
-class TestColumn(tables.Column):
-    def render(self, value):
-        return 'xxx'
-#        return value.upper()
         
 class DataSetResultTable(PagedTable):
     """
@@ -705,8 +716,11 @@ class DataSetManager():
     def __init__(self,dataset,is_authenticated=False):
         self.dataset = dataset
         self.dataset_id = dataset.id
+        
+        # grab these now and cache them
         self.cell_queryset = self.cells_for_dataset(self.dataset_id)  # TODO: use ORM
         self.protein_queryset = self.proteins_for_dataset(self.dataset_id)
+        self.small_molecule_queryset = self.small_molecules_for_dataset(self.dataset_id)
                 
     class DatasetForm(ModelForm):
         class Meta:
@@ -719,6 +733,9 @@ class DataSetManager():
     
     def has_proteins(self):
         return len(self.protein_queryset) > 0
+
+    def has_small_molecules(self):
+        return len(self.small_molecule_queryset) > 0
     
     def get_cursor(self, whereClause=[],metaWhereClause=[],column_exclusion_overrides=[],parameters=[],search=''): 
         if(search != ''):
@@ -732,7 +749,6 @@ class DataSetManager():
                 searchClause += " or protein_name like %s or protein_lincs_id::TEXT like %s"
                 searchParams += [searchParam,searchParam]
                 
-            logger.info(str(('proteins', self.protein_queryset)))
             metaWhereClause.append(searchClause)
             parameters += searchParams
             
@@ -755,7 +771,6 @@ class DataSetManager():
                 searchClause += " or protein_lincs_id::TEXT like %s or lower(protein_name) like lower(%s) "
                 searchParams += [searchParam,searchParam]
                 
-            logger.info(str(('proteins', self.protein_queryset)))
             metaWhereClause.append(searchClause)
             parameters += searchParams
             
@@ -771,8 +786,8 @@ class DataSetManager():
                                   self.has_cells(), 
                                   self.has_proteins(),
                                   column_exclusion_overrides) # TODO: again, all these flags are confusing
-        setattr(_table,'verbose_name_plural','records')
-        setattr(_table,'verbose_name','record')
+        setattr(_table.data,'verbose_name_plural','records')
+        setattr(_table.data,'verbose_name','record')
         return _table
 
     class DatasetInfo:
@@ -894,12 +909,40 @@ class DataSetManager():
         # TODO: like this: SELECT * FROM TABLE, (SELECT COLUMN FROM TABLE) as dummytable WHERE dummytable.COLUMN = TABLE.COLUMN;
         cursor.execute(sql, [dataset_id])
         return dictfetchall(cursor)
-        
+    
+# TODO: this usage of the django ORM is not performant - is there and indexing problem; or can we mimick the sql version above?   
+#    def cells_for_dataset(self,dataset_id):
+#        queryset = Cell.objects.filter(datarecord__dataset__id=dataset_id).distinct() 
+#        # Note: restriction not needed as this will only show in the limited view of the small molecule table
+#        logger.info(str(('cells for dataset',dataset_id,len(queryset))))
+#        return queryset
+    
     def proteins_for_dataset(self,dataset_id):
         cursor = connection.cursor()
         sql = 'SELECT protein.* FROM db_protein protein WHERE protein.id in (SELECT distinct(protein_id) FROM db_datarecord dr WHERE dr.dataset_id=%s) order by protein.name'
         cursor.execute(sql, [dataset_id])
         return dictfetchall(cursor)
+            
+
+# TODO: this usage of the django ORM is a bit more performant than the cell version above; still, going to stick with the non-ORM version for now    
+#    def proteins_for_dataset(self,dataset_id):
+#        queryset = Protein.objects.filter(datarecord__dataset__id=dataset_id).distinct() 
+#        # Note: restriction not needed as this will only show in the limited view of the small molecule table
+#        logger.info(str(('proteins for dataset',dataset_id,len(queryset))))
+#        return queryset
+
+    def small_molecules_for_dataset(self,dataset_id):
+        cursor = connection.cursor()
+        sql = 'SELECT *,' + facility_salt_id + ' as facility_salt FROM db_smallmolecule sm WHERE sm.id in (SELECT distinct(smallmolecule_id) FROM db_datarecord dr WHERE dr.dataset_id=%s) order by sm.facility_id'
+        cursor.execute(sql, [dataset_id])
+        return dictfetchall(cursor)
+            
+# TODO: this usage of the django ORM is a bit more performant than the cell version above; still, going to stick with the non-ORM version for now    
+#    def small_molecules_for_dataset(self, dataset_id):
+#        queryset = SmallMolecule.objects.filter(datarecord__dataset__id=dataset_id).distinct() 
+#        # Note: restriction not needed as this will only show in the limited view of the small molecule table
+#        logger.info(str(('small molecules for dataset',dataset_id,len(queryset))))
+#        return queryset
     
 #    def has_omero_images(self, dataset_id):
 #        res = len(DataSet.objects.get(id=dataset_id).datacolumn_set.filter(data_type='omero_image'))
@@ -917,6 +960,7 @@ class DataSetManager():
 
 
 def find_datasets_for_protein(protein_id):
+    #TODO: can we return a django model queryset instead of just the id's (and then post-filter?)
     datasets = [x.id for x in DataSet.objects.filter(datarecord__protein__id=protein_id).distinct()]
     logger.info(str(('datasets',datasets)))
     return datasets
@@ -982,12 +1026,7 @@ class LibraryMappingSearchManager(models.Model):
         
         where = 'WHERE 1=1 '
         if(query_string != '' ):
-            # TODO: how to include the smb snippet (once it's created)
-#            if(get_integer(query_string) != None):
-#                where = ' WHERE sm.facility_id='+str(get_integer(query_string)) 
-#            else: 
             where = ", to_tsquery(%s) as query  WHERE sm.search_vector @@ query "
-            # TODO: search by facility-salt-batch
         where += ' and library_id='+ str(library_id)
         if(not is_authenticated):
             where += ' and ( not sm.is_restricted or sm.is_restricted is NULL)' # TODO: NOTE, not including: ' and not l.is_restricted'; library restriction will only apply to viewing the library explicitly (the meta data, and selection of compounds)
@@ -1024,7 +1063,6 @@ class SmallMoleculeBatchTable(PagedTable):
         set_table_column_info(self, ['smallmolecule','smallmoleculebatch',''],sequence_override)  
 
 class SmallMoleculeTable(PagedTable):
-    #facility_id = tables.Column(visible=False)
     facility_salt = tables.LinkColumn("sm_detail", args=[A('facility_salt')], order_by=['facility_id','salt_id']) 
     facility_salt.attrs['td'] = {'nowrap': 'nowrap'}
     rank = tables.Column()
@@ -1067,8 +1105,6 @@ class CellTable(PagedTable):
     snippet = SnippetColumn()
     id = tables.Column(verbose_name='CLO Id')
     
-    # TODO: define the snippet dynamically, using all the text fields from the model
-    # TODO: add the facility_id
 #    snippet_def = ("coalesce(name,'') || ' ' || coalesce(id,'') || ' ' || coalesce(alternate_name,'') || ' ' || " +  
 #                   "coalesce(alternate_id,'') || ' ' || coalesce(center_name,'') || ' ' || coalesce(center_specific_id,'') || ' ' || " +  
 #                   "coalesce(assay,'') || ' ' || coalesce(provider_name,'') || ' ' || coalesce(provider_catalog_id,'') || ' ' || coalesce(batch_id,'') || ' ' || " + 
@@ -1125,13 +1161,12 @@ class LibrarySearchManager(models.Manager):
         sql += " group by library.id) a join db_library l2 on(a.id=l2.id) WHERE l2.id=l.id order by l.short_name"
         
         logger.info(str(('sql',sql)))
-        # TODO: the way we are separating query_string out here is a kludge
+        # TODO: the way we are separating query_string out here is a kludge, i.e we should be using django ORM language?
         if(query_string != ''):
             cursor.execute(sql, [query_string + ':*'])
         else:
             cursor.execute(sql)
         v = dictfetchall(cursor)
-        #print 'dict: ', v, ', query: ', query_string
         return v
     
 class LibraryTable(PagedTable):
@@ -1161,7 +1196,6 @@ class SiteSearchManager(models.Manager):
     
     def search(self, queryString, is_authenticated=False):
         cursor = connection.cursor()
-        # TODO: build this dynamically, like the rest of the search
         # Notes: MaxFragments=10 turns on fragment based headlines (context for search matches), with MaxWords=20
         # ts_rank_cd(search_vector, query, 32): Normalization option 32 (rank/(rank+1)) can be applied to scale all 
         # ranks into the range zero to one, but of course this is just a cosmetic change; it will not affect the ordering of the search results.
@@ -1200,13 +1234,6 @@ class SiteSearchTable(PagedTable):
         orderable = True
         attrs = {'class': 'paleblue'}
         exclude = {'rank'}
-
-#def get_integer(stringValue):
-#    try:
-#        return int(float(stringValue))
-#    except:
-#        logger.debug(str(('stringValue: ',stringValue,'is not an integer')))
-#    return None    
 
 def can_access_image(request, image_filename, is_restricted=False):
     if(not is_restricted):
@@ -1366,9 +1393,6 @@ def send_to_file(outputType, name, table, queryset, request):
             if(field==col):
                 columnsOrdered.append((field,verbose_name))
                 break
-            
-    #print 'return as ', outputType, ", columns: ", columns 
-
     if(outputType == 'csv'):
         return export_as_csv(name,columnsOrdered , request, queryset)
     elif(outputType == 'xls'):
@@ -1443,8 +1467,6 @@ def get_cols_to_write(cursor, fieldinformation_tables=[''], ordered_datacolumns=
                 logger.warn(str(('no fieldinformation found for field:', col.name)))
          
     return OrderedDict(sorted(header_row.items(),key=lambda x: x[0]))
-     
-
 
 # TODO: is a cursor a queryset? if so then refactor all methods to use this
 def export_as_xls1(name,ordered_datacolumns, request, cursor):
