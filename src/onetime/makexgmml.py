@@ -21,10 +21,11 @@ import collections as co
 #
 
 # ---------------------------------------------------------------------------
-DATADIR = '/Users/berriz/Work/Sites/hmslincs/data/networks/data'
-XMLDIR = '/Users/berriz/Work/Sites/hmslincs/data/networks/xgmml'
-IMGDIR = '/Users/berriz/Work/Sites/hmslincs/data/networks/png' # ...for now
 SRCDIR = op.dirname(op.abspath(__file__))
+BASEDIR = op.normpath(op.join(SRCDIR, '..', '..'))
+DATADIR = op.join(BASEDIR, *'data networks data'.split())
+XMLDIR = op.join(BASEDIR, *'data networks xgmml'.split())
+IMGDIR = op.join(BASEDIR, *'django networks static networks img'.split())
 
 NODES = co.OrderedDict((
                         ('center', co.OrderedDict((
