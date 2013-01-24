@@ -62,7 +62,7 @@ class PagedRawQuerySet(object):
         self._order_by = []
         for col in args:
             if(col[0]=='-'):
-                col = col[1:] + ' desc ' 
+                col = col[1:] + ' desc NULLS LAST' # NOTE: NULLS LAST is required for raw sql in postgres only (django ORM handles this correctly)
             self._order_by.append(col)
         return self
     

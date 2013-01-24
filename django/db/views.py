@@ -230,6 +230,7 @@ def smallMoleculeIndex(request):
         queryset = SmallMolecule.objects.extra(
             where=where,
             order_by=('facility_id','salt_id')) 
+    
     table = SmallMoleculeTable(queryset)
 
     outputType = request.GET.get('output_type','')
@@ -1067,6 +1068,11 @@ class SmallMoleculeTable(PagedTable):
     facility_salt.attrs['td'] = {'nowrap': 'nowrap'}
     rank = tables.Column()
     snippet = tables.Column()
+    
+    # django-tables2 trick to get these columns to sort with NULLS LAST in Postgres; 
+    # note this requires the use of an "extra" clause in the query definition passed to this table (see the _init_ method below)
+    lincs_id = tables.Column(order_by=('-lincs_id_null', 'lincs_id'))
+    pubchem_cid = tables.Column(order_by=('-pubchem_cid_null', 'pubchem_cid'))
 
     snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce("+x.field+",'') ", FieldInformation.manager.get_search_fields(SmallMolecule)))) 
 
@@ -1074,8 +1080,11 @@ class SmallMoleculeTable(PagedTable):
         model = SmallMolecule #[SmallMolecule, SmallMoleculeBatch]
         orderable = True
         attrs = {'class': 'paleblue'}
-    def __init__(self, table, show_plate_well=False,*args, **kwargs):
-        super(SmallMoleculeTable, self).__init__(table)
+    def __init__(self, queryset, show_plate_well=False,*args, **kwargs):
+        # trick to get these colums to sort with NULLS LAST in Postgres:
+        # since a True sorts higher than a False, see above for usage (for Postgres)
+        queryset = queryset.extra(select={'lincs_id_null':'lincs_id is null', 'pubchem_cid_null':'pubchem_cid is null'})
+        super(SmallMoleculeTable, self).__init__(queryset)
         sequence_override = ['facility_salt']
         set_table_column_info(self, ['smallmolecule','smallmoleculebatch',''],sequence_override)  
 
