@@ -62,6 +62,7 @@ def cellIndex(request):
     search = request.GET.get('search','')
     logger.info(str(("is_authenticated:", request.user.is_authenticated(), 'search: ', search)))
     if(search != ''):
+        searchProcessed = format_search(search)
         criteria = "search_vector @@ to_tsquery(%s)"
         where = [criteria]
         if(not request.user.is_authenticated()): 
@@ -73,8 +74,8 @@ def cellIndex(request):
                 'rank': "ts_rank_cd(search_vector, to_tsquery(%s), 32)",
                 },
             where=where,
-            params=[search+":*"],
-            select_params=[search,search],
+            params=[searchProcessed],
+            select_params=[searchProcessed,searchProcessed],
             order_by=('-rank',)
             )        
     else:
@@ -91,30 +92,6 @@ def cellIndex(request):
         return send_to_file(outputType, 'cells', table, queryset, request )
     return render_list_index(request, table,search,'Cell','Cells')
 
-def render_list_index(request, table, search, name, name_plural, **requestArgs):
-    items_per_page = 25
-    form = PaginationForm(request.GET)
-#        form = PaginationForm(initial={'items_per_page': str(items_per_page)})
-    if(form.is_valid()):
-        if(form.cleaned_data['items_per_page']): # TODO: is there another way to determine if the form has been used yet?
-            items_per_page = int(form.cleaned_data['items_per_page'])
-
-    
-    if( not requestArgs):
-        requestArgs = dict()
-    requestArgs.setdefault('search',search)
-    requestArgs.setdefault('heading', name_plural)
-
-    if(len(table.data)>0):
-        RequestConfig(request, paginate={"per_page": items_per_page}).configure(table)
-        setattr(table.data,'verbose_name_plural',name_plural)
-        setattr(table.data,'verbose_name',name)
-        requestArgs.setdefault('table',table)
-        requestArgs.setdefault('items_per_page_form',form )
-        logger.info(str(('requestArgs', requestArgs)))
-    return render(request, 'db/listIndex.html', requestArgs)
-    
-    
 def cellDetail(request, facility_id):
     try:
         cell = Cell.objects.get(facility_id=facility_id) # todo: cell here
@@ -140,6 +117,7 @@ def proteinIndex(request):
     search = request.GET.get('search','')
     logger.info(str(("is_authenticated:", request.user.is_authenticated(), 'search: ', search)))
     if(search != ''):
+        searchProcessed = format_search(search)
         # NOTE: - change plaintext search to use "to_tsquery" as opposed to
         # "plainto_tsquery".  The "plain" version does not recognized the ":*"
         # syntax (override of the weighting syntax to do a greedy search)
@@ -155,8 +133,8 @@ def proteinIndex(request):
                 'rank': "ts_rank_cd(search_vector, to_tsquery(%s), 32)",
                 },
             where=where,
-            params=[search+":*"],
-            select_params=[search,search],
+            params=[searchProcessed],
+            select_params=[searchProcessed,searchProcessed],
             order_by=('-rank',)
             )        
     else:
@@ -209,6 +187,7 @@ def smallMoleculeIndex(request):
     logger.info(str(("is_authenticated:", request.user.is_authenticated(), 'search: ', search))) #, 'items_per_page', items_per_page)))
 
     if(search != ''):
+        searchProcessed = format_search(search)
         criteria = "search_vector @@ to_tsquery(%s)"
         where = [criteria]
         
@@ -220,8 +199,8 @@ def smallMoleculeIndex(request):
                 'rank': "ts_rank_cd(search_vector, to_tsquery(%s), 32)",
                 },
             where=where,
-            params=[search+":*"],
-            select_params=[search+":*",search+":*"],
+            params=[searchProcessed],
+            select_params=[searchProcessed,searchProcessed],
             order_by=('-rank',)
             )        
     else:
@@ -355,6 +334,7 @@ def datasetIndex(request): #, type='screen'):
     logger.info(str(("is_authenticated:", request.user.is_authenticated(), 'search: ', search)))
     where = []
     if(search != ''):
+        searchProcessed = format_search(search)
         criteria = "search_vector @@ to_tsquery(%s)"
         where.append(criteria)
         if(not request.user.is_authenticated()): 
@@ -367,8 +347,8 @@ def datasetIndex(request): #, type='screen'):
                 'rank': "ts_rank_cd(search_vector, to_tsquery(%s), 32)",
                 },
             where=where,
-            params=[search+":*"],
-            select_params=[search,search],
+            params=[searchProcessed],
+            select_params=[searchProcessed,searchProcessed],
             order_by=('-rank',)
             )        
     else:
@@ -509,12 +489,46 @@ def datasetDetail(request, facility_id, sub_page):
     
     return details
 
+def format_search(search_raw):
+    """
+    Formats the search term for use with postgres to_tsquery function.
+    non-word characters (anything but letter, digit or underscore) is replaced with an AND condition
+    """
+    if(search_raw != ''):
+        return " & ".join([x+":*" for x in re.split(r'\W+', search_raw)])
+    return search_raw
+
+def render_list_index(request, table, search, name, name_plural, **requestArgs):
+    items_per_page = 25
+    form = PaginationForm(request.GET)
+#        form = PaginationForm(initial={'items_per_page': str(items_per_page)})
+    if(form.is_valid()):
+        if(form.cleaned_data['items_per_page']): # TODO: is there another way to determine if the form has been used yet?
+            items_per_page = int(form.cleaned_data['items_per_page'])
+
+    
+    if( not requestArgs):
+        requestArgs = dict()
+    requestArgs.setdefault('search',search)
+    requestArgs.setdefault('heading', name_plural)
+
+    if(len(table.data)>0):
+        RequestConfig(request, paginate={"per_page": items_per_page}).configure(table)
+        setattr(table.data,'verbose_name_plural',name_plural)
+        setattr(table.data,'verbose_name',name)
+        requestArgs.setdefault('table',table)
+        requestArgs.setdefault('items_per_page_form',form )
+        logger.info(str(('requestArgs', requestArgs)))
+    return render(request, 'db/listIndex.html', requestArgs)
+    
 
 class PaginationForm(forms.Form):
     items_per_page = forms.ChoiceField(widget=forms.Select(attrs={'onchange': 'this.form.submit();'}), 
                                        choices=(('25','25'),('50','50'),('100','100'),('250','250'),('1000','1000')),
                                        required=False, label='per page')
-
+    sort = forms.CharField(widget=forms.HiddenInput(), required=False);
+    search = forms.CharField(widget=forms.HiddenInput(), required=False);
+    
 class SnippetColumn(tables.Column):
     def render(self, value):
         return mark_safe(value)
@@ -738,16 +752,19 @@ class DataSetManager():
     def has_small_molecules(self):
         return len(self.small_molecule_queryset) > 0
     
+    #TODO: get_cursor and get_table violate DRY...
     def get_cursor(self, whereClause=[],metaWhereClause=[],column_exclusion_overrides=[],parameters=[],search=''): 
         if(search != ''):
+            #TODO: NOTE: the dataset search does not use the full text search
+            #TODO: dataset search to search the data fields as well?
             searchParam = '%'+search+'%'
-            searchClause = "facility_salt_batch like %s or sm_name like %s or sm_alternative_names like %s "
+            searchClause = "facility_salt_batch like %s or lower(sm_name) like lower(%s) or lower(sm_alternative_names) like lower(%s) "
             searchParams = [searchParam,searchParam,searchParam]
             if(self.has_cells()): 
-                searchClause += " or cell_facility_id::TEXT like %s or cell_name like %s "
+                searchClause += " or cell_facility_id::TEXT like %s or lower(cell_name) like lower(%s) "
                 searchParams += [searchParam,searchParam]
             if(self.has_proteins()): 
-                searchClause += " or protein_name like %s or protein_lincs_id::TEXT like %s"
+                searchClause += " or protein_lincs_id::TEXT like %s or lower(protein_name) like lower(%s) "
                 searchParams += [searchParam,searchParam]
                 
             metaWhereClause.append(searchClause)
@@ -760,8 +777,11 @@ class DataSetManager():
         cursor.execute(self.dataset_info.query_sql,parameters)
         return cursor
 
+    #TODO: get_cursor and get_table violate DRY...
     def get_table(self, whereClause=[],metaWhereClause=[],column_exclusion_overrides=[],parameters=[],search=''): 
         if(search != ''):
+            #TODO: NOTE: the dataset search does not use the full text search
+            #TODO: dataset search to search the data fields as well?
             searchParam = '%'+search+'%'
             searchClause = "facility_salt_batch like %s or lower(sm_name) like lower(%s) or lower(sm_alternative_names) like lower(%s) "
             searchParams = [searchParam,searchParam,searchParam]
@@ -934,7 +954,7 @@ class DataSetManager():
 
     def small_molecules_for_dataset(self,dataset_id):
         cursor = connection.cursor()
-        sql = 'SELECT *,' + facility_salt_id + ' as facility_salt FROM db_smallmolecule sm WHERE sm.id in (SELECT distinct(smallmolecule_id) FROM db_datarecord dr WHERE dr.dataset_id=%s) order by sm.facility_id'
+        sql = 'SELECT *,' + facility_salt_id + ' as facility_salt, (lincs_id is null) as lincs_id_null, pubchem_cid is null as pubchem_cid_null FROM db_smallmolecule sm WHERE sm.id in (SELECT distinct(smallmolecule_id) FROM db_datarecord dr WHERE dr.dataset_id=%s) order by sm.facility_id'
         cursor.execute(sql, [dataset_id])
         return dictfetchall(cursor)
             
@@ -1083,7 +1103,9 @@ class SmallMoleculeTable(PagedTable):
     def __init__(self, queryset, show_plate_well=False,*args, **kwargs):
         # trick to get these colums to sort with NULLS LAST in Postgres:
         # since a True sorts higher than a False, see above for usage (for Postgres)
-        queryset = queryset.extra(select={'lincs_id_null':'lincs_id is null', 'pubchem_cid_null':'pubchem_cid is null'})
+        from django.db.models.query import QuerySet
+        if(isinstance(queryset, QuerySet)): # test if we were passed a real queryset (as opposed to a dict)
+            queryset = queryset.extra(select={'lincs_id_null':'lincs_id is null', 'pubchem_cid_null':'pubchem_cid is null'})
         super(SmallMoleculeTable, self).__init__(queryset)
         sequence_override = ['facility_salt']
         set_table_column_info(self, ['smallmolecule','smallmoleculebatch',''],sequence_override)  
@@ -1172,7 +1194,9 @@ class LibrarySearchManager(models.Manager):
         logger.info(str(('sql',sql)))
         # TODO: the way we are separating query_string out here is a kludge, i.e we should be using django ORM language?
         if(query_string != ''):
-            cursor.execute(sql, [query_string + ':*'])
+            searchProcessed = format_search(query_string)
+
+            cursor.execute(sql, [searchProcessed])
         else:
             cursor.execute(sql)
         v = dictfetchall(cursor)
@@ -1204,6 +1228,7 @@ class LibraryForm(ModelForm):
 class SiteSearchManager(models.Manager):
     
     def search(self, queryString, is_authenticated=False):
+        queryStringProcessed = format_search(queryString)
         cursor = connection.cursor()
         # Notes: MaxFragments=10 turns on fragment based headlines (context for search matches), with MaxWords=20
         # ts_rank_cd(search_vector, query, 32): Normalization option 32 (rank/(rank+1)) can be applied to scale all 
@@ -1229,7 +1254,7 @@ class SiteSearchManager(models.Manager):
             sql += " AND (not is_restricted or is_restricted is NULL)"
         sql += " ORDER by rank DESC;"
         cursor.execute(
-                       sql , [queryString + ":*", queryString + ":*", queryString + ":*", queryString + ":*"])
+                       sql , [queryStringProcessed,queryStringProcessed,queryStringProcessed,queryStringProcessed])
         return dictfetchall(cursor)
 
 class SiteSearchTable(PagedTable):
