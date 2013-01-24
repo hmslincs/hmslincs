@@ -141,10 +141,11 @@ class DataSetResource(ModelResource):
         excludes = ['lead_screener_firstname','lead_screener_lastname','lead_screener_email']
     def dehydrate(self, bundle):
         # TODO: the following call executes the query *just* to get the column names
-        _id =str(bundle.data['id'])
+        _facility_id =str(bundle.data['facility_id'])
         visibleColumns = get_visible_columns(views.DataSetManager(bundle.obj).get_table())
         bundle.data = get_detail_bundle(bundle.obj, ['dataset',''])
-        bundle.data['endpointFile'] = {'uri':'db/api/v1/datasetdata/'+ _id,
+        # TODO: this is a kludge to deal with issue #103 db: api: URI for datasetdata is incorrect
+        bundle.data['endpointFile'] = {'uri':'http://lincs.hms.harvard.edu/db/api/v1/datasetdata/'+ _facility_id + "/?format=csv",
                                        'noCols':len(visibleColumns),
                                        'cols':visibleColumns.values()
                                        }
