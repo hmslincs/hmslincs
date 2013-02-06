@@ -106,17 +106,5 @@ class Test_setparams(ut.TestCase):
         self.assertNotEquals(mod.GLOBS_AFTER[TEST_PARAM_NAME],
                              ENVIRON[TEST_PARAM_NAME])
 
-
-    def test_calling_module(self):
-        mod = __import__(MODNAME)
-        self.assertEquals(mod.calling_module(-1).__name__, __name__)
-        cwd = os.getcwd()
-        try:
-            os.chdir(SCRATCHDIR)
-            calling_module = mod.calling_module(-1)
-        finally:
-            os.chdir(cwd)
-        self.assertEquals(calling_module.__name__, __name__)
-
 if __name__ == '__main__':
     run()
