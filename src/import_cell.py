@@ -8,6 +8,7 @@ import logging
 import init_utils as iu
 import import_utils as util
 from db.models import Cell
+from django.db import transaction
 
 __version__ = "$Revision: 24d02504e664 $"
 # $Source$
@@ -26,6 +27,7 @@ del _sg, _params
 
 logger = logging.getLogger(__name__)
 
+@transaction.commit_on_success
 def main(path):
     """
     Read in the Cell

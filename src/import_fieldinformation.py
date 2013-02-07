@@ -9,6 +9,7 @@ import logging
 import init_utils as iu
 import import_utils as util
 from db.models import FieldInformation
+from django.db import transaction
 
 import os
 import os.path as op
@@ -40,6 +41,7 @@ del _sg, _params
 
 logger = logging.getLogger(__name__)
 
+@transaction.commit_on_success
 def main(path):
     """
     Read in the Data Working Group sheets

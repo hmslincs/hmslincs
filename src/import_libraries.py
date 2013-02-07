@@ -8,6 +8,7 @@ import logging
 import init_utils as iu
 import import_utils as util
 from db.models import Library, LibraryMapping, SmallMolecule, SmallMoleculeBatch
+from django.db import transaction
 
 __version__ = "$Revision: 24d02504e664 $"
 # $Source$
@@ -26,6 +27,7 @@ del _sg, _params
 
 logger = logging.getLogger(__name__)
 
+@transaction.commit_on_success
 def main(path):
     """
     Read in the Library and LibraryMapping sheets
@@ -119,7 +121,8 @@ def main(path):
                     lm_initializer[val] = initializer[val]
             lm = LibraryMapping(**lm_initializer)
             lm.save()
-            logger.info(str(('librarymapping defined:',lm)))
+            if logger.isEnabledFor(logging.INFO):
+                logger.info(str(('librarymapping defined:',lm)))
         except Exception, e:
             logger.error(str(('librarymapping initializer problem: ', lm_initializer, 'complete initializer', initializer)))
             raise
