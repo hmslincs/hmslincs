@@ -14,7 +14,26 @@
 	
         <script type='text/javascript' src='//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js'></script>
         <script type='text/javascript' src='//lincs.hms.harvard.edu/wordpress/wp-content/themes/lincs/js/main.js'></script>
+        <script type='text/javascript' src='//lincs.hms.harvard.edu/wordpress/wp-content/plugins/google-analyticator/external-tracking.min.js?ver=6.2'></script>
         <link rel='index' title='HMS LINCS Project' href='http://lincs.hms.harvard.edu/' />
+
+        <!-- Google Analytics Tracking by Google Analyticator 6.2: http://ronaldheft.com/code/analyticator/ -->
+        <script type="text/javascript">
+                var analyticsFileTypes = ['zip'];
+                var analyticsEventTracking = 'enabled';
+        </script>
+        <script type="text/javascript">
+                var _gaq = _gaq || [];
+                _gaq.push(['_setAccount', 'UA-28987198-1']);
+                _gaq.push(['_trackPageview']);
+                _gaq.push(['_trackPageLoadTime']);
+
+                (function() {
+                        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+                        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+                        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+                })();
+        </script>
 
         {% block head %}
           <title>HMS LINCS Project</title>
