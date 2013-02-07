@@ -1427,9 +1427,11 @@ def send_to_file(outputType, name, table, queryset, request):
             if(field==col):
                 columnsOrdered.append((field,verbose_name))
                 break
-    if(outputType == 'csv'):
+    # The type strings deliberately include a leading "." to make the URLs
+    # trigger the analytics js code that tracks download events by extension.
+    if(outputType == '.csv'):
         return export_as_csv(name,columnsOrdered , request, queryset)
-    elif(outputType == 'xls'):
+    elif(outputType == '.xls'):
         return export_as_xls(name, columnsOrdered, request, queryset)
     
 def export_as_xls(name,columnNames, request, queryset):

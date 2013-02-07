@@ -1,27 +1,16 @@
-<script language="javascript" type="text/javascript">
-	function submit_for(type) {
-		// small function that handles the export links, so that they are not sticky parameters
-		//document.getElementById("form1")['output_type'].value = type;
-		//if(document.getElementById("form1").action.indexOf('?')==-1){
-		//	document.getElementById("form1").action += '?'
-		//}
-		//document.getElementById("form1").action += '&output_type=' + type
-		document.getElementById("form1").output_type.value = type
-		//window.alert('submit,' + document.getElementById("form1").action)
-		document.getElementById("form1").submit();
-		document.getElementById("form1").output_type.value = '';
-	}
-</script>
-
 <div id="search">
-	<form id='form1' action="{{ request.get_full_path }}" method="get">
-		<table class='search_table'>
-			<tr><td class='search_table_td'>
-					Search:<input id="id_search" type="text" name="search" value="{{ search }}" maxlength="100" tabindex="1" />
-					<input name='output_type' type='hidden' value=''/>
-   		</td><td class='search_table_td'>
-   			Export as: <a href="javascript:submit_for('xls');" >Excel</a>,&nbsp;<a href="javascript:submit_for('csv');">Comma separated</a>
-  			</td></tr>
+  <form id='form1' action="{{ request.get_full_path }}" method="get">
+    <table class='search_table'>
+      <tr>
+        <td class='search_table_td'>
+          Search:<input id="id_search" type="text" name="search" value="{{ search }}" maxlength="100" tabindex="1" />
+          </td>
+          <td class='search_table_td'>
+            Export as:
+            <a href="?search={{ search }}&amp;output_type=.xls">Excel</a>,&nbsp;<a
+            href="?search={{ search }}&amp;output_type=.csv">Comma separated</a>
+          </td>
+      </tr>
     </table>
-	</form>
+  </form>
 </div>
