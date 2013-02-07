@@ -136,7 +136,7 @@ then
 	check_errs $? "import dataset fails"
 	
 	echo 'import studies...'
-	python ./src/import_dataset.py -f sampledata/Study300002_HMSL10008_sorafenib_ambit.xls
+	python ./src/import_dataset.py -f sampledata/Screen20020_HMSL10008_kinomescan.xlsx
 	check_errs $? "import study dataset fails"
 	
 	# echo 'import attached files...'
