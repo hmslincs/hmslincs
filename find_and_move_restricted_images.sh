@@ -5,7 +5,31 @@
 SOURCE_DIR=../images
 DEST_DIR=../authenticated_static_files
 
-for x in `psql -Udevoshernatprodweb devoshernatprod -h dev.pgsql.orchestra -c 'select facility_id from db_smallmolecule where is_restricted is true;'|awk '{print $1}'|grep -E ^[0-9]+ `;
+pwd=`pwd`
+DB=""
+DBUSER=""
+DBHOST=""
+if [[ "$pwd" =~ .*dev\.lincs.*support/hmslincs ]]; then
+  DB="devlincs"
+  DBUSER="devlincsweb"
+  DBHOST="dev.pgsql.orchestra"
+elif [[ "$pwd" =~ .*osher.*support/hmslincs ]]; then
+  DB="devoshernatprod"
+  DBUSER="devoshernatprodweb"
+  DBHOST="dev.pgsql.orchestra"
+elif [[ "$pwd" =~ /www/lincs.*support/hmslincs ]]; then
+  DB="lincs"
+  DBUSER="lincsweb"
+  DBHOST="pgsql.orchestra"  
+else
+  echo "Must run from one of the recognized directories"
+fi
+
+echo "DB: $DB"
+
+
+for x in `psql  $DB -h $DBHOST -c 'select facility_id from db_smallmolecule where is_restricted is true;'|awk '{print $1}'|grep -E ^[0-9]+ `;
+#for x in `psql -Udevoshernatprodweb devoshernatprod -h dev.pgsql.orchestra -c 'select facility_id from db_smallmolecule where is_restricted is true;'|awk '{print $1}'|grep -E ^[0-9]+ `;
 do 
 	echo "facility id to restrict: $x"; 
 	for y in `find $SOURCE_DIR -name "*$x*" `;
