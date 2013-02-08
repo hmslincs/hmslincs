@@ -26,19 +26,41 @@ td {
 h2 {
   font-weight: bold;
 }
-#content table.search_table{
-	width:100%;
-	border:0px solid white;
+
+#search {
+    border-radius: 5px;
+    border: solid 1px #E6941E;
+    background: #F9E8D1;
+    padding: 0.5em;
+    margin-bottom: 1em;
 }
-#content td.search_table_td {
-	border:0px;
+#search p {
+    margin-bottom: 0;
 }
-.search_table a{
+#search label {
+    font-size: 14px;
+    font-weight: bold;
+}
+#id_search {
+    border: solid 1px #888888;
+    height: 18px;
+}
+#search a{
 color: #E6941E;
 text-decoration:none;
 }
+.search_export {
+    float: right;
+}
+#search input[type="submit"] {
+    color: transparent;
+    background: url("/_static/images/magnifyingglass.png") no-repeat 1px 1px white;
+    height: 20px;
+    width: 20px;
+    border: solid 1px #888888;
+}
 
-.search_table a:hover {
+#search a:hover {
 	text-decoration: underline;
 }
 
