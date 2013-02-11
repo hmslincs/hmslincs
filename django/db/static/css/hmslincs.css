@@ -28,40 +28,36 @@ h2 {
 }
 
 #search {
-    border-radius: 5px;
-    border: solid 1px #E6941E;
-    background: #F9E8D1;
-    padding: 0.5em;
-    margin-bottom: 1em;
-}
-#search p {
-    margin-bottom: 0;
+  border-radius: 3px;
+  border: solid 1px #E6941E;
+  background: #F9E8D1;
+  padding: 0.5em;
+  margin-bottom: 1em;
 }
 #search label {
-    font-size: 14px;
-    font-weight: bold;
+  font-size: 14px;
+  font-weight: bold;
 }
 #id_search {
-    border: solid 1px #888888;
-    height: 18px;
-}
-#search a{
-color: #E6941E;
-text-decoration:none;
-}
-.search_export {
-    float: right;
+  border: solid 1px #888888;
+  height: 18px;
+  vertical-align: top;
+  margin-right: -4px;
 }
 #search input[type="submit"] {
-    color: transparent;
-    background: url("/_static/images/magnifyingglass.png") no-repeat 1px 1px white;
-    height: 20px;
-    width: 20px;
-    border: solid 1px #888888;
+  color: transparent;
+  background: url("/_static/images/magnifyingglass.png") no-repeat 1px 1px white;
+  height: 20px;
+  width: 20px;
+  border: solid 1px #888888;
 }
 
-#search a:hover {
-	text-decoration: underline;
+#search_export {
+  overflow: auto;
+}
+
+#search_export > p {
+  float: right;
 }
 
 th.asc {
@@ -111,10 +107,13 @@ th.desc {
 
 #innercontent ul.pagination {
   margin-left: 0;
+  margin-right: 0;
+  width: 100%;
 }
 
 ul.pagination > li {
-  display: inline;
+  display: inline-block;
+  vertical-align: middle;
   padding: 0 8px;
   border-left: 1px solid #000000;
 }
@@ -122,6 +121,17 @@ ul.pagination > li {
 ul.pagination > li:first-child {
   padding-left: 0;
   border-left: 0;
+}
+
+ul.pagination > li.items_per_page {
+  border-left: 0;
+  position: absolute;
+  right: 0;
+  padding-right: 0;
+}
+
+#id_items_per_page {
+  vertical-align: middle;
 }
 
 #content ul.basictab {

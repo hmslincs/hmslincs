@@ -30,7 +30,9 @@
 	    {% nospaceless %}{% block pagination.cardinality %}
 	    <li class="cardinality">{% if total != count %}{{ table.page_start }} to {{ table.page_end }} of {{ total }}{% else %}{{ total }}{% endif %} {% if total == 1 %}{{ table.data.verbose_name }}{% else %}{{ table.data.verbose_name_plural }}{% endif %}</li>
 	    {% endblock pagination.cardinality %}{% endnospaceless %}
-   		 - <form action="#" method="get" STYLE="display: inline; margin: 0px; padding: 0px;" >{{ items_per_page_form }}</form>    	
+            <li class="items_per_page">
+              <form action="#" method="get" STYLE="display: inline; margin: 0px; padding: 0px;" >{{ items_per_page_form }}</form>
+            </li>
     {% else %}
     
 	    <li class="cardinality">{{ total }} {% if total == 1 %}{{ table.data.verbose_name }}{% else %}{{ table.data.verbose_name_plural }}{% endif %}</li>

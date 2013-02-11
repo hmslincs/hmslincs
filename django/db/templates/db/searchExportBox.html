@@ -1,14 +1,7 @@
-<div id="search">
-  <form id='form1' action="{{ request.get_full_path }}" method="get">
-    <p class="search_export">
-      Export as:
-      <a href="?search={{ search }}&amp;output_type=.xls">Excel</a>,&nbsp;<a
-      href="?search={{ search }}&amp;output_type=.csv">Comma separated</a>
-    </p>
-    <p>
-      <label for="id_search">Search:</label>
-      <input id="id_search" type="text" name="search" value="{{ search }}" size="40" maxlength="100" tabindex="1" />
-      <input type="submit" value="search" />
-    </p>
-  </form>
+<div id="search_export">
+  <p>
+    Download these search results:
+    <a href="?search={{ search }}&amp;output_type=.xls">Excel (XLS)</a>,&nbsp;<a
+    href="?search={{ search }}&amp;output_type=.csv">Comma-separated (CSV)</a>
+  </p>
 </div>

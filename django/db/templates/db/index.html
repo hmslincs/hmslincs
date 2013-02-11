@@ -2,11 +2,9 @@
 {% block content %}
 	<div id="search">
 	  <form action="{{ request.get_full_path }}" method="get"> <!-- needed for post: {% csrf_token %}  --> 
-	    <p>
-              <label for="id_search">Search all categories:</label>
-	      <input id="id_search" type="text" name="search" value="{{ search }}" size="54" maxlength="100" tabindex="1" />
-              <input type="submit" value="search" />
-            </p>
+            <label for="id_search">Search all categories:</label>
+	    <input id="id_search" type="text" name="search" value="{{ search }}" size="54" maxlength="100" tabindex="1" />
+            <input type="submit" value="search" />
 	  </form>
 	</div>
 	{% if table %}

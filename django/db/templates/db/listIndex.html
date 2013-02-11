@@ -1,6 +1,7 @@
 {% extends "db/base.html" %}
 {% block content %}
 <h2>{{ heading }}</h2>
+	{% include "db/searchBox.html" %}
 	{% include "db/searchExportBox.html" %}
 	{% if table %}
 		{% load render_table from django_tables2 %}
