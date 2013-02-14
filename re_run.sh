@@ -136,7 +136,7 @@ then
 	check_errs $? "import dataset fails"
 	
 	echo 'import studies...'
-	python ./src/import_dataset.py -f sampledata/Screen20020_HMSL10008_kinomescan.xlsx
+	python ./src/import_dataset.py -f sampledata/Study300002_HMSL10008_sorafenib_ambit.xls
 	check_errs $? "import study dataset fails"
 	
 	# echo 'import attached files...'
@@ -187,9 +187,9 @@ else
 	python src/import_dataset.py -f $DATADIR/Screen20004_tang_ProMitosis.xlsx 
 	check_errs $? "import dataset fails"
 	
-	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/Screen20005_tang_MitoApop2.xlsx 
-	check_errs $? "import dataset fails"
+	#echo 'import screen results...'
+	#python src/import_dataset.py -f $DATADIR/Screen20005_tang_MitoApop2.xlsx 
+	#check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
 	python src/import_dataset.py -f $DATADIR/Screen20006_CMT_GrowthInhibition-3dose.xlsx 
@@ -502,13 +502,6 @@ else
 	echo 'import screen results...'
 	python src/import_dataset.py -f $DATADIR/kinativ/Screen20090_HMSL10049_kinativ.xlsx
 	check_errs $? "import dataset fails"
-
-# Example:	
-#	echo 'import attached file...'
-#	python src/import_attachedfiles.py -f attach_test_1.txt -fi 10001 -ft "text"  -fd '2012-12-10' -si 101 -bi 1
-#	check_errs $? "import attached file fails"
-# if restricted:
-#	python src/import_attachedfiles.py -f attach_test_1.txt -fi 10001 -ft "text"  -fd '2012-12-10' -si 101 -bi 1 --restricted
 	
 	echo 'import screen results...'
 	python src/import_dataset.py -f $DATADIR/kinativ/Screen20091_HMSL10050_kinativ.xlsx
@@ -532,6 +525,50 @@ else
 	
 	echo 'import screen results...'
 	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20096_HMSL10232_kinomescan.xlsx
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/kinativ/Screen20097_HMSL10086_kinativ.xlsx
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/kinativ/Screen20098_HMSL10087_kinativ.xlsx
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/kinativ/Screen20099_HMSL10091_kinativ.xlsx
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/kinativ/Screen20100_HMSL10092_kinativ.xlsx
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/kinativ/Screen20101_HMSL10093_kinativ.xlsx
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/kinativ/Screen20102_HMSL10094_kinativ.xlsx
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/kinativ/Screen20103_HMSL10106_kinativ.xlsx
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/kinativ/Screen20104_HMSL10200_kinativ.xlsx
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/kinativ/Screen20105_HMSL10201_kinativ.xlsx
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/kinativ/Screen20106_HMSL10070_kinativ.xlsx
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20107_HMSL10051_kinomescan.xlsx
 	check_errs $? "import dataset fails"
 	
 	#echo 'import attached file...'
