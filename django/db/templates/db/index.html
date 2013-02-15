@@ -3,8 +3,10 @@
 	<div id="search">
 	  <form action="{{ request.get_full_path }}" method="get"> <!-- needed for post: {% csrf_token %}  --> 
             <label for="id_search">Search all categories:</label>
-	    <input id="id_search" type="text" name="search" value="{{ search }}" size="54" maxlength="100" tabindex="1" />
             <input type="submit" value="search" />
+            <span class="input-auto-width-wrapper">
+              <input id="id_search" type="text" name="search" value="{{ search }}" maxlength="100" tabindex="1" />
+            </span>
 	  </form>
 	</div>
 	{% if table %}

@@ -37,12 +37,14 @@ h2 {
 #search label {
   font-size: 14px;
   font-weight: bold;
+  float: left;
+  margin-right: 0.4em;
 }
 #id_search {
   border: solid 1px #888888;
   height: 18px;
+  width: 100%;
   vertical-align: top;
-  margin-right: -4px;
 }
 #search input[type="submit"] {
   color: transparent;
@@ -50,6 +52,8 @@ h2 {
   height: 20px;
   width: 20px;
   border: solid 1px #888888;
+  float: right;
+  font-size: 0;
 }
 
 #search_export {
@@ -58,6 +62,11 @@ h2 {
 
 #search_export > p {
   float: right;
+}
+
+span.input-auto-width-wrapper {
+  display: block;
+  overflow: hidden;
 }
 
 th.asc {
