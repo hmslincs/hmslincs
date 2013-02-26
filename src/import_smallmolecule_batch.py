@@ -41,21 +41,21 @@ def main(path):
     column_definitions = { 
               # NOTE: even though these db field are not integers, 
               # it is convenient to convert the read in values to INT to make sure they are not interpreted as float values
-                          'facility_id': ('facility_id',True,None, lambda x: util.convertdata(x,int)),
-                          'salt_id': ('salt_id',True,None, lambda x: util.convertdata(x,int)),
-                          'facility_batch_id':('facility_batch_id',True,None, lambda x: util.convertdata(x,int)),
-                          'provider': ('provider',True),
-                          'provider_catalog_id':'provider_catalog_id',
-                          'provider_sample_id':'provider_sample_id',
-                          'chemical_synthesis_reference':'chemical_synthesis_reference',
-                          'purity':'purity',
-                          'purity_method':'purity_method',
-                          'aqueous_solubility':'aqueous_solubility',
-                          'aqueous_solubility_unit':'aqueous_solubility_unit',    
-                          'Date Data Received':('date_data_received',False,None,util.date_converter),
-                          'Date Loaded': ('date_loaded',False,None,util.date_converter),
-                          'Date Publicly Available': ('date_publicly_available',False,None,util.date_converter),
-                          }
+              'facility_id': ('facility_id',True,None, lambda x: util.convertdata(x,int)),
+              'salt_id': ('salt_id',True,None, lambda x: util.convertdata(x,int)),
+              'facility_batch_id':('facility_batch_id',True,None, lambda x: util.convertdata(x,int)),
+              'provider': ('provider',True),
+              'provider_catalog_id':'provider_catalog_id',
+              'provider_sample_id':'provider_sample_id',
+              'chemical_synthesis_reference':'chemical_synthesis_reference',
+              'purity':'purity',
+              'purity_method':'purity_method',
+              'aqueous_solubility':'aqueous_solubility',
+              'aqueous_solubility_unit':'aqueous_solubility_unit',    
+              'Date Data Received':('date_data_received',False,None,util.date_converter),
+              'Date Loaded': ('date_loaded',False,None,util.date_converter),
+              'Date Publicly Available': ('date_publicly_available',False,None,util.date_converter),
+              }
     # convert the labels to fleshed out dict's, with strategies for optional, default and converter
     column_definitions = util.fill_in_column_definitions(properties,column_definitions)
     
