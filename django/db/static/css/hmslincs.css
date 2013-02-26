@@ -20,6 +20,11 @@ img {
  right:1em;
  height: 16em;
 }
+.molfile_link {
+ position:absolute;
+ right:1em;
+ height: 16em;
+}
 td {
 	vertical-align: top;
 }
@@ -153,6 +158,24 @@ td.facility_salt_batch {
 
 .usage_message {
   border: 1px solid black ;
+  padding: 4px;
+}
+#innercontent form.structure_form p {
+	position:relative;
+	display:block;  
+}
+#innercontent form.structure_form label { vertical-align: top }
+#innercontent form.structure_form input,select { position: absolute; left:13em; }
+#innercontent form.structure_form textarea {
+	/* TODO: Note: textarea overlaps subsequent elements unless position: relative; */
+	position: relative; left: 2em;
+}
+
+.result_message {
+	font-size: 15px;
+	font-weight: bold;
+	color: #E6941E;;
+	display: block;
   padding: 4px;
 }
 

@@ -1,0 +1,141 @@
+{% extends "db/base.html" %}
+{% block content %}
+<style type='text/css'>
+
+.modal {
+    display:    block;
+    position:   fixed;
+    z-index:    1000;
+    top:        0;
+    left:       0;
+    height:     100%;
+    width:      100%;
+    background: url('/_static/images/ajax-loading2.gif') 
+                50% 20% 
+                no-repeat;
+}
+
+</style>
+
+<script language="javascript" type="text/javascript">
+
+var MAX_REQUESTS = 20;
+var current_number_of_requests = 0;
+var get_cached_url = "{% url cached_structure_search_blank %}";
+var small_molecule_url = "{% url small_molecule_listing '' %}";
+var elementSearchingImage = document.getElementById('searching_image');
+
+function supportFormData() {
+	return !! window.FormData;
+}
+
+function formSubmit()
+{
+	current_number_of_requests = 0;
+	if(! supportFormData()){
+		window.alert('formData ajax is not supported by your browser.')
+	}
+	startImage();
+	try {
+		// choose to send the form in JS, for design simplicity (we can stay on this page), as opposed to sending the form
+		// normally, and then starting our polling process in an onload.
+		var form = document.getElementById('form1');
+		var formData = new FormData(form);	
+		xhr = new XMLHttpRequest();
+		xhr.open("POST","#", true);
+		xhr.onload = function(e) {
+	    if (this.status == 200) {
+	    	obj = JSON.parse(this.response);
+	    	handleResult( obj )
+	    }
+  	};
+  	//xhr.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+		xhr.send(formData);	
+	} catch (failed) {
+	  request = false;
+	}
+}
+
+function handleResult( obj ){
+	console.log('Response: ' + obj + "," + elementSearchingImage);
+	if (obj['facility_ids']){ // TODO: still: is there no way to have the server do a redirect?
+		console.log('got facility ids: ' + obj.facility_ids)
+		window.location = small_molecule_url + obj.facility_ids;
+	} else if(obj['pubchemRequestId']) {
+		if(current_number_of_requests++ > MAX_REQUESTS){
+			document.getElementById('ajax_message').innerHTML = 'Structure search server is unresponsive, max requests reached: ' + MAX_REQUESTS ;
+			stopImage();
+			return;
+		}
+ 		setTimeout(
+ 		    	function() {
+ 		    		checkForResults(obj.pubchemRequestId) 
+ 			  		}, 3000);
+ 		return;
+  }
+	
+	stopImage();
+	if (obj['empty']){
+		console.log('no cids found');
+	  document.getElementById('ajax_message').innerHTML = 'No matches were found for this search' ;
+	} else if (obj['error']){ // TODO: still: is there no way to have the server do a redirect?
+		//		console.log('pubchem server error: |' + JSON.parse(obj.error.substring(2,obj.error.length-3))+'|' );
+		console.log('pubchem server error: |' + obj.error );
+		document.getElementById('ajax_message').innerHTML = 'pubchem server error: ' + obj.error ;
+	}else{
+   	console.log('unknown response: ' + obj)
+		document.getElementById('ajax_message').innerHTML = obj ;
+   }
+}
+
+function checkForResults( pubchemRequestId ) {
+	xhr = new XMLHttpRequest();
+  url = get_cached_url + pubchemRequestId + "/";
+  console.log('get_cached_url:' + url);
+
+  xhr.open("GET", url , true);
+	xhr.onload = function(e) {
+		console.log('result' + e)
+    if (this.status == 200) {
+    	obj = JSON.parse(this.response);
+    	handleResult( obj )
+    }else{
+    	console.log('bad response:'+ this.status)
+			document.getElementById('ajax_message').innerHTML = 'bad response from the server: ' + this.status ;
+    }
+ 	};
+ 	xhr.send();
+}
+
+function startImage(){
+	  console.log('start image');
+	  $("#searching_image").addClass("modal");
+}
+
+function stopImage(){
+	console.log('stop image');
+	$("#searching_image").removeClass("modal");
+}
+
+</script>
+	<div id="search">
+		<form
+			id="form1"
+			action="#" method="post"
+			enctype="multipart/form-data"
+			class="structure_form"  
+			STYLE="display: inline; margin: 0px; padding: 0px;" >
+			{{ structure_search_form.as_p }}
+			<p><input type="button" onclick="javascript:formSubmit()" value="Submit form"></p>
+			{% csrf_token %}
+		</form>
+		<br/>
+		{% if message %}
+			<div class='result_message'>
+				{{ message }}
+			</div>
+			<div class='result_message' id='ajax_message'></div>
+		{% endif %}
+	</div>
+  <div  id='searching_image'></div>
+{% endblock %}

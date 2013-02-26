@@ -259,10 +259,15 @@ LOGGING = {
             'propagate': True,
             'level': 'INFO',
         },
+        'hms': {
+            'handlers': ['console'],
+            'propagate': True,
+            'level': 'INFO',
+        },
         'util': {  # if you want to see how django makes sql, use this one
             'handlers': ['console'],
             'propagate': True,
-            'level': 'WARN',
+            'level': 'INFO',
         },
 #        'db.PagedRawQuerySet': {  
 #            'handlers': ['console'],

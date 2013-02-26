@@ -1,3 +1,4 @@
+import datetime
 from django.db import models
 from django.core.exceptions import ObjectDoesNotExist,MultipleObjectsReturned
 from collections import OrderedDict
@@ -114,7 +115,31 @@ class FieldsManager(models.Manager):
         logger.debug(str(('get_search_fields for ',model,'returns',final_fields)))
         return final_fields
 
+PUBCHEM_TYPE_IDENTITY = 'identity'
+PUBCHEM_TYPE_SUBSTRUCTURE = 'substructure'
+PUBCHEM_TYPES = ((PUBCHEM_TYPE_IDENTITY, PUBCHEM_TYPE_IDENTITY),
+                 (PUBCHEM_TYPE_SUBSTRUCTURE, PUBCHEM_TYPE_SUBSTRUCTURE),)
 
+class PubchemRequest(models.Model):
+    cids    = _TEXT(**_NULLOKSTR)
+    smiles  = _TEXT( **_NULLOKSTR )
+    molfile = _TEXT( **_NULLOKSTR )
+    type    = _TEXT( null=False)
+    pubchem_error_message = _TEXT( **_NULLOKSTR )
+    error_message = _TEXT( **_NULLOKSTR )
+#    type    = models.CharField(null=True, max_length=12,
+#                               choices=PUBCHEM_TYPES,
+#                               default=PUBCHEM_TYPE_IDENTITY)
+    date_time_fullfilled = models.DateTimeField(null=True) 
+    date_time_requested = models.DateTimeField(null=False, default=datetime.date.today ) 
+    # note, don't actually call the datetime.date.today function, since in this case it serves as a function pointer
+    class Meta:
+        unique_together = (('smiles', 'molfile','type'))    
+
+    
+    def __unicode__(self):
+        return unicode((self.id, self.cids, self.smiles, 'has_molfile' if self.molfile else 'no molfile', self.date_time_requested, self.date_time_fullfilled ))
+    
 
 # proposed class to capture all of the DWG information - and to map fields to these database tables
 class FieldInformation(models.Model):

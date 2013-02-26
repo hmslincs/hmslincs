@@ -1,7 +1,14 @@
 {% extends "db/base.html" %}
 {% block content %}
+<script language="javascript" type="text/javascript">
+	function submit_getmolfile() {
+		document.getElementById("molform").submit();
+	}
+</script>
+
 	{% if image_location %}
 		{% if not is_restricted %}
+			<form class='molfile_link' id='molform' action={% url smallMoleculeMolfile facility_salt_id=facility_salt_id %} method='get'><a href="javascript:submit_getmolfile();" >download molfile</a></form>
 			{# TODO: window.moveTo not working in chrome #}
 			{# TODO: create a template for the popup window; title, scaling #}
 			<img class='compound_image' src="{{ STATIC_URL }}{{image_location}}" onclick="w=window.open('{{ STATIC_URL }}{{image_location}}','image','height=500,width=500');w.moveTo(500,400);"/>
