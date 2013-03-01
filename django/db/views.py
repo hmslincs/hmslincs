@@ -1,36 +1,41 @@
-import urllib2
 import csv
-import xlwt
-import re
+from collections import OrderedDict
+from datetime import timedelta
+import json
 from math import log, pow
+import os
+import re
+from threading import Thread
+import sys
+import urllib2
+import xlwt
 
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist
-from django.shortcuts import render
 from django.db import models
 from django.db import connection
 from django.utils.encoding import smart_str
 from django.forms import ModelForm
 from django.http import Http404,HttpResponseRedirect
 from django.utils.safestring import mark_safe
+from django.utils import timezone
 from django.http import HttpResponse
 from django.conf import settings
 import django_tables2 as tables
 from django_tables2 import RequestConfig
 from django_tables2.utils import A  # alias for Accessor
 from django.core.servers.basehttp import FileWrapper
-import os
+from django.core.urlresolvers import reverse
+from django.shortcuts import render
 
 from db.models import SmallMolecule, SmallMoleculeBatch, Cell, Protein, DataSet, Library, FieldInformation,AttachedFile,DataRecord,DataColumn,LibraryMapping
-#from db.CustomQuerySet import CustomQuerySet
+from db.models import PubchemRequest
 from db.models import get_detail
-from collections import OrderedDict
 from PagedRawQuerySet import PagedRawQuerySet
+from hms.pubchem import PubchemError
+from hms.pubchem import pubchem_compound_search
 
 import logging
-from hms.pubchem import pubchem_compound_search
-from requests.exceptions import HTTPError
-#from urllib2 import HTTPRedirectHandler
 
 logger = logging.getLogger(__name__)
 APPNAME = 'db',
@@ -41,6 +46,9 @@ facility_salt_id = " sm.facility_id || '-' || sm.salt_id " # Note: because we ha
 facility_salt_batch_id = facility_salt_id + " || '-' || smb.facility_batch_id " # Note: because we have a composite key for determining unique sm structures, we need to do this
 facility_salt_batch_id_2 = " trim( both '-' from (" + facility_salt_id + " || '-' || coalesce(smb.facility_batch_id::TEXT,'')))" # need this one for datasets, since they may be linked either to sm or smb - sde4
 OMERO_IMAGE_COLUMN_TYPE = 'omero_image'
+DAYS_TO_CACHE = 1
+DAYS_TO_CACHE_PUBCHEM_ERRORS = 1
+SECONDS_TO_WAIT = 300
 
 from dump_obj import dumpObj
 def dump(obj):
@@ -50,6 +58,7 @@ def dump(obj):
 
 def main(request):
     search = request.GET.get('search','')
+    logger.info(str(('main search: ', search)))
     if(search != ''):
         queryset = SiteSearchManager().search(search, is_authenticated=request.user.is_authenticated());
         table = SiteSearchTable(queryset)
@@ -520,81 +529,9 @@ def format_search(search_raw):
         return " & ".join([x+":*" for x in re.split(r'\W+', search_raw)])
     return search_raw
 
+# Pubchem search methods
 
-import json
-from threading import Thread
-from db.models import PubchemRequest
-import sys
-from django.core.urlresolvers import reverse
-from datetime import datetime, timedelta
-DAYS_TO_CACHE = 1
-DAYS_TO_CACHE_PUBCHEM_ERRORS = 1
-
-def get_cached_structure_search(request, search_request_id):
-    """
-    check whether the structure search specfied by the id has been fullfilled.
-    - if so, redirect the output to the list small molecules page and fill with the query for the CIDS found
-    - if not, return a waiting response
-    """
-    logger.info(str(('check cached request',search_request_id)))
-    request = PubchemRequest.objects.get(pk=int(search_request_id));
-    if request:
-        kwargs = { 'smiles':request.smiles,'molfile':request.molfile, 'type':request.type }            
-        if request.date_time_fullfilled:
-            if (timezone.now()-request.date_time_fullfilled) > timedelta(days=DAYS_TO_CACHE):
-                logger.info(str(('cached request is older than',DAYS_TO_CACHE,'days',request)))
-                request.delete();
-                new_req = PubchemRequest(**kwargs);
-                new_req.save();
-                
-                logger.info(str(('create pubchem request', kwargs, os.getpid())))
-                t = Thread(target=pubchem_search,args=(new_req.id,), kwargs=kwargs )
-                t.setDaemon(True)
-                t.start()
-
-                return_dict = {'pubchemRequestId': new_req.id }
-                json_return = json.dumps(return_dict)
-                return HttpResponse(json_return, mimetype="application/x-javascript")                
-            if request.pubchem_error_message:
-                if (timezone.now()-request.date_time_fullfilled) > timedelta(days=DAYS_TO_CACHE_PUBCHEM_ERRORS):
-                    logger.info(str(('pubchem errored cached request is older than',DAYS_TO_CACHE_PUBCHEM_ERRORS,'days',request)))
-                    request.delete();
-                    # TODO: for now, not restarting.  if the user tries again, it will be restarted because the cache was just cleared
-                return_dict = {'pubchem_error': request.pubchem_error_message }
-                logger.info(str(('return err: ', return_dict)))
-                json_return = json.dumps(return_dict)
-                return HttpResponse(json_return, mimetype="application/x-javascript")
-            if request.error_message:
-                # NOTE: delete non-pubchem request errors, since presumably these are due to software errors
-                return_dict = {'error': request.error_message }
-                request.delete();
-                logger.info(str(('return err: ', return_dict)))
-                json_return = json.dumps(return_dict)
-                return HttpResponse(json_return, mimetype="application/x-javascript")
-            if request.date_time_fullfilled : #then the request has been fullfilled
-                temp =request.cids.split(',')
-                #logger.info(str(('do intersection with', temp)))
-                queryset = SmallMolecule.objects.filter(pubchem_cid__in=temp )
-                if len(queryset)>0 :
-                    return_dict = { 'facility_ids': ','.join([x.facility_id for x in queryset])}
-                    json_return = json.dumps(return_dict)
-                    return HttpResponse(json_return, mimetype="application/x-javascript")
-                else:
-                    logger.info(str(('pubchem search result does not intersect with any compounds',kwargs)))
-            return_dict = {'empty': request.id }
-            json_return = json.dumps(return_dict)
-            return HttpResponse(json_return, mimetype="application/x-javascript")
-        else:  # request not fullfilled yet
-            logger.info(str(('request not fullfilled yet', search_request_id)))
-            return_dict = {'pubchemRequestId': request.id }
-            json_return = json.dumps(return_dict)
-            return HttpResponse(json_return, mimetype="application/x-javascript")
-    else:
-        logger.warn(str(('no cached request was located for the id', search_request_id)))
-        return HttpResponse(status=400)
-
-def returnErrorJSON(error_msg):
-    return HttpResponse(json.dumps({'error': error_msg }), mimetype="application/x-javascript")
+from hms.pubchem import pubchem_database_cache_service
 
 def structure_search(request):
     """
@@ -611,50 +548,18 @@ def structure_search(request):
                 try:
                     kwargs = { 'type':form.cleaned_data['type'] }
                     smiles = form.cleaned_data['smiles']
+                    kwargs['smiles'] = smiles;
                     molfile = ''
                     if (request.FILES.has_key('sdf')):
                         molfile =  request.FILES
-                        
-                    if smiles and molfile:
-                        msg = 'Cannot have both smiles and sdf inputs'
-                        logger.error(str((msg, smiles, molfile)))
-                        return HttpResponse(json.dumps({'error': msg }), mimetype="application/x-javascript")
-                    if smiles:
-                        kwargs['smiles'] = smiles
-                        logger.info(str(('look for extant record: ', kwargs)))
-                        query = PubchemRequest.objects.filter(**kwargs)
-                        
-                        if len(query)==1 :
-                            pcreq = query[0]
-                            logger.info(str(('found cached request', pcreq)))
-                            return get_cached_structure_search(request, pcreq.id)
-                        elif len(query)>1:
-                            msg = 'too many cached requests found, will delete them.'
-                            logger.info(str((msg, query)))
-                            query.delete();
-                    if molfile:
                         kwargs['molfile'] = molfile
-                        query = PubchemRequest.objects.filter(**kwargs)
-                        
-                        if len(query)==1 :
-                            pcreq = query[0]
-                            logger.info(str(('found cached request', pcreq)))
-                            return get_cached_structure_search(request, pcreq.id)
-                        elif len(query)>1:
-                            msg = 'too many cached requests found, will delete them.'
-                            logger.info(str((msg, query)))
-                            query.delete();
-                      
-                    logger.info(str(('create pubchem request', kwargs, os.getpid())))
-                    pubchemRequest = PubchemRequest(**kwargs)
-                    pubchemRequest.save()
-                    t = Thread(target=pubchem_search,args=(pubchemRequest.id,), kwargs=kwargs )
-                    t.setDaemon(True)
-                    t.start()
-
-                    return_dict = {'pubchemRequestId': pubchemRequest.id }
-                    json_return = json.dumps(return_dict)
-                    return HttpResponse(json_return, mimetype="application/x-javascript")
+                    
+                    request_id = pubchem_database_cache_service.submit_search(**kwargs)
+                    
+                    #TODO: debug mode could kick of the search processes as so:
+                    # pubchem_database_cache_service.service_database_cache()
+                    
+                    return get_cached_structure_search(request, request_id)
                 except Exception, e:
                     exc_type, exc_obj, exc_tb = sys.exc_info()
                     fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]      
@@ -666,35 +571,248 @@ def structure_search(request):
 
         return render(request, 'db/structureSearch_jquery.html', { 'structure_search_form':form, 'message':'Enter either a SMILES or a MOLFILE' })
 
-from django.utils import timezone
-from hms.pubchem import PubchemError
 
-def pubchem_search(requestId, smiles='', molfile='', type='identity'):
-    """This is the original synchronous implmentation
-    
+def get_cached_structure_search(request, search_request_id):
     """
+    check whether the structure search specfied by the id has been fullfilled.
+    - if so, redirect the output to the list small molecules page and fill with the query for the CIDS found
+    - if not, return a waiting response
+    """
+    logger.debug(str(('check cached request',search_request_id)))
+    request = PubchemRequest.objects.get(pk=int(search_request_id));
+    if request:
+        kwargs = { 'smiles':request.smiles,'molfile':request.molfile, 'type':request.type }            
+        if request.date_time_fullfilled:
+            if request.pubchem_error_message:
+                if (timezone.now()-request.date_time_fullfilled) > timedelta(days=DAYS_TO_CACHE_PUBCHEM_ERRORS):
+                    logger.info(str(('pubchem errored cached request is older than',DAYS_TO_CACHE_PUBCHEM_ERRORS,'days',request)))
+                    request.delete();
+                    # TODO: for now, not restarting.  if the user tries again, it will be restarted because the cache was just cleared
+                return_dict = {'pubchem_error': request.pubchem_error_message }
+                logger.info(str(('return err: ', return_dict)))
+                json_return = json.dumps(return_dict)
+                return HttpResponse(json_return, mimetype="application/x-javascript")
+            elif request.error_message:
+                # NOTE: delete non-pubchem request errors, since presumably these are due to software errors
+                return_dict = {'error': request.error_message }
+                request.delete();
+                logger.info(str(('return err: ', return_dict)))
+                json_return = json.dumps(return_dict)
+                return HttpResponse(json_return, mimetype="application/x-javascript")
+            else: #then the request has been fullfilled
+                temp =request.cids.split(',')
+                #logger.info(str(('do intersection with', temp)))
+                queryset = SmallMolecule.objects.filter(pubchem_cid__in=temp )
+                if len(queryset)>0 :
+                    return_dict = { 'facility_ids': ','.join([x.facility_id for x in queryset])}
+                    json_return = json.dumps(return_dict)
+                    return HttpResponse(json_return, mimetype="application/x-javascript")
+                else:
+                    logger.info(str(('pubchem search result does not intersect with any compounds',kwargs)))
+                    return_dict = {'empty': request.id }
+                    json_return = json.dumps(return_dict)
+                    return HttpResponse(json_return, mimetype="application/x-javascript")
+        else:  # request not fullfilled yet
+                logger.info(str(('request not fullfilled yet', search_request_id)))
+                return_dict = {'pubchemRequestId': request.id }
+                json_return = json.dumps(return_dict)
+                return HttpResponse(json_return, mimetype="application/x-javascript")
+    else:
+        return_dict = {'error': 'No cached request was located for the id, please resubmit your query.' }
+        logger.info(str(('return err: ', return_dict)))
+        json_return = json.dumps(return_dict)
+        return HttpResponse(json_return, mimetype="application/x-javascript")
+    
+#def get_cached_structure_search(request, search_request_id):
+#    """
+#    check whether the structure search specfied by the id has been fullfilled.
+#    - if so, redirect the output to the list small molecules page and fill with the query for the CIDS found
+#    - if not, return a waiting response
+#    """
+#    logger.debug(str(('check cached request',search_request_id)))
+#    request = PubchemRequest.objects.get(pk=int(search_request_id));
+#    if request:
+#        kwargs = { 'smiles':request.smiles,'molfile':request.molfile, 'type':request.type }            
+#        if request.date_time_fullfilled:
+#            if (timezone.now()-request.date_time_fullfilled) > timedelta(days=DAYS_TO_CACHE):
+#                logger.info(str(('cached request is older than',DAYS_TO_CACHE,'days',request)))
+#                request.delete();
+#                new_req = PubchemRequest(**kwargs);
+#                new_req.save();
+#                
+#                logger.info(str(('create pubchem request', kwargs, os.getpid())))
+#                t = Thread(target=pubchem_search,args=(new_req.id,), kwargs=kwargs )
+#                t.setDaemon(True)
+#                t.start()
+#
+#                return_dict = {'pubchemRequestId': new_req.id }
+#                json_return = json.dumps(return_dict)
+#                return HttpResponse(json_return, mimetype="application/x-javascript")                
+#            if request.pubchem_error_message:
+#                if (timezone.now()-request.date_time_fullfilled) > timedelta(days=DAYS_TO_CACHE_PUBCHEM_ERRORS):
+#                    logger.info(str(('pubchem errored cached request is older than',DAYS_TO_CACHE_PUBCHEM_ERRORS,'days',request)))
+#                    request.delete();
+#                    # TODO: for now, not restarting.  if the user tries again, it will be restarted because the cache was just cleared
+#                return_dict = {'pubchem_error': request.pubchem_error_message }
+#                logger.info(str(('return err: ', return_dict)))
+#                json_return = json.dumps(return_dict)
+#                return HttpResponse(json_return, mimetype="application/x-javascript")
+#            if request.error_message:
+#                # NOTE: delete non-pubchem request errors, since presumably these are due to software errors
+#                return_dict = {'error': request.error_message }
+#                request.delete();
+#                logger.info(str(('return err: ', return_dict)))
+#                json_return = json.dumps(return_dict)
+#                return HttpResponse(json_return, mimetype="application/x-javascript")
+#            if request.date_time_fullfilled : #then the request has been fullfilled
+#                temp =request.cids.split(',')
+#                #logger.info(str(('do intersection with', temp)))
+#                queryset = SmallMolecule.objects.filter(pubchem_cid__in=temp )
+#                if len(queryset)>0 :
+#                    return_dict = { 'facility_ids': ','.join([x.facility_id for x in queryset])}
+#                    json_return = json.dumps(return_dict)
+#                    return HttpResponse(json_return, mimetype="application/x-javascript")
+#                else:
+#                    logger.info(str(('pubchem search result does not intersect with any compounds',kwargs)))
+#            return_dict = {'empty': request.id }
+#            json_return = json.dumps(return_dict)
+#            return HttpResponse(json_return, mimetype="application/x-javascript")
+#        else:  # request not fullfilled yet
+#            if (timezone.now()-request.date_time_requested).seconds > SECONDS_TO_WAIT:
+#                logger.info(str(('request not fullfilled for more than',SECONDS_TO_WAIT,'seconds',
+#                                 (timezone.now()-request.date_time_requested).seconds,' deleting, id: ', search_request_id)))
+#                request.delete();
+#                new_req = PubchemRequest(**kwargs);
+#                new_req.save();
+#                
+#                logger.info(str(('create a new pubchem request', kwargs, os.getpid())))
+#                t = Thread(target=pubchem_search,args=(new_req.id,), kwargs=kwargs )
+#                t.setDaemon(True)
+#                t.start()
+#                
+#                return_dict = {'pubchemRequestId': new_req.id }
+#                json_return = json.dumps(return_dict)
+#                return HttpResponse(json_return, mimetype="application/x-javascript")                
+#            else:
+#                logger.info(str(('request not fullfilled yet', search_request_id)))
+#                return_dict = {'pubchemRequestId': request.id }
+#                json_return = json.dumps(return_dict)
+#                return HttpResponse(json_return, mimetype="application/x-javascript")
+#    else:
+#        return_dict = {'error': 'no cached request was located for the id' }
+#        logger.info(str(('return err: ', return_dict)))
+#        json_return = json.dumps(return_dict)
+#        return HttpResponse(json_return, mimetype="application/x-javascript")    
 
-#    if(type == 'substructure'):
-    pqr = PubchemRequest.objects.get(pk=int(requestId))
-    logger.info(str(('conduct pubchem search for pending request:', pqr)))
-    try:
-        cids = pubchem_compound_search.identity_similarity_substructure_search(type=type, smiles=smiles, sdf=molfile)
-        logger.info(str(('pubchem cids returned',cids, requestId)))
-        pqr.cids = ','.join(str(x) for x in cids)
-        pqr.date_time_fullfilled = timezone.now() #datetime.now()
-        pqr.save()
-    except PubchemError, e:
-        logger.info(str(('pubchem error reported',e)))
-        # TODO: delete, but maybe cache for a day?
-        pqr.pubchem_error_message = e.args
-        pqr.date_time_fullfilled = timezone.now() #datetime.now()
-        pqr.save()
-    except Exception, e:
-        # TODO: this is a program error, need to signal to the client that there is an error, but not to cache this result if the error is fixed
-        logger.info(str(('error reported',e))) 
-        pqr.error_message = e.args
-        pqr.date_time_fullfilled = timezone.now() #datetime.now()
-        pqr.save()
+#def structure_search(request):
+#    """
+#    This method returns JSON output, it is meant to be called by an AJAX process
+#    in the compound structure search page.
+#    """
+#    
+#    logger.info(str(('structure search os pid:', os.getpid())))
+#    if(request.method == 'POST'):
+#        form = StructureSearchForm(request.POST, request.FILES)
+#        
+#        if(form.is_valid()):
+#            if(form.cleaned_data['smiles'] or request.FILES.has_key('sdf')):
+#                try:
+#                    kwargs = { 'type':form.cleaned_data['type'] }
+#                    smiles = form.cleaned_data['smiles']
+#                    molfile = ''
+#                    if (request.FILES.has_key('sdf')):
+#                        molfile =  request.FILES
+#                        
+#                    if smiles and molfile:
+#                        msg = 'Cannot have both smiles and sdf inputs'
+#                        logger.error(str((msg, smiles, molfile)))
+#                        return HttpResponse(json.dumps({'error': msg }), mimetype="application/x-javascript")
+#                    if smiles:
+#                        kwargs['smiles'] = smiles
+#                        logger.info(str(('look for extant record: ', kwargs)))
+#                        query = PubchemRequest.objects.filter(**kwargs)
+#                        
+#                        if len(query)==1 :
+#                            pcreq = query[0]
+#                            logger.info(str(('found cached request', pcreq)))
+#                            return get_cached_structure_search(request, pcreq.id)
+#                        elif len(query)>1:
+#                            msg = 'too many cached requests found, will delete them.'
+#                            logger.info(str((msg, query)))
+#                            query.delete();
+#                    if molfile:
+#                        kwargs['molfile'] = molfile
+#                        query = PubchemRequest.objects.filter(**kwargs)
+#                        
+#                        if len(query)==1 :
+#                            pcreq = query[0]
+#                            logger.info(str(('found cached request', pcreq)))
+#                            return get_cached_structure_search(request, pcreq.id)
+#                        elif len(query)>1:
+#                            msg = 'too many cached requests found, will delete them.'
+#                            logger.info(str((msg, query)))
+#                            query.delete();
+#                      
+#                    logger.info(str(('create pubchem request', kwargs, os.getpid())))
+#                    pubchemRequest = PubchemRequest(**kwargs)
+#                    pubchemRequest.save()
+#                    
+#                    if False:
+#                        logger.info(str(('start thread...')))
+#                        t = Thread(target=pubchem_search,args=(pubchemRequest.id,), kwargs=kwargs )
+#                        t.setDaemon(True)
+#                        t.start()
+#                    else:
+#                        from multiprocessing import Process
+#                        logger.info(str(('start process...')))
+#                        p = Process(target=pubchem_search,args=(pubchemRequest.id,), kwargs=kwargs )
+#                        #connection.close()
+#                        p.daemon = True
+#                        p.start();
+#                        logger.info('return from parent...')
+#                        
+#                    return_dict = {'pubchemRequestId': pubchemRequest.id }
+#                    json_return = json.dumps(return_dict)
+#                    return HttpResponse(json_return, mimetype="application/x-javascript")
+#                except Exception, e:
+#                    exc_type, exc_obj, exc_tb = sys.exc_info()
+#                    fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]      
+#                    logger.error(str((exc_type, fname, exc_tb.tb_lineno)))
+#                    logger.error(str(('in structure search', e)))
+#                    raise e
+#    else: # not submitted yet
+#        form = StructureSearchForm()
+#
+#        return render(request, 'db/structureSearch_jquery.html', { 'structure_search_form':form, 'message':'Enter either a SMILES or a MOLFILE' })
+
+# this method elided, see pubchem_database_cache_service
+#def pubchem_search(requestId, smiles='', molfile='', type='identity'):
+#    """ 
+#    Synchronously get the specifed request from pubchem.
+#    """
+#    logger.info('synchronous pubchem search...')
+##    if(type == 'substructure'):
+#    pqr = PubchemRequest.objects.get(pk=int(requestId))
+#    logger.info(str(('conduct pubchem search for pending request:', pqr)))
+#    try:
+#        cids = pubchem_compound_search.identity_similarity_substructure_search(type=type, smiles=smiles, sdf=molfile)
+#        logger.info(str(('pubchem cids returned',cids, requestId)))
+#        pqr.cids = ','.join(str(x) for x in cids)
+#        pqr.date_time_fullfilled = timezone.now() #datetime.now()
+#        pqr.save()
+#    except PubchemError, e:
+#        logger.info(str(('pubchem error reported',e)))
+#        # TODO: delete, but maybe cache for a day?
+#        pqr.pubchem_error_message = e.args
+#        pqr.date_time_fullfilled = timezone.now() #datetime.now()
+#        pqr.save()
+#    except Exception, e:
+#        # TODO: this is a program error, need to signal to the client that there is an error, but not to cache this result if the error is fixed
+#        logger.info(str(('error reported',e))) 
+#        pqr.error_message = e.args
+#        pqr.date_time_fullfilled = timezone.now() #datetime.now()
+#        pqr.save()
+
 # this section is still valid... but it is doing an exact identity match, not the similarity search as is desired
 #    else: # identity
 #        pqr = PubchemRequest.objects.get(pk=int(requestId))

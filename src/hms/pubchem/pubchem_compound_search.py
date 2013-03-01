@@ -1,39 +1,22 @@
 import argparse
 import logging
 import requests
-import re
-
-from datetime import timedelta
 from datetime import datetime
 
 import time
 import json
 
-#import os
-#import os.path as op
-
-
-#_mydir = op.abspath(op.dirname(__file__))
-#_djangodir = op.normpath(op.join(_mydir, '../django'))
-#import sys
-#sys.path.insert(0, _djangodir)
-#import chdir as cd
-#with cd.chdir(_djangodir):
-#    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'hmslincs_server.settings')
-#del _mydir, _djangodir
-
 __version__ = "$Revision: 24d02504e664 $"
-# $Source$
 
 # ---------------------------------------------------------------------------
 
-#import setparams as _sg
-#_params = dict(
-#    VERBOSE = False,
-#    APPNAME = 'db',
-#)
-#_sg.setparams(_params)
-#del _sg, _params
+import setparams as _sg
+_params = dict(
+    VERBOSE = False,
+    APPNAME = 'db',
+)
+_sg.setparams(_params)
+del _sg, _params
 
 # ---------------------------------------------------------------------------
 
@@ -53,6 +36,10 @@ DEFAULT_TIMEOUT = 10
 DEFAULT_MAX_WAIT = 30
 DEFAULT_INITIAL_WAIT = 3
 DEFAULT_TRIES = 6
+
+DAYS_TO_CACHE = 1
+DAYS_TO_CACHE_PUBCHEM_ERRORS = 1
+
 
 from hms.pubchem import PubchemError
 
@@ -127,7 +114,10 @@ def sid_search(sids='', timeout=DEFAULT_TIMEOUT):
 #                return map(lambda x: x[cid_key],filter(lambda x:x.has_key(cid_key), results[key1][key2]) )
 
 
-def identity_similarity_substructure_search(smiles='',sdf='', type='identity', timeout=DEFAULT_TIMEOUT, max_wait_s=DEFAULT_MAX_WAIT, tries_till_fail=DEFAULT_TRIES):
+def identity_similarity_substructure_search(smiles='',sdf='', type='identity', 
+                                            timeout=DEFAULT_TIMEOUT, 
+                                            max_wait_s=DEFAULT_MAX_WAIT, 
+                                            tries_till_fail=DEFAULT_TRIES):
     """
     queries the pubchem database for a compound by either identity, similarity, or substructure similarity
     
@@ -162,18 +152,19 @@ def identity_similarity_substructure_search(smiles='',sdf='', type='identity', t
         logger.error(str(('exception recorded while contacting pubchem server', e)))
         raise e
     if(r.status_code != 200): 
+        logger.info(str(('synchronous response',r)))
         raise PubchemError(str(('HTTP response', r.status_code, json.dumps(r.json) ))) 
     # TODO: how to put a dict in the exception and then use it later in the UI
     #logger.info(r.text)
     results = json.loads(r.text)
-    logger.info(str(('initial request result', results)))
+    logger.info(str(('pubchem: initial request result', results)))
     
     if (results.has_key('Waiting')):
         list_key = results['Waiting']['ListKey']
         logger.info(str(('pubchem listKey received: ', list_key)))
 
         begin_time = datetime.now()
-#        url = PUBCHEM_BASE_URL + 'compound/listkey/'+ list_key + '/property/MolecularFormula,InChIKey,CanonicalSMILES/' + OUTPUT_FORMAT
+        #        url = PUBCHEM_BASE_URL + 'compound/listkey/'+ list_key + '/property/MolecularFormula,InChIKey,CanonicalSMILES/' + OUTPUT_FORMAT
         url = PUBCHEM_BASE_URL + 'compound/listkey/'+ list_key + '/cids/' + OUTPUT_FORMAT
         
         wait_s = DEFAULT_INITIAL_WAIT
@@ -237,12 +228,12 @@ if __name__ == "__main__":
     logging.basicConfig(level=log_level, format='%(msecs)d:%(module)s:%(lineno)d:%(levelname)s: %(message)s')        
     logger.setLevel(log_level)
     
-    search_params = { 'smiles' : args.smiles }
+    search_params = { 'smiles' : args.smiles, 'type': args.type }
     
-    if(args.type == 'identity'):
-        results = identity_exact_search(**search_params)
-        print 'results', len(results), results
-    elif(args.type == 'substructure'):
+    #    if(args.type == 'identity'):
+    #        results = identity_exact_search(**search_params)
+    #        print 'results', len(results), results
+    if(args.type == 'substructure' or args.type == 'identity' or args.type == 'similarity'):
         results = identity_similarity_substructure_search(**search_params)
         print 'results', len(results), results
     else:

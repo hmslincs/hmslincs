@@ -1,10 +1,10 @@
-import datetime
 from django.db import models
 from django.core.exceptions import ObjectDoesNotExist,MultipleObjectsReturned
 from collections import OrderedDict
 import types
 import re
 import logging
+from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 
@@ -131,14 +131,17 @@ class PubchemRequest(models.Model):
 #                               choices=PUBCHEM_TYPES,
 #                               default=PUBCHEM_TYPE_IDENTITY)
     date_time_fullfilled = models.DateTimeField(null=True) 
-    date_time_requested = models.DateTimeField(null=False, default=datetime.date.today ) 
+    date_time_requested = models.DateTimeField(null=False, default=timezone.now ) 
     # note, don't actually call the datetime.date.today function, since in this case it serves as a function pointer
     class Meta:
         unique_together = (('smiles', 'molfile','type'))    
 
     
     def __unicode__(self):
-        return unicode((self.id, self.cids, self.smiles, 'has_molfile' if self.molfile else 'no molfile', self.date_time_requested, self.date_time_fullfilled ))
+        return unicode((self.id, self.cids, self.smiles, 
+                        'has_molfile' if self.molfile else 'no molfile',
+                        self.error_message, self.pubchem_error_message, 
+                        self.date_time_requested, self.date_time_fullfilled ))
     
 
 # proposed class to capture all of the DWG information - and to map fields to these database tables

@@ -1,4 +1,6 @@
 #!/bin/bash
+# run a python script in the django environment
+# can be used for cron jobs
 
 check_errs()
 {
@@ -14,9 +16,9 @@ DATADIR=
 VIRTUALENV=
 DIR=/groups/pharmacoresponse/
 
-if [[ $# -lt 1 ]]
+if [[ $# -lt 2 ]]
 then 
-  echo "Usage: $0 <required: [test | local | dev | stage | prod] > [optional: local data dir] [optional: virtual env dir]"
+  echo "Usage: $0 <required: [test | local | dev | stage | prod] [python_script] > <optional: python script arguments> "
   exit $WRONG_ARGS
 fi
 
@@ -70,11 +72,11 @@ then
   VIRTUALENV=/www/dev.oshernatprod.hms.harvard.edu/support/virtualenv/bin/activate
 elif [[ "$SERVER" == "LOCAL" ]] || [[ "$SERVER" == "local" ]] 
 then
-  DATADIR=${2:-/home/sde4/sean/docs/work/LINCS/data/dev2}
+  DATADIR=/home/sde4/sean/docs/work/LINCS/data/dev2
   DB=django
   DB_USER=django
   PGHOST=localhost
-  VIRTUALENV=${3:-/home/sde4/workspace/hmslincs/myvirtualenv/bin/activate}
+  VIRTUALENV=/home/sde4/workspace/hmslincs/myvirtualenv/bin/activate
 elif [[ "$SERVER" == "TEST" ]] || [[ "$SERVER" == "test" ]] 
 then
   # NOT NEEDED FOR TEST DATA : DATADIR=${2:-/home/sde4/workspace/hmslincs/}
@@ -88,4 +90,9 @@ else
 fi
 
 source $VIRTUALENV
-$@
+
+export DJANGO_SETTINGS_MODULE=hmslincs_server.settings
+export PYTHONPATH=./django:./src
+
+
+python $@
