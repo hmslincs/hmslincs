@@ -555,6 +555,8 @@ else
 	
 fi
 
-python src/create_indexes.py | psql -U$DB_USER  $DB -h $PGHOST  -v ON_ERROR_STOP=1
+# the PGUSER=$DB_USER prefix ensures that the script will run even when (Unix)
+# USER running the script does not have access $DB on $PGHOST
+PGUSER=$DB_USER python src/create_indexes.py | psql -U$DB_USER  $DB -h $PGHOST -v ON_ERROR_STOP=1
 #check_errs $? "create indexes fails"
 

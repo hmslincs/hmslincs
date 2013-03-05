@@ -1,44 +1,61 @@
 #!/bin/sh
 # -*- mode: shell-script -*-
-#
-# from SE
-# git fetch / git merge...
 
-# <dir>/support/hmslincs/bsub -q short -W 1:0 ./re_run.sh dev
+if $DEBUG; then set -x; fi
 
-# <dir>/support/hmslincs/find_and_move_restricted_images.sh   (currently this command must be run from this directory.  small modification and the root directory could be an argument)
+SCRIPTNAME=$(basename $0)
+BASEDIR=${BASEDIR:-"$(dirname $(realpath $0))"}
+SUPPORTDIR=${SUPPORTDIR:-"$(dirname $(dirname $BASEDIR))/support"}
 
-# then, finally, curl...
-
-# from JM
-# dev:
-# curl -f http://dev.lincs.hms.harvard.edu/cgi-bin/cleanup.cgi
-
-# live:
-# curl -f http://lincs.hms.harvard.edu/cgi-bin/cleanup.cgi
-
-# (the -f means "treat http 404 errors as fatal and exit with a non-zero status")
-
-
-BASEDIR="$(dirname $0)"
-LOGFILE="$0.log"
-
+LOGFILE=${LOGFILE:-"$0.log"}
 PRODSITE=prod
 DEVSITE=dev
 
-#PRODBRANCH=master
-#DEVBRANCH=dev
+# PRODBRANCH=master
+# DEVBRANCH=dev
 PRODBRANCH=test-ignore
 DEVBRANCH=test-ignore
 
 URLTEMPLATE='http://%slincs.hms.harvard.edu/cgi-bin/cleanup.cgi'
+
 ORIGIN=${ORIGIN:-origin}
 GIT=${GIT:-git}
+FULL=false
+STATICS=true
+
+function error {
+  echo "$SCRIPTNAME: $1" >&2
+  exit 1
+}
+
+function __usage {
+    echo "$SCRIPTNAME [-h|-m|-f]"
+    echo "  -h -- this help message"
+    echo "  -m -- minimal update"
+    echo "  -f -- do full update (rebuild db, remake and move images, etc.)"
+    echo
+    echo "Default actions: git-pull, move images, kill fast cgi."
+}
 
 function main {
-  if [ -n "$DEBUG" ]; then set -x; fi
+  OPTIND=1
+  while getopts ":hmf" opt "$@"
+  do
+    echo $OPTIND
+    case "$opt" in
+      h)  __usage
+          return 0;;
+      m) FULL=false
+         STATICS=false;;
+      f) FULL=true
+         STATICS=true;;
+      ?) echo "Invalid option: -$OPTARG" >&2
+         __usage
+         return 1;;
+    esac
+  done
 
-  cd "$BASEDIR"
+  cd "$BASEDIR" || error "can't cd to $BASEDIR"
 
   SITE="$1"
   BRANCH="$2"
@@ -75,61 +92,62 @@ function main {
   echo "url: $URL"
   echo
 
-  #bsub -q short deploy
-  deploy
-  local shellstatus=$?
-  [ "$shellstatus" = 0 ] || echo "$0: failed ($shellstatus)" >&2
+  deploy || error "failed with status $?"
 
-  return $shellstatus
-}
-
-function deploy {
-  date +'%n%c' >>"$LOGFILE"
-  gitpull && builddb && moveimg && bounce
+  return 0
 }
 
 function gitpull {
+  $GIT checkout $BRANCH >>"$LOGFILE" 2>&1 || error "git-checkout failed: $?"
+  $GIT pull $ORIGIN $BRANCH: >>"$LOGFILE" 2>&1 || error "git-pull failed: $?"
 
-  $GIT checkout $BRANCH >>"$LOGFILE" 2>&1
-  local lastline
-  lastline=$($GIT pull $ORIGIN $BRANCH: 2>&1 | tee -a "$LOGFILE" | tail -1)
+  # local lastline
+  # lastline=$(tail -1 "$LOGFILE")
+  # [ "$lastline" = 'Already up-to-date.' ] && return 1
+  # echo "stayed: $lastline"
 
-  [ "$lastline" = 'Already up-to-date.' ] && return 1
-
-  echo "stayed: $lastline"
   return 0
 }
 
 function builddb {
-  echo $BASEDIR/re_run.sh $SITE
-  return 0
+  if $FULL; then
+    $BASEDIR/re_run.sh $SITE >>"$LOGFILE" 2>&1 || error "re_run.sh failed: $?"
+  fi
+}
+
+function makeimg {
+  if $STATICS; then
+    cd "$BASEDIR" || return 1
+    zsh src/do_scatterplots.sh >>"$LOGFILE" 2>&1 || \
+        error "src/do_scatterplots.sh failed: $?"
+  fi
 }
 
 function moveimg {
-  echo $BASEDIR/find_and_move_restricted_images.sh
-  return 0
+  if $STATICS; then
+    cd "$BASEDIR" || return 1
+    ./find_and_move_restricted_images.sh >>"$LOGFILE" 2>&1 || \
+        error "find_and_move_restricted_images.sh failed: $?"
+  fi
 }
 
-function bounce {
-  echo curl -f "$URL"
+function collectstatic {
+  if $STATICS; then
+    cd "$BASEDIR" || return 1
+    mkdir -p $SUPPORTDIR/images || return 1
+    python django/manage.py collectstatic --noinput >>"$LOGFILE" 2>&1 || \
+        error "manage.py collectstatic failed: $?"
+  fi
 }
 
-# if [ "$1" = '-d' ]; then
-#   DEBUG=1
-#   shift
-# fi
+function killfcgi {
+  curl -f "$URL" || error '"'"curl -f $URL"'" failed'
+}
 
-main $1 $2
+function deploy {
+  date +'%n%c' >>"$LOGFILE"
+  gitpull && builddb && makeimg && moveimg && collectstatic && killfcgi
+  echo done
+}
 
-# function fails {
-#   echo failing
-#   return 1
-# }
-
-# function ff {
-#   local out=$(fails ; SHSTAT=$?; echo "finishing...")
-#   echo "$out ($SHSTAT)"
-#   return $SHSTAT
-# }
-
-# ff
+main $@

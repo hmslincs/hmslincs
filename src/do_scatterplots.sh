@@ -1,30 +1,44 @@
-#!/usr/bin/env zsh
+#!env zsh
 
-# NOTE: this script is probably not portable enough to run
-# "out-of-the-box"; I'm committing it to git as documentation.
+# Requires GNU versions of sort, cut, and mkdir; if these GNU
+# utilities are not in PATH, or if they're available under different
+# names, specify them via inline assignments to the SORT, CUT, and/or
+# MKDIR variables, as shown in the example below:
+#
+# SORT=<GNU sort> CUT=<GNU cut> MKDIR=<GNU mkdir> OUTPUTDIR=tmp/trash \
+#    CLOBBEROK=1 src/do_scatterplots.sh
 
 # set -x
 set -e
 
-EXECDIR=$( dirname $( dirname $0 ) )
+DEBUG=${DEBUG:-false}
+
+SRCDIR=$( dirname $0 )
+EXECDIR=$( dirname $SRCDIR )
+JSPATH=$EXECDIR/django/responses/static/responses/js/pointmap.js
+
 
 cd $EXECDIR || false
 
-# requires GNU join
-JOIN=${JOIN:-join}
-CUT=${CUT:-cut}
 SORT=${SORT:-sort}
+JOIN=${JOIN:-python $SRCDIR/join.py}
+CUT=${CUT:-cut}
+MKDIR=${MKDIR:-mkdir}
 
 DATADIR0=data/scatterplots
 DATADIR1=${DATADIR1:-/tmp/$$}
 
 OUTPUTDIR=${OUTPUTDIR:-django/responses/static/responses/img}
+$MKDIR -p $OUTPUTDIR
 
-alias gcutt="$CUT -d$'\t' -f"
-alias gsortt="$SORT -t$'\t'"
-alias gjoint="$JOIN -t$'\t'"
+export LANG=
+export LC_ALL=C 
 
-BLANK='';
+alias SORTT="$SORT -t$'\t'"
+alias CUTT="$CUT -d$'\t' -f"
+
+BLANK=${BLANK:-''}
+alias JOINT="$JOIN -t$'\t' -e '$BLANK' -o auto -a 2"
 
 pickcols () {
   cols="1,$1"
@@ -32,24 +46,34 @@ pickcols () {
   in=${1:--}
   shift
   if (( $# > 0 )) {
-     gjoint -a 1 -a 2 -e "$BLANK" -o auto \
-       <( gcutt $cols $in | gsortt -k1 ) \
+     JOINT -a 1 \
+       <( CUTT $cols $in | SORTT -k1 ) \
        <( pickcols "$@" )
   } else {
-    gcutt $cols $in | gsortt -k1
+    CUTT $cols $in | SORTT -k1
   }
 }
 
 addsubtype () {
   in=${1:--}
-  gjoint -a 2 -e "$BLANK" -o auto \
-    <( gcutt 1,2 $DATADIR0/cell_line_subtype.tsv ) $in
+  JOINT <( CUTT 1,2 $DATADIR0/cell_line_subtype.tsv ) $in
 }
 
 addlevel () {
   in=${1:--}
-  gjoint -a 2 -e "$BLANK" -o auto \
-    <( gcutt 1,2 $DATADIR0/lapatinib_gi50.tsv ) $in
+  JOINT <( CUTT 1,2 $DATADIR0/lapatinib_gi50.tsv ) $in
+}
+
+pflane () {
+  perl -F"\t" -lane 'BEGIN { $, = "\t" }
+if ( $. == 1 ) {
+  $ncols = @F = split /\t/, $_, -1;
+}
+else {
+  $missing = $ncols - @F;
+  push @F, ("") x $missing if $missing;
+}
+' -e $@
 }
 
 addnan () {
@@ -61,8 +85,8 @@ print @F'
 
 adddisplayname () {
   in=${1:--}
-  gjoint -a 2 -e "$BLANK" -o auto \
-    <( gcutt 1-3 $DATADIR0/cell_line_display_name.tsv ) $in
+  JOINT \
+    <( CUTT 1-3 $DATADIR0/cell_line_display_name.tsv ) <( SORTT -k1,1 $in )
 }
 
 cull () {
@@ -82,10 +106,10 @@ make_w_nan () {
   pickcols "$@" | addsubtype | addnan   | adddisplayname | cull
 }
 
-FMTTBL=$( whence fmttbl )
-if [[ -n $DEBUG ]] && [[ -n $FMTTBL ]] {
+FMTTBL=$( whence fmttbl || : )
+if $DEBUG && [[ -n $FMTTBL ]] {
   show () {
-    head | gcutt 1-8 | $FMTTBL
+    head | CUTT 1-8 | $FMTTBL
     echo
   }
 } else {
@@ -106,17 +130,33 @@ make_w_level 23,43 $MFC 65-67,125-127 $FC | tee $DATADIR1/picks_for_slider.tsv  
 SCRIPT=$( basename $0 )
 echo "$SCRIPT: making $OUTPUTDIR/**/*.png files... "
 
-[[ -n $DEBUG ]] && echo $DATADIR1
+$DEBUG && echo $DATADIR1
 
-rm -f ${DEBUG:+-v} $OUTPUTDIR/**/*.png(N)
+rm -f $( $DEBUG && echo -v ) $OUTPUTDIR{,/{slider,basal_graded}}/*.png(N)
 
 [[ -n $VIRTUAL_ENV ]] && source $VIRTUAL_ENV/bin/activate
 
-python src/do_scatterplots.py $DATADIR1/picks_for_basal.tsv
-python src/do_scatterplots.py $DATADIR1/picks_for_responses.tsv
+
+truncate -s 0 $JSPATH
+echo '
+// THIS FILE IS AUTOMATICALLY CREATED -- MANUAL EDITS WILL BE OVERWRITTEN
+
+// Adapted from snippet at http://stackoverflow.com/questions/881515#5947280
+
+(function( hmslincs ) {
+    // ------------------------------------------------------------------------
+    // scatterplot popups
+
+    hmslincs.POINTMAP = {' >> $JSPATH
+
+python src/do_scatterplots.py $DATADIR1/picks_for_basal.tsv >> $JSPATH
+python src/do_scatterplots.py $DATADIR1/picks_for_responses.tsv >> $JSPATH
 IDPREFIX='slider/' WITHLIMITS=1 OUTPUTDIR=$OUTPUTDIR/slider \
-  python src/do_scatterplots.py $DATADIR1/picks_for_slider.tsv
+  python src/do_scatterplots.py $DATADIR1/picks_for_slider.tsv >> $JSPATH
 IDPREFIX='basal_graded/' OUTPUTDIR=$OUTPUTDIR/basal_graded \
-  python src/do_scatterplots.py $DATADIR1/picks_for_basal_w_color.tsv
+  python src/do_scatterplots.py $DATADIR1/picks_for_basal_w_color.tsv >> $JSPATH
+
+echo '
+}( window.hmslincs = window.hmslincs || {} ));' >> $JSPATH
 
 echo "$SCRIPT: done"
