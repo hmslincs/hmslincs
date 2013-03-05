@@ -17,7 +17,6 @@ DEVBRANCH=dev
 URLTEMPLATE='http://%slincs.hms.harvard.edu/cgi-bin/cleanup.cgi'
 
 ORIGIN=${ORIGIN:-git@github.com:hmslincs/hmslincs.git}
-GIT=${GIT:-git}
 FULL=false
 STATICS=true
 
@@ -27,12 +26,15 @@ function error {
 }
 
 function __usage {
-    echo "$SCRIPTNAME [-h|-m|-f]"
+    echo "$SCRIPTNAME [-h|-m|-f] [SITE [BRANCH]]"
     echo "  -h -- this help message"
     echo "  -m -- minimal update"
     echo "  -f -- do full update (rebuild db, remake and move images, etc.)"
     echo
-    echo "Default actions: git-pull, move images, kill fast cgi."
+    echo "SITE should be either $PRODSITE or $DEVSITE.  BRANCH should be a suitable "
+    echo "branch from $ORIGIN."
+    echo
+    echo "Default actions: git-pull, make and move files, kill fast cgi."
 }
 
 function main {
@@ -95,8 +97,8 @@ function main {
 }
 
 function gitpull {
-  $GIT checkout $BRANCH >>"$LOGFILE" 2>&1 || error "git-checkout failed: $?"
-  $GIT pull $ORIGIN $BRANCH: >>"$LOGFILE" 2>&1 || error "git-pull failed: $?"
+  git checkout $BRANCH >>"$LOGFILE" 2>&1 || error "git-checkout failed: $?"
+  git pull $ORIGIN $BRANCH: >>"$LOGFILE" 2>&1 || error "git-pull failed: $?"
 
   # local lastline
   # lastline=$(tail -1 "$LOGFILE")
