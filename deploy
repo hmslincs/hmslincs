@@ -1,8 +1,6 @@
 #!/bin/sh
 # -*- mode: shell-script -*-
 
-if $DEBUG; then set -x; fi
-
 SCRIPTNAME=$(basename $0)
 BASEDIR=${BASEDIR:-"$(dirname $(realpath $0))"}
 SUPPORTDIR=${SUPPORTDIR:-"$(dirname $(dirname $BASEDIR))/support"}
@@ -11,14 +9,14 @@ LOGFILE=${LOGFILE:-"$0.log"}
 PRODSITE=prod
 DEVSITE=dev
 
-# PRODBRANCH=master
-# DEVBRANCH=dev
-PRODBRANCH=test-ignore
-DEVBRANCH=test-ignore
+PRODBRANCH=master
+DEVBRANCH=dev
+# PRODBRANCH=test-ignore
+# DEVBRANCH=test-ignore
 
 URLTEMPLATE='http://%slincs.hms.harvard.edu/cgi-bin/cleanup.cgi'
 
-ORIGIN=${ORIGIN:-origin}
+ORIGIN=${ORIGIN:-git@github.com:hmslincs/hmslincs.git}
 GIT=${GIT:-git}
 FULL=false
 STATICS=true
@@ -41,7 +39,6 @@ function main {
   OPTIND=1
   while getopts ":hmf" opt "$@"
   do
-    echo $OPTIND
     case "$opt" in
       h)  __usage
           return 0;;
