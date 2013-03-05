@@ -58,7 +58,7 @@ def dump(obj):
 
 def main(request):
     search = request.GET.get('search','')
-    logger.info(str(('main search: ', search)))
+    logger.debug(str(('main search: ', search)))
     if(search != ''):
         queryset = SiteSearchManager().search(search, is_authenticated=request.user.is_authenticated());
         table = SiteSearchTable(queryset)
@@ -72,7 +72,7 @@ def main(request):
 
 def cellIndex(request):
     search = request.GET.get('search','')
-    logger.info(str(("is_authenticated:", request.user.is_authenticated(), 'search: ', search)))
+    logger.debug(str(("is_authenticated:", request.user.is_authenticated(), 'search: ', search)))
     if(search != ''):
         searchProcessed = format_search(search)
         criteria = "search_vector @@ to_tsquery(%s)"
@@ -112,7 +112,7 @@ def cellDetail(request, facility_id):
         details = {'object': get_detail(cell, ['cell',''])}
         dataset_ids = find_datasets_for_cell(cell.id)
         if(len(dataset_ids)>0):
-            logger.info(str(('dataset ids for sm',dataset_ids)))
+            logger.debug(str(('dataset ids for sm',dataset_ids)))
             where = []
             if(not request.user.is_authenticated()): 
                 where.append("(not is_restricted or is_restricted is NULL)")
@@ -127,7 +127,7 @@ def cellDetail(request, facility_id):
  
 def proteinIndex(request):
     search = request.GET.get('search','')
-    logger.info(str(("is_authenticated:", request.user.is_authenticated(), 'search: ', search)))
+    logger.debug(str(("is_authenticated:", request.user.is_authenticated(), 'search: ', search)))
     if(search != ''):
         searchProcessed = format_search(search)
         # NOTE: - change plaintext search to use "to_tsquery" as opposed to
@@ -173,7 +173,7 @@ def proteinDetail(request, lincs_id):
         # datasets table
         dataset_ids = find_datasets_for_protein(protein.id)
         if(len(dataset_ids)>0):
-            logger.info(str(('dataset ids for sm',dataset_ids)))
+            logger.debug(str(('dataset ids for sm',dataset_ids)))
             where = []
             if(not request.user.is_authenticated()): 
                 where.append("(not is_restricted or is_restricted is NULL)")
@@ -196,7 +196,7 @@ def proteinDetail(request, lincs_id):
 # TODO REFACTOR, DRY... 
 def smallMoleculeIndex(request):
     search = request.GET.get('search','')
-    logger.info(str(("is_authenticated:", request.user.is_authenticated(), 'search: ', search))) #, 'items_per_page', items_per_page)))
+    logger.debug(str(("is_authenticated:", request.user.is_authenticated(), 'search: ', search))) #, 'items_per_page', items_per_page)))
 
     if(search != ''):
         searchProcessed = format_search(search)
@@ -204,7 +204,7 @@ def smallMoleculeIndex(request):
         where = [criteria]
         
         # postgres fulltext search with rank and snippets
-        logger.info(str(("SmallMoleculeTable.snippet_def:",SmallMoleculeTable.snippet_def)))
+        logger.debug(str(("SmallMoleculeTable.snippet_def:",SmallMoleculeTable.snippet_def)))
         queryset = SmallMolecule.objects.extra(
             select={
                 'snippet': "ts_headline(" + SmallMoleculeTable.snippet_def + ", to_tsquery(%s))",
@@ -236,7 +236,7 @@ def smallMoleculeIndex(request):
 def smallMoleculeMolfile(request, facility_salt_id):
     try:
         temp = facility_salt_id.split('-') # TODO: let urls.py grep the facility and the salt
-        logger.info(str(('find sm detail for', temp)))
+        logger.debug(str(('find sm detail for', temp)))
         facility_id = temp[0]
         salt_id = temp[1]
         sm = SmallMolecule.objects.get(facility_id=facility_id, salt_id=salt_id) 
@@ -252,7 +252,7 @@ def smallMoleculeMolfile(request, facility_salt_id):
 def smallMoleculeDetail(request, facility_salt_id): # TODO: let urls.py grep the facility and the salt
     try:
         temp = facility_salt_id.split('-') # TODO: let urls.py grep the facility and the salt
-        logger.info(str(('find sm detail for', temp)))
+        logger.debug(str(('find sm detail for', temp)))
         facility_id = temp[0]
         salt_id = temp[1]
         sm = SmallMolecule.objects.get(facility_id=facility_id, salt_id=salt_id) 
@@ -285,7 +285,7 @@ def smallMoleculeDetail(request, facility_salt_id): # TODO: let urls.py grep the
         # datasets table
         dataset_ids = find_datasets_for_smallmolecule(sm.id)
         if(len(dataset_ids)>0):
-            logger.info(str(('dataset ids for sm',dataset_ids)))
+            logger.debug(str(('dataset ids for sm',dataset_ids)))
             where = []
             if(not request.user.is_authenticated()): 
                 where.append("(not is_restricted or is_restricted is NULL)")
@@ -301,12 +301,12 @@ def smallMoleculeDetail(request, facility_salt_id): # TODO: let urls.py grep the
             ntable = DataSetManager(dataset).get_table(whereClause=["smallmolecule_id=%d " % sm.id],
                                                        metaWhereClause = ["col2 = '1'"], 
                                                        column_exclusion_overrides=['facility_salt_batch','col2']) # exclude "is_nominal"
-            logger.info(str(('ntable',ntable.data, len(ntable.data))))
+            logger.debug(str(('ntable',ntable.data, len(ntable.data))))
             if(len(ntable.data)>0): details['nominal_targets_table']=ntable
             otable = DataSetManager(dataset).get_table(whereClause=["smallmolecule_id=%d " % sm.id], 
                                                        metaWhereClause=["col2 != '1'"], 
                                                        column_exclusion_overrides=['facility_salt_batch','col0','col2']) # exclude "effective conc", "is_nominal"
-            logger.info(str(('otable',ntable.data, len(otable.data))))
+            logger.debug(str(('otable',ntable.data, len(otable.data))))
             if(len(otable.data)>0): details['other_targets_table']=otable
         except DataSet.DoesNotExist:
             logger.warn('Nominal Targets dataset does not exist')
@@ -362,7 +362,7 @@ def libraryDetail(request, short_name):
 
 def datasetIndex(request): #, type='screen'):
     search = request.GET.get('search','')
-    logger.info(str(("is_authenticated:", request.user.is_authenticated(), 'search: ', search)))
+    logger.debug(str(("is_authenticated:", request.user.is_authenticated(), 'search: ', search)))
     where = []
     if(search != ''):
         searchProcessed = format_search(search)
@@ -841,7 +841,7 @@ def redirect_to_small_molecule_detail(smallmolecule):
     return HttpResponseRedirect(reverse('db.views.smallMoleculeDetail',kwargs={'facility_salt_id':facility_salt_id}))
 
 def smallMoleculeIndexList(request, facility_ids=''):
-    logger.info(str(('search for small molecules: ', facility_ids)))
+    logger.debug(str(('search for small molecules: ', facility_ids)))
     temp = facility_ids.split(',')
     queryset = SmallMolecule.objects.filter(facility_id__in=temp).distinct()
     if(len(queryset) == 1 ):
@@ -870,7 +870,7 @@ def render_list_index(request, table, search, name, name_plural, **requestArgs):
         setattr(table.data,'verbose_name',name)
         requestArgs.setdefault('table',table)
         requestArgs.setdefault('items_per_page_form',form )
-        logger.info(str(('requestArgs', requestArgs)))
+        logger.debug(str(('requestArgs', requestArgs)))
     return render(request, 'db/listIndex.html', requestArgs)
     
 
@@ -918,7 +918,7 @@ class PagedTable(tables.Table):
             temp = self.page.number+10
             jump_exp = int(log(self.paginator.num_pages,10))
             if(jump_exp > 1): temp = self.page.number + int(pow(10,(jump_exp-1)))
-            logger.info(str(('self.page.next_page_number()', self.page.next_page_number(),self.paginator.num_pages, temp)))
+            logger.debug(str(('self.page.next_page_number()', self.page.next_page_number(),self.paginator.num_pages, temp)))
             if( temp > self.paginator.num_pages ): 
                 temp=self.paginator.num_pages
             return temp
@@ -930,7 +930,7 @@ class PagedTable(tables.Table):
     def page_end(self):
         if(self.page):
             temp = self.page_start()+self.paginator.per_page
-            logger.info(str(('page_end:' , temp, self.paginator.count )))
+            logger.debug(str(('page_end:' , temp, self.paginator.count )))
             if(temp > self.paginator.count): return self.paginator.count
             return temp
 
@@ -1130,7 +1130,7 @@ class DataSetManager():
             metaWhereClause.append(searchClause)
             parameters += searchParams
             
-        logger.info(str(('search',search,'metaWhereClause',metaWhereClause,'parameters',parameters)))
+        logger.debug(str(('search',search,'metaWhereClause',metaWhereClause,'parameters',parameters)))
         
         self.dataset_info = self._get_query_info(whereClause,metaWhereClause) # TODO: column_exclusion_overrides
         cursor = connection.cursor()
@@ -1155,7 +1155,7 @@ class DataSetManager():
             metaWhereClause.append(searchClause)
             parameters += searchParams
             
-        logger.info(str(('search',search,'metaWhereClause',metaWhereClause,'parameters',parameters)))
+        logger.debug(str(('search',search,'metaWhereClause',metaWhereClause,'parameters',parameters)))
         self.dataset_info = self._get_query_info(whereClause,metaWhereClause)
         #sql_for_count = 'SELECT count(distinct id) from db_datarecord where dataset_id ='+ str(self.dataset_id)
         queryset = PagedRawQuerySet(self.dataset_info.query_sql,self.dataset_info.count_query_sql, connection, 
@@ -1197,7 +1197,7 @@ class DataSetManager():
         # use the datacolumns to make a query on the fly (for the DataSetManager), and make a DataSetResultSearchTable on the fly.
         #dataColumnCursor = connection.cursor()
         #dataColumnCursor.execute("SELECT id, name, data_type, precision from db_datacolumn where dataset_id = %s order by id asc", [dataset_id])
-        logger.info(str(('dataset columns:', datacolumns)))
+        logger.debug(str(('dataset columns:', datacolumns)))
     
         # Need to construct something like this:
         # SELECT distinct (datarecord_id), smallmolecule_id, sm.facility_id || '-' || sm.salt_id as facility_id,
@@ -1249,7 +1249,7 @@ class DataSetManager():
         inner_alias = 'x'
         queryString += " order by dr.id ) as " + inner_alias #LIMIT 5000 ) as x """
         
-        logger.info(str(('whereClause',whereClause)))      
+        logger.debug(str(('whereClause',whereClause)))      
         queryString += ' WHERE 1=1 '
         if(len(whereClause)>0):
             queryString = (" AND "+inner_alias+".").join([queryString]+whereClause) # extra filters
@@ -1343,17 +1343,17 @@ class DataSetManager():
 def find_datasets_for_protein(protein_id):
     #TODO: can we return a django model queryset instead of just the id's (and then post-filter?)
     datasets = [x.id for x in DataSet.objects.filter(datarecord__protein__id=protein_id).distinct()]
-    logger.info(str(('datasets',datasets)))
+    logger.debug(str(('datasets',datasets)))
     return datasets
 
 def find_datasets_for_cell(cell_id):
     datasets = [x.id for x in DataSet.objects.filter(datarecord__cell__id=cell_id).distinct()]
-    logger.info(str(('datasets',datasets)))
+    logger.debug(str(('datasets',datasets)))
     return datasets
 
 def find_datasets_for_smallmolecule(smallmolecule_id):
     datasets = [x.id for x in DataSet.objects.filter(datarecord__smallmolecule__id=smallmolecule_id).distinct()]
-    logger.info(str(('datasets',datasets)))
+    logger.debug(str(('datasets',datasets)))
     return datasets
     #    cursor = connection.cursor()
     #    sql = ( 'SELECT distinct(dataset_id) from db_datarecord dr' +  
@@ -1418,7 +1418,7 @@ class LibraryMappingSearchManager(models.Model):
             sql += "plate, well, smb.facility_batch_id, "
         sql += " sm.facility_id, sm.salt_id "
         
-        logger.info(str(('sql',sql)))
+        logger.debug(str(('sql',sql)))
         # TODO: the way we are separating query_string out here is a kludge
         cursor = connection.cursor()
         if(query_string != ''):
@@ -1551,7 +1551,7 @@ class LibrarySearchManager(models.Manager):
         sql += where
         sql += " group by library.id) a join db_library l2 on(a.id=l2.id) WHERE l2.id=l.id order by l.short_name"
         
-        logger.info(str(('sql',sql)))
+        logger.debug(str(('sql',sql)))
         # TODO: the way we are separating query_string out here is a kludge, i.e we should be using django ORM language?
         if(query_string != ''):
             searchProcessed = format_search(query_string)
@@ -1632,7 +1632,7 @@ class SiteSearchTable(PagedTable):
 def can_access_image(request, image_filename, is_restricted=False):
     if(not is_restricted):
         url = request.build_absolute_uri(settings.STATIC_URL + image_filename)
-        logger.info(str(('try to open url',url))) 
+        logger.debug(str(('try to open url',url))) 
         try:
             response = urllib2.urlopen(url)
             response.read()
@@ -1640,12 +1640,12 @@ def can_access_image(request, image_filename, is_restricted=False):
             logger.debug(str(('found image at', url)))
             return True
         except Exception,e:
-            logger.info(str(('no image found at', url, e)))
+            logger.debug(str(('no image found at', url, e)))
         return False
     else:
         _path = os.path.join(settings.STATIC_AUTHENTICATED_FILE_DIR,image_filename)
         v = os.path.exists(_path)
-        if(not v): logger.info(str(('could not find path', _path)))
+        if(not v): logger.debug(str(('could not find path', _path)))
         return v
 
 def get_attached_files(facility_id, salt_id=None, batch_id=None):
@@ -1671,7 +1671,7 @@ def set_table_column_info(table,table_names, sequence_override=[]):
                 column.verbose_name = fi.get_verbose_name()
                 fields[fieldname] = fi
         except (ObjectDoesNotExist) as e:
-            logger.warn(str(('no fieldinformation found for field:', fieldname)))
+            logger.debug(str(('no fieldinformation found for field:', fieldname)))
             if(fieldname not in exclude_list):
                 exclude_list.append(fieldname)
             #column.attrs['th']={'title': fieldname}  
@@ -1682,8 +1682,8 @@ def set_table_column_info(table,table_names, sequence_override=[]):
     sequence_override.extend(sequence)
     table.exclude = tuple(exclude_list)
     table.sequence = sequence_override
-    logger.info(str(('excl',table.exclude)))
-    logger.info(str(('seq',table.sequence)))
+    logger.debug(str(('excl',table.exclude)))
+    logger.debug(str(('seq',table.sequence)))
         
 def dictfetchall(cursor): #TODO modify this to stream results properly
     "Returns all rows from a cursor as a dict"
@@ -1699,10 +1699,10 @@ def restricted_image(request, filepath):
         logger.warn(str(('access to restricted file for user is denied', request.user, filepath)))
         return HttpResponse('Log in required.', status=401)
     
-    logger.info(str(('send requested file:', settings.STATIC_AUTHENTICATED_FILE_DIR, filepath, request.user.is_authenticated())))
+    logger.debug(str(('send requested file:', settings.STATIC_AUTHENTICATED_FILE_DIR, filepath, request.user.is_authenticated())))
     _path = os.path.join(settings.STATIC_AUTHENTICATED_FILE_DIR,filepath)
     _file = file(_path)
-    logger.info(str(('download image',_path,_file)))
+    logger.debug(str(('download image',_path,_file)))
     wrapper = FileWrapper(_file)
     response = HttpResponse(wrapper,content_type='image/png') # todo: determine the type on the fly. (if ommitted, the browser sometimes doesn't know what to do with the image bytes)
     response['Content-Length'] = os.path.getsize(_path)
@@ -1716,7 +1716,7 @@ def download_attached_file(request, id):
     """
     try:
         af = AttachedFile.objects.get(id=id)
-        logger.info(str(('send the attached file:', af, request.user.is_authenticated())))
+        logger.debug(str(('send the attached file:', af, request.user.is_authenticated())))
         if(af.is_restricted and not request.user.is_authenticated()):
             logger.warn(str(('access to restricted file for user is denied', request.user, af)))
             return HttpResponse('Log in required.', status=401)
@@ -1725,7 +1725,7 @@ def download_attached_file(request, id):
         if(af.relative_path):
             _path = os.path.join(settings.STATIC_AUTHENTICATED_FILE_DIR,af.relative_path)
         _file = file(_path)
-        logger.info(str(('download_attached_file',_path,_file)))
+        logger.debug(str(('download_attached_file',_path,_file)))
         wrapper = FileWrapper(_file)
         response = HttpResponse(wrapper, content_type='text/plain') # use the same type for all files
         response['Content-Disposition'] = 'attachment; filename=%s' % unicode(af.filename)
@@ -1883,7 +1883,7 @@ def export_as_xls1(name,ordered_datacolumns, request, cursor):
     row = 0
     obj=cursor.fetchone()
     keys = cols_to_names.keys()
-    logger.info(str(('keys',keys)))
+    logger.debug(str(('keys',keys)))
     while obj:
         for i,key in enumerate(keys):
             sheet.write(row+1,i,obj[key])
@@ -1911,7 +1911,7 @@ def export_as_csv1(name,ordered_datacolumns, request, cursor):
     row = 0
     obj=cursor.fetchone()
     keys = cols_to_names.keys()
-    logger.info(str(('keys',keys,obj)))
+    logger.debug(str(('keys',keys,obj)))
     while obj:
         writer.writerow([smart_str(obj[int(key)], 'utf-8', errors='ignore') for key in keys])
         if(row % debug_interval == 0):

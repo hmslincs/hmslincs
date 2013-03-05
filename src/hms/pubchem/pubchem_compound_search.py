@@ -2,7 +2,7 @@ import argparse
 import logging
 import requests
 from datetime import datetime
-
+import os
 import time
 import json
 
@@ -142,7 +142,7 @@ def identity_similarity_substructure_search(smiles='',sdf='', type='identity',
     url += OUTPUT_FORMAT
     if type=='identity':
         url += '?identity_type=same_tautomer' # TODO: incorporate identity_type in the UI
-    logger.info(str(('query url',url )))
+    logger.info(str((os.getpid(), 'query url',url )))
     try:
         if(sdf != ''):
             r = requests.post(url, files=sdf, timeout=timeout )
@@ -157,11 +157,11 @@ def identity_similarity_substructure_search(smiles='',sdf='', type='identity',
     # TODO: how to put a dict in the exception and then use it later in the UI
     #logger.info(r.text)
     results = json.loads(r.text)
-    logger.info(str(('pubchem: initial request result', results)))
+    logger.info(str((os.getpid(), 'pubchem: initial request result', results)))
     
     if (results.has_key('Waiting')):
         list_key = results['Waiting']['ListKey']
-        logger.info(str(('pubchem listKey received: ', list_key)))
+        logger.info(str((os.getpid(), 'pubchem listKey received: ', list_key)))
 
         begin_time = datetime.now()
         #        url = PUBCHEM_BASE_URL + 'compound/listkey/'+ list_key + '/property/MolecularFormula,InChIKey,CanonicalSMILES/' + OUTPUT_FORMAT
@@ -181,7 +181,7 @@ def identity_similarity_substructure_search(smiles='',sdf='', type='identity',
             if(tries != 1 and wait_s < max_wait_s):
                 wait_s += 3
             time.sleep(wait_s)
-            logger.info(str(('checked pubchem listkey', list_key, 'tries', tries, 'elapsed', (datetime.now()-begin_time).seconds, 'seconds')))
+            logger.info(str((os.getpid(), 'checked pubchem listkey', list_key, 'tries', tries, 'elapsed', (datetime.now()-begin_time).seconds, 'seconds')))
             r = requests.post(url, timeout=timeout )
             if(r.status_code != 200): 
                 raise PubchemError(str(('HTTP response', r.status_code, r)))
@@ -191,7 +191,7 @@ def identity_similarity_substructure_search(smiles='',sdf='', type='identity',
             if (tries > tries_till_fail):
                 raise PubchemError(str(('maximum allowed tries reached', tries)))
             
-        logger.info(str(('pubchem results returned, interval', 
+        logger.info(str((os.getpid(), 'listkey', list_key, 'pubchem results returned,',results,', interval',
                          (datetime.now()-begin_time).seconds, 'seconds' )))  # note timedelta has days, seconds, microseconds
 
         key1 = 'IdentifierList'

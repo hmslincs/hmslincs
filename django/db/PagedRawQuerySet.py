@@ -44,7 +44,7 @@ class PagedRawQuerySet(object):
             cursor = connection.cursor()
             cursor.execute(sql_for_count, parameters)
             self._count = cursor.fetchone()[0]
-            logger.info(str(('self count:', self._count)))
+            logger.debug(str(('self count:', self._count)))
         except Exception, e:
             logger.error(str(('On trying to execute the query', sql_for_count,e)))
             raise e

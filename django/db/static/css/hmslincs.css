@@ -143,10 +143,14 @@ ul.pagination > li.items_per_page {
   right: 0;
   padding-right: 0;
 }
-
+.items_per_page select {
+	margin-left: 5px;
+}
+/*
 #id_items_per_page {
   vertical-align: middle;
 }
+*/
 
 #content ul.basictab {
   margin-left: 0;
@@ -160,13 +164,13 @@ td.facility_salt_batch {
   border: 1px solid black ;
   padding: 4px;
 }
-#innercontent form.structure_form p {
+.structure_search_form form p {
 	position:relative;
 	display:block;  
 }
-#innercontent form.structure_form label { vertical-align: top }
-#innercontent form.structure_form input,select { position: absolute; left:13em; }
-#innercontent form.structure_form textarea {
+.structure_search_form form label { vertical-align: top }
+.structure_search_form form input,.structure_search_form form select { position: absolute; left:13em; }
+.structure_search_form form textarea {
 	/* TODO: Note: textarea overlaps subsequent elements unless position: relative; */
 	position: relative; left: 2em;
 }

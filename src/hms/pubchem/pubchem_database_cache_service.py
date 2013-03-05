@@ -1,5 +1,6 @@
 import argparse
 from datetime import timedelta
+import time
 import logging
 from multiprocessing import Process
 
@@ -58,9 +59,6 @@ OUTPUT_FORMAT = 'JSON'
 DAYS_TO_CACHE = 10
 DAYS_TO_CACHE_ERRORS = 1
 
-
-
-
 def submit_search(smiles='', molfile='', type='identity'):
     if smiles and molfile:
         msg = 'Cannot have both smiles and sdf inputs'
@@ -72,7 +70,7 @@ def submit_search(smiles='', molfile='', type='identity'):
     
     if len(query)==1 :
         logger.info(str(('found cached request', query[0])))
-        return query[0]
+        return query[0].id
     elif len(query)>1:
         msg = 'too many cached requests found, will delete them.'
         logger.info(str((msg, query)))
@@ -91,15 +89,13 @@ def service_database_cache():
         p.start();
     logger.info('servicing completed')
     
-import time
 def service(loop_time_seconds=3, time_to_run=60):
     time_start = time.time()
     while time.time()-time_start < time_to_run:
         service_database_cache()
         time.sleep(loop_time_seconds)
     logger.info(str(('service loop exit: run time (s): ', (time.time()-time_start))) )    
-        
-        
+       
 def pubchem_search(request_id):  
     logger.info(str(('conduct search for pending request',request_id)))
     pqr = PubchemRequest.objects.get(pk=int(request_id))
@@ -150,10 +146,10 @@ parser.add_argument('-de', action='store', dest='days_to_cache_errors',
                     metavar='DAYS_TO_CACHE_ERRORS', required=True, type=int, 
                     help='the number of days to cache an errored request (pubchem or system)')
 parser.add_argument('-lt', action='store', dest='service_loop_time_s',
-                    metavar='SERVICE_LOOP_TIME', required=True, type=int, 
+                    metavar='SERVICE_LOOP_TIME_SEC', required=True, type=int, 
                     help='Number of seconds between each check for new pending requests in the database')
 parser.add_argument('-rt', action='store', dest='run_time_s',
-                    metavar='RUN_TIME', required=True, type=int, 
+                    metavar='RUN_TIME_SEC', required=True, type=int, 
                     help='Number of seconds to run and then exit')
 
 parser.add_argument('-v', '--verbose', dest='verbose', action='count',
@@ -171,6 +167,9 @@ if __name__ == "__main__":
     logging.basicConfig(level=log_level, format='%(msecs)d:%(module)s:%(lineno)d:%(levelname)s: %(message)s')        
     logger.setLevel(log_level)
     
+    print 'run cache service', timezone.now()
+    
     service(loop_time_seconds=args.service_loop_time_s, time_to_run=args.run_time_s);    
     clear_database_cache(days_to_cache=args.days_to_cache,days_to_cache_errors=args.days_to_cache_errors)
 
+    print 'exit cache service', timezone.now()
