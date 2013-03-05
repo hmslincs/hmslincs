@@ -1,51 +1,107 @@
 #!/bin/sh
 
-# find the restricted sm images and move them to the authenticated images static file dir
+# find the restricted sm images and move them to the authenticated images
+# static file dir
 
-SOURCE_DIR=../images
-DEST_DIR=../authenticated_static_files
+# NOTE: all variables below whose initialization has the form
+#
+# VAR=${VAR:-defaultvalue}
+#
+# can be overridden in the command line by prefixing it with a suitable inline
+# assignment.  In particular, to undo the script's default operation, run it
+# with the UNDO=true prefix.
 
-pwd=`pwd`
-DB=""
-DBUSER=""
-DBHOST=""
-if [[ "$pwd" =~ .*dev\.lincs.*support/hmslincs ]]; then
-  DB="devlincs"
-  DBUSER="devlincsweb"
-  DBHOST="dev.pgsql.orchestra"
-elif [[ "$pwd" =~ .*osher.*support/hmslincs ]]; then
-  DB="devoshernatprod"
-  DBUSER="devoshernatprodweb"
-  DBHOST="dev.pgsql.orchestra"
-elif [[ "$pwd" =~ /www/lincs.*support/hmslincs ]]; then
-  DB="lincs"
-  DBUSER="lincsweb"
-  DBHOST="pgsql.orchestra"  
+set -e
+
+DEBUG=${DEBUG:-false}
+
+# If UNDO is true, the script undoes the actions of its default operation
+UNDO=${UNDO:-false}
+
+# When CLEAN is true, the undo operation will also remove all subdirectories
+# under the destination directory; meaningful only if UNDO is true
+UNDO && CLEAN=${CLEAN:-false}
+
+$DEBUG && set -x
+VERBOSE=$( $DEBUG && echo '-v' )
+
+PROG=$( basename $0 )
+function _error {
+  echo "$PROG: $1" >&2
+  exit 1
+}
+
+# 'readlink -f' is used below to canonicalize paths; NOTE: GNU readlink is
+# required for this
+READLINK=${READLINK:-readlink}
+
+# SCRIPTDIR is used to:
+# 1) determine the location of the source and destination directories;
+# 2) determine the DB connection parameters, unless they have already been
+#    passed to the script through the environment
+SCRIPTDIR=$( dirname $( $READLINK -f $0 ) )
+BASEDIR=$( $READLINK -f $SCRIPTDIR/.. )
+
+SOURCEDIR=$BASEDIR/images
+DESTDIR=$BASEDIR/authenticated_static_files
+
+function _move_from {
+  origin=${1%/}
+  filepath=$2
+  tgt=$(dirname ${filepath#$origin/})
+  mkdir $VERBOSE -p $tgt
+  mv $VERBOSE -t $tgt $filepath
+}
+
+function move_restricted {
+  if [[ "$SCRIPTDIR" =~ .*dev\.lincs.*support/hmslincs ]]; then
+    DB=${DB:-devlincs}
+    DBUSER=${DBUSER:-devlincsweb}
+    DBHOST=${DBHOST:-dev.pgsql.orchestra}
+  elif [[ "$SCRIPTDIR" =~ .*osher.*support/hmslincs ]]; then
+    DB=${DB:-devoshernatprod}
+    DBUSER=${DBUSER:-devoshernatprodweb}
+    DBHOST=${DBHOST:-dev.pgsql.orchestra}
+  elif [[ "$SCRIPTDIR" =~ /www/lincs.*support/hmslincs ]]; then
+    DB=${DB:-lincs}
+    DBUSER=${DBUSER:-lincsweb}
+    DBHOST=${DBHOST:-pgsql.orchestra}
+  fi
+
+  if [[ -z "$DB" ]] || [[ -z "$DBUSER" ]] || [[ -z "$DBHOST" ]]; then
+    _error "Cannot determine db connection parameters.  Exiting..."
+  elif $DEBUG; then
+    echo "Will connect with 'psql $DB -h $DBHOST -U $DBUSER'"
+  fi
+
+  SQL='SELECT facility_id FROM db_smallmolecule WHERE is_restricted IS TRUE;'
+
+  cd $DESTDIR
+  count=0
+  for fac_id in $( psql $DB -h $DBHOST -U $DBUSER -Atc "$SQL" ); do 
+    $DEBUG && echo "facility id to restrict: $fac_id"; 
+    for fpath in $( find $SOURCEDIR -name "*$fac_id*" ); do
+      _move_from $SOURCEDIR $fpath
+      count=$(( count + 1 ))
+    done
+  done
+  $DEBUG && echo "$count files moved"
+}
+
+function _undo {
+  cd $SOURCEDIR
+  count=0
+  for fpath in $( find $DESTDIR -type f ); do
+    _move_from $DESTDIR $fpath
+    count=$(( count + 1 ))
+  done
+  $DEBUG && echo "$count files moved"
+
+  $CLEAN && find $DESTDIR -mindepth 1 -type d -exec rm -rf {} +
+}
+
+if $UNDO; then
+  _undo
 else
-  echo "Must run from one of the recognized directories"
+  move_restricted
 fi
-
-echo "DB: $DB"
-
-
-for x in `psql  $DB -h $DBHOST -c 'select facility_id from db_smallmolecule where is_restricted is true;'|awk '{print $1}'|grep -E ^[0-9]+ `;
-#for x in `psql -Udevoshernatprodweb devoshernatprod -h dev.pgsql.orchestra -c 'select facility_id from db_smallmolecule where is_restricted is true;'|awk '{print $1}'|grep -E ^[0-9]+ `;
-do 
-	echo "facility id to restrict: $x"; 
-	for y in `find $SOURCE_DIR -name "*$x*" `;
-		do
-		echo "file: $y"; 
-		dir=`echo "$y"|awk -F '/' '{print $3}'`
-		#dir1=`echo "$y"|perl -e "s#$SOURCE_DIR(.*)$y#\1#g"`
-		echo "dir: $dir"
-		#echo "dir1: $dir1"
-		echo "mv $y $DEST_DIR/$dir/"
-		if [[ ! -e $DEST_DIR/$dir ]] ;
-		then
-			echo "create directory: $DEST_DIR/$dir"
-			mkdir $DEST_DIR/$dir
-		fi
-		mv $y $DEST_DIR/$dir/
-	done
-done
-

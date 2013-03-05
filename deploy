@@ -1,0 +1,153 @@
+#!/bin/sh
+# -*- mode: shell-script -*-
+
+if $DEBUG; then set -x; fi
+
+SCRIPTNAME=$(basename $0)
+BASEDIR=${BASEDIR:-"$(dirname $(realpath $0))"}
+SUPPORTDIR=${SUPPORTDIR:-"$(dirname $(dirname $BASEDIR))/support"}
+
+LOGFILE=${LOGFILE:-"$0.log"}
+PRODSITE=prod
+DEVSITE=dev
+
+# PRODBRANCH=master
+# DEVBRANCH=dev
+PRODBRANCH=test-ignore
+DEVBRANCH=test-ignore
+
+URLTEMPLATE='http://%slincs.hms.harvard.edu/cgi-bin/cleanup.cgi'
+
+ORIGIN=${ORIGIN:-origin}
+GIT=${GIT:-git}
+FULL=false
+STATICS=true
+
+function error {
+  echo "$SCRIPTNAME: $1" >&2
+  exit 1
+}
+
+function __usage {
+    echo "$SCRIPTNAME [-h|-m|-f]"
+    echo "  -h -- this help message"
+    echo "  -m -- minimal update"
+    echo "  -f -- do full update (rebuild db, remake and move images, etc.)"
+    echo
+    echo "Default actions: git-pull, move images, kill fast cgi."
+}
+
+function main {
+  OPTIND=1
+  while getopts ":hmf" opt "$@"
+  do
+    echo $OPTIND
+    case "$opt" in
+      h)  __usage
+          return 0;;
+      m) FULL=false
+         STATICS=false;;
+      f) FULL=true
+         STATICS=true;;
+      ?) echo "Invalid option: -$OPTARG" >&2
+         __usage
+         return 1;;
+    esac
+  done
+
+  cd "$BASEDIR" || error "can't cd to $BASEDIR"
+
+  SITE="$1"
+  BRANCH="$2"
+
+  if [ -z "$SITE" ]; then
+    case "$BASEDIR" in
+      /www/lincs.*) SITE="$PRODSITE" ;;
+      *) SITE="$DEVSITE" ;;
+    esac
+  fi
+
+  if [ -z "$BRANCH" ]; then
+    if [ "$SITE" = "$PRODSITE" ]; then
+      BRANCH="$PRODBRANCH"
+    else
+      BRANCH="$DEVBRANCH"
+    fi
+  fi
+
+  local urlprefix
+  if [ "$SITE" = "$PRODSITE" ]; then
+    urlprefix=""
+  else
+    urlprefix="dev."
+  fi
+
+  URL=$(printf "$URLTEMPLATE" "$urlprefix")
+
+  echo
+  echo 'PARAMS:'
+  echo "site: $SITE"
+  echo "origin: $ORIGIN"
+  echo "branch: $BRANCH"
+  echo "url: $URL"
+  echo
+
+  deploy || error "failed with status $?"
+
+  return 0
+}
+
+function gitpull {
+  $GIT checkout $BRANCH >>"$LOGFILE" 2>&1 || error "git-checkout failed: $?"
+  $GIT pull $ORIGIN $BRANCH: >>"$LOGFILE" 2>&1 || error "git-pull failed: $?"
+
+  # local lastline
+  # lastline=$(tail -1 "$LOGFILE")
+  # [ "$lastline" = 'Already up-to-date.' ] && return 1
+  # echo "stayed: $lastline"
+
+  return 0
+}
+
+function builddb {
+  if $FULL; then
+    $BASEDIR/re_run.sh $SITE >>"$LOGFILE" 2>&1 || error "re_run.sh failed: $?"
+  fi
+}
+
+function makeimg {
+  if $STATICS; then
+    cd "$BASEDIR" || return 1
+    zsh src/do_scatterplots.sh >>"$LOGFILE" 2>&1 || \
+        error "src/do_scatterplots.sh failed: $?"
+  fi
+}
+
+function moveimg {
+  if $STATICS; then
+    cd "$BASEDIR" || return 1
+    ./find_and_move_restricted_images.sh >>"$LOGFILE" 2>&1 || \
+        error "find_and_move_restricted_images.sh failed: $?"
+  fi
+}
+
+function collectstatic {
+  if $STATICS; then
+    cd "$BASEDIR" || return 1
+    mkdir -p $SUPPORTDIR/images || return 1
+    python django/manage.py collectstatic --noinput >>"$LOGFILE" 2>&1 || \
+        error "manage.py collectstatic failed: $?"
+  fi
+}
+
+function killfcgi {
+  curl -f "$URL" || error '"'"curl -f $URL"'" failed'
+}
+
+function deploy {
+  date +'%n%c' >>"$LOGFILE"
+  gitpull && builddb && makeimg && moveimg && collectstatic && killfcgi
+  echo done
+}
+
+main $@
