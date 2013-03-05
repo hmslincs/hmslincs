@@ -1,6 +1,7 @@
 #!/bin/bash
 # run a python script in the django environment
 # can be used for cron jobs
+# NOTE: to run from cron, cd to this directory before executing command.
 
 check_errs()
 {
@@ -93,6 +94,6 @@ source $VIRTUALENV
 
 export DJANGO_SETTINGS_MODULE=hmslincs_server.settings
 export PYTHONPATH=./django:./src
-
+echo "python path for execute: $PYTHONPATH, command $@"
 
 python $@
