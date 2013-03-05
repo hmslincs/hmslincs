@@ -127,7 +127,9 @@ def identity_similarity_substructure_search(smiles='',sdf='', type='identity',
 
     """
 # TODO:    returns a list of cids found for the smiles substructure search
+    logger.info(str((os.getpid(), 'identity_similarity_substructure_search', smiles, 'has sdf' if sdf else 'no sdf')))
     
+    print 'loglevel pcs',logger.level    
     url = PUBCHEM_BASE_URL
     url += 'compound/'
     url += type + '/';
@@ -137,15 +139,19 @@ def identity_similarity_substructure_search(smiles='',sdf='', type='identity',
     if smiles:
         payload = { 'smiles': smiles }
         url += 'smiles/'
-    if sdf:
+    elif sdf:
+        payload = { 'sdf': sdf }
         url += 'sdf/'
+    else:
+        raise PubchemError('Must define either smiles or sdf')
     url += OUTPUT_FORMAT
     if type=='identity':
         url += '?identity_type=same_tautomer' # TODO: incorporate identity_type in the UI
     logger.info(str((os.getpid(), 'query url',url )))
     try:
-        if(sdf != ''):
-            r = requests.post(url, files=sdf, timeout=timeout )
+        if sdf:
+#            r = requests.post(url, files=sdf, timeout=timeout )
+            r = requests.post(url, data=payload, timeout=timeout )
         else:
             r = requests.post(url, data=payload, timeout=timeout )
     except Exception, e:
@@ -169,13 +175,15 @@ def identity_similarity_substructure_search(smiles='',sdf='', type='identity',
         
         wait_s = DEFAULT_INITIAL_WAIT
         time.sleep(wait_s)
+        logger.info(str(('check after ', wait_s)))
+
         r = requests.post(url, timeout=timeout )
         if(r.status_code != 200): 
             raise PubchemError(str(('HTTP response', r.status_code, r)))
         results = json.loads(r.text)
         
         tries = 1
-        time.sleep(wait_s)
+        #time.sleep(wait_s)
         
         while(results.has_key('Waiting')):
             if(tries != 1 and wait_s < max_wait_s):
@@ -225,8 +233,9 @@ if __name__ == "__main__":
     elif args.verbose >= 2:
         log_level = logging.DEBUG
     # NOTE this doesn't work because the config is being set by the included settings.py, and you can only set the config once
-    logging.basicConfig(level=log_level, format='%(msecs)d:%(module)s:%(lineno)d:%(levelname)s: %(message)s')        
-    logger.setLevel(log_level)
+    if args.verbose:
+        logging.basicConfig(level=log_level, format='%(msecs)d:%(module)s:%(lineno)d:%(levelname)s: %(message)s')        
+        logger.setLevel(log_level)
     
     search_params = { 'smiles' : args.smiles, 'type': args.type }
     

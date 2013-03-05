@@ -421,9 +421,13 @@ if __name__ == "__main__":
         log_level = logging.INFO
     elif args.verbose >= 2:
         log_level = logging.DEBUG
-    # NOTE this doesn't work because the config is being set by the included settings.py, and you can only set the config once
-    logging.basicConfig(level=log_level, format='%(msecs)d:%(module)s:%(lineno)d:%(levelname)s: %(message)s')        
-    logger.setLevel(log_level)
+    if args.verbose:
+        # NOTE: when running with the django settings file, the logging configured there will augment this, and 
+        # cause double logging. So this will manually override that.
+        # Probably a better solution would be to configure this utility as a "management command"
+        # and then let manage.py run it.  see: https://docs.djangoproject.com/en/1.4/howto/custom-management-commands/
+        logging.basicConfig(level=log_level, format='%(msecs)d:%(module)s:%(lineno)d:%(levelname)s: %(message)s')   
+        logger.setLevel(log_level)
 
     print 'importing ', args.inputFile
     main(args.inputFile)

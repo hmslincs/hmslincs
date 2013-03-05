@@ -215,6 +215,14 @@ INSTALLED_APPS = (
 # the site admins on every HTTP 500 error when DEBUG=False.
 # See http://docs.djangoproject.com/en/dev/topics/logging for
 # more details on how to customize your logging configuration.
+
+# NOTE: Django's default logging configuration
+# By default, Django configures the django.request logger so that all messages 
+# with ERROR or CRITICAL level are sent to AdminEmailHandler, as long as the DEBUG setting is set to False.
+#
+# All messages reaching the django catch-all logger when DEBUG is True are sent 
+# to the console. They are simply discarded (sent to NullHandler) when DEBUG is False.
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -223,7 +231,7 @@ LOGGING = {
             'format': '%(levelname)s %(asctime)s %(module)s:%(lineno)d %(process)d %(thread)d %(message)s'
         },
         'simple': {
-            'format': '%(pathname)s:%(lineno)d:%(levelname)s: %(message)s'
+            'format': '%(levelname)s %(msecs)d:%(pathname)s:%(lineno)d:%(levelname)s: %(message)s'
         },
     },
     'filters': {

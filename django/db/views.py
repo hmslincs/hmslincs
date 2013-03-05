@@ -551,7 +551,7 @@ def structure_search(request):
                     kwargs['smiles'] = smiles;
                     molfile = ''
                     if (request.FILES.has_key('sdf')):
-                        molfile =  request.FILES
+                        molfile =  request.FILES['sdf'].read()
                         kwargs['molfile'] = molfile
                     
                     request_id = pubchem_database_cache_service.submit_search(**kwargs)

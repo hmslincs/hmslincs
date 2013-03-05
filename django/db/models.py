@@ -131,6 +131,7 @@ class PubchemRequest(models.Model):
 #                               choices=PUBCHEM_TYPES,
 #                               default=PUBCHEM_TYPE_IDENTITY)
     date_time_fullfilled = models.DateTimeField(null=True) 
+    date_time_processing = models.DateTimeField(null=True) 
     date_time_requested = models.DateTimeField(null=False, default=timezone.now ) 
     # note, don't actually call the datetime.date.today function, since in this case it serves as a function pointer
     class Meta:

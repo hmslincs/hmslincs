@@ -123,7 +123,7 @@ function handleResult( obj ){
 		document.getElementById('ajax_message').innerHTML = 'Error returned from the server: ' + parsePubchemError(obj.pubchem_error); //'Server reports invalid input parameters.'; 
 	} else {
 		console.log('unknown response: ' + JSON.stringify(obj))
-		document.getElementById('ajax_message').innerHTML = JSON.stringify(obj) ;
+		//document.getElementById('ajax_message').innerHTML = JSON.stringify(obj) ;
 	}
 }
 
