@@ -35,7 +35,7 @@ OUTPUT_FORMAT = 'JSON'
 DEFAULT_TIMEOUT = 10
 DEFAULT_MAX_WAIT = 30
 DEFAULT_INITIAL_WAIT = 3
-DEFAULT_TRIES = 6
+DEFAULT_TRIES = 15
 
 DAYS_TO_CACHE = 1
 DAYS_TO_CACHE_PUBCHEM_ERRORS = 1
@@ -175,7 +175,7 @@ def identity_similarity_substructure_search(smiles='',sdf='', type='identity',
         
         wait_s = DEFAULT_INITIAL_WAIT
         time.sleep(wait_s)
-        logger.info(str(('check after ', wait_s)))
+        logger.info(str((os.getpid(), 'check after ', wait_s)))
 
         r = requests.post(url, timeout=timeout )
         if(r.status_code != 200): 
@@ -192,14 +192,14 @@ def identity_similarity_substructure_search(smiles='',sdf='', type='identity',
             logger.info(str((os.getpid(), 'checked pubchem listkey', list_key, 'tries', tries, 'elapsed', (datetime.now()-begin_time).seconds, 'seconds')))
             r = requests.post(url, timeout=timeout )
             if(r.status_code != 200): 
-                raise PubchemError(str(('HTTP response', r.status_code, r)))
+                raise PubchemError(str(('HTTP response', r.status_code, r.text)))
         
             results = json.loads(r.text)
             tries += 1
             if (tries > tries_till_fail):
-                raise PubchemError(str(('maximum allowed tries reached', tries)))
+                raise PubchemError(str(('Maximum allowed tries (try a more specific search)', tries)))
             
-        logger.info(str((os.getpid(), 'listkey', list_key, 'pubchem results returned,',results,', interval',
+        logger.info(str((os.getpid(), 'listkey', list_key, '- query results returned -  interval',
                          (datetime.now()-begin_time).seconds, 'seconds' )))  # note timedelta has days, seconds, microseconds
 
         key1 = 'IdentifierList'

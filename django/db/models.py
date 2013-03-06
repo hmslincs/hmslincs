@@ -121,7 +121,7 @@ PUBCHEM_TYPES = ((PUBCHEM_TYPE_IDENTITY, PUBCHEM_TYPE_IDENTITY),
                  (PUBCHEM_TYPE_SUBSTRUCTURE, PUBCHEM_TYPE_SUBSTRUCTURE),)
 
 class PubchemRequest(models.Model):
-    cids    = _TEXT(**_NULLOKSTR)
+    sm_facility_ids = _TEXT(**_NULLOKSTR)
     smiles  = _TEXT( **_NULLOKSTR )
     molfile = _TEXT( **_NULLOKSTR )
     type    = _TEXT( null=False)
@@ -139,7 +139,7 @@ class PubchemRequest(models.Model):
 
     
     def __unicode__(self):
-        return unicode((self.id, self.cids, self.smiles, 
+        return unicode((self.id, self.sm_facility_ids, self.smiles, 
                         'has_molfile' if self.molfile else 'no molfile',
                         self.error_message, self.pubchem_error_message, 
                         self.date_time_requested, self.date_time_fullfilled ))

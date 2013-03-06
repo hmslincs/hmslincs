@@ -9,7 +9,7 @@ from django.db import transaction
 from django.utils import timezone
 from django.db.models import Q
 
-from db.models import PubchemRequest
+from db.models import PubchemRequest, SmallMolecule
 from hmslincs_server import settings
 
 from hms.pubchem import PubchemError
@@ -67,6 +67,7 @@ def service_database_cache():
     logger.debug('servicing completed')
 #    transaction.commit()
     
+@transaction.commit_on_success
 def service(loop_time_seconds=3, time_to_run=60):
     logger.debug(str(('service:', loop_time_seconds, time_to_run)))
     time_start = time.time()
@@ -75,7 +76,7 @@ def service(loop_time_seconds=3, time_to_run=60):
         time.sleep(loop_time_seconds)
     logger.debug(str(('service loop exit: run time (s): ', (time.time()-time_start))) )    
        
-#@transaction.commit_on_success
+@transaction.commit_on_success
 def pubchem_search(request_id):  
     logger.info(str((os.getpid(),'conduct search for pending request',request_id)))
     pqr = PubchemRequest.objects.get(pk=int(request_id))
@@ -83,8 +84,13 @@ def pubchem_search(request_id):
     try:
         cids = identity_similarity_substructure_search(type=pqr.type, smiles=pqr.smiles, sdf=pqr.molfile)
         if(logger.isEnabledFor(logging.DEBUG)): 
-            logger.debug(str((os.getpid(),'pubchem cids returned',cids, pqr.id)))
-        pqr.cids = ','.join(str(x) for x in cids)
+            logger.debug(str((os.getpid(),'pubchem cids returned',cids, 'request', pqr.id)))
+        else:
+            logger.info(str((os.getpid(),'pubchem cids returned, count: ',len(cids),'request', pqr.id)))
+
+        queryset = SmallMolecule.objects.filter(pubchem_cid__in=cids )
+        if len(queryset) > 0:
+            pqr.sm_facility_ids = ','.join([x.facility_id for x in queryset])
         pqr.date_time_fullfilled = timezone.now() #datetime.now()
         pqr.save()
     except PubchemError, e:
@@ -99,8 +105,6 @@ def pubchem_search(request_id):
         pqr.error_message = e.args
         pqr.date_time_fullfilled = timezone.now() #datetime.now()
         pqr.save()
-#    finally:
-#        transaction.commit()
         
 #@transaction.commit_on_success
 def clear_database_cache(days_to_cache=DAYS_TO_CACHE, 

@@ -225,8 +225,7 @@ def smallMoleculeIndex(request):
     table = SmallMoleculeTable(queryset)
 
     outputType = request.GET.get('output_type','')
-    logger.error(str(("outputType:", outputType)))
-    if(outputType != ''):
+    if outputType:
         return send_to_file(outputType, 'small_molecule', table, queryset, request )
     
         if(len(queryset) == 1 ):
@@ -575,7 +574,7 @@ def structure_search(request):
 def get_cached_structure_search(request, search_request_id):
     """
     check whether the structure search specfied by the id has been fullfilled.
-    - if so, redirect the output to the list small molecules page and fill with the query for the CIDS found
+    - if so, redirect the output to the list small molecules page and fill with the query for the Facility_ids found
     - if not, return a waiting response
     """
     logger.debug(str(('check cached request',search_request_id)))
@@ -600,11 +599,12 @@ def get_cached_structure_search(request, search_request_id):
                 json_return = json.dumps(return_dict)
                 return HttpResponse(json_return, mimetype="application/x-javascript")
             else: #then the request has been fullfilled
-                temp =request.cids.split(',')
+#                temp =request.cids.split(',')
                 #logger.info(str(('do intersection with', temp)))
-                queryset = SmallMolecule.objects.filter(pubchem_cid__in=temp )
-                if len(queryset)>0 :
-                    return_dict = { 'facility_ids': ','.join([x.facility_id for x in queryset])}
+#                queryset = SmallMolecule.objects.filter(pubchem_cid__in=temp )
+                if request.sm_facility_ids :
+#                    return_dict = { 'facility_ids': ','.join([x.facility_id for x in queryset])}
+                    return_dict = { 'facility_ids': request.sm_facility_ids}
                     json_return = json.dumps(return_dict)
                     return HttpResponse(json_return, mimetype="application/x-javascript")
                 else:
