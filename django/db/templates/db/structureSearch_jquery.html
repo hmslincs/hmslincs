@@ -38,7 +38,6 @@ function supportFormData() {
 }
 
 $(document).ready(function() {
-
 	/* 
 		Attach a submit handler to the form - 
 		Note: choose to send the form in JS, for design simplicity (we can stay on this page), 
@@ -87,6 +86,7 @@ $(document).ready(function() {
 			//stopImage();
 		});
 	});
+	
 });
 
 function handleResult( obj ){
@@ -127,10 +127,13 @@ function handleResult( obj ){
 	}
 }
 
-//('(\'HTTP response\', 500, \'{"Fault": {"Message": "SubstructureSearch failed", "Code": "PUGREST.ServerError", "Details": ["SubstructureSearch fault: Server, message: NCBI C++ Exception:", "    Error: (CException::eUnknown) \\\\"pug_ws.cpp\\\\", line 999: CPUGServerApplication::x_checkResponse() --- Provided query can not be recognized as a chemical structure: sdfs Please use a valid CID, SMILES_SMARTS, InChI, or SDF formatted query."]}}\')',) localhost:209
-//Uncaught TypeError: Cannot read property '0' of null localhost:213
-//try:('('HTTP response', 500, '{"Fault": {"Message": "SubstructureSearch failed", "Code": "PUGREST.ServerError", "Details": ["SubstructureSearch fault: Server, message: NCBI C++ Exception:", "    Error: (CException::eUnknown) "pug_ws.cpp", line 999: CPUGServerApplication::x_checkResponse() --- Provided query can not be recognized as a chemical structure: sdfs Please use a valid CID, SMILES/SMARTS, InChI, or SDF formatted query."]}}')',) localhost:211
-
+/**
+ * Example of Pubchem errors to be parsed:
+ * ('(\'HTTP response\', 500, \'{"Fault": {"Message": "SubstructureSearch failed", "Code": "PUGREST.ServerError", "Details": ["SubstructureSearch fault: Server, message: NCBI C++ Exception:", "    Error: (CException::eUnknown) \\\\"pug_ws.cpp\\\\", line 999: CPUGServerApplication::x_checkResponse() --- Provided query can not be recognized as a chemical structure: sdfs Please use a valid CID, SMILES_SMARTS, InChI, or SDF formatted query."]}}\')',) localhost:209
+ * Uncaught TypeError: Cannot read property '0' of null localhost:213
+ * and:
+ * ('('HTTP response', 500, '{"Fault": {"Message": "SubstructureSearch failed", "Code": "PUGREST.ServerError", "Details": ["SubstructureSearch fault: Server, message: NCBI C++ Exception:", "    Error: (CException::eUnknown) "pug_ws.cpp", line 999: CPUGServerApplication::x_checkResponse() --- Provided query can not be recognized as a chemical structure: sdfs Please use a valid CID, SMILES/SMARTS, InChI, or SDF formatted query."]}}')',) localhost:211
+ **/
 function parsePubchemError(string) {
 	var string2 = string.replace( /\\/g,'');
 	console.log('try:' + string2)
@@ -147,32 +150,6 @@ function parsePubchemError(string) {
 		return string2;
 	}
 }
-
-// function parsePubchemError(string){
-// 	var string2 = string.replace('\\','');
-// 	console.log('try:' + string2)
-// 	var obj = jsonParse(string2);
-// 	console.log('parsed:' + JSON.stringify(obj))
-// 	var result = {'Message':'','Details':''};
-// 	walk(obj,result);
-// 	return result;
-// }
-// var walk = function(o, result){
-// 	for (var prop in o){
-// 		if (o.hasOwnProperty(prop)){
-// 			var val = o[prop];
-// 			for (var prop_to_find in result){
-// 				if (prop===prop_to_find){
-// 					result[prop_to_find]=val;
-// 				}
-// 			}
-// 			console.log('Value = ',val, ', Prop =', prop, ', Owner=',o);
-// 			if (typeof val == 'object'){
-// 			  walk(val, result);
-// 			}
-// 		}
-// 	}
-// };
 
 function checkForResults( pubchemRequestId ) {
 	url = get_cached_url + pubchemRequestId + "/";
@@ -197,17 +174,14 @@ function checkForResults( pubchemRequestId ) {
 function startImage(){
 	  console.log('start image');
  	  $("#searching_image").addClass("modal_search");
-		// 	  $("#searching_image").offset($("#form1").offset());
-		// 	  console.log('submit position: ' + JSON.stringify($("#form1").offset()) );
-		// 	  console.log('image position: ' + JSON.stringify($("#searching_image").offset()) );
 }
 
 function stopImage(){
 	console.log('stop image');
 	$("#searching_image").removeClass("modal_search");
 }
-
 </script>
+
 	<div id="search" class="structure_search_form">
 		<form
 			id="form1"
