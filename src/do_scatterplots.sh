@@ -1,4 +1,4 @@
-#!env zsh
+#!/usr/bin/env zsh
 
 # Requires GNU versions of sort, cut, and mkdir; if these GNU
 # utilities are not in PATH, or if they're available under different
@@ -21,7 +21,7 @@ JSPATH=$EXECDIR/django/responses/static/responses/js/pointmap.js
 cd $EXECDIR || false
 
 SORT=${SORT:-sort}
-JOIN=${JOIN:-python $SRCDIR/join.py}
+JOIN=${JOIN:-$SRCDIR/join.py}
 CUT=${CUT:-cut}
 MKDIR=${MKDIR:-mkdir}
 

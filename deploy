@@ -54,6 +54,8 @@ function main {
     esac
   done
 
+  shift $(( OPTIND - 1 ))
+
   cd "$BASEDIR" || error "can't cd to $BASEDIR"
 
   SITE="$1"
@@ -83,13 +85,15 @@ function main {
 
   URL=$(printf "$URLTEMPLATE" "$urlprefix")
 
-  echo
-  echo 'PARAMS:'
-  echo "site: $SITE"
-  echo "origin: $ORIGIN"
-  echo "branch: $BRANCH"
-  echo "url: $URL"
-  echo
+  if $DEBUG; then
+    echo
+    echo 'params:'
+    echo "SITE: $SITE"
+    echo "ORIGIN: $ORIGIN"
+    echo "BRANCH: $BRANCH"
+    echo "URL: $URL"
+    echo
+  fi
 
   deploy || error "failed with status $?"
 
@@ -97,6 +101,7 @@ function main {
 }
 
 function gitpull {
+  $DEBUG && echo -n "pulling branch $BRANCH from $ORIGIN... "
   git checkout $BRANCH >>"$LOGFILE" 2>&1 || error "git-checkout failed: $?"
   git pull $ORIGIN $BRANCH: >>"$LOGFILE" 2>&1 || error "git-pull failed: $?"
 
@@ -105,42 +110,53 @@ function gitpull {
   # [ "$lastline" = 'Already up-to-date.' ] && return 1
   # echo "stayed: $lastline"
 
+  $DEBUG && echo 'done'
   return 0
 }
 
 function builddb {
   if $FULL; then
+    $DEBUG && echo -n 'building db... '
     $BASEDIR/re_run.sh $SITE >>"$LOGFILE" 2>&1 || error "re_run.sh failed: $?"
+    $DEBUG && echo 'done'
   fi
 }
 
 function makeimg {
   if $STATICS; then
+    $DEBUG && echo -n 'making images... '
     cd "$BASEDIR" || return 1
-    zsh src/do_scatterplots.sh >>"$LOGFILE" 2>&1 || \
+    src/do_scatterplots.sh >>"$LOGFILE" 2>&1 || \
         error "src/do_scatterplots.sh failed: $?"
+    $DEBUG && echo 'done'
   fi
 }
 
 function moveimg {
   if $STATICS; then
+    $DEBUG && echo -n 'moving images... '
     cd "$BASEDIR" || return 1
     ./find_and_move_restricted_images.sh >>"$LOGFILE" 2>&1 || \
         error "find_and_move_restricted_images.sh failed: $?"
+    $DEBUG && echo 'done'
   fi
 }
 
 function collectstatic {
   if $STATICS; then
+    $DEBUG && echo -n 'collecting statics... '
     cd "$BASEDIR" || return 1
     mkdir -p $SUPPORTDIR/images || return 1
     python django/manage.py collectstatic --noinput >>"$LOGFILE" 2>&1 || \
         error "manage.py collectstatic failed: $?"
+    $DEBUG && echo 'done'
   fi
 }
 
 function killfcgi {
-  curl -f "$URL" || error '"'"curl -f $URL"'" failed'
+  $DEBUG && echo -n 'running cleanup.cgi... '
+  curl -sf "$URL" >> "$LOGFILE" || error '"'"curl -f $URL"'" failed'
+  $DEBUG && echo 'done'
 }
 
 function deploy {
