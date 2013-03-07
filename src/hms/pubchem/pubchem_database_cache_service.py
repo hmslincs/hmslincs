@@ -42,8 +42,13 @@ def submit_search(smiles='', molfile='', type='identity'):
     query = PubchemRequest.objects.filter(**kwargs)
     
     if len(query)==1 :
-        logger.info(str(('found cached request', query[0])))
-        return query[0].id
+        pqr = query[0]
+        logger.info(str(('found cached request', pqr)))
+        if pqr.error_message  or pqr.pubchem_error_message:
+            logger.warn(str(('cached request has error, retry', pqr )))
+            pqr.delete()
+        else:
+            return pqr.id
     elif len(query)>1:
         msg = 'too many cached requests found, will delete them.'
         logger.info(str((msg, query)))
@@ -54,7 +59,7 @@ def submit_search(smiles='', molfile='', type='identity'):
     pubchemRequest.save()
     return pubchemRequest.id;
 
-#@transaction.commit_on_success
+@transaction.commit_on_success
 def service_database_cache():
     logger.debug('service db cache')
     for pqr in PubchemRequest.objects.filter(date_time_processing__exact=None):
@@ -65,9 +70,7 @@ def service_database_cache():
         # make the parent process wait: if set to true, then the parent process won't wait.  p.daemon = True
         p.start();
     logger.debug('servicing completed')
-#    transaction.commit()
-    
-@transaction.commit_on_success
+
 def service(loop_time_seconds=3, time_to_run=60):
     logger.debug(str(('service:', loop_time_seconds, time_to_run)))
     time_start = time.time()
@@ -76,7 +79,6 @@ def service(loop_time_seconds=3, time_to_run=60):
         time.sleep(loop_time_seconds)
     logger.debug(str(('service loop exit: run time (s): ', (time.time()-time_start))) )    
        
-@transaction.commit_on_success
 def pubchem_search(request_id):  
     logger.info(str((os.getpid(),'conduct search for pending request',request_id)))
     pqr = PubchemRequest.objects.get(pk=int(request_id))
@@ -106,7 +108,7 @@ def pubchem_search(request_id):
         pqr.date_time_fullfilled = timezone.now() #datetime.now()
         pqr.save()
         
-#@transaction.commit_on_success
+@transaction.commit_on_success
 def clear_database_cache(days_to_cache=DAYS_TO_CACHE, 
                          seconds_to_cache=0, 
                          days_to_cache_errors=DAYS_TO_CACHE_ERRORS, 
@@ -131,7 +133,6 @@ def clear_database_cache(days_to_cache=DAYS_TO_CACHE,
             timezone.now()-timedelta(days=days_to_cache_errors, seconds=seconds_to_cache_errors)));
     logger.info(str(('clear cache, remove old errored requests: ', len(query))))
     query.delete();
-    transaction.commit()
     
 parser = argparse.ArgumentParser(description='Pubchem database caching service')
 

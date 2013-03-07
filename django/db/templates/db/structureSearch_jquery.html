@@ -18,7 +18,8 @@
 
 <script language="javascript" type="text/javascript">
 
-var MAX_REQUESTS = 30;
+var MAX_REQUESTS = 50;
+var TIMEOUT_BETWEEN_REQUESTS = 3000;
 var current_number_of_requests = 0;
 var get_cached_url = "{% url cached_structure_search_blank %}";
 var small_molecule_url = "{% url small_molecule_listing '' %}";
@@ -53,7 +54,7 @@ $(document).ready(function() {
 	 
 	  /* stop form from submitting normally */
 	  event.preventDefault();
-	 
+	  document.getElementById('ajax_message').innerHTML = '';
 		startImage();
 		
 		var formData = new FormData(this);	
@@ -104,7 +105,7 @@ function handleResult( obj ){
 		}
 		setTimeout(function() {
 			checkForResults(obj.pubchemRequestId) 
- 		}, 3000);
+ 		}, TIMEOUT_BETWEEN_REQUESTS);
 		return;
 	}
 	

@@ -613,7 +613,7 @@ def get_cached_structure_search(request, search_request_id):
                     json_return = json.dumps(return_dict)
                     return HttpResponse(json_return, mimetype="application/x-javascript")
         else:  # request not fullfilled yet
-                logger.info(str(('request not fullfilled yet', search_request_id)))
+                logger.debug(str(('request not fullfilled yet', search_request_id)))
                 return_dict = {'pubchemRequestId': request.id }
                 json_return = json.dumps(return_dict)
                 return HttpResponse(json_return, mimetype="application/x-javascript")
