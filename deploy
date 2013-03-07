@@ -133,6 +133,9 @@ function makeimg {
     cd "$BASEDIR" || return 1
     src/do_scatterplots.sh >>"$LOGFILE" 2>&1 || \
         error "src/do_scatterplots.sh failed: $?"
+    PYTHONPATH="$BASEDIR"/django DJANGO_SETTINGS_MODULE=hmslincs_server.settings \
+	python src/do_pathway.py >>"$LOGFILE" 2>&1 || \
+        error "src/do_pathway.py failed: $?"
     _debug 'done'
   fi
 }
