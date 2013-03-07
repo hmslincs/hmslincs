@@ -164,12 +164,32 @@ td.facility_salt_batch {
   border: 1px solid black ;
   padding: 4px;
 }
+
+#structure_search {
+  border-radius: 3px;
+  border: solid 1px #E6941E;
+  background: #F9E8D1;
+  padding: 0.5em;
+  margin-bottom: 1em;
+}
+
 .structure_search_form form p {
 	position:relative;
 	display:block;  
 }
-.structure_search_form form label { vertical-align: top }
-.structure_search_form form input,.structure_search_form form select { position: absolute; left:13em; }
+.structure_search_form form label { 
+	vertical-align: top
+}
+
+.structure_search_form input[type="submit"]{
+	padding-left: 2px;
+	padding-right: 2px;
+	padding-top: 1px;
+	padding-bottom: 1px;
+}
+.structure_search_form form input,.structure_search_form form select { 
+	position: absolute; left:8em; 
+}
 .structure_search_form form textarea {
 	/* TODO: Note: textarea overlaps subsequent elements unless position: relative; */
 	position: relative; left: 2em;
@@ -180,7 +200,7 @@ td.facility_salt_batch {
 	font-weight: bold;
 	color: #E6941E;;
 	display: block;
-  padding: 4px;
+  padding: 0px;
 }
 
 /*

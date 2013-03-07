@@ -80,7 +80,7 @@ $(document).ready(function() {
 			// When an HTTP error occurs, errorThrown receives the textual portion of the HTTP status, such as "Not Found" or "Internal Server Error.
 			console.log('fail: ' + textStatus + ', ')
 			console.log('errmsg: ' + showError(errorThrown));
-			document.getElementById('ajax_message').innerHTML = 'bad response from the server: ' + textStatus ;
+			document.getElementById('ajax_message').innerHTML = 'Bad response from the server, status: ' + jqXHR.status  + ' - ' + jqXHR.statusText;
 			stopImage();
 		}).always(function (jqXHR, textStatus) {
 			//stopImage();
@@ -182,24 +182,24 @@ function stopImage(){
 }
 </script>
 
-	<div id="search" class="structure_search_form">
+<div id="structure_search" class="structure_search_form">
+		{% if message %}
+			<div class='result_message'>
+				{{ message }}
+			</div>
+		{% endif %}
 		<form
 			id="form1"
 			action="#" method="post"
 			enctype="multipart/form-data"
 			class="structure_form"  
-			STYLE="display: inline; margin: 0px; padding: 0px;" >
+			 >
 			{{ structure_search_form.as_p }}
-			<p><input type="submit" value="Search" />
+			<p><input type="submit" value="Search" /></p>
 	  <div  id='searching_image'></div>
 			{% csrf_token %}
 		</form>
 		<br/>
-		{% if message %}
-			<div class='result_message'>
-				{{ message }}
-			</div>
 			<div class='result_message' id='ajax_message'></div>
-		{% endif %}
 	</div>
 {% endblock %}
