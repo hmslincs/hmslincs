@@ -1270,18 +1270,8 @@ class SiteSearchTable(PagedTable):
         exclude = {'rank'}
 
 def can_access_image(request, image_filename, is_restricted=False):
-    if(not is_restricted):
-        url = request.build_absolute_uri(settings.STATIC_URL + image_filename)
-        logger.info(str(('try to open url',url))) 
-        try:
-            response = urllib2.urlopen(url)
-            response.read()
-            #response.close() # TODO - is this needed?!
-            logger.debug(str(('found image at', url)))
-            return True
-        except Exception,e:
-            logger.info(str(('no image found at', url, e)))
-        return False
+    if not is_restricted:
+        return True
     else:
         _path = os.path.join(settings.STATIC_AUTHENTICATED_FILE_DIR,image_filename)
         v = os.path.exists(_path)
