@@ -19,6 +19,7 @@ import django_tables2 as tables
 from django_tables2 import RequestConfig
 from django_tables2.utils import A  # alias for Accessor
 from django.core.servers.basehttp import FileWrapper
+from django.contrib.staticfiles.finders import FileSystemFinder
 import os
 
 from db.models import SmallMolecule, SmallMoleculeBatch, Cell, Protein, DataSet, Library, FieldInformation,AttachedFile,DataRecord,DataColumn,LibraryMapping
@@ -38,6 +39,8 @@ facility_salt_id = " sm.facility_id || '-' || sm.salt_id " # Note: because we ha
 facility_salt_batch_id = facility_salt_id + " || '-' || smb.facility_batch_id " # Note: because we have a composite key for determining unique sm structures, we need to do this
 facility_salt_batch_id_2 = " trim( both '-' from (" + facility_salt_id + " || '-' || coalesce(smb.facility_batch_id::TEXT,'')))" # need this one for datasets, since they may be linked either to sm or smb - sde4
 OMERO_IMAGE_COLUMN_TYPE = 'omero_image'
+
+filesystemfinder = FileSystemFinder()
 
 from dump_obj import dumpObj
 def dump(obj):
@@ -1271,7 +1274,8 @@ class SiteSearchTable(PagedTable):
 
 def can_access_image(request, image_filename, is_restricted=False):
     if not is_restricted:
-        return True
+        matches = filesystemfinder.find(image_filename)
+        return bool(matches)
     else:
         _path = os.path.join(settings.STATIC_AUTHENTICATED_FILE_DIR,image_filename)
         v = os.path.exists(_path)
