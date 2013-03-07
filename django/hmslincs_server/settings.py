@@ -81,6 +81,7 @@ else:
         # Don't forget to use absolute paths, not relative paths.
         '/home/sde4/docs/work/LINCS/data/images/',
         '/home/sde4/docs/work/LINCS/data/upload_files/',
+        op.join(_djangopath, '..', 'sampledata', 'images' ),
     )   
 
 # add our custom hmslincs project library path
