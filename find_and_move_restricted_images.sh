@@ -14,16 +14,19 @@
 set -e
 
 DEBUG=${DEBUG:-false}
+if $DEBUG; then
+  set -x
+  VERBOSE=-v
+else
+  VERBOSE=
+fi
 
 # If UNDO is true, the script undoes the actions of its default operation
 UNDO=${UNDO:-false}
 
 # When CLEAN is true, the undo operation will also remove all subdirectories
 # under the destination directory; meaningful only if UNDO is true
-UNDO && CLEAN=${CLEAN:-false}
-
-$DEBUG && set -x
-VERBOSE=$( $DEBUG && echo '-v' )
+$UNDO && CLEAN=${CLEAN:-false}
 
 PROG=$( basename $0 )
 function _error {
@@ -54,21 +57,21 @@ function _move_from {
 }
 
 function move_restricted {
-  if [[ "$SCRIPTDIR" =~ .*dev\.lincs.*support/hmslincs ]]; then
+  if [[ $SCRIPTDIR =~ .*dev\.lincs.*support/hmslincs ]]; then
     DB=${DB:-devlincs}
     DBUSER=${DBUSER:-devlincsweb}
     DBHOST=${DBHOST:-dev.pgsql.orchestra}
-  elif [[ "$SCRIPTDIR" =~ .*osher.*support/hmslincs ]]; then
+  elif [[ $SCRIPTDIR =~ .*osher.*support/hmslincs ]]; then
     DB=${DB:-devoshernatprod}
     DBUSER=${DBUSER:-devoshernatprodweb}
     DBHOST=${DBHOST:-dev.pgsql.orchestra}
-  elif [[ "$SCRIPTDIR" =~ /www/lincs.*support/hmslincs ]]; then
+  elif [[ $SCRIPTDIR =~ /www/lincs.*support/hmslincs ]]; then
     DB=${DB:-lincs}
     DBUSER=${DBUSER:-lincsweb}
     DBHOST=${DBHOST:-pgsql.orchestra}
   fi
 
-  if [[ -z "$DB" ]] || [[ -z "$DBUSER" ]] || [[ -z "$DBHOST" ]]; then
+  if [[ -z $DB ]] || [[ -z $DBUSER ]] || [[ -z $DBHOST ]]; then
     _error "Cannot determine db connection parameters.  Exiting..."
   elif $DEBUG; then
     echo "Will connect with 'psql $DB -h $DBHOST -U $DBUSER'"
@@ -79,13 +82,13 @@ function move_restricted {
   cd $DESTDIR
   count=0
   for fac_id in $( psql $DB -h $DBHOST -U $DBUSER -Atc "$SQL" ); do 
-    $DEBUG && echo "facility id to restrict: $fac_id"; 
+    if $DEBUG; then echo "facility id to restrict: $fac_id"; fi
     for fpath in $( find $SOURCEDIR -name "*$fac_id*" ); do
       _move_from $SOURCEDIR $fpath
       count=$(( count + 1 ))
     done
   done
-  $DEBUG && echo "$count files moved"
+  if $DEBUG; then echo "$count files moved"; fi
 }
 
 function _undo {
@@ -95,7 +98,7 @@ function _undo {
     _move_from $DESTDIR $fpath
     count=$(( count + 1 ))
   done
-  $DEBUG && echo "$count files moved"
+  if $DEBUG; then echo "$count files moved"; fi
 
   $CLEAN && find $DESTDIR -mindepth 1 -type d -exec rm -rf {} +
 }

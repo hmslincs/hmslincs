@@ -33,32 +33,15 @@ def main():
 def ignore_errors(yn):
     print '\\%s ON_ERROR_STOP' % ('unset' if yn else 'set')
 
-def add_column(tablename, columnname, type_):
-    return """
-DO $$
-BEGIN
-IF NOT EXISTS (
-        SELECT 1 FROM information_schema.columns
-         WHERE table_schema='public'
-           AND table_name='%(tablename)s'
-           AND column_name='%(columnname)s')
-THEN
-    EXECUTE format('ALTER TABLE %%I.%%I ADD %%I %(type_)s',
-                   'public', '%(tablename)s', '%(columnname)s');
-    END IF;
-    END; $$;
-""" % locals()
-
 def createTableIndex(tableName, model):
     index = '%s_index' % tableName
     qualifier = 'cascade'
     kws = dict(locals())
 
-    # ignore_errors(True)
-    # print ('alter table %(tableName)s '
-    #        'add column search_vector tsvector;' % kws)
-    # ignore_errors(False)
-    print add_column(tableName, 'search_vector', 'tsvector')
+    ignore_errors(True)
+    print ('alter table %(tableName)s '
+           'add column search_vector tsvector;' % kws)
+    ignore_errors(False)
 
     createTableIndexTrigger(tableName, model)
     createTableIndexUpdate(tableName, model)

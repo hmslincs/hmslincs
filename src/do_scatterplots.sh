@@ -13,10 +13,13 @@ set -e
 
 DEBUG=${DEBUG:-false}
 
+if [[ -n $VIRTUAL_ENV ]]; then
+  source "$VIRTUAL_ENV/bin/activate"
+fi
+
 SRCDIR=$( dirname $0 )
 EXECDIR=$( dirname $SRCDIR )
 JSPATH=$EXECDIR/django/responses/static/responses/js/pointmap.js
-
 
 cd $EXECDIR || false
 
