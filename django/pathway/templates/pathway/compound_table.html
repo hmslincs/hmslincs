@@ -14,17 +14,13 @@
     </td>
     <td class="kinomescan">
       {% if sd.kinomescan %}
-        <a href="/db/datasets/{{ sd.kinomescan }}/">yes</a>
-      {% else %}
-        no&nbsp; {# nbsp to tweak horizontal alignment #}
+        <a href="/db/datasets/{{ sd.kinomescan }}/">&#x2714;</a>
       {% endif %}
     </td>
     <td class="signature">
       {% if sd.signature %}
         <img src="{{ STATIC_URL }}pathway/img/signature-{{ signature.target_name|slugify }}-{{ sd.drug|slugify }}.png"
              width="250" height="20">
-      {% else %}
-        <span class="no-signature">not available</span>
       {% endif %}
     </td>
   </tr>
