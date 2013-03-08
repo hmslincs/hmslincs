@@ -1,8 +1,7 @@
 {% extends "db/base.html" %}
 {% load hms_tags %}
 {% block content %}
-{#<h2 class='entity_detail_title'>{% if type == "study" %}Study{% endif %}{% if type == "screen" %}Screen{% endif %} {{ object.facility_id.value }} - {{ object.title.value }}</h2>#}
-<h2 class='entity_detail_title'>HMSL{{ object.facility_id.value }} - {{ object.title.value }}</h2>
+        {% include "db/detailTitle.html" with name=object.title type="Dataset" id=object.facility_id %}
 	<ul class="basictab">
 		<li class='{% selectedTag request "^/db/datasets/\d+/main$"%}{%selectedTag request "^/db/datasets/\d+/$" %}'><a  href="{% url dataset_detail_main facility_id=facilityId%}">Detail</a></li>
 {% if has_small_molecules %}

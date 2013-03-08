@@ -1,0 +1,12 @@
+{% comment %}
+name: field
+type: string
+id: field
+{% endcomment %}
+<h2 class='entity_detail_title'>
+  {{ name.value }}
+  <span class="entity-detail-other">
+    - {{ type }}
+    (ID:{{ id.value }})
+  </span>
+</h2>

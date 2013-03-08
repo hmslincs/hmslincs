@@ -9,7 +9,7 @@
 			<img class='compound_image' src="{% url restricted_image filepath=image_location %}" onclick="w=window.open('{% url restricted_image filepath=image_location %}','image','height=500,width=500');w.moveTo(500,400);"/>
 		{% endif %}
 	{% endif %}
-<h2 class='entity_detail_title'>Small Molecule Information</h2>
+        {% include "db/detailTitle.html" with name=object.name type="Small Molecule" id=object.facility_salt %}
 	{% if is_restricted  and not user.is_authenticated %}
 		Detailed information for this Small Molecule is restricted at this time.
 	{% endif %}
