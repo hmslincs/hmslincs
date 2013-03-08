@@ -169,7 +169,11 @@ function killfcgi {
 }
 
 function deploy {
-  date +'%n%c' >>"$LOGFILE"
+  echo >>"$LOGFILE"
+  echo "===========================================================================" >>"$LOGFILE"
+  echo $(date --iso-8601=seconds) \($(date +%A)\) >>"$LOGFILE"
+  echo "deployed by $USER ($UID) connected from ${SSH_CLIENT/ *}" >>"$LOGFILE"
+  echo >>"$LOGFILE"
   gitpull && builddb && makeimg && moveimg && collectstatic && killfcgi
   echo done
 }
