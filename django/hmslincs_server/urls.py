@@ -4,7 +4,7 @@ from django.views.generic import TemplateView
 from settings import _djangopath
 import os.path as op
 from tastypie.api import Api
-from db.api import SmallMoleculeResource,CellResource,DataSetResource,DataSetDataResource,ProteinResource,LibraryResource
+from db.api import SmallMoleculeResource,CellResource,DataSetResource,DataSetDataResource,DataSetData2Resource,ProteinResource,LibraryResource
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 smallmolecule_resource = SmallMoleculeResource()
@@ -13,6 +13,7 @@ v1_api.register(SmallMoleculeResource())
 v1_api.register(CellResource())
 v1_api.register(DataSetResource())
 v1_api.register(DataSetDataResource())
+v1_api.register(DataSetData2Resource())
 v1_api.register(ProteinResource())
 v1_api.register(LibraryResource())
 

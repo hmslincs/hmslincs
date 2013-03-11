@@ -1,7 +1,6 @@
 import os
 import os.path as op
 import re
-import collections as co
 
 import typecheck as tc
 import strategy as st

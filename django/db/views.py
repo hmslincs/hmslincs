@@ -34,8 +34,6 @@ from db.models import SmallMolecule, SmallMoleculeBatch, Cell, Protein, DataSet,
 from db.models import PubchemRequest
 from db.models import get_detail
 from PagedRawQuerySet import PagedRawQuerySet
-from hms.pubchem import PubchemError
-from hms.pubchem import pubchem_compound_search
 
 import logging
 
