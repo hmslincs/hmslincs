@@ -1,6 +1,6 @@
 {% extends "db/base.html" %}
 {% block content %}
-<h2 class='entity_detail_title'>Cell Information</h2>
+{% include "db/detailTitle.html" with name=object.name type="Cell" id=object.facility_id %}
  {% include "db/detailListing.html" %}
 	{% if attached_files %}
 		<h2 class='entity_detail_title'>Attached Files</h2>

@@ -1,9 +1,11 @@
 #!/bin/sh
 # -*- mode: shell-script -*-
 
-SCRIPTNAME=$(basename $0)
+PROG=$(basename $0)
 BASEDIR=${BASEDIR:-"$(dirname $(realpath $0))"}
 SUPPORTDIR=${SUPPORTDIR:-"$(dirname $(dirname $BASEDIR))/support"}
+VIRTUAL_ENV=${VIRTUAL_ENV:-"$SUPPORTDIR/virtualenv"}
+source "$VIRTUAL_ENV/bin/activate"
 
 LOGFILE=${LOGFILE:-"$0.log"}
 PRODSITE=prod
@@ -21,36 +23,46 @@ FULL=false
 STATICS=true
 
 function error {
-  echo "$SCRIPTNAME: $1" >&2
+  echo "$PROG: $1" >&2
   exit 1
 }
 
+function _debug {
+  if $DEBUG; then
+    echo "$@"
+  fi
+}
+
 function __usage {
-    echo "$SCRIPTNAME [-h|-m|-f] [SITE [BRANCH]]"
-    echo "  -h -- this help message"
-    echo "  -m -- minimal update"
-    echo "  -f -- do full update (rebuild db, remake and move images, etc.)"
-    echo
-    echo "SITE should be either $PRODSITE or $DEVSITE.  BRANCH should be a suitable "
-    echo "branch from $ORIGIN."
-    echo
-    echo "Default actions: git-pull, make and move files, kill fast cgi."
+    echo "$PROG [-m|-f] [-d] [SITE [BRANCH]]
+$PROG -h
+
+  -h -- print this help message and exit
+  -m -- minimal update
+  -f -- do full update (rebuild db, remake and move images, etc.)
+  -d -- debug mode
+
+SITE should be either $PRODSITE or $DEVSITE.  BRANCH should be a suitable
+branch from $ORIGIN.
+
+Default actions: git-pull, make and move files, kill fast cgi."
+    exit $1
 }
 
 function main {
   OPTIND=1
-  while getopts ":hmf" opt "$@"
+  while getopts ":hmfd" opt "$@"
   do
     case "$opt" in
-      h)  __usage
-          return 0;;
+      h) __usage 0;;
       m) FULL=false
          STATICS=false;;
       f) FULL=true
          STATICS=true;;
-      ?) echo "Invalid option: -$OPTARG" >&2
-         __usage
-         return 1;;
+      d) DEBUG=true
+         LOGFILE=$(tty);;
+      ?) echo "$0: illegal option -- $OPTARG" >&2
+         __usage 1;;
     esac
   done
 
@@ -61,38 +73,37 @@ function main {
   SITE="$1"
   BRANCH="$2"
 
-  if [ -z "$SITE" ]; then
+  if [[ -z $SITE ]]; then
     case "$BASEDIR" in
       /www/lincs.*) SITE="$PRODSITE" ;;
-      *) SITE="$DEVSITE" ;;
+                 *) SITE="$DEVSITE" ;;
     esac
   fi
 
-  if [ -z "$BRANCH" ]; then
-    if [ "$SITE" = "$PRODSITE" ]; then
+  if [[ -z $BRANCH ]]; then
+    if [[ $SITE = $PRODSITE ]]; then
       BRANCH="$PRODBRANCH"
     else
       BRANCH="$DEVBRANCH"
     fi
   fi
 
-  local urlprefix
-  if [ "$SITE" = "$PRODSITE" ]; then
-    urlprefix=""
+  if [[ $SITE = $PRODSITE ]]; then
+    URL=$(printf "$URLTEMPLATE" "")
+  elif [[ $SITE = $DEVSITE ]]; then
+    URL=$(printf "$URLTEMPLATE" dev.)
   else
-    urlprefix="dev."
+    URL=
+    echo "$SITE is not a supported site: will not run cleanup.cgi"
   fi
 
-  URL=$(printf "$URLTEMPLATE" "$urlprefix")
-
   if $DEBUG; then
-    echo
-    echo 'params:'
-    echo "SITE: $SITE"
-    echo "ORIGIN: $ORIGIN"
-    echo "BRANCH: $BRANCH"
-    echo "URL: $URL"
-    echo
+    echo "params:
+SITE: $SITE
+ORIGIN: $ORIGIN
+BRANCH: $BRANCH
+URL: $URL
+"
   fi
 
   deploy || error "failed with status $?"
@@ -101,66 +112,68 @@ function main {
 }
 
 function gitpull {
-  $DEBUG && echo -n "pulling branch $BRANCH from $ORIGIN... "
+  _debug -n "pulling branch $BRANCH from $ORIGIN... "
   git checkout $BRANCH >>"$LOGFILE" 2>&1 || error "git-checkout failed: $?"
-  git pull $ORIGIN $BRANCH: >>"$LOGFILE" 2>&1 || error "git-pull failed: $?"
-
-  # local lastline
-  # lastline=$(tail -1 "$LOGFILE")
-  # [ "$lastline" = 'Already up-to-date.' ] && return 1
-  # echo "stayed: $lastline"
-
-  $DEBUG && echo 'done'
+  git pull --ff-only $ORIGIN $BRANCH: >>"$LOGFILE" 2>&1 || error "git-pull failed: $?"
+  _debug 'done'
   return 0
 }
 
 function builddb {
   if $FULL; then
-    $DEBUG && echo -n 'building db... '
+    _debug -n 'building db... '
     $BASEDIR/re_run.sh $SITE >>"$LOGFILE" 2>&1 || error "re_run.sh failed: $?"
-    $DEBUG && echo 'done'
+    _debug 'done'
   fi
 }
 
 function makeimg {
   if $STATICS; then
-    $DEBUG && echo -n 'making images... '
+    _debug -n 'making images... '
     cd "$BASEDIR" || return 1
     src/do_scatterplots.sh >>"$LOGFILE" 2>&1 || \
         error "src/do_scatterplots.sh failed: $?"
-    $DEBUG && echo 'done'
+    PYTHONPATH="$BASEDIR"/django DJANGO_SETTINGS_MODULE=hmslincs_server.settings \
+	python src/do_pathway.py >>"$LOGFILE" 2>&1 || \
+        error "src/do_pathway.py failed: $?"
+    _debug 'done'
   fi
 }
 
 function moveimg {
   if $STATICS; then
-    $DEBUG && echo -n 'moving images... '
+    _debug -n 'moving images... '
     cd "$BASEDIR" || return 1
-    ./find_and_move_restricted_images.sh >>"$LOGFILE" 2>&1 || \
+    DEBUG=$DEBUG ./find_and_move_restricted_images.sh >>"$LOGFILE" 2>&1 || \
         error "find_and_move_restricted_images.sh failed: $?"
-    $DEBUG && echo 'done'
+    _debug 'done'
   fi
 }
 
 function collectstatic {
   if $STATICS; then
-    $DEBUG && echo -n 'collecting statics... '
+    _debug -n 'collecting statics... '
     cd "$BASEDIR" || return 1
     mkdir -p $SUPPORTDIR/images || return 1
     python django/manage.py collectstatic --noinput >>"$LOGFILE" 2>&1 || \
         error "manage.py collectstatic failed: $?"
-    $DEBUG && echo 'done'
+    _debug 'done'
   fi
 }
 
 function killfcgi {
-  $DEBUG && echo -n 'running cleanup.cgi... '
+  [[ -z $URL ]] && return 0
+  _debug -n 'running cleanup.cgi... '
   curl -sf "$URL" >> "$LOGFILE" || error '"'"curl -f $URL"'" failed'
-  $DEBUG && echo 'done'
+  _debug 'done'
 }
 
 function deploy {
-  date +'%n%c' >>"$LOGFILE"
+  echo >>"$LOGFILE"
+  echo "===========================================================================" >>"$LOGFILE"
+  echo $(date --iso-8601=seconds) \($(date +%A)\) >>"$LOGFILE"
+  echo "deployed by $USER ($UID) connected from ${SSH_CLIENT/ *}" >>"$LOGFILE"
+  echo >>"$LOGFILE"
   gitpull && builddb && makeimg && moveimg && collectstatic && killfcgi
   echo done
 }

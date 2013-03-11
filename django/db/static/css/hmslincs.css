@@ -91,8 +91,10 @@ th.desc {
 .entity_detail_title{
 	text-indent: 5px;
 	font-size: large;
-	font-weight: bold;
 	border-bottom: 1px solid gray;
+}
+.entity-detail-other {
+  font-weight: normal;
 }
 .propertyLabelColumn {
   width: 160px;

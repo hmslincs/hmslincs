@@ -27,6 +27,8 @@ from django_tables2.utils import A  # alias for Accessor
 from django.core.servers.basehttp import FileWrapper
 from django.core.urlresolvers import reverse
 from django.shortcuts import render
+from django.contrib.staticfiles.finders import FileSystemFinder
+import os
 
 from db.models import SmallMolecule, SmallMoleculeBatch, Cell, Protein, DataSet, Library, FieldInformation,AttachedFile,DataRecord,DataColumn,LibraryMapping
 from db.models import PubchemRequest
@@ -49,6 +51,8 @@ OMERO_IMAGE_COLUMN_TYPE = 'omero_image'
 DAYS_TO_CACHE = 1
 DAYS_TO_CACHE_PUBCHEM_ERRORS = 1
 SECONDS_TO_WAIT = 300
+
+filesystemfinder = FileSystemFinder()
 
 from dump_obj import dumpObj
 def dump(obj):
@@ -1630,18 +1634,9 @@ class SiteSearchTable(PagedTable):
         exclude = {'rank'}
 
 def can_access_image(request, image_filename, is_restricted=False):
-    if(not is_restricted):
-        url = request.build_absolute_uri(settings.STATIC_URL + image_filename)
-        logger.debug(str(('try to open url',url))) 
-        try:
-            response = urllib2.urlopen(url)
-            response.read()
-            #response.close() # TODO - is this needed?!
-            logger.debug(str(('found image at', url)))
-            return True
-        except Exception,e:
-            logger.debug(str(('no image found at', url, e)))
-        return False
+    if not is_restricted:
+        matches = filesystemfinder.find(image_filename)
+        return bool(matches)
     else:
         _path = os.path.join(settings.STATIC_AUTHENTICATED_FILE_DIR,image_filename)
         v = os.path.exists(_path)
