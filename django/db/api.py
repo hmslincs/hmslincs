@@ -387,9 +387,11 @@ class DataSetDataResource(Resource):
         # Note, case is erased when cursor.description is filled, so use underscores, and leave the camelcasing for later
         sql = """select dr.id, 
             ds.facility_id as bioassay_id, 
-            sm.facility_id sm_center_compound_id, 
+            sm.facility_id as sm_center_compound_id, 
+            sm.lincs_id as SM_LINCS_ID,
             sm.name as sm_name,
             cell.name as cl_name, 
+            cell.cl_id as cl_id,
             cell.facility_id as cl_center_specific_id,
             protein.name as pp_name,
             protein.lincs_id as pp_lincs_id,
