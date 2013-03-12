@@ -142,11 +142,20 @@ class DataSetResource(ModelResource):
     This version of the database export shows the DatasetData columns serially, 
     as is specified for the SAF version 0.1 data interchange format for the LIFE system.
     """
+    absolute_uri = 'http://lincs.hms.harvard.edu/db/api/v1/datasetdata/'
     
     class Meta:
         queryset = DataSet.objects.all() #.filter(is_restricted==False)
         # TODO: authorization
         excludes = ['lead_screener_firstname','lead_screener_lastname','lead_screener_email']
+     
+    def dispatch(self, request_type, request, **kwargs):
+        """ override in order to be able to grab the request uri
+        """
+        
+        self.absolute_uri = request.build_absolute_uri()
+        return super(DataSetResource,self).dispatch(request_type, request, **kwargs)  
+         
     def dehydrate(self, bundle):
         _facility_id =str(bundle.data['facility_id'])
         dataset_id = bundle.data['id']
@@ -158,11 +167,14 @@ class DataSetResource(ModelResource):
         datasetDataColumns = [camel_case(col[0]) for col in datasetDataCursor.description]
         
         bundle.data = get_detail_bundle(bundle.obj, ['dataset',''])
-        # TODO: this is a kludge to deal with issue #103 db: api: URI for datasetdata is incorrect
-        bundle.data['endpointFile'] = {'uri':'http://lincs.hms.harvard.edu/db/api/v1/datasetdata/'+ _facility_id + "/?format=csv",
+        saf_uri = self.absolute_uri.replace('dataset','datasetdata')
+        saf_uri = saf_uri.replace('json','csv');
+        bundle.data['endpointFile'] = {'uri': saf_uri,
                                        'noCols':len(datasetDataColumns),
                                        'cols':datasetDataColumns
                                        }
+        bundle.data['safVersion'] = '0.1'  # TODO: drive this from data
+        bundle.data['screeningFacility'] = 'HMS' #TODO: drive this from data
         return bundle
 
     def build_schema(self):
@@ -451,19 +463,29 @@ class DataSetFlattenedResource(ModelResource):
     This version of the database export shows the DatasetData columns in a pivoted, flattened table,
     in the same form as the web UI
     """
+    absolute_uri = 'http://lincs.hms.harvard.edu/db/api/v1/datasetdata/'
     
     class Meta:
         queryset = DataSet.objects.all() #.filter(is_restricted==False)
         # TODO: authorization
         # TODO: it would be good to feed these from the view/tables2 code; or vice versa
         excludes = ['lead_screener_firstname','lead_screener_lastname','lead_screener_email']
+
+    def dispatch(self, request_type, request, **kwargs):
+        """ override in order to be able to grab the request uri
+        """
+        
+        self.absolute_uri = request.build_absolute_uri()
+        return super(DataSetResource,self).dispatch(request_type, request, **kwargs)  
+         
     def dehydrate(self, bundle):
         # TODO: the following call executes the query *just* to get the column names
         _facility_id =str(bundle.data['facility_id'])
         visibleColumns = get_visible_columns(views.DataSetManager(bundle.obj).get_table())
         bundle.data = get_detail_bundle(bundle.obj, ['dataset',''])
-        # TODO: this is a kludge to deal with issue #103 db: api: URI for datasetdata is incorrect
-        bundle.data['endpointFile'] = {'uri':'http://lincs.hms.harvard.edu/db/api/v1/datasetdataflattened/'+ _facility_id + "/?format=csv",
+        saf_uri = self.absolute_uri.replace('dataset','datasetdata')
+        saf_uri = saf_uri.replace('json','csv');
+        bundle.data['endpointFile'] = {'uri': saf_uri,
                                        'noCols':len(visibleColumns),
                                        'cols':visibleColumns.values()
                                        }
