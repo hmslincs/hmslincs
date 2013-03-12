@@ -263,7 +263,7 @@ LOGGING = {
             'level': 'ERROR',
             'propagate': True,
         },
-        'db': {
+        'db': { 
             'handlers': ['console'],
             'propagate': True,
             'level': 'INFO',
@@ -273,15 +273,15 @@ LOGGING = {
             'propagate': True,
             'level': 'INFO',
         },
-        'util': {  # if you want to see how django makes sql, use this one
+        'util': {  
             'handlers': ['console'],
             'propagate': True,
             'level': 'INFO',
         },
-#        'db.PagedRawQuerySet': {  
-#            'handlers': ['console'],
-#            'propagate': True,
-#            'level': 'DEBUG',
-#        },
+        'django.db': {  # if you want to see how django makes sql, use this one
+            'handlers': ['console'],
+            'propagate': True,
+            'level': 'INFO',
+        },
     }
 }
