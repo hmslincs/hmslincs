@@ -103,11 +103,12 @@ def readDataColumns(path):
     labels = {'Worksheet Column':'worksheet_column',
               'Display Order':'display_order',
               'Name':'name',
+              'Display Name':'display_name',
               'Data Type':'data_type',
               'Decimal Places':'precision',
               'Description':'description',
               'Replicate Number':'replicate',
-              'Time point':'time_point', 
+              'Unit':'unit', 
               'Assay readout type':'readout_type',
               'Comments':'comments'}
 

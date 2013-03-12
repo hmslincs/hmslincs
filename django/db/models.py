@@ -5,6 +5,7 @@ import types
 import re
 import logging
 from django.utils import timezone
+from string import capwords
 
 logger = logging.getLogger(__name__)
 
@@ -106,6 +107,9 @@ class FieldsManager(models.Manager):
         
     #TODO: link this in to the reindex process!
     def get_search_fields(self,model):
+        """
+        For the full text search, return the text searchable fields.
+        """
         table = model._meta.module_name
         # Only text or char fields considered, must add numeric fields manually
         fields = map(lambda x: x.name, filter(lambda x: isinstance(x, models.CharField) or isinstance(x, models.TextField), tuple(model._meta.fields)))
@@ -214,6 +218,21 @@ class FieldInformation(models.Model):
         else:
             logger.error(str(('There is an issue with the field name: ',self.dwg_field_name,self.hms_field_name)))
             return self.field
+        
+    def get_camel_case_dwg_name(self):
+        logger.debug(str(('create a camelCase name for:', self)))
+        
+        field_name = self.dwg_field_name        
+        if not field_name: field_name = self.hms_field_name
+        if not field_name:
+            logger.error(str(('There is an issue with the field name: ',self.dwg_field_name,self.hms_field_name)))
+            return self.field
+        field_name = field_name.strip().title()
+        field_name = re.sub(r'[_\s]+','',field_name)
+        field_name = field_name[0].lower() + field_name[1:];
+        logger.info(str(('created camel case name', field_name, 'for', self)))
+        return field_name
+        
 
         
 class SmallMolecule(models.Model):
@@ -483,17 +502,18 @@ class DataColumn(models.Model):
     dataset                 = models.ForeignKey('DataSet')
     worksheet_column        = _TEXT(**_NOTNULLSTR)
     name                    = _TEXT(**_NOTNULLSTR)
+    display_name                    = _TEXT(**_NOTNULLSTR)
     data_type               = _TEXT(**_NOTNULLSTR)
     precision               = _INTEGER(null=True)
     description             = _TEXT(**_NULLOKSTR)
     replicate               = _INTEGER(null=True)
-    time_point              = _TEXT(**_NULLOKSTR)
+    unit                    = _TEXT(**_NULLOKSTR)
     readout_type            = _TEXT(**_NULLOKSTR)
     comments                = _TEXT(**_NULLOKSTR)
     display_order           = _INTEGER(null=True) # an example of why fieldinformation may need to be combined with datacolumn
 
     def __unicode__(self):
-        return unicode(str((self.dataset,self.name,self.data_type)))
+        return unicode(str((self.dataset,self.name,self.data_type, self.unit)))
 
 class DataRecord(models.Model):
     dataset                 = models.ForeignKey('DataSet')
@@ -580,18 +600,18 @@ def get_listing(model_object, search_tables):
     returns an ordered dict of field_name->{value:value,fieldinformation:}
     to be used to display the item in the UI Listing views
     """
-    return get_fielddata(model_object, search_tables, False)
+    return get_fielddata(model_object, search_tables, lambda x: x.show_in_list )
 
 def get_detail(model_object, search_tables):
     """
     returns an ordered dict of field_name->{value:value,fieldinformation:}
     to be used to display the item in the UI Detail views
     """
-    return get_fielddata(model_object, search_tables, True)
+    return get_fielddata(model_object, search_tables, lambda x: x.show_in_detail )
 
-def get_fielddata(model_object, search_tables, is_detail=False):
+def get_fielddata(model_object, search_tables, field_information_filter=None):
     """
-    returns an ordered dict of field_name->{value:value,fieldinformation:}
+    returns an ordered dict of field_name->{value:value,fieldinformation:fi}
     to be used to display the item in the UI Detail views
     """
     #dump(self.dataset)
@@ -602,14 +622,14 @@ def get_fielddata(model_object, search_tables, is_detail=False):
         details = {}
         try:
             fi = FieldInformation.manager.get_column_fieldinformation_by_priority(field,search_tables)
-            if((is_detail and fi.show_in_detail) or
-               (not is_detail and fi.show_in_list)):
+            if (field_information_filter and field_information_filter(fi)
+                    or field_information_filter == None ): 
                 details['fieldinformation'] = fi
                 details['value'] = value
                 ui_dict[field] = details
                 #ui_dict[fi.get_verbose_name()] = value
             else:
-                logger.debug(str(('field not shown in this view: is_detail',is_detail, field,value)))
+                logger.debug(str(('field not shown in this view: ', field,value)))
         except (ObjectDoesNotExist,MultipleObjectsReturned) as e:
             logger.debug(str(('no field information defined for: ', field, value)))
     ui_dict = OrderedDict(sorted(ui_dict.items(), key=lambda x: x[1]['fieldinformation'].order))
@@ -625,17 +645,17 @@ def get_detail_bundle(obj,tables_to_search):
     detail = get_detail(obj, tables_to_search)
     data = {}
     for entry in detail.values():
-        data[entry['fieldinformation'].get_verbose_name()]=entry['value']
+        data[entry['fieldinformation'].get_camel_case_dwg_name()]=entry['value']
     return data
 
 def get_detail_schema(obj,tables_to_search):
     """
-    returns a schema (a dictionary: {fieldinformation.verbose_name -> {field information}) 
+    returns a schema (a dictionary: {fieldinformation.camel_case_dwg_name -> {field information}) 
     for the api
     """
-    meta_field_info = get_listing(FieldInformation(),['fieldinformation'])
+    meta_field_info = get_fielddata(FieldInformation(),['fieldinformation'])
     
-    detail = get_detail(obj, tables_to_search)
+    detail = get_fielddata(obj, tables_to_search)
     fields = {}
     for entry in detail.values():
         fi = entry['fieldinformation']
@@ -644,7 +664,7 @@ def get_detail_schema(obj,tables_to_search):
             meta_fi_attr = item[0]
             meta_fi = item[1]['fieldinformation']
             
-            field_schema_info[meta_fi.get_verbose_name()] = getattr(fi,meta_fi_attr)
+            field_schema_info[meta_fi.get_camel_case_dwg_name()] = getattr(fi,meta_fi_attr)
              
-        fields[fi.get_verbose_name()]= field_schema_info
+        fields[fi.get_camel_case_dwg_name()]= field_schema_info
     return fields

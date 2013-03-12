@@ -1,27 +1,30 @@
 #from django.conf.urls import patterns, include, url
+from db.api import SmallMoleculeResource, CellResource, DataSetResource, \
+    DataSetDataFlattenedResource, DataSetDataResource, ProteinResource, \
+    LibraryResource, DataSetFlattenedResource
 from django.conf.urls.defaults import *
-from django.views.generic import TemplateView
-from settings import _djangopath
-import os.path as op
-from tastypie.api import Api
-from db.api import SmallMoleculeResource,CellResource,DataSetResource,DataSetDataResource,DataSetData2Resource,ProteinResource,LibraryResource
+from django.contrib import admin
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+from django.views.generic import TemplateView
+from hmslincs_server.views import *
+from settings import _djangopath
+from tastypie.api import Api
+import os.path as op
 
 smallmolecule_resource = SmallMoleculeResource()
 v1_api = Api(api_name='v1') 
 v1_api.register(SmallMoleculeResource())
 v1_api.register(CellResource())
 v1_api.register(DataSetResource())
+v1_api.register(DataSetFlattenedResource())
 v1_api.register(DataSetDataResource())
-v1_api.register(DataSetData2Resource())
+v1_api.register(DataSetDataFlattenedResource())
 v1_api.register(ProteinResource())
 v1_api.register(LibraryResource())
 
 # Uncomment the next two lines to enable the admin:
-from django.contrib import admin
 admin.autodiscover()
 
-from hmslincs_server.views import *
 
 urlpatterns = patterns('',
 

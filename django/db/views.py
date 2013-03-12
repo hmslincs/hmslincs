@@ -1052,12 +1052,13 @@ class DataSetResultTable(PagedTable):
         for i,dc in enumerate(ordered_datacolumns):    
             #logger.debug(str(('create column:',name,verbose_name)))
             col = 'col%d'%i
-            logger.debug(str(('create column', col, dc.id, dc.data_type)))
+            display_name = (dc.display_name, dc.name)[dc.display_name]
+            logger.debug(str(('create column', col, dc.id, dc.data_type, display_name)))
             if(dc.data_type.lower() != OMERO_IMAGE_COLUMN_TYPE):
-                self.base_columns[col] = tables.Column(verbose_name=dc.name)
+                self.base_columns[col] = tables.Column(verbose_name=display_name)
             else:
                 #logger.debug(str(('omero_image column template', TEMPLATE % ('omero_image_id','omero_image_id'))))
-                self.base_columns[col] = tables.TemplateColumn(OMERO_IMAGE_TEMPLATE % (col,col), verbose_name=dc.name)
+                self.base_columns[col] = tables.TemplateColumn(OMERO_IMAGE_TEMPLATE % (col,col), verbose_name=display_name)
 
                 
         # Note: since every instance reuses the base_columns, each time the visibility must be set.
