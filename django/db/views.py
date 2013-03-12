@@ -1052,7 +1052,7 @@ class DataSetResultTable(PagedTable):
         for i,dc in enumerate(ordered_datacolumns):    
             #logger.debug(str(('create column:',name,verbose_name)))
             col = 'col%d'%i
-            display_name = (dc.display_name, dc.name)[dc.display_name]
+            display_name = (dc.display_name, dc.name)[dc.display_name==None]
             logger.debug(str(('create column', col, dc.id, dc.data_type, display_name)))
             if(dc.data_type.lower() != OMERO_IMAGE_COLUMN_TYPE):
                 self.base_columns[col] = tables.Column(verbose_name=display_name)
