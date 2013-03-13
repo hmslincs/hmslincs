@@ -90,76 +90,6 @@ def read_metadata(path):
 
     return initializer 
 
-#def read_metadata(worksheet):
-#    """
-#    Read in the DataSets, Datacolumns, and Data sheets.  In the Data sheet, rows are DataRecords, and columns are DataPoints
-#    """
-##    # Read in the DataSet
-##    sheetname = 'Meta'
-##    metaSheet = iu.readtable([path, sheetname]) # Note, skipping the header row by default
-#
-#    # Define the Column Names -> model fields mapping
-#    properties = ('model_field','required','default','converter')
-#    field_definitions = {'Lead Screener First': 'lead_screener_firstname',
-#              'Lead Screener Last': 'lead_screener_lastname',
-#              'Lead Screener Email': 'lead_screener_email',
-#              'Lab Head First': 'lab_head_firstname',
-#              'Lab Head Last': 'lab_head_lastname',
-#              'Lab Head Email': 'lab_head_email',
-#              'Title': 'title',
-#              'Facility ID': ('facility_id',True,None, lambda x: util.convertdata(x,int)),
-#              'Summary': 'summary',
-#              'Protocol': 'protocol',
-#              'References': 'protocol_references',
-#              'Date Data Received':('date_data_received',False,None,util.date_converter),
-#              'Date Loaded': ('date_loaded',False,None,util.date_converter),
-#              'Date Publicly Available': ('date_publicly_available',False,None,util.date_converter),
-#              'Is Restricted':('is_restricted',False,False,util.bool_converter),
-#              'Dataset Type':('dataset_type',False)}
-#    
-#    sheet_labels = []
-#    curr_row = 1 # note zero indexed
-#    row = worksheet.row(curr_row)
-#    while curr_row < worksheet.nrows:
-#        sheet_labels.append(str(worksheet.cell_value(curr_row, 0)))
-#        curr_row += 1
-#    
-#    for row in metaSheet:
-#        rowAsUnicode = util.make_row(row)
-#        sheet_labels.append(rowAsUnicode[0])
-#
-#    # convert the definitions to fleshed out dict's, with strategies for optional, default and converter
-#    field_definitions = util.fill_in_column_definitions(properties,field_definitions)
-#    # create a dict mapping the column/row ordinal to the proper definition dict
-#    cols = util.find_columns(field_definitions, sheet_labels,all_column_definitions_required=False)
-#
-#    
-#    initializer = {}
-#    for i,row in enumerate(metaSheet):
-#        rowAsUnicode = util.make_row(row)
-#        properties = cols[i]
-#        value = rowAsUnicode[1]
-#        
-#        logger.debug(str(('read col: ', i, ', ', properties)))
-#        required = properties['required']
-#        default = properties['default']
-#        converter = properties['converter']
-#        model_field = properties['model_field']
-#
-#        # Todo, refactor to a method
-#        logger.debug(str(('raw value', value)))
-#        if(converter != None):
-#            value = converter(value)
-#        if(value == None ):
-#            if( default != None ):
-#                value = default
-#        if(value == None and  required == True):
-#            raise Exception('Field is required: %s, record: %d' % (properties['column_label'],row))
-#        logger.debug(str(('model_field: ' , model_field, ', value: ', value)))
-#        initializer[model_field] = value
-#
-#    return initializer            
-
 def readDataColumns(path):
     # Read in the DataColumn Sheet
     sheetname = 'Data Columns'
@@ -201,19 +131,12 @@ def readDataColumns(path):
     
     return dataColumnDefinitions
 
-import xlrd
-
-
 def main(path):
     datarecord_batch = []
     save_interval = 1000
     # read in the two columns of the meta sheet to a dict that defines a DataSet
     # TODO: Need a transaction, in case loading fails!
     logger.info('read metadata...')
-
-#    book = xlrd.open_workbook(path) #open our xls file, there's lots of extra default options in this call, for logging etc. take a look at the docs
-#    sheetname = 'Meta'
-#    worksheet = book.sheet_by_name(sheetname) #we can pull by name
 
     metadata = read_metadata(path)
     dataset = None
@@ -227,7 +150,6 @@ def main(path):
                 extant_dataset.delete()
         except Exception,e:
             logger.info(str(('on trying to delete',e)))
-#            raise e
         dataset = DataSet(**metadata)
         dataset.save()
         logger.info(str(('dataset created: ', dataset)))
@@ -314,14 +236,14 @@ def main(path):
                     try:
                         dataRecord.smallmolecule = SmallMolecule.objects.get(facility_id=facility, salt_id=salt)
                     except Exception, e:
-                        logger.error(str(('could not locate small molecule:', facility)))
+                        logger.error(str(('could not locate small molecule:', facility,e)))
                         raise
                     if(len(value)>2):
                         dataRecord.batch_id = util.convertdata(value[2],int)
                         # TODO: validate that the batch exists?  (would need to do for all types, not just Small Molecule
                     mapped = True
             except Exception, e:
-                logger.error(str(("Invalid Small Molecule (or batch) identifiers: ", value, e,'row',current_row)))
+                logger.error(str(("Invalid Small Molecule (or batch) identifiers: ", value, 'row',current_row,e)))
                 raise    
         map_column = mappingColumnDict['Plate']
         if(map_column > -1):
@@ -341,13 +263,19 @@ def main(path):
                     dataRecord.plate = plate_id
                     dataRecord.well = well_id
                     try:
-                        # TODO: what if the plate/well does not correlate to a librarymapping?  i.e. if this is the plate/well for a cell/protein study?
-                        # For now, the effect of the followinlogger.info(str((g logic is that plate/well either maps a librarymapping, or is a an arbitrary plate/well
+                        # TODO: what if the plate/well does not correlate to a librarymapping?  
+                        # i.e. if this is the plate/well for a cell/protein study?
+                        # For now, the effect of the following logic is that plate/well
+                        # either maps a librarymapping, or is a an arbitrary plate/well
                         dataRecord.library_mapping = LibraryMapping.objects.get(plate=plate_id,well=well_id)
                         if(dataRecord.smallmolecule != None):
-                            if(dataRecord.smallmolecule != None and dataRecord.library_mapping.smallmolecule_batch != None and (dataRecord.smallmolecule != dataRecord.library_mapping.smallmolecule_batch.smallmolecule)):
-                                raise Exception(str(('SmallMolecule does not match the libraryMapping.smallmolecule_batch.smallmolecule pointed to by the plate/well:',plate_id,well_id,
-                                                     dataRecord.smallmolecule,dataRecord.library_mapping.smallmolecule_batch.smallmolecule,
+                            if(dataRecord.smallmolecule != None 
+                               and dataRecord.library_mapping.smallmolecule_batch != None 
+                               and (dataRecord.smallmolecule != dataRecord.library_mapping.smallmolecule_batch.smallmolecule)):
+                                raise Exception(str(('SmallMolecule does not match the libraryMapping.smallmolecule_batch.smallmolecule pointed to by the plate/well:'
+                                                     ,plate_id,well_id,
+                                                     dataRecord.smallmolecule,
+                                                     dataRecord.library_mapping.smallmolecule_batch.smallmolecule,
                                                      r,'row',current_row)))
                         elif(dataRecord.library_mapping.smallmolecule_batch != None):
                             dataRecord.smallmolecule = dataRecord.library_mapping.smallmolecule_batch.smallmolecule
@@ -355,7 +283,7 @@ def main(path):
                         logger.warn(str(('No librarymapping defined (plate/well do not point to a librarymapping), row', current_row))) 
                     mapped = True
             except Exception, e:
-                logger.error(str(("Invalid plate/well identifiers",plate_id,well_id,r,e,'row',current_row)))
+                logger.error(str(("Invalid plate/well identifiers",plate_id,well_id,r,e,'row',current_row,e)))
                 raise e
         map_column = mappingColumnDict['Cell']
         if(map_column > -1):
@@ -367,7 +295,7 @@ def main(path):
                     dataRecord.cell = Cell.objects.get(facility_id=facility_id) 
                     mapped = True
             except Exception, e:
-                logger.error(str(("Invalid Cell facility id: ", facility_id,'row',current_row)))
+                logger.error(str(("Invalid Cell facility id: ", facility_id,'row',current_row), e))
                 raise    
         map_column = mappingColumnDict['Protein']
         if(map_column > -1):
@@ -379,7 +307,7 @@ def main(path):
                     dataRecord.protein = Protein.objects.get(lincs_id=facility_id) 
                     mapped = True
             except Exception, e:
-                logger.error(str(("Invalid Protein facility id: ", value,'row',current_row)))
+                logger.error(str(("Invalid Protein facility id: ", value,'row',current_row, e)))
                 raise
             
         if(not mapped):
@@ -428,7 +356,6 @@ def main(path):
                                           datarecord = dataRecord,
                                           text_value=util.convertdata(value))
                 
-                
                 #dataPoint.save()
                 datapoint_batch.append(dataPoint)
                 #if(logger.isEnabledFor(logging.DEBUG)): logger.debug(str(('datapoint created:', dataPoint)))
@@ -472,7 +399,6 @@ def bulk_create_datarecords(datarecord_batch):
     datarecord_id_start = DataRecord.objects.all().aggregate(models.Max('id'))['id__max']
     if(not isinstance(datarecord_id_start ,int)): datarecord_id_start = 0
     datarecord_id_start +=1
-    datarecords = []
     for j, (datarecord,datapoints) in enumerate(datarecord_batch):
         datarecord.id = datarecord_id_start + j
     DataRecord.objects.bulk_create([x for (x,y) in datarecord_batch])
@@ -495,9 +421,13 @@ if __name__ == "__main__":
         log_level = logging.INFO
     elif args.verbose >= 2:
         log_level = logging.DEBUG
-    # NOTE this doesn't work because the config is being set by the included settings.py, and you can only set the config once
-    logging.basicConfig(level=log_level, format='%(msecs)d:%(module)s:%(lineno)d:%(levelname)s: %(message)s')        
-    logger.setLevel(log_level)
+    if args.verbose:
+        # NOTE: when running with the django settings file, the logging configured there will augment this, and 
+        # cause double logging. So this will manually override that.
+        # Probably a better solution would be to configure this utility as a "management command"
+        # and then let manage.py run it.  see: https://docs.djangoproject.com/en/1.4/howto/custom-management-commands/
+        logging.basicConfig(level=log_level, format='%(msecs)d:%(module)s:%(lineno)d:%(levelname)s: %(message)s')   
+        logger.setLevel(log_level)
 
     print 'importing ', args.inputFile
     main(args.inputFile)

@@ -36,7 +36,8 @@ def main(path):
     sheet = iu.readtable([path, sheet_name, 1]) # Note, skipping the header row by default
 
     properties = ('model_field','required','default','converter')
-    column_definitions = {'Facility ID':('facility_id',True,None, lambda x: x[x.index('HMSL')+4:]),
+    column_definitions = {
+              'Facility ID':('facility_id',True,None, lambda x: x[x.index('HMSL')+4:]),
               'CL_Name':('name',True),
               'CL_ID':'cl_id',
               'CL_Alternate_Name':'alternate_name',

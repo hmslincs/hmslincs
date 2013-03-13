@@ -1,0 +1,206 @@
+{% extends "db/base.html" %}
+{% block content %}
+<style type='text/css'>
+
+.modal_search {
+    display:    block;
+    position:   absolute;
+    z-index:    1000;
+    top:        4em;
+    left:       0;
+    height:     100%;
+    width:      100%;
+    background: url('/_static/images/ajax-loading2.gif') 
+                50% 20% 
+                no-repeat;
+}
+</style>
+
+<script language="javascript" type="text/javascript">
+
+var MAX_REQUESTS = 50;
+var TIMEOUT_BETWEEN_REQUESTS = 3000;
+var current_number_of_requests = 0;
+var get_cached_url = "{% url cached_structure_search_blank %}";
+var small_molecule_url = "{% url small_molecule_listing '' %}";
+
+function showError(err){
+	var errmsg = ""; 
+    for (var prop in err) 
+    {  
+    	errmsg += "property: "+ prop+ " value: ["+ err[prop]+ "]\n"; 
+    } 
+    errmsg += "toString(): " + " value: [" + err.toString() + "]"; 
+    return errmsg
+}
+
+function supportFormData() {
+	return !! window.FormData;
+}
+
+$(document).ready(function() {
+	/* 
+		Attach a submit handler to the form - 
+		Note: choose to send the form in JS, for design simplicity (we can stay on this page), 
+		as opposed to sending the form normally, and then starting our polling process in an onload.
+	*/
+	$("#form1").submit(function(event) {
+		console.log('form submit');
+		current_number_of_requests = 0;
+		if ( !supportFormData() ) {
+			window.alert('formData ajax is not supported by your browser.')
+			return false;
+		}
+	 
+	  /* stop form from submitting normally */
+	  event.preventDefault();
+	  document.getElementById('ajax_message').innerHTML = '';
+		startImage();
+		
+		var formData = new FormData(this);	
+		$.ajax({
+		    url: '#',
+		    data: formData,
+		    cache: false,
+		    contentType: false, // data will not be converted, it's sent as is
+		    dataType: 'json',   // returned data type 
+		    processData: false, // prevent converting the sent data into a query string
+		    type: 'POST',
+		    timeout: 10000,			// ms
+		}).done(function (data, textStatus) {
+			// API docs:
+			// status of the request ("success", "notmodified", "error", "timeout", "abort", or "parsererror")
+			// An alternative construct to the success callback option, the .done() method replaces the deprecated jqXHR.success()
+			// since jqXHR object, which is derived from a Deferred object, we can attach a success callback using the .done() method.
+			console.log('done: ' + JSON.stringify(data) + ', ' + textStatus)
+			handleResult(data);
+		}).fail(function (jqXHR, textStatus, errorThrown) {
+			// API docs:
+			// An alternative construct to the error callback option, the .fail() method replaces the deprecated .error() method. 
+			// status of the request ("success", "notmodified", "error", "timeout", "abort", or "parsererror")
+			// When an HTTP error occurs, errorThrown receives the textual portion of the HTTP status, such as "Not Found" or "Internal Server Error.
+			console.log('fail: ' + textStatus + ', ')
+			console.log('errmsg: ' + showError(errorThrown));
+			document.getElementById('ajax_message').innerHTML = 'Bad response from the server, status: ' + jqXHR.status  + ' - ' + jqXHR.statusText;
+			stopImage();
+		}).always(function (jqXHR, textStatus) {
+			//stopImage();
+		});
+	});
+	
+});
+
+function handleResult( obj ){
+	console.log('Response: ' + JSON.stringify(obj) );
+	if (obj['facility_ids']) {
+		// Redirect to the sm search page for the facility ids
+		// TODO: still: is there no way to have the server do a redirect?
+		console.log( 'got facility ids: ' + obj.facility_ids)
+		window.location = small_molecule_url + obj.facility_ids;
+	} else if (obj['pubchemRequestId']) {
+		if (current_number_of_requests++ > MAX_REQUESTS) {
+			document.getElementById('ajax_message').innerHTML = 'Structure search server is unresponsive, max requests reached: ' + MAX_REQUESTS ;
+			stopImage();
+			return;
+		}
+		setTimeout(function() {
+			checkForResults(obj.pubchemRequestId) 
+ 		}, TIMEOUT_BETWEEN_REQUESTS);
+		return;
+	}
+	
+	stopImage();
+	if (obj['empty']) {
+		console.log('no cids found');
+	  document.getElementById('ajax_message').innerHTML = 'No matches were found for this search' ;
+	} else if (obj['error']) { 
+		// TODO: still: is there no way to have the server do a redirect?
+		console.log('pubchem server error: |' + obj.error + '|' );
+		document.getElementById('ajax_message').innerHTML = 'Error: ' + obj.error; 
+	} else if (obj['pubchem_error']) { 
+		// TODO: still: is there no way to have the server do a redirect?
+		console.log('pubchem server error: |' + obj.pubchem_error + '|' );
+		// punt for now on parsing the not entirely characterized pubchem error response (TODO)
+		document.getElementById('ajax_message').innerHTML = 'Error returned from the server: ' + parsePubchemError(obj.pubchem_error); //'Server reports invalid input parameters.'; 
+	} else {
+		console.log('unknown response: ' + JSON.stringify(obj))
+		//document.getElementById('ajax_message').innerHTML = JSON.stringify(obj) ;
+	}
+}
+
+/**
+ * Example of Pubchem errors to be parsed:
+ * ('(\'HTTP response\', 500, \'{"Fault": {"Message": "SubstructureSearch failed", "Code": "PUGREST.ServerError", "Details": ["SubstructureSearch fault: Server, message: NCBI C++ Exception:", "    Error: (CException::eUnknown) \\\\"pug_ws.cpp\\\\", line 999: CPUGServerApplication::x_checkResponse() --- Provided query can not be recognized as a chemical structure: sdfs Please use a valid CID, SMILES_SMARTS, InChI, or SDF formatted query."]}}\')',) localhost:209
+ * Uncaught TypeError: Cannot read property '0' of null localhost:213
+ * and:
+ * ('('HTTP response', 500, '{"Fault": {"Message": "SubstructureSearch failed", "Code": "PUGREST.ServerError", "Details": ["SubstructureSearch fault: Server, message: NCBI C++ Exception:", "    Error: (CException::eUnknown) "pug_ws.cpp", line 999: CPUGServerApplication::x_checkResponse() --- Provided query can not be recognized as a chemical structure: sdfs Please use a valid CID, SMILES/SMARTS, InChI, or SDF formatted query."]}}')',) localhost:211
+ **/
+function parsePubchemError(string) {
+	var string2 = string.replace( /\\/g,'');
+	console.log('try:' + string2)
+	var re = /---([^\]]+)/;
+	var match = re.exec(string2);
+	if (match) {
+		return match[1].replace('"','');
+	} else {
+		re = /"Message":\s+"([^"]+)/;
+		var match = re.exec(string2);
+		if (match) {
+			return match[1].replace('"','');
+		}
+		return string2;
+	}
+}
+
+function checkForResults( pubchemRequestId ) {
+	url = get_cached_url + pubchemRequestId + "/";
+	console.log('get_cached_url:' + url);
+	startImage();
+	$.ajax({
+		  url: url,
+		  dataType: 'json'
+	}).done(function (data, textStatus) {
+		console.log('done: url:' + url + ',' + JSON.stringify(data) + ', ' + textStatus)
+		handleResult(data);
+	}).fail(function (jqXHR, textStatus, errorThrown) {
+		console.log('fail: url:' + url + ',' + textStatus + ', ')
+		document.getElementById('ajax_message').innerHTML = 'bad response from the server: ' + textStatus ;
+		console.log('errmsg: ' + showError(errorThrown));
+		stopImage();
+	}).always(function (jqXHR, textStatus) {
+		//stopImage();
+	});
+}
+
+function startImage(){
+	  console.log('start image');
+ 	  $("#searching_image").addClass("modal_search");
+}
+
+function stopImage(){
+	console.log('stop image');
+	$("#searching_image").removeClass("modal_search");
+}
+</script>
+
+<div id="structure_search" class="structure_search_form">
+		{% if message %}
+			<div class='result_message'>
+				{{ message }}
+			</div>
+		{% endif %}
+		<form
+			id="form1"
+			action="#" method="post"
+			enctype="multipart/form-data"
+			class="structure_form"  
+			 >
+			{{ structure_search_form.as_p }}
+			<p><input type="submit" value="Search" /></p>
+	  <div  id='searching_image'></div>
+			{% csrf_token %}
+		</form>
+		<br/>
+			<div class='result_message' id='ajax_message'></div>
+	</div>
+{% endblock %}

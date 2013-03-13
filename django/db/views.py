@@ -1,32 +1,41 @@
-import urllib2
 import csv
-import xlwt
-import re
+from collections import OrderedDict
+from datetime import timedelta
+import json
 from math import log, pow
+import os
+import re
+from threading import Thread
+import sys
+import urllib2
+import xlwt
 
 from django import forms
 from django.core.exceptions import ObjectDoesNotExist
-from django.shortcuts import render
 from django.db import models
 from django.db import connection
 from django.utils.encoding import smart_str
 from django.forms import ModelForm
 from django.http import Http404,HttpResponseRedirect
 from django.utils.safestring import mark_safe
+from django.utils import timezone
 from django.http import HttpResponse
 from django.conf import settings
 import django_tables2 as tables
 from django_tables2 import RequestConfig
 from django_tables2.utils import A  # alias for Accessor
 from django.core.servers.basehttp import FileWrapper
+from django.core.urlresolvers import reverse
+from django.shortcuts import render
 from django.contrib.staticfiles.finders import FileSystemFinder
 import os
 
 from db.models import SmallMolecule, SmallMoleculeBatch, Cell, Protein, DataSet, Library, FieldInformation,AttachedFile,DataRecord,DataColumn,LibraryMapping
-#from db.CustomQuerySet import CustomQuerySet
+from db.models import PubchemRequest
 from db.models import get_detail
-from collections import OrderedDict
 from PagedRawQuerySet import PagedRawQuerySet
+from hms.pubchem import PubchemError
+from hms.pubchem import pubchem_compound_search
 
 import logging
 
@@ -39,6 +48,9 @@ facility_salt_id = " sm.facility_id || '-' || sm.salt_id " # Note: because we ha
 facility_salt_batch_id = facility_salt_id + " || '-' || smb.facility_batch_id " # Note: because we have a composite key for determining unique sm structures, we need to do this
 facility_salt_batch_id_2 = " trim( both '-' from (" + facility_salt_id + " || '-' || coalesce(smb.facility_batch_id::TEXT,'')))" # need this one for datasets, since they may be linked either to sm or smb - sde4
 OMERO_IMAGE_COLUMN_TYPE = 'omero_image'
+DAYS_TO_CACHE = 1
+DAYS_TO_CACHE_PUBCHEM_ERRORS = 1
+SECONDS_TO_WAIT = 300
 
 filesystemfinder = FileSystemFinder()
 
@@ -50,6 +62,7 @@ def dump(obj):
 
 def main(request):
     search = request.GET.get('search','')
+    logger.debug(str(('main search: ', search)))
     if(search != ''):
         queryset = SiteSearchManager().search(search, is_authenticated=request.user.is_authenticated());
         table = SiteSearchTable(queryset)
@@ -63,7 +76,7 @@ def main(request):
 
 def cellIndex(request):
     search = request.GET.get('search','')
-    logger.info(str(("is_authenticated:", request.user.is_authenticated(), 'search: ', search)))
+    logger.debug(str(("is_authenticated:", request.user.is_authenticated(), 'search: ', search)))
     if(search != ''):
         searchProcessed = format_search(search)
         criteria = "search_vector @@ to_tsquery(%s)"
@@ -103,7 +116,7 @@ def cellDetail(request, facility_id):
         details = {'object': get_detail(cell, ['cell',''])}
         dataset_ids = find_datasets_for_cell(cell.id)
         if(len(dataset_ids)>0):
-            logger.info(str(('dataset ids for sm',dataset_ids)))
+            logger.debug(str(('dataset ids for sm',dataset_ids)))
             where = []
             if(not request.user.is_authenticated()): 
                 where.append("(not is_restricted or is_restricted is NULL)")
@@ -118,7 +131,7 @@ def cellDetail(request, facility_id):
  
 def proteinIndex(request):
     search = request.GET.get('search','')
-    logger.info(str(("is_authenticated:", request.user.is_authenticated(), 'search: ', search)))
+    logger.debug(str(("is_authenticated:", request.user.is_authenticated(), 'search: ', search)))
     if(search != ''):
         searchProcessed = format_search(search)
         # NOTE: - change plaintext search to use "to_tsquery" as opposed to
@@ -164,7 +177,7 @@ def proteinDetail(request, lincs_id):
         # datasets table
         dataset_ids = find_datasets_for_protein(protein.id)
         if(len(dataset_ids)>0):
-            logger.info(str(('dataset ids for sm',dataset_ids)))
+            logger.debug(str(('dataset ids for sm',dataset_ids)))
             where = []
             if(not request.user.is_authenticated()): 
                 where.append("(not is_restricted or is_restricted is NULL)")
@@ -187,7 +200,7 @@ def proteinDetail(request, lincs_id):
 # TODO REFACTOR, DRY... 
 def smallMoleculeIndex(request):
     search = request.GET.get('search','')
-    logger.info(str(("is_authenticated:", request.user.is_authenticated(), 'search: ', search))) #, 'items_per_page', items_per_page)))
+    logger.debug(str(("is_authenticated:", request.user.is_authenticated(), 'search: ', search))) #, 'items_per_page', items_per_page)))
 
     if(search != ''):
         searchProcessed = format_search(search)
@@ -195,7 +208,7 @@ def smallMoleculeIndex(request):
         where = [criteria]
         
         # postgres fulltext search with rank and snippets
-        logger.info(str(("SmallMoleculeTable.snippet_def:",SmallMoleculeTable.snippet_def)))
+        logger.debug(str(("SmallMoleculeTable.snippet_def:",SmallMoleculeTable.snippet_def)))
         queryset = SmallMolecule.objects.extra(
             select={
                 'snippet': "ts_headline(" + SmallMoleculeTable.snippet_def + ", to_tsquery(%s))",
@@ -216,16 +229,33 @@ def smallMoleculeIndex(request):
     table = SmallMoleculeTable(queryset)
 
     outputType = request.GET.get('output_type','')
-    logger.error(str(("outputType:", outputType)))
-    if(outputType != ''):
+    if outputType:
         return send_to_file(outputType, 'small_molecule', table, queryset, request )
     
-    return render_list_index(request, table,search,'Small molecule','Small molecules') #, **kwargs )
-
+        if(len(queryset) == 1 ):
+            return redirect_to_small_molecule_detail(queryset[0])
+    return render_list_index(request, table,search,'Small molecule','Small molecules') #, **kwargs )    
+    
+def smallMoleculeMolfile(request, facility_salt_id):
+    try:
+        temp = facility_salt_id.split('-') # TODO: let urls.py grep the facility and the salt
+        logger.debug(str(('find sm detail for', temp)))
+        facility_id = temp[0]
+        salt_id = temp[1]
+        sm = SmallMolecule.objects.get(facility_id=facility_id, salt_id=salt_id) 
+        response = HttpResponse(mimetype='text/csv')
+        response['Content-Disposition'] = 'attachment; filename=%s.sdf' % facility_salt_id 
+        response.write(sm.molfile)
+        return response
+        
+    except SmallMolecule.DoesNotExist:
+        raise Http404
+    
+    
 def smallMoleculeDetail(request, facility_salt_id): # TODO: let urls.py grep the facility and the salt
     try:
         temp = facility_salt_id.split('-') # TODO: let urls.py grep the facility and the salt
-        logger.info(str(('find sm detail for', temp)))
+        logger.debug(str(('find sm detail for', temp)))
         facility_id = temp[0]
         salt_id = temp[1]
         sm = SmallMolecule.objects.get(facility_id=facility_id, salt_id=salt_id) 
@@ -235,6 +265,7 @@ def smallMoleculeDetail(request, facility_salt_id): # TODO: let urls.py grep the
         
     
         details = {'object': get_detail(sm, ['smallmolecule',''])}
+        details['facility_salt_id'] = sm.facility_id + '-' + sm.salt_id
         #TODO: set is_restricted if the user is not logged in only
         details['is_restricted'] = sm.is_restricted
         
@@ -257,7 +288,7 @@ def smallMoleculeDetail(request, facility_salt_id): # TODO: let urls.py grep the
         # datasets table
         dataset_ids = find_datasets_for_smallmolecule(sm.id)
         if(len(dataset_ids)>0):
-            logger.info(str(('dataset ids for sm',dataset_ids)))
+            logger.debug(str(('dataset ids for sm',dataset_ids)))
             where = []
             if(not request.user.is_authenticated()): 
                 where.append("(not is_restricted or is_restricted is NULL)")
@@ -273,12 +304,12 @@ def smallMoleculeDetail(request, facility_salt_id): # TODO: let urls.py grep the
             ntable = DataSetManager(dataset).get_table(whereClause=["smallmolecule_id=%d " % sm.id],
                                                        metaWhereClause = ["col2 = '1'"], 
                                                        column_exclusion_overrides=['facility_salt_batch','col2']) # exclude "is_nominal"
-            logger.info(str(('ntable',ntable.data, len(ntable.data))))
+            logger.debug(str(('ntable',ntable.data, len(ntable.data))))
             if(len(ntable.data)>0): details['nominal_targets_table']=ntable
             otable = DataSetManager(dataset).get_table(whereClause=["smallmolecule_id=%d " % sm.id], 
                                                        metaWhereClause=["col2 != '1'"], 
                                                        column_exclusion_overrides=['facility_salt_batch','col0','col2']) # exclude "effective conc", "is_nominal"
-            logger.info(str(('otable',ntable.data, len(otable.data))))
+            logger.debug(str(('otable',ntable.data, len(otable.data))))
             if(len(otable.data)>0): details['other_targets_table']=otable
         except DataSet.DoesNotExist:
             logger.warn('Nominal Targets dataset does not exist')
@@ -334,7 +365,7 @@ def libraryDetail(request, short_name):
 
 def datasetIndex(request): #, type='screen'):
     search = request.GET.get('search','')
-    logger.info(str(("is_authenticated:", request.user.is_authenticated(), 'search: ', search)))
+    logger.debug(str(("is_authenticated:", request.user.is_authenticated(), 'search: ', search)))
     where = []
     if(search != ''):
         searchProcessed = format_search(search)
@@ -501,6 +532,328 @@ def format_search(search_raw):
         return " & ".join([x+":*" for x in re.split(r'\W+', search_raw)])
     return search_raw
 
+# Pubchem search methods
+
+from hms.pubchem import pubchem_database_cache_service
+
+def structure_search(request):
+    """
+    This method returns JSON output, it is meant to be called by an AJAX process
+    in the compound structure search page.
+    """
+    
+    logger.info(str(('structure search os pid:', os.getpid())))
+    if(request.method == 'POST'):
+        form = StructureSearchForm(request.POST, request.FILES)
+        
+        if(form.is_valid()):
+            if(form.cleaned_data['smiles'] or request.FILES.has_key('sdf')):
+                try:
+                    kwargs = { 'type':form.cleaned_data['type'] }
+                    smiles = form.cleaned_data['smiles']
+                    kwargs['smiles'] = smiles;
+                    molfile = ''
+                    if (request.FILES.has_key('sdf')):
+                        molfile =  request.FILES['sdf'].read()
+                        kwargs['molfile'] = molfile
+                    
+                    request_id = pubchem_database_cache_service.submit_search(**kwargs)
+                    
+                    #TODO: debug mode could kick of the search processes as so:
+                    # pubchem_database_cache_service.service_database_cache()
+                    
+                    return get_cached_structure_search(request, request_id)
+                except Exception, e:
+                    exc_type, exc_obj, exc_tb = sys.exc_info()
+                    fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]      
+                    logger.error(str((exc_type, fname, exc_tb.tb_lineno)))
+                    logger.error(str(('in structure search', e)))
+                    raise e
+    else: # not submitted yet
+        form = StructureSearchForm()
+
+        return render(request, 'db/structureSearch_jquery.html', { 'structure_search_form':form, 'message':'Enter either a SMILES or a MOLFILE' })
+
+
+def get_cached_structure_search(request, search_request_id):
+    """
+    check whether the structure search specfied by the id has been fullfilled.
+    - if so, redirect the output to the list small molecules page and fill with the query for the Facility_ids found
+    - if not, return a waiting response
+    """
+    logger.debug(str(('check cached request',search_request_id)))
+    request = PubchemRequest.objects.get(pk=int(search_request_id));
+    if request:
+        kwargs = { 'smiles':request.smiles,'molfile':request.molfile, 'type':request.type }            
+        if request.date_time_fullfilled:
+            if request.pubchem_error_message:
+                if (timezone.now()-request.date_time_fullfilled) > timedelta(days=DAYS_TO_CACHE_PUBCHEM_ERRORS):
+                    logger.info(str(('pubchem errored cached request is older than',DAYS_TO_CACHE_PUBCHEM_ERRORS,'days',request)))
+                    request.delete();
+                    # TODO: for now, not restarting.  if the user tries again, it will be restarted because the cache was just cleared
+                return_dict = {'pubchem_error': request.pubchem_error_message }
+                logger.info(str(('return err: ', return_dict)))
+                json_return = json.dumps(return_dict)
+                return HttpResponse(json_return, mimetype="application/x-javascript")
+            elif request.error_message:
+                # NOTE: delete non-pubchem request errors, since presumably these are due to software errors
+                return_dict = {'error': request.error_message }
+                request.delete();
+                logger.info(str(('return err: ', return_dict)))
+                json_return = json.dumps(return_dict)
+                return HttpResponse(json_return, mimetype="application/x-javascript")
+            else: #then the request has been fullfilled
+#                temp =request.cids.split(',')
+                #logger.info(str(('do intersection with', temp)))
+#                queryset = SmallMolecule.objects.filter(pubchem_cid__in=temp )
+                if request.sm_facility_ids :
+#                    return_dict = { 'facility_ids': ','.join([x.facility_id for x in queryset])}
+                    return_dict = { 'facility_ids': request.sm_facility_ids}
+                    json_return = json.dumps(return_dict)
+                    return HttpResponse(json_return, mimetype="application/x-javascript")
+                else:
+                    logger.info(str(('pubchem search result does not intersect with any compounds',kwargs)))
+                    return_dict = {'empty': request.id }
+                    json_return = json.dumps(return_dict)
+                    return HttpResponse(json_return, mimetype="application/x-javascript")
+        else:  # request not fullfilled yet
+                logger.debug(str(('request not fullfilled yet', search_request_id)))
+                return_dict = {'pubchemRequestId': request.id }
+                json_return = json.dumps(return_dict)
+                return HttpResponse(json_return, mimetype="application/x-javascript")
+    else:
+        return_dict = {'error': 'No cached request was located for the id, please resubmit your query.' }
+        logger.info(str(('return err: ', return_dict)))
+        json_return = json.dumps(return_dict)
+        return HttpResponse(json_return, mimetype="application/x-javascript")
+    
+#def get_cached_structure_search(request, search_request_id):
+#    """
+#    check whether the structure search specfied by the id has been fullfilled.
+#    - if so, redirect the output to the list small molecules page and fill with the query for the CIDS found
+#    - if not, return a waiting response
+#    """
+#    logger.debug(str(('check cached request',search_request_id)))
+#    request = PubchemRequest.objects.get(pk=int(search_request_id));
+#    if request:
+#        kwargs = { 'smiles':request.smiles,'molfile':request.molfile, 'type':request.type }            
+#        if request.date_time_fullfilled:
+#            if (timezone.now()-request.date_time_fullfilled) > timedelta(days=DAYS_TO_CACHE):
+#                logger.info(str(('cached request is older than',DAYS_TO_CACHE,'days',request)))
+#                request.delete();
+#                new_req = PubchemRequest(**kwargs);
+#                new_req.save();
+#                
+#                logger.info(str(('create pubchem request', kwargs, os.getpid())))
+#                t = Thread(target=pubchem_search,args=(new_req.id,), kwargs=kwargs )
+#                t.setDaemon(True)
+#                t.start()
+#
+#                return_dict = {'pubchemRequestId': new_req.id }
+#                json_return = json.dumps(return_dict)
+#                return HttpResponse(json_return, mimetype="application/x-javascript")                
+#            if request.pubchem_error_message:
+#                if (timezone.now()-request.date_time_fullfilled) > timedelta(days=DAYS_TO_CACHE_PUBCHEM_ERRORS):
+#                    logger.info(str(('pubchem errored cached request is older than',DAYS_TO_CACHE_PUBCHEM_ERRORS,'days',request)))
+#                    request.delete();
+#                    # TODO: for now, not restarting.  if the user tries again, it will be restarted because the cache was just cleared
+#                return_dict = {'pubchem_error': request.pubchem_error_message }
+#                logger.info(str(('return err: ', return_dict)))
+#                json_return = json.dumps(return_dict)
+#                return HttpResponse(json_return, mimetype="application/x-javascript")
+#            if request.error_message:
+#                # NOTE: delete non-pubchem request errors, since presumably these are due to software errors
+#                return_dict = {'error': request.error_message }
+#                request.delete();
+#                logger.info(str(('return err: ', return_dict)))
+#                json_return = json.dumps(return_dict)
+#                return HttpResponse(json_return, mimetype="application/x-javascript")
+#            if request.date_time_fullfilled : #then the request has been fullfilled
+#                temp =request.cids.split(',')
+#                #logger.info(str(('do intersection with', temp)))
+#                queryset = SmallMolecule.objects.filter(pubchem_cid__in=temp )
+#                if len(queryset)>0 :
+#                    return_dict = { 'facility_ids': ','.join([x.facility_id for x in queryset])}
+#                    json_return = json.dumps(return_dict)
+#                    return HttpResponse(json_return, mimetype="application/x-javascript")
+#                else:
+#                    logger.info(str(('pubchem search result does not intersect with any compounds',kwargs)))
+#            return_dict = {'empty': request.id }
+#            json_return = json.dumps(return_dict)
+#            return HttpResponse(json_return, mimetype="application/x-javascript")
+#        else:  # request not fullfilled yet
+#            if (timezone.now()-request.date_time_requested).seconds > SECONDS_TO_WAIT:
+#                logger.info(str(('request not fullfilled for more than',SECONDS_TO_WAIT,'seconds',
+#                                 (timezone.now()-request.date_time_requested).seconds,' deleting, id: ', search_request_id)))
+#                request.delete();
+#                new_req = PubchemRequest(**kwargs);
+#                new_req.save();
+#                
+#                logger.info(str(('create a new pubchem request', kwargs, os.getpid())))
+#                t = Thread(target=pubchem_search,args=(new_req.id,), kwargs=kwargs )
+#                t.setDaemon(True)
+#                t.start()
+#                
+#                return_dict = {'pubchemRequestId': new_req.id }
+#                json_return = json.dumps(return_dict)
+#                return HttpResponse(json_return, mimetype="application/x-javascript")                
+#            else:
+#                logger.info(str(('request not fullfilled yet', search_request_id)))
+#                return_dict = {'pubchemRequestId': request.id }
+#                json_return = json.dumps(return_dict)
+#                return HttpResponse(json_return, mimetype="application/x-javascript")
+#    else:
+#        return_dict = {'error': 'no cached request was located for the id' }
+#        logger.info(str(('return err: ', return_dict)))
+#        json_return = json.dumps(return_dict)
+#        return HttpResponse(json_return, mimetype="application/x-javascript")    
+
+#def structure_search(request):
+#    """
+#    This method returns JSON output, it is meant to be called by an AJAX process
+#    in the compound structure search page.
+#    """
+#    
+#    logger.info(str(('structure search os pid:', os.getpid())))
+#    if(request.method == 'POST'):
+#        form = StructureSearchForm(request.POST, request.FILES)
+#        
+#        if(form.is_valid()):
+#            if(form.cleaned_data['smiles'] or request.FILES.has_key('sdf')):
+#                try:
+#                    kwargs = { 'type':form.cleaned_data['type'] }
+#                    smiles = form.cleaned_data['smiles']
+#                    molfile = ''
+#                    if (request.FILES.has_key('sdf')):
+#                        molfile =  request.FILES
+#                        
+#                    if smiles and molfile:
+#                        msg = 'Cannot have both smiles and sdf inputs'
+#                        logger.error(str((msg, smiles, molfile)))
+#                        return HttpResponse(json.dumps({'error': msg }), mimetype="application/x-javascript")
+#                    if smiles:
+#                        kwargs['smiles'] = smiles
+#                        logger.info(str(('look for extant record: ', kwargs)))
+#                        query = PubchemRequest.objects.filter(**kwargs)
+#                        
+#                        if len(query)==1 :
+#                            pcreq = query[0]
+#                            logger.info(str(('found cached request', pcreq)))
+#                            return get_cached_structure_search(request, pcreq.id)
+#                        elif len(query)>1:
+#                            msg = 'too many cached requests found, will delete them.'
+#                            logger.info(str((msg, query)))
+#                            query.delete();
+#                    if molfile:
+#                        kwargs['molfile'] = molfile
+#                        query = PubchemRequest.objects.filter(**kwargs)
+#                        
+#                        if len(query)==1 :
+#                            pcreq = query[0]
+#                            logger.info(str(('found cached request', pcreq)))
+#                            return get_cached_structure_search(request, pcreq.id)
+#                        elif len(query)>1:
+#                            msg = 'too many cached requests found, will delete them.'
+#                            logger.info(str((msg, query)))
+#                            query.delete();
+#                      
+#                    logger.info(str(('create pubchem request', kwargs, os.getpid())))
+#                    pubchemRequest = PubchemRequest(**kwargs)
+#                    pubchemRequest.save()
+#                    
+#                    if False:
+#                        logger.info(str(('start thread...')))
+#                        t = Thread(target=pubchem_search,args=(pubchemRequest.id,), kwargs=kwargs )
+#                        t.setDaemon(True)
+#                        t.start()
+#                    else:
+#                        from multiprocessing import Process
+#                        logger.info(str(('start process...')))
+#                        p = Process(target=pubchem_search,args=(pubchemRequest.id,), kwargs=kwargs )
+#                        #connection.close()
+#                        p.daemon = True
+#                        p.start();
+#                        logger.info('return from parent...')
+#                        
+#                    return_dict = {'pubchemRequestId': pubchemRequest.id }
+#                    json_return = json.dumps(return_dict)
+#                    return HttpResponse(json_return, mimetype="application/x-javascript")
+#                except Exception, e:
+#                    exc_type, exc_obj, exc_tb = sys.exc_info()
+#                    fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]      
+#                    logger.error(str((exc_type, fname, exc_tb.tb_lineno)))
+#                    logger.error(str(('in structure search', e)))
+#                    raise e
+#    else: # not submitted yet
+#        form = StructureSearchForm()
+#
+#        return render(request, 'db/structureSearch_jquery.html', { 'structure_search_form':form, 'message':'Enter either a SMILES or a MOLFILE' })
+
+# this method elided, see pubchem_database_cache_service
+#def pubchem_search(requestId, smiles='', molfile='', type='identity'):
+#    """ 
+#    Synchronously get the specifed request from pubchem.
+#    """
+#    logger.info('synchronous pubchem search...')
+##    if(type == 'substructure'):
+#    pqr = PubchemRequest.objects.get(pk=int(requestId))
+#    logger.info(str(('conduct pubchem search for pending request:', pqr)))
+#    try:
+#        cids = pubchem_compound_search.identity_similarity_substructure_search(type=type, smiles=smiles, sdf=molfile)
+#        logger.info(str(('pubchem cids returned',cids, requestId)))
+#        pqr.cids = ','.join(str(x) for x in cids)
+#        pqr.date_time_fullfilled = timezone.now() #datetime.now()
+#        pqr.save()
+#    except PubchemError, e:
+#        logger.info(str(('pubchem error reported',e)))
+#        # TODO: delete, but maybe cache for a day?
+#        pqr.pubchem_error_message = e.args
+#        pqr.date_time_fullfilled = timezone.now() #datetime.now()
+#        pqr.save()
+#    except Exception, e:
+#        # TODO: this is a program error, need to signal to the client that there is an error, but not to cache this result if the error is fixed
+#        logger.info(str(('error reported',e))) 
+#        pqr.error_message = e.args
+#        pqr.date_time_fullfilled = timezone.now() #datetime.now()
+#        pqr.save()
+
+# this section is still valid... but it is doing an exact identity match, not the similarity search as is desired
+#    else: # identity
+#        pqr = PubchemRequest.objects.get(pk=int(requestId))
+#        logger.info(str((pqr)))
+#        try:
+#            cids = pubchem_compound_search.identity_exact_search(smiles=smiles, sdf=molfile)
+#            logger.info(str(('cids',cids, requestId)))
+#            pqr.cids = ','.join(str(x) for x in cids)
+#            pqr.date_time_fullfilled = timezone.now() #datetime.now()
+#            pqr.save()
+#        except PubchemError, e:
+#            logger.info(str(('pubchem error reported',e)))
+#            pqr.pubchem_error_message = e.args
+#            pqr.date_time_fullfilled = timezone.now() #datetime.now()
+#            pqr.save()
+
+# TODO: necessary to close the connection?            
+    connection.close()
+    logger.info(str(('pubchem search completed')))
+
+def test(request):
+    return render(request, 'db/test.html')
+
+def redirect_to_small_molecule_detail(smallmolecule):
+    facility_salt_id = smallmolecule.facility_id + "-" + smallmolecule.salt_id
+    return HttpResponseRedirect(reverse('db.views.smallMoleculeDetail',kwargs={'facility_salt_id':facility_salt_id}))
+
+def smallMoleculeIndexList(request, facility_ids=''):
+    logger.debug(str(('search for small molecules: ', facility_ids)))
+    temp = facility_ids.split(',')
+    queryset = SmallMolecule.objects.filter(facility_id__in=temp).distinct()
+    if(len(queryset) == 1 ):
+        return redirect_to_small_molecule_detail(queryset[0])
+    table = SmallMoleculeTable(queryset)
+    return render_list_index(request, table, '','Small molecule','Small molecules')
+    
+    
 def render_list_index(request, table, search, name, name_plural, **requestArgs):
     items_per_page = 25
     form = PaginationForm(request.GET)
@@ -521,7 +874,7 @@ def render_list_index(request, table, search, name, name_plural, **requestArgs):
         setattr(table.data,'verbose_name',name)
         requestArgs.setdefault('table',table)
         requestArgs.setdefault('items_per_page_form',form )
-        logger.info(str(('requestArgs', requestArgs)))
+        logger.debug(str(('requestArgs', requestArgs)))
     return render(request, 'db/listIndex.html', requestArgs)
     
 
@@ -531,6 +884,14 @@ class PaginationForm(forms.Form):
                                        required=False, label='per page')
     sort = forms.CharField(widget=forms.HiddenInput(), required=False);
     search = forms.CharField(widget=forms.HiddenInput(), required=False);
+    
+class StructureSearchForm(forms.Form):
+    smiles = forms.CharField(widget=forms.Textarea(attrs={'cols': 50, 'rows': 4}), required=False);
+    sdf  = forms.FileField(required=False, label='Molfile (sd file)')
+    type = forms.ChoiceField(widget=forms.Select(), 
+                               choices=(('identity','Identity'),('similarity','Similarity'),('substructure','Substructure'),),
+                               required=True, label='Search Type',
+                               initial='identity')
     
 class SnippetColumn(tables.Column):
     def render(self, value):
@@ -561,7 +922,7 @@ class PagedTable(tables.Table):
             temp = self.page.number+10
             jump_exp = int(log(self.paginator.num_pages,10))
             if(jump_exp > 1): temp = self.page.number + int(pow(10,(jump_exp-1)))
-            logger.info(str(('self.page.next_page_number()', self.page.next_page_number(),self.paginator.num_pages, temp)))
+            logger.debug(str(('self.page.next_page_number()', self.page.next_page_number(),self.paginator.num_pages, temp)))
             if( temp > self.paginator.num_pages ): 
                 temp=self.paginator.num_pages
             return temp
@@ -573,7 +934,7 @@ class PagedTable(tables.Table):
     def page_end(self):
         if(self.page):
             temp = self.page_start()+self.paginator.per_page
-            logger.info(str(('page_end:' , temp, self.paginator.count )))
+            logger.debug(str(('page_end:' , temp, self.paginator.count )))
             if(temp > self.paginator.count): return self.paginator.count
             return temp
 
@@ -773,7 +1134,7 @@ class DataSetManager():
             metaWhereClause.append(searchClause)
             parameters += searchParams
             
-        logger.info(str(('search',search,'metaWhereClause',metaWhereClause,'parameters',parameters)))
+        logger.debug(str(('search',search,'metaWhereClause',metaWhereClause,'parameters',parameters)))
         
         self.dataset_info = self._get_query_info(whereClause,metaWhereClause) # TODO: column_exclusion_overrides
         cursor = connection.cursor()
@@ -798,7 +1159,7 @@ class DataSetManager():
             metaWhereClause.append(searchClause)
             parameters += searchParams
             
-        logger.info(str(('search',search,'metaWhereClause',metaWhereClause,'parameters',parameters)))
+        logger.debug(str(('search',search,'metaWhereClause',metaWhereClause,'parameters',parameters)))
         self.dataset_info = self._get_query_info(whereClause,metaWhereClause)
         #sql_for_count = 'SELECT count(distinct id) from db_datarecord where dataset_id ='+ str(self.dataset_id)
         queryset = PagedRawQuerySet(self.dataset_info.query_sql,self.dataset_info.count_query_sql, connection, 
@@ -840,7 +1201,7 @@ class DataSetManager():
         # use the datacolumns to make a query on the fly (for the DataSetManager), and make a DataSetResultSearchTable on the fly.
         #dataColumnCursor = connection.cursor()
         #dataColumnCursor.execute("SELECT id, name, data_type, precision from db_datacolumn where dataset_id = %s order by id asc", [dataset_id])
-        logger.info(str(('dataset columns:', datacolumns)))
+        logger.debug(str(('dataset columns:', datacolumns)))
     
         # Need to construct something like this:
         # SELECT distinct (datarecord_id), smallmolecule_id, sm.facility_id || '-' || sm.salt_id as facility_id,
@@ -892,7 +1253,7 @@ class DataSetManager():
         inner_alias = 'x'
         queryString += " order by dr.id ) as " + inner_alias #LIMIT 5000 ) as x """
         
-        logger.info(str(('whereClause',whereClause)))      
+        logger.debug(str(('whereClause',whereClause)))      
         queryString += ' WHERE 1=1 '
         if(len(whereClause)>0):
             queryString = (" AND "+inner_alias+".").join([queryString]+whereClause) # extra filters
@@ -986,17 +1347,17 @@ class DataSetManager():
 def find_datasets_for_protein(protein_id):
     #TODO: can we return a django model queryset instead of just the id's (and then post-filter?)
     datasets = [x.id for x in DataSet.objects.filter(datarecord__protein__id=protein_id).distinct()]
-    logger.info(str(('datasets',datasets)))
+    logger.debug(str(('datasets',datasets)))
     return datasets
 
 def find_datasets_for_cell(cell_id):
     datasets = [x.id for x in DataSet.objects.filter(datarecord__cell__id=cell_id).distinct()]
-    logger.info(str(('datasets',datasets)))
+    logger.debug(str(('datasets',datasets)))
     return datasets
 
 def find_datasets_for_smallmolecule(smallmolecule_id):
     datasets = [x.id for x in DataSet.objects.filter(datarecord__smallmolecule__id=smallmolecule_id).distinct()]
-    logger.info(str(('datasets',datasets)))
+    logger.debug(str(('datasets',datasets)))
     return datasets
     #    cursor = connection.cursor()
     #    sql = ( 'SELECT distinct(dataset_id) from db_datarecord dr' +  
@@ -1061,7 +1422,7 @@ class LibraryMappingSearchManager(models.Model):
             sql += "plate, well, smb.facility_batch_id, "
         sql += " sm.facility_id, sm.salt_id "
         
-        logger.info(str(('sql',sql)))
+        logger.debug(str(('sql',sql)))
         # TODO: the way we are separating query_string out here is a kludge
         cursor = connection.cursor()
         if(query_string != ''):
@@ -1194,7 +1555,7 @@ class LibrarySearchManager(models.Manager):
         sql += where
         sql += " group by library.id) a join db_library l2 on(a.id=l2.id) WHERE l2.id=l.id order by l.short_name"
         
-        logger.info(str(('sql',sql)))
+        logger.debug(str(('sql',sql)))
         # TODO: the way we are separating query_string out here is a kludge, i.e we should be using django ORM language?
         if(query_string != ''):
             searchProcessed = format_search(query_string)
@@ -1279,7 +1640,7 @@ def can_access_image(request, image_filename, is_restricted=False):
     else:
         _path = os.path.join(settings.STATIC_AUTHENTICATED_FILE_DIR,image_filename)
         v = os.path.exists(_path)
-        if(not v): logger.info(str(('could not find path', _path)))
+        if(not v): logger.debug(str(('could not find path', _path)))
         return v
 
 def get_attached_files(facility_id, salt_id=None, batch_id=None):
@@ -1305,7 +1666,7 @@ def set_table_column_info(table,table_names, sequence_override=[]):
                 column.verbose_name = fi.get_verbose_name()
                 fields[fieldname] = fi
         except (ObjectDoesNotExist) as e:
-            logger.warn(str(('no fieldinformation found for field:', fieldname)))
+            logger.debug(str(('no fieldinformation found for field:', fieldname)))
             if(fieldname not in exclude_list):
                 exclude_list.append(fieldname)
             #column.attrs['th']={'title': fieldname}  
@@ -1316,8 +1677,8 @@ def set_table_column_info(table,table_names, sequence_override=[]):
     sequence_override.extend(sequence)
     table.exclude = tuple(exclude_list)
     table.sequence = sequence_override
-    logger.info(str(('excl',table.exclude)))
-    logger.info(str(('seq',table.sequence)))
+    logger.debug(str(('excl',table.exclude)))
+    logger.debug(str(('seq',table.sequence)))
         
 def dictfetchall(cursor): #TODO modify this to stream results properly
     "Returns all rows from a cursor as a dict"
@@ -1333,10 +1694,10 @@ def restricted_image(request, filepath):
         logger.warn(str(('access to restricted file for user is denied', request.user, filepath)))
         return HttpResponse('Log in required.', status=401)
     
-    logger.info(str(('send requested file:', settings.STATIC_AUTHENTICATED_FILE_DIR, filepath, request.user.is_authenticated())))
+    logger.debug(str(('send requested file:', settings.STATIC_AUTHENTICATED_FILE_DIR, filepath, request.user.is_authenticated())))
     _path = os.path.join(settings.STATIC_AUTHENTICATED_FILE_DIR,filepath)
     _file = file(_path)
-    logger.info(str(('download image',_path,_file)))
+    logger.debug(str(('download image',_path,_file)))
     wrapper = FileWrapper(_file)
     response = HttpResponse(wrapper,content_type='image/png') # todo: determine the type on the fly. (if ommitted, the browser sometimes doesn't know what to do with the image bytes)
     response['Content-Length'] = os.path.getsize(_path)
@@ -1350,7 +1711,7 @@ def download_attached_file(request, id):
     """
     try:
         af = AttachedFile.objects.get(id=id)
-        logger.info(str(('send the attached file:', af, request.user.is_authenticated())))
+        logger.debug(str(('send the attached file:', af, request.user.is_authenticated())))
         if(af.is_restricted and not request.user.is_authenticated()):
             logger.warn(str(('access to restricted file for user is denied', request.user, af)))
             return HttpResponse('Log in required.', status=401)
@@ -1359,7 +1720,7 @@ def download_attached_file(request, id):
         if(af.relative_path):
             _path = os.path.join(settings.STATIC_AUTHENTICATED_FILE_DIR,af.relative_path)
         _file = file(_path)
-        logger.info(str(('download_attached_file',_path,_file)))
+        logger.debug(str(('download_attached_file',_path,_file)))
         wrapper = FileWrapper(_file)
         response = HttpResponse(wrapper, content_type='text/plain') # use the same type for all files
         response['Content-Disposition'] = 'attachment; filename=%s' % unicode(af.filename)
@@ -1517,7 +1878,7 @@ def export_as_xls1(name,ordered_datacolumns, request, cursor):
     row = 0
     obj=cursor.fetchone()
     keys = cols_to_names.keys()
-    logger.info(str(('keys',keys)))
+    logger.debug(str(('keys',keys)))
     while obj:
         for i,key in enumerate(keys):
             sheet.write(row+1,i,obj[key])
@@ -1545,7 +1906,7 @@ def export_as_csv1(name,ordered_datacolumns, request, cursor):
     row = 0
     obj=cursor.fetchone()
     keys = cols_to_names.keys()
-    logger.info(str(('keys',keys,obj)))
+    logger.debug(str(('keys',keys,obj)))
     while obj:
         writer.writerow([smart_str(obj[int(key)], 'utf-8', errors='ignore') for key in keys])
         if(row % debug_interval == 0):

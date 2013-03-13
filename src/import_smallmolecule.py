@@ -45,7 +45,7 @@ def main(path):
               # it is convenient to convert the read in values to INT to make sure they are not interpreted as float values
                'facility_reagent_id': ('facility_id',True,None, lambda x: util.convertdata(x[x.index('HMSL')+4:],int)), 
                'salt_id': ('salt_id',True,None, lambda x: util.convertdata(x,int)),
-               'lincs_id':('lincs_id',False), # ,None,lambda x:util.convertdata(x,int)),
+               'lincs_id':('lincs_id',False), #None,lambda x:util.convertdata(x,int)),
                'chemical_name':('name',True),
                'alternative_names':'alternative_names',
                'pubchem_cid':'pubchem_cid',
