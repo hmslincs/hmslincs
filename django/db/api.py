@@ -6,11 +6,13 @@ from db.DjangoTables2Serializer import DjangoTables2Serializer, \
     get_visible_columns
 from db.models import SmallMolecule, DataSet, Cell, Protein, Library, DataRecord, \
     DataColumn, get_detail_bundle, get_detail_schema
+from db.models import get_fieldinformation
 from django.conf.urls.defaults import url
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import connection
 from django.http import Http404
 from django.utils.encoding import smart_str
+from django.http import HttpResponse
 from tastypie.authorization import Authorization
 from tastypie.bundle import Bundle
 from tastypie.resources import ModelResource, Resource
@@ -30,6 +32,7 @@ class SmallMoleculeResource(ModelResource):
         queryset = SmallMolecule.objects.all()
         # to override: resource_name = 'sm'
         excludes = ['column']
+        allowed_methods = ['get']
         authorization= Authorization()
         
     def dehydrate(self, bundle):
@@ -60,6 +63,7 @@ class CellResource(ModelResource):
         # TODO: it would be good to feed these from the view/tables2 code; or vice versa
         queryset = Cell.objects.all()
         # to override: resource_name = 'sm'
+        allowed_methods = ['get']
         excludes = []
         
     def dehydrate(self, bundle):
@@ -88,6 +92,7 @@ class ProteinResource(ModelResource):
         # TODO: it would be good to feed these from the view/tables2 code; or vice versa
         queryset = Protein.objects.all()
         # to override: resource_name = 'sm'
+        allowed_methods = ['get']
         excludes = []
         
     def dehydrate(self, bundle):
@@ -115,6 +120,7 @@ class LibraryResource(ModelResource):
         # TODO: it would be good to feed these from the view/tables2 code; or vice versa
         queryset = Library.objects.all()
         # to override: resource_name = 'sm'
+        allowed_methods = ['get']
         excludes = []
         
     def dehydrate(self, bundle):
@@ -147,6 +153,7 @@ class DataSetResource(ModelResource):
     class Meta:
         queryset = DataSet.objects.all() #.filter(is_restricted==False)
         # TODO: authorization
+        allowed_methods = ['get']
         excludes = ['lead_screener_firstname','lead_screener_lastname','lead_screener_email']
      
     def dispatch(self, request_type, request, **kwargs):
@@ -173,6 +180,17 @@ class DataSetResource(ModelResource):
                                        'noCols':len(datasetDataColumns),
                                        'cols':datasetDataColumns
                                        }
+        datacolumns = list( DataColumn.objects.all().filter(dataset_id=dataset_id) )
+        
+        # TODO: drive the columns to show here from fieldinformation inputs
+        bundle.data['endpoints'] = [ {'name':x.name, 
+                                 'unit':x.unit, 
+                                 'description':x.description, 
+                                 'displayName':x.display_name,
+                                 'dataType':x.data_type,
+                                 'precision':x.precision,
+                                 'readoutType':x.readout_type,
+                                 'comments':x.comments } for x in datacolumns]
         bundle.data['safVersion'] = '0.1'  # TODO: drive this from data
         bundle.data['screeningFacility'] = 'HMS' #TODO: drive this from data
         return bundle
@@ -314,14 +332,12 @@ class DataSetDataResource(Resource):
     
     # TODO: version 2: use the manager, not the tables2
     class Meta:
-        #queryset = DataRecord.objects.all()
-        # to override: resource_name = 'sm'
         fields = []
         serializer = CursorSerializer()
-#        queryset = DataRecord.objects.all();
+        allowed_methods = ['get']
 
-    
-    def get_dataset_columns(self,dataset_id, unit=[]):
+    @staticmethod
+    def get_dataset_columns(dataset_id, unit=[]):
         datacolumns = DataColumn.objects.filter(dataset_id=dataset_id)
         
         if unit:
@@ -356,10 +372,13 @@ class DataSetDataResource(Resource):
         else:
             raise Http404(str(('no facility id given',request.path)))
     
-    def get_datasetdata_cursor(self,dataset_id):
-        timepoint_columns = self.get_dataset_columns(dataset_id, ['day','hour','minute','second'])
+    
+    
+    @staticmethod
+    def get_datasetdata_cursor(dataset_id):
+        timepoint_columns = DataSetDataResource.get_dataset_columns(dataset_id, ['day','hour','minute','second'])
         logger.info(str(('timepoint_columns', timepoint_columns)))
-        endpoint_columns = self.get_dataset_columns(dataset_id)
+        endpoint_columns = DataSetDataResource.get_dataset_columns(dataset_id)
         endpoint_columns = [col for col in endpoint_columns if col not in timepoint_columns]
         
         # pivot out the timepoint columns only
@@ -379,46 +398,75 @@ class DataSetDataResource(Resource):
             else:
                 column_to_select = "text_value"
             timepoint_column_string +=  (",(SELECT " + column_to_select + " FROM db_datapoint " + alias + 
-                                " where " + alias + ".datacolumn_id="+str(dc.id) + " and " + alias + ".datarecord_id=dr.id) as " + columnName )
+                                " where " + alias + ".datacolumn_id="+str(dc.id) + " and " + alias + ".datarecord_id=datarecord.id) as " + columnName )
             timepoint_column_string += ", '" + dc.unit + "' as " + unitColumnName
         
         # TODO: only include cell, protein if they are present in the dataset
         # TODO: build the aliases here from the fieldinformation table.  
         # Note, case is erased when cursor.description is filled, so use underscores, and leave the camelcasing for later
-        sql = """select dr.id, 
-            ds.facility_id as bioassay_id, 
-            sm.facility_id as sm_center_compound_id, 
-            sm.lincs_id as SM_LINCS_ID,
-            sm.name as sm_name,
-            cell.name as cl_name, 
-            cell.cl_id as cl_id,
-            cell.facility_id as cl_center_specific_id,
-            protein.name as pp_name,
-            protein.lincs_id as pp_lincs_id,
-            dr.plate,
-            dr.well,
-            dr.control_type as control_type,
-            dc.name as endpoint_name, 
-            dc.unit as endpoint_unit,
-            coalesce(dp.int_value::TEXT, dp.float_value::TEXT, dp.text_value) as endpoint_value
-            """
+        
+        table_fields = ['datarecord.id',
+                        'dataset.facility_id',
+                        'smallmolecule.facility_id', 
+                        'smallmolecule.lincs_id',
+                        'smallmolecule.name',
+                        'cell.name',
+                        'cell.cl_id',
+                        'cell.facility_id',
+                        'protein.name',
+                        'protein.lincs_id',
+                        'datarecord.plate',
+                        'datarecord.well',
+                        'datarecord.control_type',
+                        'datacolumn.name',
+                        'datacolumn.unit',  ]
+                
+        tablefields_fi = [];
+        for tablefield in table_fields:
+            tflist = tablefield.split('.') 
+            tablefields_fi.append((tablefield, get_fieldinformation(tflist[1],[tflist[0]])))
+              
+        sql = "select "
+        for i,(tablefield,fi) in enumerate(tablefields_fi):
+            if i!=0: 
+                sql += ', '
+            sql += tablefield + ' as "' + (fi.dwg_field_name, fi.hms_field_name)[fi.dwg_field_name == None or len(fi.dwg_field_name)==0] +'"'
+            
+#        sql = """select dr.id, 
+#            ds.facility_id as bioassay_id, 
+#            sm.facility_id as sm_center_compound_id, 
+#            sm.lincs_id as SM_LINCS_ID,
+#            sm.name as sm_name,
+#            cell.name as cl_name, 
+#            cell.cl_id as cl_id,
+#            cell.facility_id as cl_center_specific_id,
+#            protein.name as pp_name,
+#            protein.lincs_id as pp_lincs_id,
+#            dr.plate,
+#            dr.well,
+#            dr.control_type as control_type,
+#            dc.name as endpoint_name, 
+#            dc.unit as endpoint_unit,
+        sql += ", coalesce(dp.int_value::TEXT, dp.float_value::TEXT, dp.text_value) as endpoint_value "
             
         sql += timepoint_column_string
         
         sql += """
-            from db_dataset ds 
-            join db_datarecord dr on(dr.dataset_id=ds.id) 
-            join db_datacolumn dc on(dc.dataset_id=ds.id) 
-            left join db_smallmolecule sm on (dr.smallmolecule_id=sm.id) 
-            left join db_cell cell on (dr.cell_id=cell.id)
-            left join db_protein protein on (dr.protein_id=protein.id)
+            from db_dataset dataset 
+            join db_datarecord datarecord on(datarecord.dataset_id=dataset.id) 
+            join db_datacolumn datacolumn on(datacolumn.dataset_id=dataset.id) 
+            left join db_smallmolecule smallmolecule on (datarecord.smallmolecule_id=smallmolecule.id) 
+            left join db_cell cell on (datarecord.cell_id=cell.id)
+            left join db_protein protein on (datarecord.protein_id=protein.id)
             , db_datapoint dp 
-            where dp.datarecord_id=dr.id and dp.datacolumn_id=dc.id 
-            and ds.id = %s 
+            where dp.datarecord_id=datarecord.id and dp.datacolumn_id=datacolumn.id 
+            and dataset.id = %s 
             """
         if len(timepoint_columns) > 0: 
-            sql += " and dc.id not in (" + ','.join([str(col.id) for col in timepoint_columns]) + ") "    
-        sql += " order by dr.id, dc.id "
+            sql += " and datacolumn.id not in (" + ','.join([str(col.id) for col in timepoint_columns]) + ") "    
+        sql += " order by datarecord.id, datacolumn.id "
+        
+        logger.info(str(('sql',sql)))
         cursor = connection.cursor()
         cursor.execute(sql, [dataset_id])
         #                query = DataRecord.objects.filter(dataset_id=dataset_id)
@@ -443,14 +491,6 @@ class DataSetDataResource(Resource):
         """
         return self.prepend_urls();
     
-    def build_schema(self):
-        #TODO: redo this for the SAF format
-        
-        schema = super(DataSetResource,self).build_schema()
-        # TODO: build the schema from the fieldinformation
-        schema['fields'] = get_detail_schema(DataSet(),['dataset'])
-        return schema 
-    
     def prepend_urls(self):
         return [
             url(r"^(?P<resource_name>%s)/(?P<facility_id>\d+)/$" % self._meta.resource_name, self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
@@ -471,6 +511,7 @@ class DataSetFlattenedResource(ModelResource):
         queryset = DataSet.objects.all() #.filter(is_restricted==False)
         # TODO: authorization
         # TODO: it would be good to feed these from the view/tables2 code; or vice versa
+        allowed_methods = ['get']
         excludes = ['lead_screener_firstname','lead_screener_lastname','lead_screener_email']
 
     def dispatch(self, request_type, request, **kwargs):
@@ -478,7 +519,7 @@ class DataSetFlattenedResource(ModelResource):
         """
         
         self.absolute_uri = request.build_absolute_uri()
-        return super(DataSetResource,self).dispatch(request_type, request, **kwargs)  
+        return super(DataSetFlattenedResource,self).dispatch(request_type, request, **kwargs)  
          
     def dehydrate(self, bundle):
         # TODO: the following call executes the query *just* to get the column names
@@ -521,6 +562,7 @@ class DataSetDataFlattenedResource(Resource):
         #queryset = DataRecord.objects.all()
         # to override: resource_name = 'sm'
         fields = []
+        allowed_methods = ['get']
         serializer = DjangoTables2Serializer()
     
     def get_object_list(self, request):

@@ -66,6 +66,7 @@ urlpatterns = patterns('',
     # url(r'^db/retrievefile/(?P<path>.*)/$', 'db.views.retrieve_file', name='retrieve_file'),
 
     
+    url(r'^db/api/v1/datasetdata/(?P<facility_id>\d+)/schema/', 'db.api.get_datasetdata_schema', name="datasetdata_schema"),
     (r'^db/api/', include(v1_api.urls)),
 
     (r'^explore/pathway/$', 'django.views.static.serve',

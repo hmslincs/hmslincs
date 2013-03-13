@@ -5,7 +5,6 @@ import types
 import re
 import logging
 from django.utils import timezone
-from string import capwords
 
 logger = logging.getLogger(__name__)
 
@@ -65,7 +64,7 @@ class FieldsManager(models.Manager):
                     return self.get_column_fieldinformation(field_or_alias)
                 return self.get_column_fieldinformation(field_or_alias, table)
             except (ObjectDoesNotExist,MultipleObjectsReturned) as e:
-                if( i+1 == len(tables_by_priority)): raise e
+                if( i+1 == len(tables_by_priority)): raise Exception(str(('ObjectDoesNotExist', field_or_alias,tables_by_priority, e.args)))
                 
     def get_column_fieldinformation(self,field_or_alias,table_or_queryset=None):
         """
@@ -630,13 +629,14 @@ def get_fielddata(model_object, search_tables, field_information_filter=None):
                 #ui_dict[fi.get_verbose_name()] = value
             else:
                 logger.debug(str(('field not shown in this view: ', field,value)))
-        except (ObjectDoesNotExist,MultipleObjectsReturned) as e:
+        except (ObjectDoesNotExist,MultipleObjectsReturned,Exception) as e:
             logger.debug(str(('no field information defined for: ', field, value)))
     ui_dict = OrderedDict(sorted(ui_dict.items(), key=lambda x: x[1]['fieldinformation'].order))
     if(logger.isEnabledFor(logging.DEBUG)): logger.debug(str(('ui_dict',ui_dict)))
     return ui_dict
     #return self.DatasetForm(data)
    
+
 def get_detail_bundle(obj,tables_to_search):
     """
     returns a bundle (dict of {verbose_name->value}) for the object, using fieldinformation to 
@@ -647,6 +647,12 @@ def get_detail_bundle(obj,tables_to_search):
     for entry in detail.values():
         data[entry['fieldinformation'].get_camel_case_dwg_name()]=entry['value']
     return data
+
+def get_fieldinformation(field, search_tables=[]):
+    """
+    convenience wrapper around FieldInformation.manager.get_column_fieldinformation_by_priority(field,search_tables)
+    """
+    return FieldInformation.manager.get_column_fieldinformation_by_priority(field,search_tables)
 
 def get_detail_schema(obj,tables_to_search):
     """
