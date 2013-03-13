@@ -4,8 +4,8 @@
 PROG=$(basename $0)
 BASEDIR=${BASEDIR:-"$(dirname $(realpath $0))"}
 SUPPORTDIR=${SUPPORTDIR:-"$(dirname $(dirname $BASEDIR))/support"}
-VIRTUAL_ENV=${VIRTUAL_ENV:-"$SUPPORTDIR/virtualenv"}
-source "$VIRTUAL_ENV/bin/activate"
+VENV=${VENV:-"$SUPPORTDIR/virtualenv"}
+source "$VENV/bin/activate"
 
 LOGFILE=${LOGFILE:-"$0.log"}
 PRODSITE=prod
