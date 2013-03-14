@@ -656,13 +656,13 @@ def get_detail_bundle(obj,tables_to_search):
         data[entry['fieldinformation'].get_camel_case_dwg_name()]=entry['value']
     return data
 
-#TODO: research proper way to make a lazy instantiation
-_meta_field_info = get_listing(FieldInformation(),['fieldinformation'])
-    
 def get_schema_fieldinformation(field, search_tables):
     """
     generate a dict of the fieldinformation that should be shown as a part of a listing of the information for a field
     """
+    #TODO: research proper way to make a lazy instantiation
+    _meta_field_info = get_listing(FieldInformation(),['fieldinformation'])
+        
     fi = get_fieldinformation(field, search_tables)
     if not fi:
         return 'field not defined: "' + field + '"'
@@ -685,6 +685,9 @@ def get_detail_schema(obj,tables_to_search, field_information_filter=None):
     for the api
     """
 #    meta_field_info = get_fielddata(FieldInformation(),['fieldinformation'])
+    #TODO: research proper way to make a lazy instantiation
+    _meta_field_info = get_listing(FieldInformation(),['fieldinformation'])
+        
     
     detail = get_fielddata(obj, tables_to_search)
     fields = {}
