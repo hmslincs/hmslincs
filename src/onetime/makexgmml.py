@@ -26,6 +26,8 @@ BASEDIR = op.normpath(op.join(SRCDIR, '..', '..'))
 DATADIR = op.join(BASEDIR, *'data networks data'.split())
 XMLDIR = op.join(BASEDIR, *'data networks xgmml'.split())
 IMGDIR = op.join(BASEDIR, *'django networks static networks img'.split())
+#EXPORTTYPE = 'png'
+EXPORTTYPE = 'svg'
 
 NODES = co.OrderedDict((
                         ('center', co.OrderedDict((
@@ -177,11 +179,12 @@ ZOOMFUDGE = 4.0
 
 # ---------------------------------------------------------------------------
 
-def cycommands(title, xgmmlfile, pngfile, _zoom=ZOOMFUDGE):
+def cycommands(title, xgmmlfile, exportfile,
+               _exporttype=EXPORTTYPE, _zoom=ZOOMFUDGE):
     return '''
 network import file="%(xgmmlfile)s"
 network view fit
-network view export file="%(pngfile)s" zoom=%(_zoom)s
+network view export file="%(exportfile)s" zoom=%(_zoom)s type=%(_exporttype)s
 network destroy name="%(title)s"
 '''.lstrip() % locals()
 
@@ -326,7 +329,8 @@ if True:
     cerk = '#0000cc'
     cakt = '#ff0000'
 
-    scriptfile = op.join(SRCDIR, 'makepng')
+    scriptname = 'make' + EXPORTTYPE
+    scriptfile = op.join(SRCDIR, scriptname)
 
     # if True:
     #     import sys
@@ -386,7 +390,9 @@ if True:
             title = d[:-4]
             xgmmlfile = op.join(XMLDIR, '%s.xgmml' % title)
             print >> scriptfh, cycommands(title, xgmmlfile,
-                                          op.join(IMGDIR, '%s.png' % title))
+                                          op.join(IMGDIR, '%s.%s'
+                                                  % (title, EXPORTTYPE)),
+                                          EXPORTTYPE)
 
             # if True:
             #     import sys
