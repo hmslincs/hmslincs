@@ -5,14 +5,13 @@ from db import views
 from db.DjangoTables2Serializer import DjangoTables2Serializer, \
     get_visible_columns
 from db.models import SmallMolecule, DataSet, Cell, Protein, Library, DataRecord, \
-    DataColumn, get_detail_bundle, get_detail_schema
-from db.models import get_fieldinformation
+    DataColumn, FieldInformation, get_fieldinformation, get_listing, \
+    get_detail_schema, get_detail, get_detail_bundle, get_fieldinformation, get_schema_fieldinformation
 from django.conf.urls.defaults import url
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import connection
-from django.http import Http404
+from django.http import Http404, HttpResponse
 from django.utils.encoding import smart_str
-from django.http import HttpResponse
 from tastypie.authorization import Authorization
 from tastypie.bundle import Bundle
 from tastypie.resources import ModelResource, Resource
@@ -167,39 +166,68 @@ class DataSetResource(ModelResource):
         _facility_id =str(bundle.data['facility_id'])
         dataset_id = bundle.data['id']
         
-        # NOTE: this executes the query on the resource *just* to get the columns
-        datasetDataResource = DataSetDataResource()
-        datasetDataCursor = datasetDataResource.get_datasetdata_cursor(dataset_id)
-
-        datasetDataColumns = [camel_case(col[0]) for col in datasetDataCursor.description]
-        
+        datasetDataColumns = DataSetDataResource.get_datasetdata_camel_case_columns(dataset_id)
         bundle.data = get_detail_bundle(bundle.obj, ['dataset',''])
         saf_uri = self.absolute_uri.replace('dataset','datasetdata')
         saf_uri = saf_uri.replace('json','csv');
+
+        datacolumns = list( DataColumn.objects.all().filter(dataset_id=dataset_id) )
+        # TODO: drive the columns to show here from fieldinformation inputs
+        dc_fieldinformation = FieldInformation.objects.all().filter(table='datacolumn', show_in_detail=True)
+        dc_field_names = [fi.get_camel_case_dwg_name() for fi in dc_fieldinformation]
+        endpoints = [ dict(zip(dc_field_names, [ getattr(x,fi.field) for fi in dc_fieldinformation ] )) for x in datacolumns ]
+
+        # Custom fields for SAF: TODO: generate the names here from the fieldinformation
         bundle.data['endpointFile'] = {'uri': saf_uri,
                                        'noCols':len(datasetDataColumns),
-                                       'cols':datasetDataColumns
+                                       'cols':datasetDataColumns,
+                                       'noEndpoints': len(endpoints),
+                                       'endpoints': endpoints
                                        }
-        datacolumns = list( DataColumn.objects.all().filter(dataset_id=dataset_id) )
         
-        # TODO: drive the columns to show here from fieldinformation inputs
-        bundle.data['endpoints'] = [ {'name':x.name, 
-                                 'unit':x.unit, 
-                                 'description':x.description, 
-                                 'displayName':x.display_name,
-                                 'dataType':x.data_type,
-                                 'precision':x.precision,
-                                 'readoutType':x.readout_type,
-                                 'comments':x.comments } for x in datacolumns]
         bundle.data['safVersion'] = '0.1'  # TODO: drive this from data
         bundle.data['screeningFacility'] = 'HMS' #TODO: drive this from data
         return bundle
-
+    
     def build_schema(self):
-        #TODO: redo this for the SAF format
         schema = super(DataSetResource,self).build_schema()
-        # TODO: build the schema from the fieldinformation
-        schema['fields'] = get_detail_schema(DataSet(),['dataset'])
+        original_dict = schema['fields'] # TODO: reincorporate this information (this default information is about the DB schema definition)
+        fields = get_detail_schema(DataSet(), 'dataset', lambda x: x.show_in_detail )
+        # Custom fields for SAF: TODO: generate the names here from the fieldinformation
+        fields['endpointFile'] = get_schema_fieldinformation('endpoint_file','')
+        fields['safVersion'] = get_schema_fieldinformation('saf_version','')
+        fields['screeningFacility'] = get_schema_fieldinformation('screening_facility','')
+        schema['fields'] = OrderedDict(sorted(fields, key=lambda x: x[0])) # sort alpha, todo sort on fi.order
+        
+        ds_fieldinformation = DataSetDataResource.get_datasetdata_column_fieldinformation()
+        ds_fieldinformation.append(('endpoint_value',get_fieldinformation('endpoint_value',[''])) )
+        ds_fieldinformation.append(('timepoint',get_fieldinformation('timepoint',[''])) )
+        ds_fieldinformation.append(('timepoint_unit',get_fieldinformation('timepoint_unit',[''])) )
+        ds_fieldinformation.append(('timepoint_description',get_fieldinformation('timepoint_description',[''])) )
+        
+        meta_field_info = get_listing(FieldInformation(),['fieldinformation'])
+    
+        fields = {}
+        for field,fi in ds_fieldinformation:
+            field_schema_info = {}
+            for item in meta_field_info.items():
+                meta_fi_attr = item[0]
+                meta_fi = item[1]['fieldinformation']
+                field_schema_info[meta_fi.get_camel_case_dwg_name()] = getattr(fi,meta_fi_attr)
+            fields[fi.get_camel_case_dwg_name()]= field_schema_info
+        schema['datasetDataFile'] = OrderedDict(sorted(fields, key=lambda x: x[0])) # sort alpha, todo sort on fi.order
+
+        dc_fieldinformation = FieldInformation.objects.all().filter(table='datacolumn', show_in_detail=True)
+        endpoint_fields = {}
+        for fi in dc_fieldinformation:
+            field_schema_info = {}
+            for item in meta_field_info.items():
+                meta_fi_attr = item[0]
+                meta_fi = item[1]['fieldinformation']
+                field_schema_info[meta_fi.get_camel_case_dwg_name()] = getattr(fi,meta_fi_attr)
+            endpoint_fields[fi.get_camel_case_dwg_name()]= field_schema_info
+        schema['endpointInformation'] = OrderedDict(sorted(endpoint_fields, key=lambda x: x[0])) # sort alpha, todo sort on fi.order
+        
         return schema 
     
     def override_urls(self):
@@ -270,16 +298,20 @@ class CursorSerializer(Serializer):
         return raw_data.getvalue()
     
     def to_json(self,cursor, options=None):
+        
         logger.info(str(('typeof the object sent to_csv',type(cursor))))
 #        logger.info(str(('to_csv for SAF for cursor', cursor)))
         raw_data = StringIO.StringIO()
                 
         # this is an unexpected way to get this error, look into tastypie sequence calls
-        if(isinstance(cursor,dict) and 'error_message' in cursor):
+        if isinstance(cursor,dict) and 'error_message' in cursor :
             logger.info(str(('report error', cursor)))
             raw_data.writelines(('error_message\n',cursor['error_message'],'\n'))
             return raw_data.getvalue() 
-
+        elif isinstance(cursor,dict) :
+            # then in this case, this is a non-error dict, probably for the schema, dump and return.
+            raw_data.writelines(json.dumps(cursor))
+            return raw_data.getvalue()
         # TODO: sort the fields?
         i=0
         cols = [camel_case(col[0]) for col in cursor.description]
@@ -337,18 +369,18 @@ class DataSetDataResource(Resource):
         allowed_methods = ['get']
 
     @staticmethod
-    def get_dataset_columns(dataset_id, unit=[]):
+    def get_dataset_columns(dataset_id, unit_types_only=[]):
         datacolumns = DataColumn.objects.filter(dataset_id=dataset_id)
         
-        if unit:
-            datacolumns = datacolumns.filter(unit__in=unit)
+        if unit_types_only:
+            datacolumns = datacolumns.filter(unit__in=unit_types_only)
             
         return datacolumns
         
 
     def get_object_list(self, request):
         """
-        A hook to allow making returning the list of available objects.
+        A hook to generate the list of available objects.
         override tastypie.resources.Resource
         - we do this because this is a custom resource (not, for instance, a ModelResource)
         Note: this function will hand off to the Serializer.
@@ -372,42 +404,19 @@ class DataSetDataResource(Resource):
         else:
             raise Http404(str(('no facility id given',request.path)))
     
-    
-    
     @staticmethod
-    def get_datasetdata_cursor(dataset_id):
-        timepoint_columns = DataSetDataResource.get_dataset_columns(dataset_id, ['day','hour','minute','second'])
-        logger.info(str(('timepoint_columns', timepoint_columns)))
-        endpoint_columns = DataSetDataResource.get_dataset_columns(dataset_id)
-        endpoint_columns = [col for col in endpoint_columns if col not in timepoint_columns]
-        
-        # pivot out the timepoint columns only
-        timepoint_column_string = '';
-        for i,dc in enumerate(timepoint_columns):
-            alias = "dp_"+ str(i)
-            columnName = "timepoint"
-            if i>0: columnName += "_" + str(i)
-            unitColumnName = "timepoint_unit"
-            if i>0: unitColumnName += "_" + str(i)
-            column_to_select = None
-            if(dc.data_type == 'Numeric' or dc.data_type == 'omero_image'):
-                if dc.precision == 0 or dc.data_type == 'omero_image':
-                    column_to_select = "int_value"
-                else:
-                    column_to_select = "round( float_value::numeric, 2 )" # TODO: specify the precision in the fieldinformation for this column
-            else:
-                column_to_select = "text_value"
-            timepoint_column_string +=  (",(SELECT " + column_to_select + " FROM db_datapoint " + alias + 
-                                " where " + alias + ".datacolumn_id="+str(dc.id) + " and " + alias + ".datarecord_id=datarecord.id) as " + columnName )
-            timepoint_column_string += ", '" + dc.unit + "' as " + unitColumnName
-        
+    def get_datasetdata_column_fieldinformation(): #TODO: is this cached by python?
+        """
+        returns a list of [('table.field', fieldinformation )]
+        """
         # TODO: only include cell, protein if they are present in the dataset
-        # TODO: build the aliases here from the fieldinformation table.  
         # Note, case is erased when cursor.description is filled, so use underscores, and leave the camelcasing for later
         
         table_fields = ['datarecord.id',
                         'dataset.facility_id',
                         'smallmolecule.facility_id', 
+                        'smallmolecule.salt_id', 
+                        'smallmoleculebatch.facility_batch_id', 
                         'smallmolecule.lincs_id',
                         'smallmolecule.name',
                         'cell.name',
@@ -420,34 +429,74 @@ class DataSetDataResource(Resource):
                         'datarecord.control_type',
                         'datacolumn.name',
                         'datacolumn.unit',  ]
-                
         tablefields_fi = [];
         for tablefield in table_fields:
             tflist = tablefield.split('.') 
             tablefields_fi.append((tablefield, get_fieldinformation(tflist[1],[tflist[0]])))
-              
-        sql = "select "
-        for i,(tablefield,fi) in enumerate(tablefields_fi):
-            if i!=0: 
-                sql += ', '
-            sql += tablefield + ' as "' + (fi.dwg_field_name, fi.hms_field_name)[fi.dwg_field_name == None or len(fi.dwg_field_name)==0] +'"'
             
-#        sql = """select dr.id, 
-#            ds.facility_id as bioassay_id, 
-#            sm.facility_id as sm_center_compound_id, 
-#            sm.lincs_id as SM_LINCS_ID,
-#            sm.name as sm_name,
-#            cell.name as cl_name, 
-#            cell.cl_id as cl_id,
-#            cell.facility_id as cl_center_specific_id,
-#            protein.name as pp_name,
-#            protein.lincs_id as pp_lincs_id,
-#            dr.plate,
-#            dr.well,
-#            dr.control_type as control_type,
-#            dc.name as endpoint_name, 
-#            dc.unit as endpoint_unit,
-        sql += ", coalesce(dp.int_value::TEXT, dp.float_value::TEXT, dp.text_value) as endpoint_value "
+        return tablefields_fi
+    
+    @staticmethod
+    def get_datasetdata_camel_case_columns(dataset_id):
+        camel_columns = [x[1].get_camel_case_dwg_name() 
+                         for x in DataSetDataResource.get_datasetdata_column_fieldinformation()]
+        timepoint_columns = DataSetDataResource.get_dataset_columns(dataset_id, ['day','hour','minute','second'])
+        for i in xrange(len(timepoint_columns)):
+            camel_columns.append('timepoint'+ ('','_'+str(i))[i>0]) # FYI we have to label manually, because timepoint is an alias, not real DataColumn
+            camel_columns.append('timepoint_unit'+ ('','_'+str(i))[i>0])
+            camel_columns.append('timepoint_description'+ ('','_'+str(i))[i>0])
+        endpoint_value_fi = get_fieldinformation('endpoint_value', ['']) 
+        camel_columns.append(endpoint_value_fi.get_camel_case_dwg_name())
+        return camel_columns
+                     
+    @staticmethod
+    def get_datasetdata_cursor(dataset_id):
+        timepoint_columns = DataSetDataResource.get_dataset_columns(dataset_id, ['day','hour','minute','second'])
+        logger.info(str(('timepoint_columns', timepoint_columns)))
+        endpoint_columns = DataSetDataResource.get_dataset_columns(dataset_id)
+        endpoint_columns = [col for col in endpoint_columns if col not in timepoint_columns]
+        
+        # pivot out the timepoint columns only
+        timepoint_column_string = '';
+        for i,dc in enumerate(timepoint_columns):
+            alias = "dp_"+ str(i)
+            
+            tp_name = "timepoint"
+            tp_unit_name = "timepoint_unit"
+            tp_desc_name = "timepoint_description"
+            if i>0: 
+                tp_name += "_" + str(i)
+                tp_unit_name += "_" + str(i)
+                tp_desc_name += "_" + str(i)
+
+            # note: timepoint values are probably text, but who knows, so query the type here
+            column_to_select = None
+            if(dc.data_type == 'Numeric' or dc.data_type == 'omero_image'):
+                if dc.precision == 0 or dc.data_type == 'omero_image':
+                    column_to_select = "int_value"
+                else:
+                    column_to_select = "round( float_value::numeric, 2 )" # TODO: specify the precision in the fieldinformation for this column
+            else:
+                column_to_select = "text_value"
+            timepoint_column_string += (    
+                ",(SELECT " + column_to_select + " FROM db_datapoint " + alias + 
+                " where " + alias + ".datacolumn_id="+str(dc.id) + 
+                " and " + alias + ".datarecord_id=datarecord.id) as " + tp_name )
+            timepoint_column_string += ", '" + dc.unit + "' as " + tp_unit_name
+            if dc.description:
+                timepoint_column_string += ", '" + dc.description  + "' as " + tp_desc_name
+        
+
+             
+        sql = "select "
+        meta_columns_to_fieldinformation = DataSetDataResource.get_datasetdata_column_fieldinformation()
+        for i,(tablefield,fi) in enumerate(meta_columns_to_fieldinformation):
+            if i!=0: 
+                sql += ', \n'
+            # TODO: this information is parsed when deserializing to create the "camel cased name"
+            sql += tablefield + ' as "' + fi.get_dwg_name_hms_name() +'"' 
+        endpoint_value_fi = get_fieldinformation('endpoint_value', [''])  
+        sql += ', coalesce(dp.int_value::TEXT, dp.float_value::TEXT, dp.text_value) as "' + endpoint_value_fi.get_dwg_name_hms_name() +'"\n'
             
         sql += timepoint_column_string
         
@@ -456,6 +505,9 @@ class DataSetDataResource(Resource):
             join db_datarecord datarecord on(datarecord.dataset_id=dataset.id) 
             join db_datacolumn datacolumn on(datacolumn.dataset_id=dataset.id) 
             left join db_smallmolecule smallmolecule on (datarecord.smallmolecule_id=smallmolecule.id) 
+            left join db_smallmoleculebatch smallmoleculebatch 
+                on(smallmoleculebatch.smallmolecule_id=smallmolecule.id 
+                    and smallmoleculebatch.facility_batch_id=datarecord.batch_id)
             left join db_cell cell on (datarecord.cell_id=cell.id)
             left join db_protein protein on (datarecord.protein_id=protein.id)
             , db_datapoint dp 
@@ -472,6 +524,31 @@ class DataSetDataResource(Resource):
         #                query = DataRecord.objects.filter(dataset_id=dataset_id)
         #                logger.info(str(('query returns', query)))
         return cursor
+
+    def build_schema(self):
+        schema = super(DataSetDataResource,self).build_schema()
+        original_dict = schema['fields'] # TODO: reincorporate this information (this default information is about the DB schema definition)
+
+        ds_fieldinformation = DataSetDataResource.get_datasetdata_column_fieldinformation()
+        ds_fieldinformation.append(('endpoint_value',get_fieldinformation('endpoint_value',[''])) )
+        ds_fieldinformation.append(('timepoint',get_fieldinformation('timepoint',[''])) )
+        ds_fieldinformation.append(('timepoint_unit',get_fieldinformation('timepoint_unit',[''])) )
+        ds_fieldinformation.append(('timepoint_description',get_fieldinformation('timepoint_description',[''])) )
+        
+        meta_field_info = get_listing(FieldInformation(),['fieldinformation'])
+    
+        fields = {}
+        for field,fi in ds_fieldinformation:
+            field_schema_info = {}
+            for item in meta_field_info.items():
+                meta_fi_attr = item[0]
+                meta_fi = item[1]['fieldinformation']
+                field_schema_info[meta_fi.get_camel_case_dwg_name()] = getattr(fi,meta_fi_attr)
+            fields[fi.get_camel_case_dwg_name()]= field_schema_info
+        schema['fields'] = OrderedDict(sorted(fields.items(), key=lambda x: x[0])) # TODO, use the fieldinformation order
+
+        
+        return schema 
 
     
     def obj_get_list(self, request=None, **kwargs):

@@ -963,7 +963,7 @@ def set_field_information_to_table_column(fieldname,table_names,column):
         fi = FieldInformation.manager.get_column_fieldinformation_by_priority(fieldname,table_names)
         column.attrs['th']={'title':fi.get_column_detail()}
         column.verbose_name = fi.get_verbose_name()
-    except (ObjectDoesNotExist) as e:
+    except (Exception) as e:
         raise Exception(str(('no fieldinformation found for field:', fieldname,e)))
     
 # OMERO Image: TODO: only include this if the dataset has images
@@ -1664,7 +1664,7 @@ def set_table_column_info(table,table_names, sequence_override=[]):
                 column.attrs['th']={'title':fi.get_column_detail()}
                 column.verbose_name = fi.get_verbose_name()
                 fields[fieldname] = fi
-        except (ObjectDoesNotExist) as e:
+        except (Exception) as e:
             logger.debug(str(('no fieldinformation found for field:', fieldname)))
             if(fieldname not in exclude_list):
                 exclude_list.append(fieldname)
@@ -1853,7 +1853,7 @@ def get_cols_to_write(cursor, fieldinformation_tables=[''], ordered_datacolumns=
                 if(fi.show_in_detail):
                     #cols_to_write.append(i)
                     header_row[i] = fi.get_verbose_name()
-            except (ObjectDoesNotExist) as e:
+            except (Exception) as e:
                 logger.warn(str(('no fieldinformation found for field:', col.name)))
          
     return OrderedDict(sorted(header_row.items(),key=lambda x: x[0]))

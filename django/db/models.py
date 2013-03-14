@@ -58,13 +58,15 @@ class FieldsManager(models.Manager):
         :param tables_by_priority: a sequence of table names.  If an empty table name is given, then
         a search through all fields is used.  This search can result in MultipleObjectsReturned exception.
         """
+        if isinstance(tables_by_priority, basestring): tables_by_priority = (tables_by_priority,)
+        assert isinstance(tables_by_priority, (list, tuple)), 'search_tables must be a list or tuple'
         for i,table in enumerate(tables_by_priority):
             try:
                 if(table == ''):
                     return self.get_column_fieldinformation(field_or_alias)
                 return self.get_column_fieldinformation(field_or_alias, table)
             except (ObjectDoesNotExist,MultipleObjectsReturned) as e:
-                if( i+1 == len(tables_by_priority)): raise Exception(str(('ObjectDoesNotExist', field_or_alias,tables_by_priority, e.args)))
+                if( i+1 == len(tables_by_priority)): raise Exception(str((type(e), field_or_alias,tables_by_priority, e.args)))
                 
     def get_column_fieldinformation(self,field_or_alias,table_or_queryset=None):
         """
@@ -217,23 +219,27 @@ class FieldInformation(models.Model):
         else:
             logger.error(str(('There is an issue with the field name: ',self.dwg_field_name,self.hms_field_name)))
             return self.field
-        
-    def get_camel_case_dwg_name(self):
-        logger.debug(str(('create a camelCase name for:', self)))
-        
+    
+    def get_dwg_name_hms_name(self):
         field_name = self.dwg_field_name        
-        if not field_name: field_name = self.hms_field_name
-        if not field_name:
+        if not field_name or len(field_name)==0 : field_name = self.hms_field_name
+        if not field_name or len(field_name)==0 :
             logger.error(str(('There is an issue with the field name: ',self.dwg_field_name,self.hms_field_name)))
             return self.field
-        field_name = field_name.strip().title()
-        field_name = re.sub(r'[_\s]+','',field_name)
-        field_name = field_name[0].lower() + field_name[1:];
-        logger.info(str(('created camel case name', field_name, 'for', self)))
         return field_name
+    
+    def get_camel_case_dwg_name(self):
+        logger.debug(str(('create a camelCase name for:', self)))
+        field_name = self.get_dwg_name_hms_name()
+        field_name = field_name.strip().title()
+        # TODO: convert a trailing "Id" to "ID"
+        field_name = ''.join(['ID' if x.lower()=='id' else x for x in re.split(r'[_\s]+',field_name)])
         
-
-        
+        #field_name = re.sub(r'[_\s]+','',field_name)
+        field_name = field_name[0].lower() + field_name[1:];
+        #        logger.info(str(('created camel case name', field_name, 'for', self)))
+        return field_name
+     
 class SmallMolecule(models.Model):
     nominal_target          = models.ForeignKey('Protein', null=True)
     facility_id             = _CHAR(max_length=_FACILITY_ID_LENGTH, **_NOTNULLSTR)
@@ -621,6 +627,8 @@ def get_fielddata(model_object, search_tables, field_information_filter=None):
         details = {}
         try:
             fi = FieldInformation.manager.get_column_fieldinformation_by_priority(field,search_tables)
+            if not fi:
+                ui_dict['field'] = 'field not defined: "' + field + '"'
             if (field_information_filter and field_information_filter(fi)
                     or field_information_filter == None ): 
                 details['fieldinformation'] = fi
@@ -635,7 +643,7 @@ def get_fielddata(model_object, search_tables, field_information_filter=None):
     if(logger.isEnabledFor(logging.DEBUG)): logger.debug(str(('ui_dict',ui_dict)))
     return ui_dict
     #return self.DatasetForm(data)
-   
+ 
 
 def get_detail_bundle(obj,tables_to_search):
     """
@@ -648,25 +656,44 @@ def get_detail_bundle(obj,tables_to_search):
         data[entry['fieldinformation'].get_camel_case_dwg_name()]=entry['value']
     return data
 
+#TODO: research proper way to make a lazy instantiation
+_meta_field_info = get_listing(FieldInformation(),['fieldinformation'])
+    
+def get_schema_fieldinformation(field, search_tables):
+    """
+    generate a dict of the fieldinformation that should be shown as a part of a listing of the information for a field
+    """
+    fi = get_fieldinformation(field, search_tables)
+    if not fi:
+        return 'field not defined: "' + field + '"'
+    field_schema_info = {}
+    for item in _meta_field_info.items():
+        meta_fi_attr = item[0]
+        meta_fi = item[1]['fieldinformation']
+        field_schema_info[meta_fi.get_camel_case_dwg_name()] = getattr(fi,meta_fi_attr)
+    return field_schema_info
+
 def get_fieldinformation(field, search_tables=[]):
     """
     convenience wrapper around FieldInformation.manager.get_column_fieldinformation_by_priority(field,search_tables)
     """
     return FieldInformation.manager.get_column_fieldinformation_by_priority(field,search_tables)
 
-def get_detail_schema(obj,tables_to_search):
+def get_detail_schema(obj,tables_to_search, field_information_filter=None):
     """
-    returns a schema (a dictionary: {fieldinformation.camel_case_dwg_name -> {field information}) 
+    returns a schema (a dictionary: {fieldinformation.camel_case_dwg_name -> {field information for each field in the model obj}) 
     for the api
     """
-    meta_field_info = get_fielddata(FieldInformation(),['fieldinformation'])
+#    meta_field_info = get_fielddata(FieldInformation(),['fieldinformation'])
     
     detail = get_fielddata(obj, tables_to_search)
     fields = {}
     for entry in detail.values():
         fi = entry['fieldinformation']
+        if field_information_filter and not field_information_filter(fi):
+            continue
         field_schema_info = {}
-        for item in meta_field_info.items():
+        for item in _meta_field_info.items():
             meta_fi_attr = item[0]
             meta_fi = item[1]['fieldinformation']
             
