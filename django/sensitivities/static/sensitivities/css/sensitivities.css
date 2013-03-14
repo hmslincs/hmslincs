@@ -1,0 +1,84 @@
+path {
+    stroke-width: 1;
+    fill: none;
+}
+
+.plotline {
+    stroke: black;
+    stroke-width: 2;
+}
+
+.auxline {
+    stroke: gray;
+    stroke-width: 1;
+}
+
+.axis {
+    shape-rendering: crispEdges;
+}
+
+.axis line, .axis path {
+    fill: none;
+    stroke: #000;
+}
+
+.axis text, .label, #sliders td {
+  font-family: Consolas, Monaco, "Andale Mono WT", "Andale Mono", "Nimbus Mono L", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Courier New", Courier, monospace;
+  font-size: 10pt;
+}
+
+.subscript {
+  font-size: 8pt;
+}
+
+.superscript {
+  font-size: 7pt;
+}
+
+.area {
+    fill: #f7ab53;
+    stroke-width: 0;
+}
+
+#sliders {
+    margin-left: 180px;
+}
+
+#sliders table { 
+    border: 0px;
+    margin: 0 0 10ex;
+}
+
+#sliders tr:nth-child(2n) { 
+    background-color: #ffffff;
+}
+
+#sliders td { 
+    border: 0px;
+    vertical-align: middle;
+}
+
+.slider {
+    width: 200px;
+    margin-left: 1em;
+    margin-right: 1em;
+    font-size: 5pt;
+}
+
+.slider-value {
+    width: 3em;
+    text-align: right;
+}
+
+.ui-slider-range {
+    background: #f7ab53;
+    background-image: none;
+}
+
+.outside-tested-range {
+  color: #f7ab53;
+}
+
+.not-defined {
+  color: #ff0000;
+}
