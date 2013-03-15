@@ -35,12 +35,15 @@ jQuery(document).ready(function ($) {
         var points = POINTMAP[image_id];
         var x = coords.x; var y = coords.y;
         var rows = [];
-        for (var i = 0; i < points.length; i++) {
+        for (var i = 1; i < points.length; i++) {
             var coords = points[i].coords;
             var dx = x - coords.x; var dy = y - coords.y;
             if (dx*dx + dy*dy < CLICK_RADIUS_2) rows.push(points[i].row);
         }
-        return rows;
+        if (rows.length == 0) return null;
+        var thead = '<thead>' + points[0].row + '</thead>'
+        var tbody = '<tbody>' + rows.join('') + '</tbody>'
+        return thead + tbody
     }
 
     function remove_popup(e) {
@@ -99,10 +102,8 @@ jQuery(document).ready(function ($) {
                         replace(window.IMGBASE, '').
                         replace(/\.[^\.]+$/, '');
             var rows = get_popup_rows(imgid, coords);
-            if (!rows.length) return;
-            var inner = '';
-            for (var i = 0; i < rows.length; ++i) inner += rows[i];
-            var $popup = $('<div id="popup"><table>' + inner + '</table></div>').
+            if (rows === null ) return;
+            var $popup = $('<div id="popup"><table>' + rows + '</table></div>').
                          appendTo('body');
 
             // x0 and y0 give the preferred offset for the popup,

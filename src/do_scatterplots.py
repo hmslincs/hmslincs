@@ -189,14 +189,20 @@ def make_row(annotation):
              ('<td>(%(x).3f, %(y).3f)</td>'
               '</tr>'))
             % annotation._asdict())
-    
 
-def print_pixel_annotations(pixel_maps):
+def print_pixel_annotations(pixel_maps,
+                            _headerrow=dict(row='<tr>'
+                                                '<th>cell line</th>'
+                                                '<th>subtype</th>'
+                                                '<th>gi50</th>'
+                                                '<th>(x, y)</th>'
+                                                '</tr>')):
     for imgid, pixel_map in pixel_maps.items():
         rows = [dict(coords=p.coords._asdict(),
                      row=make_row(p.annotation)) for p in pixel_map]
 
-        print '        %s: %s,' % (json.dumps(imgid), json.dumps(rows))
+        print '        %s: %s,' % (json.dumps(imgid),
+                                   json.dumps([_headerrow] + rows))
 
 
 def do_scatterplots(cl_metadata, responses, to_do, withlimits=None):

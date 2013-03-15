@@ -45,14 +45,26 @@ td p {
   margin: 0;
 }
 
-#popup td {
+#popup thead {
+  border-bottom: 1px solid black;
+}
+
+#popup th, #popup td {
   border: 0;
   margin: 0;
   padding: 0em 0.4em;
   font-family: Consolas, Monaco, "Andale Mono WT", "Andale Mono", "Nimbus Mono L", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Courier New", Courier, monospace;
-  font-size: 10pt;
   line-height: 11pt;
   white-space: nowrap;
+}
+
+#popup th {
+  font-size: 10pt;
+}
+
+#popup th {
+  font-size: 9pt;
+  text-align: center;
 }
 
 #content td.featured {
