@@ -20,7 +20,7 @@ URLTEMPLATE='http://%slincs.hms.harvard.edu/cgi-bin/cleanup.cgi'
 
 ORIGIN=${ORIGIN:-git@github.com:hmslincs/hmslincs.git}
 FULL=false
-STATICS=true
+IMAGES=true
 
 function error {
   echo "$PROG: $1" >&2
@@ -56,9 +56,9 @@ function main {
     case "$opt" in
       h) __usage 0;;
       m) FULL=false
-         STATICS=false;;
+         IMAGES=false;;
       f) FULL=true
-         STATICS=true;;
+         IMAGES=true;;
       d) DEBUG=true
          LOGFILE=$(tty);;
       ?) echo "$0: illegal option -- $OPTARG" >&2
@@ -128,7 +128,7 @@ function builddb {
 }
 
 function makeimg {
-  if $STATICS; then
+  if $IMAGES; then
     _debug -n 'making images... '
     cd "$BASEDIR" || return 1
     src/do_scatterplots.sh >>"$LOGFILE" 2>&1 || \
@@ -141,7 +141,7 @@ function makeimg {
 }
 
 function moveimg {
-  if $STATICS; then
+  if $IMAGES; then
     _debug -n 'moving images... '
     cd "$BASEDIR" || return 1
     DEBUG=$DEBUG ./find_and_move_restricted_images.sh >>"$LOGFILE" 2>&1 || \
@@ -151,14 +151,12 @@ function moveimg {
 }
 
 function collectstatic {
-  if $STATICS; then
-    _debug -n 'collecting statics... '
-    cd "$BASEDIR" || return 1
-    mkdir -p $SUPPORTDIR/images || return 1
-    python django/manage.py collectstatic --noinput >>"$LOGFILE" 2>&1 || \
-        error "manage.py collectstatic failed: $?"
-    _debug 'done'
-  fi
+  _debug -n 'collecting statics... '
+  cd "$BASEDIR" || return 1
+  mkdir -p $SUPPORTDIR/images || return 1
+  python django/manage.py collectstatic --noinput >>"$LOGFILE" 2>&1 || \
+      error "manage.py collectstatic failed: $?"
+  _debug 'done'
 }
 
 function killfcgi {
