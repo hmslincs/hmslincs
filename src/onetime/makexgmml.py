@@ -21,13 +21,19 @@ import collections as co
 #
 
 # ---------------------------------------------------------------------------
+import setparams as _sp
+_params = dict(
+    EXPORTTYPE = 'svg'
+)
+_sp.setparams(_params)
+del _sp, _params
+
+# ---------------------------------------------------------------------------
 SRCDIR = op.dirname(op.abspath(__file__))
 BASEDIR = op.normpath(op.join(SRCDIR, '..', '..'))
 DATADIR = op.join(BASEDIR, *'data networks data'.split())
 XMLDIR = op.join(BASEDIR, *'data networks xgmml'.split())
 IMGDIR = op.join(BASEDIR, *'django networks static networks img'.split())
-#EXPORTTYPE = 'png'
-EXPORTTYPE = 'svg'
 
 NODES = co.OrderedDict((
                         ('center', co.OrderedDict((
