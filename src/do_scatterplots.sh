@@ -141,14 +141,12 @@ rm -f $( $DEBUG && echo -v ) $OUTPUTDIR{,/{slider,basal_graded}}/*.png(N)
 
 
 truncate -s 0 $JSPATH
-echo '
-// THIS FILE IS AUTOMATICALLY CREATED -- MANUAL EDITS WILL BE OVERWRITTEN
-
+echo \
+'// WARNING: THIS FILE IS AUTOMATICALLY CREATED -- MANUAL EDITS WILL BE OVERWRITTEN
 // Adapted from snippet at http://stackoverflow.com/questions/881515#5947280
 
 (function( hmslincs ) {
-    // ------------------------------------------------------------------------
-    // scatterplot popups
+    // data for scatterplot popups
 
     hmslincs.POINTMAP = {' >> $JSPATH
 
@@ -159,7 +157,7 @@ IDPREFIX='slider/' WITHLIMITS=1 OUTPUTDIR=$OUTPUTDIR/slider \
 IDPREFIX='basal_graded/' OUTPUTDIR=$OUTPUTDIR/basal_graded \
   python src/do_scatterplots.py $DATADIR1/picks_for_basal_w_color.tsv >> $JSPATH
 
-echo '
+echo '    }
 }( window.hmslincs = window.hmslincs || {} ));' >> $JSPATH
 
 echo "$SCRIPT: done"

@@ -4,6 +4,7 @@ from matplotlib.figure import Figure
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.ticker import NullLocator
 from matplotlib.backends.backend_agg import FigureCanvasAgg
+import numpy as np
 import os.path as op
 import io
 # ---------------------------------------------------------------------------
@@ -30,7 +31,8 @@ dpi = 72.0
 
 cmap_bwr = LinearSegmentedColormap.from_list('bwr', ['blue', 'white', 'red'])
 
-def scatterplot(points, metadata, lims=None, outpath=None, display=False):
+def scatterplot(points, metadata, lims=None, outpath='/dev/null',
+                display=False):
     f = Figure(figsize=(300 / dpi, 300 / dpi), dpi=dpi)
     ax = f.gca()
     for p in points:
@@ -62,8 +64,9 @@ def scatterplot(points, metadata, lims=None, outpath=None, display=False):
     canvas = FigureCanvasAgg(f)
     f.set_canvas(canvas)
 
-    if outpath:
-        canvas.print_png(outpath)
+    # must always be called, even if outpath is '/dev/null', so that the
+    # returned figure object yields consistent pixel coordinates
+    canvas.print_png(outpath)
 
     if display:
         plt.show()
@@ -72,9 +75,10 @@ def scatterplot(points, metadata, lims=None, outpath=None, display=False):
 
 def pixels(points, figure):
     transform = figure.gca().transData.transform
+    # see http://matplotlib.org/devel/transformations.html#matplotlib.transforms.Transform.transform
     height = figure.canvas.get_width_height()[1]
     return tuple(Pixel(int(round(q[0])), int(round(height - q[1])))
-                 for q in transform([(p.x, p.y) for p in points]))
+                 for q in transform(np.array([(p.x, p.y) for p in points])))
 
 
 def build_label(metadata):
