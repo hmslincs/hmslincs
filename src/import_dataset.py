@@ -134,7 +134,7 @@ def readDataColumns(path):
 
 def main(path):
     datarecord_batch = []
-    save_interval = 500
+    save_interval = 1000
     # read in the two columns of the meta sheet to a dict that defines a DataSet
     # TODO: Need a transaction, in case loading fails!
     logger.debug('read metadata...')
