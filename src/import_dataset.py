@@ -1,13 +1,13 @@
 import argparse
-import re
-import logging
-import time;  
-
-import init_utils as iu
 import import_utils as util
+import init_utils as iu
+import logging
+import re
+import time;  
 from django.core.exceptions import ObjectDoesNotExist
-from db.models import DataSet, DataColumn, DataRecord, DataPoint, SmallMolecule, SmallMoleculeBatch, Cell, Protein, LibraryMapping
 from django.db import transaction, models
+
+from db.models import DataSet, DataColumn, DataRecord, DataPoint, SmallMolecule, Cell, Protein, LibraryMapping
 
 
 # ---------------------------------------------------------------------------
@@ -134,10 +134,10 @@ def readDataColumns(path):
 
 def main(path):
     datarecord_batch = []
-    save_interval = 1000
+    save_interval = 500
     # read in the two columns of the meta sheet to a dict that defines a DataSet
     # TODO: Need a transaction, in case loading fails!
-    logger.info('read metadata...')
+    logger.debug('read metadata...')
 
     metadata = read_metadata(path)
     dataset = None
@@ -145,21 +145,21 @@ def main(path):
         metadata = read_metadata(path)
         try:
             extant_dataset = DataSet.objects.get(facility_id=metadata['facility_id'])
-            logger.info(str(('extent_dataset',extant_dataset)))
+            logger.debug(str(('extent_dataset',extant_dataset)))
             if(extant_dataset):
                 logger.warn(str(('deleting extant dataset for facility id: ', metadata['facility_id'])))
                 extant_dataset.delete()
         except Exception,e:
-            logger.info(str(('on trying to delete',e)))
+            logger.debug(str(('on trying to delete',e)))
         dataset = DataSet(**metadata)
         dataset.save()
-        logger.info(str(('dataset created: ', dataset)))
+        logger.debug(str(('dataset created: ', dataset)))
     except Exception, e:
         logger.error(str(('Exception reading metadata or saving the dataset', metadata, e)))
         raise e
     
     # read in the data columns sheet to an array of dict's, each dict defines a DataColumn    
-    logger.info('read data columns...')
+    logger.debug('read data columns...')
     dataColumnDefinitions = readDataColumns(path)
     
     # now that the array of DataColumn dicts is created, use them to create the DataColumn instances
@@ -169,10 +169,10 @@ def main(path):
         if(not 'display_order' in dc or dc['display_order']==None): dc['display_order']=i
         dataColumn = DataColumn(**dc)
         dataColumn.save()
-        logger.info(str(('datacolumn created:', dataColumn)))
+        logger.debug(str(('datacolumn created:', dataColumn)))
         dataColumns[dataColumn.name] = dataColumn    
 
-    logger.info('read the Data sheet')
+    logger.debug('read the Data sheet')
     sheetname = 'Data'
     dataSheet = iu.readtable([path, sheetname])
     
@@ -215,7 +215,7 @@ def main(path):
         raise Exception('at least one of: ' + str(mappingColumnDict.keys()) + ' must be defined and used in the Data sheet.')
     
     # Read in the Data sheet, create DataPoint values for mapped column in each row
-    logger.info(str(('data sheet columns identified, read rows, save_interval:', save_interval)))
+    logger.debug(str(('data sheet columns identified, read rows, save_interval:', save_interval)))
     loopStart = time.time()
     pointsSaved = 0
     rowsRead = 0
@@ -366,14 +366,14 @@ def main(path):
         
         if(rowsRead % save_interval == 0 ):
             new_datarecords = bulk_create_datarecords(datarecord_batch)
-            logger.info(str(("save datarecord_batch, rowsRead", rowsRead, "time:", time.time() - loopStart )))
+            logger.debug(str(("save datarecord_batch, rowsRead", rowsRead, "time:", time.time() - loopStart )))
             if(logger.isEnabledFor(logging.DEBUG)): logger.debug(str(('new drs',new_datarecords)))
             new_dps = bulk_create_with_manual_ids(datarecord_batch)
             if(logger.isEnabledFor(logging.DEBUG)): logger.debug(str(('new dps',new_dps)))
             datarecord_batch=[]
 
     new_datarecords = bulk_create_datarecords(datarecord_batch)
-    logger.info(str(("save datarecord_batch, time:", time.time() - loopStart )))
+    logger.debug(str(("save datarecord_batch, time:", time.time() - loopStart )))
     if(logger.isEnabledFor(logging.DEBUG)): logger.debug(str(('new drs',new_datarecords)))
     new_dps = bulk_create_with_manual_ids(datarecord_batch)
     if(logger.isEnabledFor(logging.DEBUG)): logger.debug(str(('new dps',new_dps)))
