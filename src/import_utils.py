@@ -31,6 +31,7 @@ def find_columns(column_definitions, sheet_labels, all_column_definitions_requir
     return a dict mapping the column ordinal to the proper column definition dict
     - all matches are done after lowercasing the sheet labels.
     """
+    #TODO: it appears there is a subfuntional side effect of having empty values in the column if _required=False, see import_dataset usage
     logger.debug(str(('sheet_labels:', sheet_labels)))
     cols = {}
     sheet_labels_cleaned = []

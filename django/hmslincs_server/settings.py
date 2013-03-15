@@ -282,6 +282,11 @@ LOGGING = {
             'handlers': ['console'],
             'propagate': True,
             'level': 'INFO',
+        },      
+        '': {  # set a default handler
+            'handlers': ['console'],
+            'propagate': True,
+            'level': 'INFO',
         },
     }
 }
