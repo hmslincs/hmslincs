@@ -6,7 +6,7 @@ _sqlite3dbpath = op.join(_djangopath, 'hmslincs.db')
 
 # Django settings for hmslincs_server project.
 
-DEBUG = True
+DEBUG = not op.abspath(__file__).startswith('/www/lincs.')
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
@@ -68,7 +68,6 @@ if socket.getfqdn().endswith('.orchestra'):
         # Put strings here, like "/home/html/static" or "C:/www/django/static".
         # Always use forward slashes, even on Windows.
         # Don't forget to use absolute paths, not relative paths.
-        op.join(_djangopath, '..', '..', 'images' ),
         '/groups/pharmacoresponse/data/images/',
         '/groups/pharmacoresponse/data/upload_files/',
     )   
