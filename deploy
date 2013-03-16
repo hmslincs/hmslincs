@@ -2,10 +2,11 @@
 # -*- mode: shell-script -*-
 
 PROG=$(basename $0)
-BASEDIR=${BASEDIR:-"$(dirname $(realpath $0))"}
+REALPATH=${REALPATH:-realpath}
+BASEDIR=${BASEDIR:-"$(dirname $($REALPATH $0))"}
 SUPPORTDIR=${SUPPORTDIR:-"$(dirname $(dirname $BASEDIR))/support"}
 VENV=${VENV:-"$SUPPORTDIR/virtualenv"}
-source "$VENV/bin/activate"
+REQUIREMENTS=${REQUIREMENTS:-"$BASEDIR/requirements.txt"}
 
 LOGFILE=${LOGFILE:-"$0.log"}
 PRODSITE=prod
@@ -119,6 +120,42 @@ function gitpull {
   return 0
 }
 
+function invenv {
+  local pyex="$VENV/bin/python"
+  if [[ -z $VENV || ! -x $pyex ]]; then
+     error "VENV ($VENV) does not point to a valid virtualenv directory"
+  fi
+
+  [[ $VIRTUAL_ENV == $VENV && $(which python) == $pyex ]] && \
+    python -c 'import sys; sys.real_prefix' 2>/dev/null
+}
+
+function maybe_activate_virtualenv {
+  if invenv; then return; fi
+
+  source "$VENV/bin/activate" || error "failed to activate virtualenv: $?"
+
+  if invenv; then return; fi
+
+  error 'failed to activate virtualenv (reason unknown)'
+}
+
+function runpip {
+  if [[ ! -e $REQUIREMENTS ]]; then
+    error "cannot find requirements file ($REQUIREMENTS)"
+  fi
+
+  maybe_activate_virtualenv
+
+  sed 's/^\s*//; s/\s*#.*//' $REQUIREMENTS | \
+    while IFS= read -r line; do
+      if [[ -z $line ]]; then continue; fi
+      pip install -v $line || error "pip install $line failed: $?"
+    done
+  _debug 'done'
+  return 0
+}
+
 function builddb {
   if $FULL; then
     _debug -n 'building db... '
@@ -172,7 +209,8 @@ function deploy {
   echo $(date --iso-8601=seconds) \($(date +%A)\) >>"$LOGFILE"
   echo "deployed by $USER ($UID) connected from ${SSH_CLIENT/ *}" >>"$LOGFILE"
   echo >>"$LOGFILE"
-  gitpull && builddb && makeimg && moveimg && collectstatic && killfcgi
+  maybe_activate_virtualenv
+  gitpull && runpip && builddb && makeimg && moveimg && collectstatic && killfcgi
   echo done
 }
 
