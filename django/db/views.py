@@ -1767,9 +1767,9 @@ def download_attached_file(request, id):
         
 # TODO: currently, send_to_file1 is used specifically to export the large datasets; but would like for everything to use this method
 def send_to_file1(outputType, name, ordered_datacolumns, cursor, request):
-    if(outputType == 'csv'):
+    if(outputType == '.csv'):
         return export_as_csv1(name,ordered_datacolumns , request, cursor)
-    elif(outputType == 'xls'):
+    elif(outputType == '.xls'):
         return export_as_xls1(name, ordered_datacolumns, request, cursor)
     
 def send_to_file(outputType, name, table, queryset, request):    
