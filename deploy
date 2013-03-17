@@ -1,12 +1,35 @@
 #!/bin/sh
 # -*- mode: shell-script -*-
 
-STARTED=$(date '+%FT%T%z (%A)')
-DEPLOYINFO=
-INPROGRESS=$'\t(in progress)'
-FAILED=$'\t(failed)'
+ds () {
+	d=$( date +%y%m%d%a ) 
+	case $d in
+		(*Thu) d=${d/Thu/H}  ;;
+		(*Sun) d=${d/Sun/U}  ;;
+		(*) d=${d%??}  ;;
+	esac
+	echo $d
+}
+
+ts () {
+	echo $( ds )$( date +%T | tr -d ':' )
+}
+
+# function ts {
+#   date '+%FT%T%z (%A)'
+# }
+
+STARTED=$(ts)
+
+INPROGRESS="(in progress)"
+FAILED="(failed)"
 SUCCESS=
+
+FINISHED="$INPROGRESS"
+
 STATUS="$INPROGRESS"
+
+FIELDSEP='|'
 
 ARGS="$@"
 DEBUG=${DEBUG:-false}
@@ -33,18 +56,57 @@ DEVBRANCH=dev
 URLTEMPLATE='http://%slincs.hms.harvard.edu/cgi-bin/cleanup.cgi'
 
 REMOTE=${REMOTE:-hmslincs}
-FULL=false
-IMAGES=true
+FULLMODE=false
+DEFAULTMODE=true
 
-function cleanup {
-  _debug -n "removing $LOCKFILE ..."
-  rm -f $LOCKFILE
-  if [[ -n $DEPLOYINFO ]]; then
-    if [[ $STATUS == $INPROGRESS ]]; then
-      STATUS=$FAILED
+function update_deploy_info {
+  local status="$1"
+
+  local ssh_client=${SSH_CLIENT/ *}
+  local rev=$(git log -1 --oneline $BRANCH)
+  local s="$FIELDSEP"
+  if [[ $status == $INPROGRESS ]]; then
+    FINISHED=$status
+  else
+    FINISHED=$(ts)
+    if [[ $status == $FAILED ]]; then
+      FINISHED="$FINISHED $FAILED"
     fi
-    update_deploy_info "$DEPLOYINFO$STATUS\n"
   fi
+
+  local info="$PROG $ARGS$s$USER $UID $ssh_client$s$(hostname) $$$s$STARTED$s$FINISHED$s$rev\n"
+
+  _debug "updating $LOCKFILE"
+  printf "$info" >"$LOCKFILE"
+
+  local s="$FIELDSEP"
+  if [[ -n $ADMINFILE ]]; then
+    _debug "updating $ADMINFILE"
+    printf "$info" >"$ADMINFILE"
+    chmod 664 $ADMINFILE
+    if [[ -n $ADMINFILEBAK && -e $ADMINFILEBAK ]]; then
+      sed "s/$INPROGRESS//" $ADMINFILEBAK >>"$ADMINFILE"
+    fi
+  fi
+
+  local sleep=3
+  warn "sleeping for $sleep..."
+  sleep $sleep
+}
+
+function wrapup {
+
+  if [[ $STATUS == $INPROGRESS ]]; then
+    STATUS=$FAILED
+  fi
+  FINISHED=$(ts)
+  update_deploy_info "$STATUS"
+
+  if $DEBUG; then : ; else
+    _debug -n "removing $LOCKFILE ..."
+    rm -f $LOCKFILE
+  fi
+
   _debug "done"
 }
 
@@ -86,10 +148,10 @@ function main {
   do
     case "$opt" in
       h) __usage 0;;
-      m) FULL=false
-         IMAGES=false;;
-      f) FULL=true
-         IMAGES=true;;
+      m) FULLMODE=false
+         DEFAULTMODE=false;;
+      f) FULLMODE=true
+         DEFAULTMODE=true;;
       d) DEBUG=true
          LOGFILE=$(tty);;
       ?) echo "$0: illegal option -- $OPTARG" >&2
@@ -148,6 +210,7 @@ function gitpull {
   _debug -n "pulling branch $BRANCH from $REMOTE... "
   git checkout $BRANCH >>"$LOGFILE" 2>&1 || error "git-checkout failed: $?"
   git pull --ff-only $REMOTE $BRANCH: >>"$LOGFILE" 2>&1 || error "git-pull failed: $?"
+  update_deploy_info "$STATUS"
   _debug 'done'
   return 0
 }
@@ -173,23 +236,25 @@ function maybe_activate_virtualenv {
 }
 
 function runpip {
-  if [[ ! -e $REQUIREMENTS ]]; then
-    error "cannot find requirements file ($REQUIREMENTS)"
-  fi
+  # if $DEFAULTMODE; then
+    if [[ ! -e $REQUIREMENTS ]]; then
+      error "cannot find requirements file ($REQUIREMENTS)"
+    fi
 
-  maybe_activate_virtualenv
+    maybe_activate_virtualenv
 
-  sed 's/^\s*//; s/\s*#.*//' $REQUIREMENTS | \
-    while IFS= read -r line; do
-      if [[ -z $line ]]; then continue; fi
-      pip install -v $line || error "pip install $line failed: $?"
-    done
-  _debug 'done'
+    sed 's/^\s*//; s/\s*#.*//' $REQUIREMENTS | \
+      while IFS= read -r line; do
+        if [[ -z $line ]]; then continue; fi
+        pip install -v $line || error "pip install $line failed: $?"
+      done
+    _debug 'done'
+  # fi
   return 0
 }
 
 function builddb {
-  if $FULL; then
+  if $FULLMODE; then
     _debug -n 'building db... '
     $BASEDIR/re_run.sh $SITE >>"$LOGFILE" 2>&1 || error "re_run.sh failed: $?"
     _debug 'done'
@@ -197,7 +262,7 @@ function builddb {
 }
 
 function makeimg {
-  if $IMAGES; then
+  if $DEFAULTMODE; then
     _debug -n 'making images... '
     cd "$BASEDIR" || return 1
     src/do_scatterplots.sh >>"$LOGFILE" 2>&1 || \
@@ -210,7 +275,7 @@ function makeimg {
 }
 
 function moveimg {
-  if $IMAGES; then
+  if $DEFAULTMODE; then
     _debug -n 'moving images... '
     cd "$BASEDIR" || return 1
     DEBUG=$DEBUG ./find_and_move_restricted_images.sh >>"$LOGFILE" 2>&1 || \
@@ -240,17 +305,6 @@ function _mkdirp {
   chmod 775 $1 || error "could not chmod $1: $?"
 }
 
-function update_deploy_info {
-  if [[ -n $ADMINFILE ]]; then
-    _debug "updating $ADMINFILE"
-    printf "$1" >"$ADMINFILE"
-    chmod 664 $ADMINFILE
-    if [[ -n $ADMINFILEBAK && -e $ADMINFILEBAK ]]; then
-      sed "s/$INPROGRESS//" $ADMINFILEBAK >>"$ADMINFILE"
-    fi
-  fi
-}
-
 function deploy {
 
   _mkdirp $PROGDIR
@@ -263,19 +317,14 @@ $(cat $LOCKFILE)
 
 exiting..."
   else
-    $DEBUG || trap cleanup EXIT
+    trap wrapup EXIT
   fi
-
-  local ssh_client=${SSH_CLIENT/ *}
-
-  DEPLOYINFO="$PROG $ARGS\t$USER:$UID:$ssh_client\t$(hostname)\t$$\t$STARTED"
-  printf "$DEPLOYINFO\n" >"$LOCKFILE"
 
   ADMINFILE="$ADMINDIR/$PROG.txt"
   ADMINFILEBAK="$ADMINFILE.bak"
-  mv -f "$ADMINFILE" "$ADMINFILEBAK"
+  sed "s/$INPROGRESS/???/" $ADMINFILE >"$ADMINFILEBAK"
 
-  update_deploy_info "$DEPLOYINFO$STATUS\n"
+  update_deploy_info "$STATUS"
 
   if [[ -s $LOGFILE ]]; then
     cat <<EOF >>"$LOGFILE"
