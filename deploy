@@ -43,7 +43,8 @@ REQUIREMENTS=${REQUIREMENTS:-"$BASEDIR/requirements.txt"}
 PROGDIR=${PROGDIR:-"$BASEDIR/.$PROG"}
 LOGFILE=${LOGFILE:-"$PROGDIR/log"}
 LOCKFILE=${LOCKFILE:-"$PROGDIR/lock"}
-ADMINDIR=${ADMINDIR:-"$($REALPATH $SUPPORTDIR/..)/docroot/admin"}
+ADMINDIR=${ADMINDIR:-"$($REALPATH $SUPPORTDIR/..)/docroot/admin/deploy"}
+INFOFILE=
 
 PRODSITE=prod
 DEVSITE=dev
@@ -80,12 +81,12 @@ function update_deploy_info {
   printf "$info" >"$LOCKFILE"
 
   local s="$FIELDSEP"
-  if [[ -n $ADMINFILE ]]; then
-    _debug "updating $ADMINFILE"
-    printf "$info" >"$ADMINFILE"
-    chmod 664 $ADMINFILE
-    if [[ -n $ADMINFILEBAK && -e $ADMINFILEBAK ]]; then
-      sed "s/$INPROGRESS//" $ADMINFILEBAK >>"$ADMINFILE"
+  if [[ -n $INFOFILE ]]; then
+    _debug "updating $INFOFILE"
+    printf "$info" >"$INFOFILE"
+    chmod 664 $INFOFILE
+    if [[ -n $INFOFILEBAK && -e $INFOFILEBAK ]]; then
+      sed "s/$INPROGRESS//" $INFOFILEBAK >>"$INFOFILE"
     fi
   fi
 
@@ -320,9 +321,9 @@ exiting..."
     trap wrapup EXIT
   fi
 
-  ADMINFILE="$ADMINDIR/$PROG.txt"
-  ADMINFILEBAK="$ADMINFILE.bak"
-  sed "s/$INPROGRESS/???/" $ADMINFILE >"$ADMINFILEBAK"
+  INFOFILE="$ADMINDIR/info.txt"
+  INFOFILEBAK="$INFOFILE.bak"
+  sed "s/$INPROGRESS/(???)/" "$INFOFILE" >"$INFOFILEBAK"
 
   update_deploy_info "$STATUS"
 
