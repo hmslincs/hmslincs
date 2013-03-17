@@ -1,6 +1,9 @@
 #!/bin/sh
 # -*- mode: shell-script -*-
 
+STARTED=$(date '+%FT%T%z (%A)')
+ARGS="$@"
+DEBUG=${DEBUG:-false}
 PROG=$(basename $0)
 REALPATH=${REALPATH:-realpath}
 BASEDIR=${BASEDIR:-"$(dirname $($REALPATH $0))"}
@@ -8,7 +11,11 @@ SUPPORTDIR=${SUPPORTDIR:-"$(dirname $(dirname $BASEDIR))/support"}
 VENV=${VENV:-"$SUPPORTDIR/virtualenv"}
 REQUIREMENTS=${REQUIREMENTS:-"$BASEDIR/requirements.txt"}
 
-LOGFILE=${LOGFILE:-"$0.log"}
+PROGDIR=${PROGDIR:-"$BASEDIR/.$PROG"}
+LOGFILE=${LOGFILE:-"$PROGDIR/log"}
+LOCKFILE=${LOCKFILE:-"$PROGDIR/lock"}
+ADMINDIR=${ADMINDIR:-"$($REALPATH $SUPPORTDIR/..)/docroot/admin"}
+
 PRODSITE=prod
 DEVSITE=dev
 
@@ -23,19 +30,29 @@ REMOTE=${REMOTE:-hmslincs}
 FULL=false
 IMAGES=true
 
+function cleanup {
+  _debug -n "removing $LOCKFILE ..."
+  rm -f $LOCKFILE
+  _debug "done"
+}
+
+function warn {
+  echo "$PROG: $@" >&2
+}
+
 function error {
-  echo "$PROG: $1" >&2
+  warn "$@"
   exit 1
 }
 
 function _debug {
-  if $DEBUG; then
-    echo "$@"
-  fi
+  if $DEBUG; then echo "$@"; fi
 }
 
 function __usage {
-    echo "$PROG [-m|-f] [-d] [SITE [BRANCH]]
+    cat <<EOF
+$PROG [-m|-f] [-d] [SITE [BRANCH]]
+
 $PROG -h
 
   -h -- print this help message and exit
@@ -46,7 +63,8 @@ $PROG -h
 SITE should be either $PRODSITE or $DEVSITE.  BRANCH should be a suitable
 branch from $REMOTE.
 
-Default actions: git-pull, make and move files, kill fast cgi."
+Default actions: git-pull, make and move files, kill fast cgi.
+EOF
     exit $1
 }
 
@@ -90,21 +108,23 @@ function main {
   fi
 
   if [[ $SITE = $PRODSITE ]]; then
-    URL=$(printf "$URLTEMPLATE" "")
+    KILLFCGI=$(printf "$URLTEMPLATE" "")
   elif [[ $SITE = $DEVSITE ]]; then
-    URL=$(printf "$URLTEMPLATE" dev.)
+    KILLFCGI=$(printf "$URLTEMPLATE" dev.)
   else
-    URL=
+    KILLFCGI=
     echo "$SITE is not a supported site: will not run cleanup.cgi"
   fi
 
   if $DEBUG; then
-    echo "params:
+    cat <<EOF
+params:
 SITE: $SITE
 REMOTE: $REMOTE
 BRANCH: $BRANCH
-URL: $URL
-"
+KILLFCGI: $KILLFCGI
+EOF
+
   fi
 
   deploy || error "failed with status $?"
@@ -197,21 +217,59 @@ function collectstatic {
 }
 
 function killfcgi {
-  [[ -z $URL ]] && return 0
+  [[ -z $KILLFCGI ]] && return 0
   _debug -n 'running cleanup.cgi... '
-  curl -sf "$URL" >> "$LOGFILE" || error '"'"curl -f $URL"'" failed'
+  curl -sf "$KILLFCGI" >> "$LOGFILE" || error '"'"curl -f $KILLFCGI"'" failed'
   _debug 'done'
 }
 
+function _mkdirp {
+  mkdir -p $1 || error "could not make $1: $?"
+  chmod 775 $1 || error "could not chmod $1: $?"
+}
+
 function deploy {
-  echo >>"$LOGFILE"
-  echo "===========================================================================" >>"$LOGFILE"
-  echo $(date --iso-8601=seconds) \($(date +%A)\) >>"$LOGFILE"
-  echo "deployed by $USER ($UID) connected from ${SSH_CLIENT/ *}" >>"$LOGFILE"
-  echo >>"$LOGFILE"
+
+  _mkdirp $PROGDIR
+  _mkdirp $ADMINDIR
+
+  if [[ -e $LOCKFILE ]]; then
+    error "$LOCKFILE exists:
+
+$(cat $LOCKFILE)
+
+exiting..."
+  else
+    $DEBUG || trap cleanup EXIT
+  fi
+
+  local ssh_client=${SSH_CLIENT/ *}
+
+  printf "$PROG $ARGS\t$USER:$UID:$ssh_client\t$(hostname)\t$$\t$STARTED\n" \
+    >"$LOCKFILE"
+
+  local adminfile=$ADMINDIR/$PROG.txt
+  cp -a $LOCKFILE $adminfile
+  chmod 664 $adminfile
+  echo $adminfile
+
+  if [[ -s $LOGFILE ]]; then
+    cat <<EOF >>"$LOGFILE"
+
+===========================================================================
+EOF
+  fi
+
+  cat <<EOF >>"$LOGFILE"
+$STARTED
+deployed by $USER ($UID) connected from $ssh_client
+
+
+EOF
+
   maybe_activate_virtualenv
   gitpull && runpip && builddb && makeimg && moveimg && collectstatic && killfcgi
   echo done
 }
 
-main $@
+main "$@"
