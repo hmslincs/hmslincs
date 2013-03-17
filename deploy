@@ -86,13 +86,15 @@ function update_deploy_info {
     printf "$info" >"$INFOFILE"
     chmod 664 $INFOFILE
     if [[ -n $INFOFILEBAK && -e $INFOFILEBAK ]]; then
-      sed "s/$INPROGRESS//" $INFOFILEBAK >>"$INFOFILE"
+      cat $INFOFILEBAK >>"$INFOFILE"
     fi
   fi
 
-  local sleep=3
-  warn "sleeping for $sleep..."
-  sleep $sleep
+  if $DEBUG; then
+    local sleep=3
+    warn "sleeping for $sleep..."
+    sleep $sleep
+  fi
 }
 
 function wrapup {
@@ -323,7 +325,10 @@ exiting..."
 
   INFOFILE="$ADMINDIR/info.txt"
   INFOFILEBAK="$INFOFILE.bak"
-  sed "s/$INPROGRESS/(???)/" "$INFOFILE" >"$INFOFILEBAK"
+  if [[ -e $INFOFILE ]]; then
+    sed "s/$INPROGRESS/(???)/" "$INFOFILE" >"$INFOFILEBAK"
+    chmod 664 $INFOFILEBAK
+  fi
 
   update_deploy_info "$STATUS"
 
