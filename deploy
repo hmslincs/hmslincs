@@ -2,8 +2,12 @@
 # -*- mode: shell-script -*-
 
 STARTED=$(date '+%FT%T%z (%A)')
-SUCCESS=false
 DEPLOYINFO=
+INPROGRESS=$'\t(in progress)'
+FAILED=$'\t(failed)'
+SUCCESS=
+STATUS="$INPROGRESS"
+
 ARGS="$@"
 DEBUG=${DEBUG:-false}
 PROG=$(basename $0)
@@ -36,11 +40,10 @@ function cleanup {
   _debug -n "removing $LOCKFILE ..."
   rm -f $LOCKFILE
   if [[ -n $DEPLOYINFO ]]; then
-    if $SUCCESS; then
-      update_deploy_info "$DEPLOYINFO\n"
-    else
-      update_deploy_info "$DEPLOYINFO\t(failed)\n"
+    if [[ $STATUS == $INPROGRESS ]]; then
+      STATUS=$FAILED
     fi
+    update_deploy_info "$DEPLOYINFO$STATUS\n"
   fi
   _debug "done"
 }
@@ -239,10 +242,11 @@ function _mkdirp {
 
 function update_deploy_info {
   if [[ -n $ADMINFILE ]]; then
+    _debug "updating $ADMINFILE"
     printf "$1" >"$ADMINFILE"
     chmod 664 $ADMINFILE
     if [[ -n $ADMINFILEBAK && -e $ADMINFILEBAK ]]; then
-      sed 's/\t(in progress)//' $ADMINFILEBAK >>"$ADMINFILE"
+      sed "s/$INPROGRESS//" $ADMINFILEBAK >>"$ADMINFILE"
     fi
   fi
 }
@@ -271,7 +275,7 @@ exiting..."
   ADMINFILEBAK="$ADMINFILE.bak"
   mv -f "$ADMINFILE" "$ADMINFILEBAK"
 
-  update_deploy_info "$DEPLOYINFO\t(in progress)\n"
+  update_deploy_info "$DEPLOYINFO$STATUS\n"
 
   if [[ -s $LOGFILE ]]; then
     cat <<EOF >>"$LOGFILE"
@@ -290,7 +294,7 @@ EOF
   maybe_activate_virtualenv
   gitpull && runpip && builddb && makeimg && moveimg && collectstatic && killfcgi
 
-  SUCCESS=true
+  STATUS=$SUCCESS
   echo done
 }
 
