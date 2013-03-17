@@ -19,7 +19,7 @@ DEVBRANCH=dev
 
 URLTEMPLATE='http://%slincs.hms.harvard.edu/cgi-bin/cleanup.cgi'
 
-ORIGIN=${ORIGIN:-git@github.com:hmslincs/hmslincs.git}
+REMOTE=${REMOTE:-hmslincs}
 FULL=false
 IMAGES=true
 
@@ -44,7 +44,7 @@ $PROG -h
   -d -- debug mode
 
 SITE should be either $PRODSITE or $DEVSITE.  BRANCH should be a suitable
-branch from $ORIGIN.
+branch from $REMOTE.
 
 Default actions: git-pull, make and move files, kill fast cgi."
     exit $1
@@ -101,7 +101,7 @@ function main {
   if $DEBUG; then
     echo "params:
 SITE: $SITE
-ORIGIN: $ORIGIN
+REMOTE: $REMOTE
 BRANCH: $BRANCH
 URL: $URL
 "
@@ -113,9 +113,9 @@ URL: $URL
 }
 
 function gitpull {
-  _debug -n "pulling branch $BRANCH from $ORIGIN... "
+  _debug -n "pulling branch $BRANCH from $REMOTE... "
   git checkout $BRANCH >>"$LOGFILE" 2>&1 || error "git-checkout failed: $?"
-  git pull --ff-only $ORIGIN $BRANCH: >>"$LOGFILE" 2>&1 || error "git-pull failed: $?"
+  git pull --ff-only $REMOTE $BRANCH: >>"$LOGFILE" 2>&1 || error "git-pull failed: $?"
   _debug 'done'
   return 0
 }
