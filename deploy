@@ -264,16 +264,12 @@ exiting..."
 
   local ssh_client=${SSH_CLIENT/ *}
 
-  local deployinfo="$PROG $ARGS\t$USER:$UID:$ssh_client\t$(hostname)\t$$\t$STARTED"
-  printf "$deployinfo\n" >"$LOCKFILE"
+  DEPLOYINFO="$PROG $ARGS\t$USER:$UID:$ssh_client\t$(hostname)\t$$\t$STARTED"
+  printf "$DEPLOYINFO\n" >"$LOCKFILE"
 
-  local adminfile="$ADMINDIR/$PROG.txt"
-  local adminfilebak="$adminfile.bak"
-  mv -f "$adminfile" "$adminfilebak"
-
-  ADMINFILE="$adminfile"
-  ADMINFILEBAK="$adminfilebak"
-  DEPLOYINFO="$deployinfo"
+  ADMINFILE="$ADMINDIR/$PROG.txt"
+  ADMINFILEBAK="$ADMINFILE.bak"
+  mv -f "$ADMINFILE" "$ADMINFILEBAK"
 
   update_deploy_info "$DEPLOYINFO\t(in progress)\n"
 
