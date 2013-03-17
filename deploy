@@ -2,6 +2,8 @@
 # -*- mode: shell-script -*-
 
 STARTED=$(date '+%FT%T%z (%A)')
+SUCCESS=false
+DEPLOYINFO=
 ARGS="$@"
 DEBUG=${DEBUG:-false}
 PROG=$(basename $0)
@@ -33,6 +35,13 @@ IMAGES=true
 function cleanup {
   _debug -n "removing $LOCKFILE ..."
   rm -f $LOCKFILE
+  if [[ -n $DEPLOYINFO ]]; then
+    if $SUCCESS; then
+      update_deploy_info "$DEPLOYINFO\n"
+    else
+      update_deploy_info "$DEPLOYINFO\t(failed)\n"
+    fi
+  fi
   _debug "done"
 }
 
@@ -228,6 +237,16 @@ function _mkdirp {
   chmod 775 $1 || error "could not chmod $1: $?"
 }
 
+function update_deploy_info {
+  if [[ -n $ADMINFILE ]]; then
+    printf "$1" >"$ADMINFILE"
+    chmod 664 $ADMINFILE
+    if [[ -n $ADMINFILEBAK && -e $ADMINFILEBAK ]]; then
+      sed 's/\t(in progress)//' $ADMINFILEBAK >>"$ADMINFILE"
+    fi
+  fi
+}
+
 function deploy {
 
   _mkdirp $PROGDIR
@@ -245,15 +264,18 @@ exiting..."
 
   local ssh_client=${SSH_CLIENT/ *}
 
-  printf "$PROG $ARGS\t$USER:$UID:$ssh_client\t$(hostname)\t$$\t$STARTED\n" \
-    >"$LOCKFILE"
+  local deployinfo="$PROG $ARGS\t$USER:$UID:$ssh_client\t$(hostname)\t$$\t$STARTED"
+  printf "$deployinfo\n" >"$LOCKFILE"
 
   local adminfile="$ADMINDIR/$PROG.txt"
   local adminfilebak="$adminfile.bak"
-  mv "$adminfile" "$adminfilebak"
-  cp -a $LOCKFILE $adminfile
-  chmod 664 $adminfile
-  cat "$adminfilebak" >> "$adminfile"
+  mv -f "$adminfile" "$adminfilebak"
+
+  ADMINFILE="$adminfile"
+  ADMINFILEBAK="$adminfilebak"
+  DEPLOYINFO="$deployinfo"
+
+  update_deploy_info "$DEPLOYINFO\t(in progress)\n"
 
   if [[ -s $LOGFILE ]]; then
     cat <<EOF >>"$LOGFILE"
@@ -271,6 +293,8 @@ EOF
 
   maybe_activate_virtualenv
   gitpull && runpip && builddb && makeimg && moveimg && collectstatic && killfcgi
+
+  SUCCESS=true
   echo done
 }
 
