@@ -248,10 +248,12 @@ exiting..."
   printf "$PROG $ARGS\t$USER:$UID:$ssh_client\t$(hostname)\t$$\t$STARTED\n" \
     >"$LOCKFILE"
 
-  local adminfile=$ADMINDIR/$PROG.txt
+  local adminfile="$ADMINDIR/$PROG.txt"
+  local adminfilebak="$adminfile.bak"
+  mv "$adminfile" "$adminfilebak"
   cp -a $LOCKFILE $adminfile
   chmod 664 $adminfile
-  echo $adminfile
+  cat "$adminfilebak" >> "$adminfile"
 
   if [[ -s $LOGFILE ]]; then
     cat <<EOF >>"$LOGFILE"
