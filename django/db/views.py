@@ -82,7 +82,7 @@ def cellIndex(request):
         if(not request.user.is_authenticated()): 
             where.append("( not is_restricted or is_restricted is NULL )")
         # postgres fulltext search with rank and snippets
-        queryset = Cell.objects.extra(    # TODO: evaluate using django query language, not extra clause
+        queryset = Cell.objects.extra(
             select={
                 'snippet': "ts_headline(" + CellTable.snippet_def + ", to_tsquery(%s))",
                 'rank': "ts_rank_cd(search_vector, to_tsquery(%s), 32)",
@@ -103,7 +103,7 @@ def cellIndex(request):
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
     outputType = request.GET.get('output_type','')
     if(outputType != ''):
-        return send_to_file(outputType, 'cells', table, queryset, request )
+        return send_to_file(outputType, 'cells', table, queryset )
     return render_list_index(request, table,search,'Cell','Cells')
 
 def cellDetail(request, facility_id):
@@ -162,7 +162,7 @@ def proteinIndex(request):
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
     outputType = request.GET.get('output_type','')
     if(outputType != ''):
-        return send_to_file(outputType, 'proteins', table, queryset, request )
+        return send_to_file(outputType, 'proteins', table, queryset )
     return render_list_index(request, table,search,'Protein','Proteins')
     
 def proteinDetail(request, lincs_id):
@@ -228,7 +228,7 @@ def smallMoleculeIndex(request):
 
     outputType = request.GET.get('output_type','')
     if outputType:
-        return send_to_file(outputType, 'small_molecule', table, queryset, request )
+        return send_to_file(outputType, 'small_molecule', table, queryset )
     
         if(len(queryset) == 1 ):
             return redirect_to_small_molecule_detail(queryset[0])
@@ -281,7 +281,6 @@ def smallMoleculeDetail(request, facility_salt_id): # TODO: let urls.py grep the
             attachedFiles = get_attached_files(sm.facility_id,sm.salt_id,smb.facility_batch_id)
             if(len(attachedFiles)>0):
                 details['attached_files_batch'] = AttachedFileTable(attachedFiles)        # attached file table        
-        #attachedFiles = AttachedFile.objects.get(facility_id_for=facility_id, salt_id_for=salt_id)
         
         # datasets table
         dataset_ids = find_datasets_for_smallmolecule(sm.id)
@@ -336,7 +335,7 @@ def libraryIndex(request):
     table = LibraryTable(queryset)
     outputType = request.GET.get('output_type','')
     if(outputType != ''):
-        return send_to_file(outputType, 'libraries', table, queryset, request )
+        return send_to_file(outputType, 'libraries', table, queryset )
     return render_list_index(request, table,search,'Library','Libraries')
 
 def libraryDetail(request, short_name):
@@ -355,7 +354,7 @@ def libraryDetail(request, short_name):
             outputType = request.GET.get('output_type','')
             logger.error(str(("outputType:", outputType)))
             if(outputType != ''):
-                return send_to_file(outputType, 'library_'+library.short_name , table, queryset, request )
+                return send_to_file(outputType, 'library_'+library.short_name , table, queryset )
         
         return render(request,'db/libraryDetail.html', response_dict)
     except Library.DoesNotExist:
@@ -393,7 +392,7 @@ def datasetIndex(request): #, type='screen'):
     
     outputType = request.GET.get('output_type','')
     if(outputType != ''):
-        return send_to_file(outputType, 'datasetIndex', table, queryset, request )
+        return send_to_file(outputType, 'datasetIndex', table, queryset )
         
     return render_list_index(request, table,search,'Dataset','Datasets')
 
@@ -453,7 +452,7 @@ def datasetDetailResults(request, facility_id):
             search = request.GET.get('search','')
             cursor = manager.get_cursor(search=search)
             datacolumns = DataColumn.objects.filter(dataset=dataset).order_by('display_order')
-            return send_to_file1(outputType, 'dataset_'+str(facility_id), datacolumns, cursor, request )
+            return send_to_file1(outputType, 'dataset_'+str(facility_id), datacolumns, cursor )
         
         details = datasetDetail(request,facility_id, 'results')
 
@@ -1730,52 +1729,35 @@ def download_attached_file(request, id):
         logger.error(str(('could not find attached file object for id', id, e)))
         raise e
 
-# todo, not used    
-#def download_attached_file_simple(request, path):
-#    # TODO Authorization
-#    logger.info(str(('download_attached_file',path)))
-#    if(not request.user.is_authenticated()):
-#        pass
-#    return HttpResponseRedirect(settings.STATIC_ROOT+path)
-        
-# works, can't ensure authorization however
-#def download_file(request, path):
-#    logger.info(str(('download_attached_file',path,request.user)))
-#    if(not request.user.is_authenticated()):
-#        pass
-#    return HttpResponseRedirect("/_static/"+path)
+def send_to_file1(outputType, name, ordered_datacolumns, cursor):
+    """
+    Export the datasetdata cursor to the file type pointed to by outputType
+    @param ordered_datacolumns the datacolumns for the datasetdata, in order, so that they can be indexed by column number
+    @param outputType '.csv','.xls'
+    @param table a django-tables2 table
+    @param name name of the table - to be used for the output file name
+     
+    """   
 
-#x-sendfile option
-# http://blog.zacharyvoase.com/2009/09/08/sendfile/
-# This would be best placed in your settings file.
-#def get_absolute_filename(filename='', safe=True):
-#    if not filename:
-#        return path.join(settings.STATIC_ROOT1, 'index')
-#    if safe and '..' in filename.split(path.sep):
-#        return get_absolute_filename(filename='')
-#    return path.join(settings.STATIC_ROOT1, filename)
-#
-#from django.contrib.auth.decorators import login_required
-#@login_required
-#def retrieve_file(request, path=''):
-#    logger.info(str(('get file', smart_str(path,'utf-8', errors='ignore'))))
-#    abs_filename = get_absolute_filename(path)
-#    response = HttpResponse() # 200 OK
-#    del response['content-type'] # We'll let the web server guess this.
-#    response['X-Sendfile'] = abs_filename
-#    logger.info(str(('get file', abs_filename)))
-#    return response
-        
-# TODO: currently, send_to_file1 is used specifically to export the large datasets; but would like for everything to use this method
-def send_to_file1(outputType, name, ordered_datacolumns, cursor, request):
+    col_key_name_map = get_cols_to_write(cursor, 
+                                         ['dataset','smallmolecule','datarecord','smallmoleculebatch','protein','cell',''],
+                                         ordered_datacolumns)   
     if(outputType == '.csv'):
-        return export_as_csv1(name,ordered_datacolumns , request, cursor)
+        return export_as_csv(name,col_key_name_map, cursor=cursor)
     elif(outputType == '.xls'):
-        return export_as_xls1(name, ordered_datacolumns, request, cursor)
-    
-def send_to_file(outputType, name, table, queryset, request):    
+        return export_as_xls(name, col_key_name_map, cursor=cursor)
+
+def send_to_file(outputType, name, table, queryset): 
+    """
+    Export the queryset to the file type pointed to by outputType.  Get the column header information from the django-tables2 table
+    @param outputType '.csv','.xls'
+    @param table a django-tables2 table
+    @param name name of the table - to be used for the output file name
+     
+    """   
     # ordered list (field,verbose_name)
-    columns = map(lambda (x,y): (x, y.verbose_name), filter(lambda (x,y): x != 'rank' and x!= 'snippet' and y.visible, table.base_columns.items()))
+    columns = map(lambda (x,y): (x, y.verbose_name), 
+                  filter(lambda (x,y): x != 'rank' and x!= 'snippet' and y.visible, table.base_columns.items()))
     columnsOrdered = []
     for col in table._sequence:
         for (field,verbose_name) in columns:
@@ -1785,62 +1767,14 @@ def send_to_file(outputType, name, table, queryset, request):
     # The type strings deliberately include a leading "." to make the URLs
     # trigger the analytics js code that tracks download events by extension.
     if(outputType == '.csv'):
-        return export_as_csv(name,columnsOrdered , request, queryset)
+        return export_as_csv(name,OrderedDict(columnsOrdered) , queryset=queryset)
     elif(outputType == '.xls'):
-        return export_as_xls(name, columnsOrdered, request, queryset)
-    
-def export_as_xls(name,columnNames, request, queryset):
-    """
-    Generic xls export admin action.
-    """
-    response = HttpResponse(mimetype='application/Excel')
-    response['Content-Disposition'] = 'attachment; filename=%s.xls' % unicode(name).replace('.', '_')
-    
-    wbk = xlwt.Workbook()
-    sheet = wbk.add_sheet('sheet 1')    # Write a first row with header information
-    for i, (field,verbose_name) in enumerate(columnNames):
-        sheet.write(0, i, verbose_name)        
-        
-    # Write data rows
-    debug_interval=1000
-    row = 0
-    for obj in queryset:
-        if isinstance(obj, dict):
-            vals = [obj[field] for (field,verbose_name) in columnNames]
-        else:
-            vals = [getattr(obj, field) for (field,verbose_name) in columnNames]
-        
-        for i,column in enumerate(vals):
-            sheet.write(row+1, i, column )
-        if(row % debug_interval == 0):
-            logger.info("row: " + str(row))
-        row += 1
-    wbk.save(response)
-    return response
-
-def export_as_csv(name,columnNames, request, queryset):
-    """
-    Generic csv export admin action.
-    """
-    response = HttpResponse(mimetype='text/csv')
-    response['Content-Disposition'] = 'attachment; filename=%s.csv' % unicode(name).replace('.', '_')
-    writer = csv.writer(response)
-    # Write a first row with header information
-    writer.writerow([verbose_name for (field,verbose_name) in columnNames])
-    # Write data rows
-    debug_interval=1000
-    row = 0
-    for obj in queryset:
-        if isinstance(obj, dict):
-            writer.writerow([smart_str(obj[field], 'utf-8', errors='ignore') for (field,verbose_name) in columnNames])
-        else:
-            writer.writerow([smart_str(getattr(obj, field), 'utf-8', errors='ignore') for (field,verbose_name) in columnNames])
-        if(row % debug_interval == 0):
-            logger.info("row: " + str(row))
-        row += 1
-    return response
+        return export_as_xls(name, OrderedDict(columnsOrdered), queryset=queryset)
 
 def get_cols_to_write(cursor, fieldinformation_tables=[''], ordered_datacolumns=None):
+    """
+    returns a dict of #column_number:verbose_name
+    """
     header_row = {}
     for i,col in enumerate(cursor.description):
         if(ordered_datacolumns != None and col.name.find('col')==0):
@@ -1859,58 +1793,79 @@ def get_cols_to_write(cursor, fieldinformation_tables=[''], ordered_datacolumns=
          
     return OrderedDict(sorted(header_row.items(),key=lambda x: x[0]))
 
-# TODO: is a cursor a queryset? if so then refactor all methods to use this
-def export_as_xls1(name,ordered_datacolumns, request, cursor):
+def export_as_csv(name,col_key_name_map, cursor=None, queryset=None):
+    """
+    Generic csv export admin action.
+    """
+    response = HttpResponse(mimetype='text/csv')
+    response['Content-Disposition'] = 'attachment; filename=%s.csv' % unicode(name).replace('.', '_')
+    writer = csv.writer(response)
+    # Write a first row with header information
+    writer.writerow(col_key_name_map.values())
+
+    debug_interval=1000
+    row = 0
+    assert (cursor or queryset) and not (cursor and queryset), 'must define either cursor or queryset'
+    if cursor:
+        obj=cursor.fetchone()
+        keys = col_key_name_map.keys()
+        logger.debug(str(('keys',keys,obj)))
+        while obj:
+            writer.writerow([smart_str(obj[int(key)], 'utf-8', errors='ignore') for key in keys])
+            if(row % debug_interval == 0):
+                logger.info("row: " + str(row))
+            row += 1
+            obj=cursor.fetchone()
+    elif queryset:
+        for obj in queryset:
+            if isinstance(obj, dict):
+                writer.writerow([smart_str(obj[field], 'utf-8', errors='ignore') for field in col_key_name_map.keys()])
+            else:
+                writer.writerow([smart_str(getattr(obj, field), 'utf-8', errors='ignore') for field in col_key_name_map.keys()])
+            if(row % debug_interval == 0):
+                logger.info("row: " + str(row))
+            row += 1
+    return response
+
+def export_as_xls(name,col_key_name_map, cursor=None, queryset=None):
     """
     Generic xls export admin action.
     """
     response = HttpResponse(mimetype='application/Excel')
     response['Content-Disposition'] = 'attachment; filename=%s.xls' % unicode(name).replace('.', '_')
 
-    cols_to_names = get_cols_to_write(cursor, ['dataset','smallmolecule','datarecord','smallmoleculebatch','protein','cell',''], ordered_datacolumns)   
-    
     wbk = xlwt.Workbook()
     sheet = wbk.add_sheet('sheet 1')    # Write a first row with header information
-    for i,name in enumerate(cols_to_names.values()):
+    for i,name in enumerate(col_key_name_map.values()):
         sheet.write(0, i, name)   
             
     debug_interval=1000
     row = 0
-    obj=cursor.fetchone()
-    keys = cols_to_names.keys()
-    logger.debug(str(('keys',keys)))
-    while obj:
-        for i,key in enumerate(keys):
-            sheet.write(row+1,i,obj[key])
-        if(row % debug_interval == 0):
-            logger.info("row: " + str(row))
-        row += 1
+    assert (cursor or queryset) and not (cursor and queryset), 'must define either cursor or queryset'
+    if cursor:
         obj=cursor.fetchone()
+        keys = col_key_name_map.keys()
+        logger.debug(str(('keys',keys)))
+        while obj:  # row in the dataset; a tuple to be indexed numerically
+            for i,key in enumerate(keys):
+                sheet.write(row+1,i,obj[key])
+            if(row % debug_interval == 0):
+                logger.info("row: " + str(row))
+            row += 1
+            obj=cursor.fetchone()
+    elif queryset:
+        for obj in queryset:  
+            if isinstance(obj, dict): # a ORM object as a dict
+                vals = [obj[field] for field in col_key_name_map.keys()]
+            else: # a ORM object
+                vals = [getattr(obj, field) for field in col_key_name_map.keys()]
+            
+            for i,column in enumerate(vals):
+                sheet.write(row+1, i, column )
+            if(row % debug_interval == 0):
+                logger.info("row: " + str(row))
+            row += 1    
+    
     wbk.save(response)
     return response
 
-def export_as_csv1(name,ordered_datacolumns, request, cursor):
-    """
-    Generic csv export admin action.
-    """
-    response = HttpResponse(mimetype='text/csv')
-    response['Content-Disposition'] = 'attachment; filename=%s.csv' % unicode(name).replace('.', '_')
-
-    cols_to_names = get_cols_to_write(cursor, ['dataset','smallmolecule','datarecord','smallmoleculebatch','protein','cell',''], ordered_datacolumns)   
-
-    writer = csv.writer(response)
-    # Write a first row with header information
-    writer.writerow(cols_to_names.values())
-    # Write data rows
-    debug_interval=1000
-    row = 0
-    obj=cursor.fetchone()
-    keys = cols_to_names.keys()
-    logger.debug(str(('keys',keys,obj)))
-    while obj:
-        writer.writerow([smart_str(obj[int(key)], 'utf-8', errors='ignore') for key in keys])
-        if(row % debug_interval == 0):
-            logger.info("row: " + str(row))
-        row += 1
-        obj=cursor.fetchone()
-    return response
