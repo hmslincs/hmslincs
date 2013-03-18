@@ -1053,7 +1053,7 @@ class DataSetResultTable(PagedTable):
             #logger.debug(str(('create column:',name,verbose_name)))
             col = 'col%d'%i
             display_name = (dc.display_name, dc.name)[dc.display_name == None or len(dc.display_name)==0]
-            logger.info(str(('create column', col, dc.id, dc.data_type, display_name, dc.name)))
+            logger.debug(str(('create column', col, dc.id, dc.data_type, display_name, dc.name)))
             if(dc.data_type.lower() != OMERO_IMAGE_COLUMN_TYPE):
                 self.base_columns[col] = tables.Column(verbose_name=display_name)
             else:
@@ -1135,7 +1135,7 @@ class DataSetManager():
             
         logger.debug(str(('search',search,'metaWhereClause',metaWhereClause,'parameters',parameters)))
         
-        self.dataset_info = self._get_query_info(whereClause,metaWhereClause) # TODO: column_exclusion_overrides
+        self.dataset_info = self._get_query_info(whereClause,metaWhereClause,parameters) # TODO: column_exclusion_overrides
         cursor = connection.cursor()
         cursor.execute(self.dataset_info.query_sql,parameters)
         return cursor
@@ -1159,7 +1159,7 @@ class DataSetManager():
             parameters += searchParams
             
         logger.debug(str(('search',search,'metaWhereClause',metaWhereClause,'parameters',parameters)))
-        self.dataset_info = self._get_query_info(whereClause,metaWhereClause)
+        self.dataset_info = self._get_query_info(whereClause,metaWhereClause, parameters)
         #sql_for_count = 'SELECT count(distinct id) from db_datarecord where dataset_id ='+ str(self.dataset_id)
         queryset = PagedRawQuerySet(self.dataset_info.query_sql,self.dataset_info.count_query_sql, connection, 
                                     parameters=parameters,order_by=['datarecord_id'], verbose_name_plural='records')
@@ -1183,7 +1183,7 @@ class DataSetManager():
         
     
 
-    def _get_query_info(self, whereClause=[],metaWhereClause=[]):
+    def _get_query_info(self, whereClause=[],metaWhereClause=[], parameters=[]):
         """
         generate a django tables2 table
         TODO: move the logic out of the view: so that it can be shared with the tastypie api (or make this rely on tastypie)
@@ -1226,7 +1226,8 @@ class DataSetManager():
                 if dc.precision == 0 or dc.data_type == 'omero_image':
                     column_to_select = "int_value"
                 else:
-                    column_to_select = "round( float_value::numeric, 2 )" # TODO: specify the precision in the fieldinformation for this column
+                    column_to_select = "round( float_value::numeric, %s )" 
+                    parameters.append(str(dc.precision))
             else:
                 column_to_select = "text_value"
             queryString +=  (",(SELECT " + column_to_select + " FROM db_datapoint " + alias + 
