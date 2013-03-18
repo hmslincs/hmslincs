@@ -13,6 +13,7 @@
 {% if has_proteins %}
 		<li class='{% selectedTag request "^/db/datasets/\d+/proteins$" %}'><a  href="{% url dataset_detail_proteins   facility_id=facilityId%}">Proteins Studied</a></li>
 {% endif %}
+		<li class='{% selectedTag request "^/db/datasets/\d+/endpoints$" %}'><a  href="{% url dataset_detail_endpoints  facility_id=facilityId%}">Endpoints</a></li>
 		<li class='{% selectedTag request "^/db/datasets/\d+/results$" %}'><a  href="{% url dataset_detail_results  facility_id=facilityId%}">Results</a></li>
 	</ul>
 	<div id="datasetcontent">
