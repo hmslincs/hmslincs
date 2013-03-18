@@ -220,6 +220,26 @@ else
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/Screen20013_CMT_9dose-6.xlsx 
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/Screen20014_CMT_9dose-7.xlsx 
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/Screen20015_CMT_9dose-8.xlsx 
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/Screen20016_CMT_9dose-9.xlsx 
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/Screen20017_CMT_9dose-10.xlsx 
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
 	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20020_HMSL10008_kinomescan.xlsx
 	check_errs $? "import dataset fails"
 	
