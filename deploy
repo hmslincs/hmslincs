@@ -241,7 +241,7 @@ function runpip {
     sed 's/^\s*//; s/\s*#.*//' $REQUIREMENTS | \
       while IFS= read -r line; do
         if [[ -z $line ]]; then continue; fi
-        pip install -v $line || error "pip install $line failed: $?"
+        pip install -v $line >>"$LOGFILE" || error "pip install $line failed: $?"
       done
     _debug 'done'
   # fi
