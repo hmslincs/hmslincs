@@ -89,12 +89,6 @@ function update_deploy_info {
       cat $INFOFILEBAK >>"$INFOFILE"
     fi
   fi
-
-  if $DEBUG; then
-    local sleep=3
-    warn "sleeping for $sleep..."
-    sleep $sleep
-  fi
 }
 
 function wrapup {
