@@ -38,7 +38,7 @@ SCRIPTPATH="$($REALPATH $0)"
 SAVEPATH="$SCRIPTPATH.save"
 PROG=$(basename $SCRIPTPATH)
 BASEDIR=${BASEDIR:-"$(dirname $SCRIPTPATH)"}
-SUPPORTDIR=${SUPPORTDIR:-"$(dirname $(dirname $BASEDIR))/support"}
+SUPPORTDIR=${SUPPORTDIR:-"$(dirname $BASEDIR)"}
 VENV=${VENV:-"$SUPPORTDIR/virtualenv"}
 REQUIREMENTS=${REQUIREMENTS:-"$BASEDIR/requirements.txt"}
 
