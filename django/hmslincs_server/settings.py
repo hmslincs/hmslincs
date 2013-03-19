@@ -262,30 +262,30 @@ LOGGING = {
             'level': 'ERROR',
             'propagate': True,
         },
-        'db': { 
-            'handlers': ['console'],
-            'propagate': True,
-            'level': 'INFO',
-        },
-        'hms': {
-            'handlers': ['console'],
-            'propagate': True,
-            'level': 'INFO',
-        },
-        'util': {  
-            'handlers': ['console'],
-            'propagate': True,
-            'level': 'INFO',
-        },
-        'django.db': {  # if you want to see how django makes sql, use this one
-            'handlers': ['console'],
-            'propagate': True,
-            'level': 'INFO',
-        },      
+#        'db': { 
+#            'handlers': ['console'],
+#            'propagate': True,
+#            'level': 'WARN',
+#        },
+#        'hms': {
+#            'handlers': ['console'],
+#            'propagate': True,
+#            'level': 'WARN',
+#        },
+#        'util': {  
+#            'handlers': ['console'],
+#            'propagate': True,
+#            'level': 'WARN',
+#        },
+#        'django.db': {  # if you want to see how django makes sql, use this one
+#            'handlers': ['console'],
+#            'propagate': True,
+#            'level': 'WARN',
+#        },      
         '': {  # set a default handler
             'handlers': ['console'],
             'propagate': True,
-            'level': 'INFO',
+            'level': 'WARN',
         },
     }
 }
