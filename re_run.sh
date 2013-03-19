@@ -591,21 +591,21 @@ else
 	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20107_HMSL10051_kinomescan.xlsx
 	check_errs $? "import dataset fails"
 	
-	#echo 'import attached file...'
-	#python src/import_attachedfiles.py -f $DATADIR/qc/NMR_HMSL10001.101.01.pdf -fi 10001 -ft "QC-NMR"  -fd '2012-12-21' -si 101 -bi 1 --restricted
-	#check_errs $? "import attached file fails"
+	echo 'import attached file...'
+	python src/import_attachedfiles.py -f $DATADIR/qc/NMR_HMSL10001.101.01.pdf -fi 10001 -ft "QC-NMR"  -fd '2012-12-21' -si 101 -bi 1 --restricted
+	check_errs $? "import attached file fails"
 	
-	#echo 'import attached file...'
-	#python src/import_attachedfiles.py -f $DATADIR/qc/HPLC_HMSL10001.101.01.pdf -fi 10001 -ft "QC-HPLC"  -fd '2012-12-21' -si 101 -bi 1 --restricted
-	#check_errs $? "import attached file fails"
+	echo 'import attached file...'
+	python src/import_attachedfiles.py -f $DATADIR/qc/HPLC_HMSL10001.101.01.pdf -fi 10001 -ft "QC-HPLC"  -fd '2012-12-21' -si 101 -bi 1 --restricted
+	check_errs $? "import attached file fails"
 	
-	#echo 'import attached file...'
-	#python src/import_attachedfiles.py -f $DATADIR/qc/NMR_HMSL10004.101.01.pdf -fi 10004 -ft "QC-NMR"  -fd '2012-12-21' -si 101 -bi 1 --restricted
-	#check_errs $? "import attached file fails"
+	echo 'import attached file...'
+	python src/import_attachedfiles.py -f $DATADIR/qc/NMR_HMSL10004.101.01.pdf -fi 10004 -ft "QC-NMR"  -fd '2012-12-21' -si 101 -bi 1 --restricted
+	check_errs $? "import attached file fails"
 	
-	#echo 'import attached file...'
-	#python src/import_attachedfiles.py -f $DATADIR/qc/HPLC_HMSL10004.101.01.pdf -fi 10004 -ft "QC-HPLC"  -fd '2012-12-21' -si 101 -bi 1 --restricted
-	#check_errs $? "import attached file fails"
+	echo 'import attached file...'
+	python src/import_attachedfiles.py -f $DATADIR/qc/HPLC_HMSL10004.101.01.pdf -fi 10004 -ft "QC-HPLC"  -fd '2012-12-21' -si 101 -bi 1 --restricted
+	check_errs $? "import attached file fails"
 	
 # if restricted:
 #	python src/import_attachedfiles.py -f attach_test_1.txt -fi 10001 -ft "text"  -fd '2012-12-10' -si 101 -bi 1 --restricted
