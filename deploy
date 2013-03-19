@@ -1,13 +1,51 @@
 #!/bin/sh
 # -*- mode: shell-script -*-
 
+ds () {
+	d=$( date +%y%m%d%a ) 
+	case $d in
+		(*Thu) d=${d/Thu/H}  ;;
+		(*Sun) d=${d/Sun/U}  ;;
+		(*) d=${d%??}  ;;
+	esac
+	echo $d
+}
+
+ts () {
+	echo $( ds )$( date +%T | tr -d ':' )
+}
+
+# function ts {
+#   date '+%FT%T%z (%A)'
+# }
+
+STARTED=$(ts)
+
+INPROGRESS="(in progress)"
+FAILED="(failed)"
+SUCCESS=
+
+FINISHED="$INPROGRESS"
+
+STATUS="$INPROGRESS"
+
+FIELDSEP='|'
+
+ARGS="$@"
+DEBUG=${DEBUG:-false}
 PROG=$(basename $0)
-BASEDIR=${BASEDIR:-"$(dirname $(realpath $0))"}
+REALPATH=${REALPATH:-realpath}
+BASEDIR=${BASEDIR:-"$(dirname $($REALPATH $0))"}
 SUPPORTDIR=${SUPPORTDIR:-"$(dirname $(dirname $BASEDIR))/support"}
 VENV=${VENV:-"$SUPPORTDIR/virtualenv"}
-source "$VENV/bin/activate"
+REQUIREMENTS=${REQUIREMENTS:-"$BASEDIR/requirements.txt"}
 
-LOGFILE=${LOGFILE:-"$0.log"}
+PROGDIR=${PROGDIR:-"$BASEDIR/.$PROG"}
+LOGFILE=${LOGFILE:-"$PROGDIR/log"}
+LOCKFILE=${LOCKFILE:-"$PROGDIR/lock"}
+ADMINDIR=${ADMINDIR:-"$($REALPATH $SUPPORTDIR/..)/docroot/admin/deploy"}
+INFOFILE=
+
 PRODSITE=prod
 DEVSITE=dev
 
@@ -18,23 +56,80 @@ DEVBRANCH=dev
 
 URLTEMPLATE='http://%slincs.hms.harvard.edu/cgi-bin/cleanup.cgi'
 
-ORIGIN=${ORIGIN:-git@github.com:hmslincs/hmslincs.git}
-FULL=false
-IMAGES=true
+REMOTE=${REMOTE:-hmslincs}
+FULLMODE=false
+DEFAULTMODE=true
+
+function update_deploy_info {
+  local status="$1"
+
+  local ssh_client=${SSH_CLIENT/ *}
+  local rev=$(git log -1 --oneline $BRANCH)
+  local s="$FIELDSEP"
+  if [[ $status == $INPROGRESS ]]; then
+    FINISHED=$status
+  else
+    FINISHED=$(ts)
+    if [[ $status == $FAILED ]]; then
+      FINISHED="$FINISHED $FAILED"
+    fi
+  fi
+
+  local info="$PROG $ARGS$s$USER $UID $ssh_client$s$(hostname) $$$s$STARTED$s$FINISHED$s$rev\n"
+
+  _debug "updating $LOCKFILE"
+  printf "$info" >"$LOCKFILE"
+
+  local s="$FIELDSEP"
+  if [[ -n $INFOFILE ]]; then
+    _debug "updating $INFOFILE"
+    printf "$info" >"$INFOFILE"
+    chmod 664 $INFOFILE
+    if [[ -n $INFOFILEBAK && -e $INFOFILEBAK ]]; then
+      cat $INFOFILEBAK >>"$INFOFILE"
+    fi
+  fi
+
+  if $DEBUG; then
+    local sleep=3
+    warn "sleeping for $sleep..."
+    sleep $sleep
+  fi
+}
+
+function wrapup {
+
+  if [[ $STATUS == $INPROGRESS ]]; then
+    STATUS=$FAILED
+  fi
+  FINISHED=$(ts)
+  update_deploy_info "$STATUS"
+
+  if $DEBUG; then : ; else
+    _debug -n "removing $LOCKFILE ..."
+    rm -f $LOCKFILE
+  fi
+
+  _debug "done"
+}
+
+function warn {
+  echo "$PROG: $@" >&2
+}
 
 function error {
-  echo "$PROG: $1" >&2
+  warn "$@"
   exit 1
 }
 
 function _debug {
-  if $DEBUG; then
-    echo "$@"
-  fi
+  if $DEBUG; then echo "$@"; fi
 }
 
 function __usage {
-    echo "$PROG [-m|-f] [-d] [SITE [BRANCH]]
+    cat <<EOF
+$PROG [-m|-f] [-d] [SITE [BRANCH]]
+
 $PROG -h
 
   -h -- print this help message and exit
@@ -43,9 +138,10 @@ $PROG -h
   -d -- debug mode
 
 SITE should be either $PRODSITE or $DEVSITE.  BRANCH should be a suitable
-branch from $ORIGIN.
+branch from $REMOTE.
 
-Default actions: git-pull, make and move files, kill fast cgi."
+Default actions: git-pull, make and move files, kill fast cgi.
+EOF
     exit $1
 }
 
@@ -55,10 +151,10 @@ function main {
   do
     case "$opt" in
       h) __usage 0;;
-      m) FULL=false
-         IMAGES=false;;
-      f) FULL=true
-         IMAGES=true;;
+      m) FULLMODE=false
+         DEFAULTMODE=false;;
+      f) FULLMODE=true
+         DEFAULTMODE=true;;
       d) DEBUG=true
          LOGFILE=$(tty);;
       ?) echo "$0: illegal option -- $OPTARG" >&2
@@ -89,21 +185,23 @@ function main {
   fi
 
   if [[ $SITE = $PRODSITE ]]; then
-    URL=$(printf "$URLTEMPLATE" "")
+    KILLFCGI=$(printf "$URLTEMPLATE" "")
   elif [[ $SITE = $DEVSITE ]]; then
-    URL=$(printf "$URLTEMPLATE" dev.)
+    KILLFCGI=$(printf "$URLTEMPLATE" dev.)
   else
-    URL=
+    KILLFCGI=
     echo "$SITE is not a supported site: will not run cleanup.cgi"
   fi
 
   if $DEBUG; then
-    echo "params:
+    cat <<EOF
+params:
 SITE: $SITE
-ORIGIN: $ORIGIN
+REMOTE: $REMOTE
 BRANCH: $BRANCH
-URL: $URL
-"
+KILLFCGI: $KILLFCGI
+EOF
+
   fi
 
   deploy || error "failed with status $?"
@@ -112,15 +210,54 @@ URL: $URL
 }
 
 function gitpull {
-  _debug -n "pulling branch $BRANCH from $ORIGIN... "
+  _debug -n "pulling branch $BRANCH from $REMOTE... "
   git checkout $BRANCH >>"$LOGFILE" 2>&1 || error "git-checkout failed: $?"
-  git pull --ff-only $ORIGIN $BRANCH: >>"$LOGFILE" 2>&1 || error "git-pull failed: $?"
+  git pull --ff-only $REMOTE $BRANCH: >>"$LOGFILE" 2>&1 || error "git-pull failed: $?"
+  update_deploy_info "$STATUS"
   _debug 'done'
   return 0
 }
 
+function invenv {
+  local pyex="$VENV/bin/python"
+  if [[ -z $VENV || ! -x $pyex ]]; then
+     error "VENV ($VENV) does not point to a valid virtualenv directory"
+  fi
+
+  [[ $VIRTUAL_ENV == $VENV && $(which python) == $pyex ]] && \
+    python -c 'import sys; sys.real_prefix' 2>/dev/null
+}
+
+function maybe_activate_virtualenv {
+  if invenv; then return; fi
+
+  source "$VENV/bin/activate" || error "failed to activate virtualenv: $?"
+
+  if invenv; then return; fi
+
+  error 'failed to activate virtualenv (reason unknown)'
+}
+
+function runpip {
+  # if $DEFAULTMODE; then
+    if [[ ! -e $REQUIREMENTS ]]; then
+      error "cannot find requirements file ($REQUIREMENTS)"
+    fi
+
+    maybe_activate_virtualenv
+
+    sed 's/^\s*//; s/\s*#.*//' $REQUIREMENTS | \
+      while IFS= read -r line; do
+        if [[ -z $line ]]; then continue; fi
+        pip install -v $line || error "pip install $line failed: $?"
+      done
+    _debug 'done'
+  # fi
+  return 0
+}
+
 function builddb {
-  if $FULL; then
+  if $FULLMODE; then
     _debug -n 'building db... '
     $BASEDIR/re_run.sh $SITE >>"$LOGFILE" 2>&1 || error "re_run.sh failed: $?"
     _debug 'done'
@@ -128,7 +265,7 @@ function builddb {
 }
 
 function makeimg {
-  if $IMAGES; then
+  if $DEFAULTMODE; then
     _debug -n 'making images... '
     cd "$BASEDIR" || return 1
     src/do_scatterplots.sh >>"$LOGFILE" 2>&1 || \
@@ -141,7 +278,7 @@ function makeimg {
 }
 
 function moveimg {
-  if $IMAGES; then
+  if $DEFAULTMODE; then
     _debug -n 'moving images... '
     cd "$BASEDIR" || return 1
     DEBUG=$DEBUG ./find_and_move_restricted_images.sh >>"$LOGFILE" 2>&1 || \
@@ -160,20 +297,60 @@ function collectstatic {
 }
 
 function killfcgi {
-  [[ -z $URL ]] && return 0
+  [[ -z $KILLFCGI ]] && return 0
   _debug -n 'running cleanup.cgi... '
-  curl -sf "$URL" >> "$LOGFILE" || error '"'"curl -f $URL"'" failed'
+  curl -sf "$KILLFCGI" >> "$LOGFILE" || error '"'"curl -f $KILLFCGI"'" failed'
   _debug 'done'
 }
 
+function _mkdirp {
+  mkdir -p $1 || error "could not make $1: $?"
+  chmod 775 $1 || error "could not chmod $1: $?"
+}
+
 function deploy {
-  echo >>"$LOGFILE"
-  echo "===========================================================================" >>"$LOGFILE"
-  echo $(date --iso-8601=seconds) \($(date +%A)\) >>"$LOGFILE"
-  echo "deployed by $USER ($UID) connected from ${SSH_CLIENT/ *}" >>"$LOGFILE"
-  echo >>"$LOGFILE"
-  gitpull && builddb && makeimg && moveimg && collectstatic && killfcgi
+
+  _mkdirp $PROGDIR
+  _mkdirp $ADMINDIR
+
+  if [[ -e $LOCKFILE ]]; then
+    error "$LOCKFILE exists:
+
+$(cat $LOCKFILE)
+
+exiting..."
+  else
+    trap wrapup EXIT
+  fi
+
+  INFOFILE="$ADMINDIR/info.txt"
+  INFOFILEBAK="$INFOFILE.bak"
+  if [[ -e $INFOFILE ]]; then
+    sed "s/$INPROGRESS/(???)/" "$INFOFILE" >"$INFOFILEBAK"
+    chmod 664 $INFOFILEBAK
+  fi
+
+  update_deploy_info "$STATUS"
+
+  if [[ -s $LOGFILE ]]; then
+    cat <<EOF >>"$LOGFILE"
+
+===========================================================================
+EOF
+  fi
+
+  cat <<EOF >>"$LOGFILE"
+$STARTED
+deployed by $USER ($UID) connected from $ssh_client
+
+
+EOF
+
+  maybe_activate_virtualenv
+  gitpull && runpip && builddb && makeimg && moveimg && collectstatic && killfcgi
+
+  STATUS=$SUCCESS
   echo done
 }
 
-main $@
+main "$@"

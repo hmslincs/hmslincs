@@ -11,3 +11,4 @@ temp/*
 bak/*
 .DS_Store
 src/onetime/makepng
+.deploy

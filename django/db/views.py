@@ -82,7 +82,7 @@ def cellIndex(request):
         if(not request.user.is_authenticated()): 
             where.append("( not is_restricted or is_restricted is NULL )")
         # postgres fulltext search with rank and snippets
-        queryset = Cell.objects.extra(    # TODO: evaluate using django query language, not extra clause
+        queryset = Cell.objects.extra(
             select={
                 'snippet': "ts_headline(" + CellTable.snippet_def + ", to_tsquery(%s))",
                 'rank': "ts_rank_cd(search_vector, to_tsquery(%s), 32)",
@@ -103,7 +103,7 @@ def cellIndex(request):
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
     outputType = request.GET.get('output_type','')
     if(outputType != ''):
-        return send_to_file(outputType, 'cells', table, queryset, request )
+        return send_to_file(outputType, 'cells', table, queryset )
     return render_list_index(request, table,search,'Cell','Cells')
 
 def cellDetail(request, facility_id):
@@ -162,7 +162,7 @@ def proteinIndex(request):
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
     outputType = request.GET.get('output_type','')
     if(outputType != ''):
-        return send_to_file(outputType, 'proteins', table, queryset, request )
+        return send_to_file(outputType, 'proteins', table, queryset )
     return render_list_index(request, table,search,'Protein','Proteins')
     
 def proteinDetail(request, lincs_id):
@@ -228,7 +228,7 @@ def smallMoleculeIndex(request):
 
     outputType = request.GET.get('output_type','')
     if outputType:
-        return send_to_file(outputType, 'small_molecule', table, queryset, request )
+        return send_to_file(outputType, 'small_molecule', table, queryset )
     
         if(len(queryset) == 1 ):
             return redirect_to_small_molecule_detail(queryset[0])
@@ -281,7 +281,6 @@ def smallMoleculeDetail(request, facility_salt_id): # TODO: let urls.py grep the
             attachedFiles = get_attached_files(sm.facility_id,sm.salt_id,smb.facility_batch_id)
             if(len(attachedFiles)>0):
                 details['attached_files_batch'] = AttachedFileTable(attachedFiles)        # attached file table        
-        #attachedFiles = AttachedFile.objects.get(facility_id_for=facility_id, salt_id_for=salt_id)
         
         # datasets table
         dataset_ids = find_datasets_for_smallmolecule(sm.id)
@@ -336,7 +335,7 @@ def libraryIndex(request):
     table = LibraryTable(queryset)
     outputType = request.GET.get('output_type','')
     if(outputType != ''):
-        return send_to_file(outputType, 'libraries', table, queryset, request )
+        return send_to_file(outputType, 'libraries', table, queryset )
     return render_list_index(request, table,search,'Library','Libraries')
 
 def libraryDetail(request, short_name):
@@ -355,7 +354,7 @@ def libraryDetail(request, short_name):
             outputType = request.GET.get('output_type','')
             logger.error(str(("outputType:", outputType)))
             if(outputType != ''):
-                return send_to_file(outputType, 'library_'+library.short_name , table, queryset, request )
+                return send_to_file(outputType, 'library_'+library.short_name , table, queryset )
         
         return render(request,'db/libraryDetail.html', response_dict)
     except Library.DoesNotExist:
@@ -393,7 +392,7 @@ def datasetIndex(request): #, type='screen'):
     
     outputType = request.GET.get('output_type','')
     if(outputType != ''):
-        return send_to_file(outputType, 'datasetIndex', table, queryset, request )
+        return send_to_file(outputType, 'datasetIndex', table, queryset )
         
     return render_list_index(request, table,search,'Dataset','Datasets')
 
@@ -419,7 +418,7 @@ def datasetDetailMain(request, facility_id):
 def datasetDetailCells(request, facility_id):
     try:
         details = datasetDetail(request,facility_id, 'cells')
-        details.setdefault('heading', 'Cells')
+        details.setdefault('heading', 'Cells Studied')
         return render(request,'db/datasetDetailRelated.html', details)
     except Http401, e:
         return HttpResponse('Unauthorized', status=401)
@@ -427,7 +426,7 @@ def datasetDetailCells(request, facility_id):
 def datasetDetailProteins(request, facility_id):
     try:
         details = datasetDetail(request,facility_id,'proteins')
-        details.setdefault('heading', 'Proteins')
+        details.setdefault('heading', 'Proteins Studied')
         return render(request,'db/datasetDetailRelated.html', details)
     except Http401, e:
         return HttpResponse('Unauthorized', status=401)
@@ -435,7 +434,15 @@ def datasetDetailProteins(request, facility_id):
 def datasetDetailSmallMolecules(request, facility_id):
     try:
         details = datasetDetail(request,facility_id,'small_molecules')
-        details.setdefault('heading', 'Small Molecules')
+        details.setdefault('heading', 'Small Molecules Studied')
+        return render(request,'db/datasetDetailRelated.html', details)
+    except Http401, e:
+        return HttpResponse('Unauthorized', status=401)
+    
+def datasetDetailDataColumns(request, facility_id):
+    try:
+        details = datasetDetail(request,facility_id,'datacolumns')
+        details.setdefault('heading', 'Endpoints')
         return render(request,'db/datasetDetailRelated.html', details)
     except Http401, e:
         return HttpResponse('Unauthorized', status=401)
@@ -453,7 +460,7 @@ def datasetDetailResults(request, facility_id):
             search = request.GET.get('search','')
             cursor = manager.get_cursor(search=search)
             datacolumns = DataColumn.objects.filter(dataset=dataset).order_by('display_order')
-            return send_to_file1(outputType, 'dataset_'+str(facility_id), datacolumns, cursor, request )
+            return send_to_file1(outputType, 'dataset_'+str(facility_id), datacolumns, cursor )
         
         details = datasetDetail(request,facility_id, 'results')
 
@@ -486,7 +493,7 @@ def datasetDetail(request, facility_id, sub_page):
         if(form.cleaned_data['items_per_page']): # TODO: is there another way to determine if the form has been used yet?
             items_per_page = int(form.cleaned_data['items_per_page'])
     
-    if(sub_page == 'results'):
+    if (sub_page == 'results'):
         search = request.GET.get('search','')
         table = manager.get_table(search=search,metaWhereClause=[],parameters=[]) # TODO: not sure why have to set metaWhereClause=[] to erase former where clause (it is persistent somewhere?) - sde4
         if(len(table.data)>0):
@@ -494,28 +501,36 @@ def datasetDetail(request, facility_id, sub_page):
             RequestConfig(request, paginate={"per_page": items_per_page}).configure(table)
         details['search'] = search
         
-    if(sub_page == 'cells'):
+    elif (sub_page == 'cells'):
         if(manager.has_cells()):
             table = CellTable(manager.cell_queryset)
             setattr(table.data,'verbose_name_plural','Cells')
             setattr(table.data,'verbose_name','Cells')
             details['table'] = table
             RequestConfig(request, paginate={"per_page": items_per_page}).configure(table)
-    if(sub_page == 'proteins'):
+    elif (sub_page == 'proteins'):
         if(manager.has_proteins()):
             table = ProteinTable(manager.protein_queryset)
             setattr(table.data,'verbose_name_plural','Proteins')
             setattr(table.data,'verbose_name','Protein')
             details['table'] = table
             RequestConfig(request, paginate={"per_page": items_per_page}).configure(table)
-    if(sub_page == 'small_molecules'):
+    elif (sub_page == 'small_molecules'):
         if(manager.has_small_molecules()):
             table = SmallMoleculeTable(manager.small_molecule_queryset)
             setattr(table.data,'verbose_name_plural','Small Molecules')
             setattr(table.data,'verbose_name','Small Molecule')
             details['table'] = table
             RequestConfig(request, paginate={"per_page": items_per_page}).configure(table)
-
+    elif (sub_page == 'datacolumns'):
+        table = DataColumnTable(DataColumn.objects.all().filter(dataset_id=dataset.id).order_by('display_order'))
+        setattr(table.data,'verbose_name_plural','Endpoints')
+        setattr(table.data,'verbose_name','Endpoint')
+        details['table'] = table
+        RequestConfig(request, paginate={"per_page": items_per_page}).configure(table)
+    elif sub_page != 'main':
+        raise Exception(str(('Unknown sub_page for datasedetail', sub_page)))
+    
     image_location = DATASET_IMAGE_LOCATION + '/%s.png' % str(facility_id)
     if(can_access_image(request,image_location)): details['image_location'] = image_location
     
@@ -601,11 +616,7 @@ def get_cached_structure_search(request, search_request_id):
                 json_return = json.dumps(return_dict)
                 return HttpResponse(json_return, mimetype="application/x-javascript")
             else: #then the request has been fullfilled
-#                temp =request.cids.split(',')
-                #logger.info(str(('do intersection with', temp)))
-#                queryset = SmallMolecule.objects.filter(pubchem_cid__in=temp )
                 if request.sm_facility_ids :
-#                    return_dict = { 'facility_ids': ','.join([x.facility_id for x in queryset])}
                     return_dict = { 'facility_ids': request.sm_facility_ids}
                     json_return = json.dumps(return_dict)
                     return HttpResponse(json_return, mimetype="application/x-javascript")
@@ -625,213 +636,7 @@ def get_cached_structure_search(request, search_request_id):
         json_return = json.dumps(return_dict)
         return HttpResponse(json_return, mimetype="application/x-javascript")
     
-#def get_cached_structure_search(request, search_request_id):
-#    """
-#    check whether the structure search specfied by the id has been fullfilled.
-#    - if so, redirect the output to the list small molecules page and fill with the query for the CIDS found
-#    - if not, return a waiting response
-#    """
-#    logger.debug(str(('check cached request',search_request_id)))
-#    request = PubchemRequest.objects.get(pk=int(search_request_id));
-#    if request:
-#        kwargs = { 'smiles':request.smiles,'molfile':request.molfile, 'type':request.type }            
-#        if request.date_time_fullfilled:
-#            if (timezone.now()-request.date_time_fullfilled) > timedelta(days=DAYS_TO_CACHE):
-#                logger.info(str(('cached request is older than',DAYS_TO_CACHE,'days',request)))
-#                request.delete();
-#                new_req = PubchemRequest(**kwargs);
-#                new_req.save();
-#                
-#                logger.info(str(('create pubchem request', kwargs, os.getpid())))
-#                t = Thread(target=pubchem_search,args=(new_req.id,), kwargs=kwargs )
-#                t.setDaemon(True)
-#                t.start()
-#
-#                return_dict = {'pubchemRequestId': new_req.id }
-#                json_return = json.dumps(return_dict)
-#                return HttpResponse(json_return, mimetype="application/x-javascript")                
-#            if request.pubchem_error_message:
-#                if (timezone.now()-request.date_time_fullfilled) > timedelta(days=DAYS_TO_CACHE_PUBCHEM_ERRORS):
-#                    logger.info(str(('pubchem errored cached request is older than',DAYS_TO_CACHE_PUBCHEM_ERRORS,'days',request)))
-#                    request.delete();
-#                    # TODO: for now, not restarting.  if the user tries again, it will be restarted because the cache was just cleared
-#                return_dict = {'pubchem_error': request.pubchem_error_message }
-#                logger.info(str(('return err: ', return_dict)))
-#                json_return = json.dumps(return_dict)
-#                return HttpResponse(json_return, mimetype="application/x-javascript")
-#            if request.error_message:
-#                # NOTE: delete non-pubchem request errors, since presumably these are due to software errors
-#                return_dict = {'error': request.error_message }
-#                request.delete();
-#                logger.info(str(('return err: ', return_dict)))
-#                json_return = json.dumps(return_dict)
-#                return HttpResponse(json_return, mimetype="application/x-javascript")
-#            if request.date_time_fullfilled : #then the request has been fullfilled
-#                temp =request.cids.split(',')
-#                #logger.info(str(('do intersection with', temp)))
-#                queryset = SmallMolecule.objects.filter(pubchem_cid__in=temp )
-#                if len(queryset)>0 :
-#                    return_dict = { 'facility_ids': ','.join([x.facility_id for x in queryset])}
-#                    json_return = json.dumps(return_dict)
-#                    return HttpResponse(json_return, mimetype="application/x-javascript")
-#                else:
-#                    logger.info(str(('pubchem search result does not intersect with any compounds',kwargs)))
-#            return_dict = {'empty': request.id }
-#            json_return = json.dumps(return_dict)
-#            return HttpResponse(json_return, mimetype="application/x-javascript")
-#        else:  # request not fullfilled yet
-#            if (timezone.now()-request.date_time_requested).seconds > SECONDS_TO_WAIT:
-#                logger.info(str(('request not fullfilled for more than',SECONDS_TO_WAIT,'seconds',
-#                                 (timezone.now()-request.date_time_requested).seconds,' deleting, id: ', search_request_id)))
-#                request.delete();
-#                new_req = PubchemRequest(**kwargs);
-#                new_req.save();
-#                
-#                logger.info(str(('create a new pubchem request', kwargs, os.getpid())))
-#                t = Thread(target=pubchem_search,args=(new_req.id,), kwargs=kwargs )
-#                t.setDaemon(True)
-#                t.start()
-#                
-#                return_dict = {'pubchemRequestId': new_req.id }
-#                json_return = json.dumps(return_dict)
-#                return HttpResponse(json_return, mimetype="application/x-javascript")                
-#            else:
-#                logger.info(str(('request not fullfilled yet', search_request_id)))
-#                return_dict = {'pubchemRequestId': request.id }
-#                json_return = json.dumps(return_dict)
-#                return HttpResponse(json_return, mimetype="application/x-javascript")
-#    else:
-#        return_dict = {'error': 'no cached request was located for the id' }
-#        logger.info(str(('return err: ', return_dict)))
-#        json_return = json.dumps(return_dict)
-#        return HttpResponse(json_return, mimetype="application/x-javascript")    
-
-#def structure_search(request):
-#    """
-#    This method returns JSON output, it is meant to be called by an AJAX process
-#    in the compound structure search page.
-#    """
-#    
-#    logger.info(str(('structure search os pid:', os.getpid())))
-#    if(request.method == 'POST'):
-#        form = StructureSearchForm(request.POST, request.FILES)
-#        
-#        if(form.is_valid()):
-#            if(form.cleaned_data['smiles'] or request.FILES.has_key('sdf')):
-#                try:
-#                    kwargs = { 'type':form.cleaned_data['type'] }
-#                    smiles = form.cleaned_data['smiles']
-#                    molfile = ''
-#                    if (request.FILES.has_key('sdf')):
-#                        molfile =  request.FILES
-#                        
-#                    if smiles and molfile:
-#                        msg = 'Cannot have both smiles and sdf inputs'
-#                        logger.error(str((msg, smiles, molfile)))
-#                        return HttpResponse(json.dumps({'error': msg }), mimetype="application/x-javascript")
-#                    if smiles:
-#                        kwargs['smiles'] = smiles
-#                        logger.info(str(('look for extant record: ', kwargs)))
-#                        query = PubchemRequest.objects.filter(**kwargs)
-#                        
-#                        if len(query)==1 :
-#                            pcreq = query[0]
-#                            logger.info(str(('found cached request', pcreq)))
-#                            return get_cached_structure_search(request, pcreq.id)
-#                        elif len(query)>1:
-#                            msg = 'too many cached requests found, will delete them.'
-#                            logger.info(str((msg, query)))
-#                            query.delete();
-#                    if molfile:
-#                        kwargs['molfile'] = molfile
-#                        query = PubchemRequest.objects.filter(**kwargs)
-#                        
-#                        if len(query)==1 :
-#                            pcreq = query[0]
-#                            logger.info(str(('found cached request', pcreq)))
-#                            return get_cached_structure_search(request, pcreq.id)
-#                        elif len(query)>1:
-#                            msg = 'too many cached requests found, will delete them.'
-#                            logger.info(str((msg, query)))
-#                            query.delete();
-#                      
-#                    logger.info(str(('create pubchem request', kwargs, os.getpid())))
-#                    pubchemRequest = PubchemRequest(**kwargs)
-#                    pubchemRequest.save()
-#                    
-#                    if False:
-#                        logger.info(str(('start thread...')))
-#                        t = Thread(target=pubchem_search,args=(pubchemRequest.id,), kwargs=kwargs )
-#                        t.setDaemon(True)
-#                        t.start()
-#                    else:
-#                        from multiprocessing import Process
-#                        logger.info(str(('start process...')))
-#                        p = Process(target=pubchem_search,args=(pubchemRequest.id,), kwargs=kwargs )
-#                        #connection.close()
-#                        p.daemon = True
-#                        p.start();
-#                        logger.info('return from parent...')
-#                        
-#                    return_dict = {'pubchemRequestId': pubchemRequest.id }
-#                    json_return = json.dumps(return_dict)
-#                    return HttpResponse(json_return, mimetype="application/x-javascript")
-#                except Exception, e:
-#                    exc_type, exc_obj, exc_tb = sys.exc_info()
-#                    fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]      
-#                    logger.error(str((exc_type, fname, exc_tb.tb_lineno)))
-#                    logger.error(str(('in structure search', e)))
-#                    raise e
-#    else: # not submitted yet
-#        form = StructureSearchForm()
-#
-#        return render(request, 'db/structureSearch_jquery.html', { 'structure_search_form':form, 'message':'Enter either a SMILES or a MOLFILE' })
-
-# this method elided, see pubchem_database_cache_service
-#def pubchem_search(requestId, smiles='', molfile='', type='identity'):
-#    """ 
-#    Synchronously get the specifed request from pubchem.
-#    """
-#    logger.info('synchronous pubchem search...')
-##    if(type == 'substructure'):
-#    pqr = PubchemRequest.objects.get(pk=int(requestId))
-#    logger.info(str(('conduct pubchem search for pending request:', pqr)))
-#    try:
-#        cids = pubchem_compound_search.identity_similarity_substructure_search(type=type, smiles=smiles, sdf=molfile)
-#        logger.info(str(('pubchem cids returned',cids, requestId)))
-#        pqr.cids = ','.join(str(x) for x in cids)
-#        pqr.date_time_fullfilled = timezone.now() #datetime.now()
-#        pqr.save()
-#    except PubchemError, e:
-#        logger.info(str(('pubchem error reported',e)))
-#        # TODO: delete, but maybe cache for a day?
-#        pqr.pubchem_error_message = e.args
-#        pqr.date_time_fullfilled = timezone.now() #datetime.now()
-#        pqr.save()
-#    except Exception, e:
-#        # TODO: this is a program error, need to signal to the client that there is an error, but not to cache this result if the error is fixed
-#        logger.info(str(('error reported',e))) 
-#        pqr.error_message = e.args
-#        pqr.date_time_fullfilled = timezone.now() #datetime.now()
-#        pqr.save()
-
-# this section is still valid... but it is doing an exact identity match, not the similarity search as is desired
-#    else: # identity
-#        pqr = PubchemRequest.objects.get(pk=int(requestId))
-#        logger.info(str((pqr)))
-#        try:
-#            cids = pubchem_compound_search.identity_exact_search(smiles=smiles, sdf=molfile)
-#            logger.info(str(('cids',cids, requestId)))
-#            pqr.cids = ','.join(str(x) for x in cids)
-#            pqr.date_time_fullfilled = timezone.now() #datetime.now()
-#            pqr.save()
-#        except PubchemError, e:
-#            logger.info(str(('pubchem error reported',e)))
-#            pqr.pubchem_error_message = e.args
-#            pqr.date_time_fullfilled = timezone.now() #datetime.now()
-#            pqr.save()
-
-# TODO: necessary to close the connection?            
+    # TODO: necessary to close the connection?            
     connection.close()
     logger.info(str(('pubchem search completed')))
 
@@ -855,7 +660,6 @@ def smallMoleculeIndexList(request, facility_ids=''):
 def render_list_index(request, table, search, name, name_plural, **requestArgs):
     items_per_page = 25
     form = PaginationForm(request.GET)
-#        form = PaginationForm(initial={'items_per_page': str(items_per_page)})
     if(form.is_valid()):
         if(form.cleaned_data['items_per_page']): # TODO: is there another way to determine if the form has been used yet?
             items_per_page = int(form.cleaned_data['items_per_page'])
@@ -1053,7 +857,7 @@ class DataSetResultTable(PagedTable):
             #logger.debug(str(('create column:',name,verbose_name)))
             col = 'col%d'%i
             display_name = (dc.display_name, dc.name)[dc.display_name == None or len(dc.display_name)==0]
-            logger.info(str(('create column', col, dc.id, dc.data_type, display_name, dc.name)))
+            logger.debug(str(('create column', col, dc.id, dc.data_type, display_name, dc.name)))
             if(dc.data_type.lower() != OMERO_IMAGE_COLUMN_TYPE):
                 self.base_columns[col] = tables.Column(verbose_name=display_name)
             else:
@@ -1135,7 +939,7 @@ class DataSetManager():
             
         logger.debug(str(('search',search,'metaWhereClause',metaWhereClause,'parameters',parameters)))
         
-        self.dataset_info = self._get_query_info(whereClause,metaWhereClause) # TODO: column_exclusion_overrides
+        self.dataset_info = self._get_query_info(whereClause,metaWhereClause,parameters) # TODO: column_exclusion_overrides
         cursor = connection.cursor()
         cursor.execute(self.dataset_info.query_sql,parameters)
         return cursor
@@ -1159,7 +963,7 @@ class DataSetManager():
             parameters += searchParams
             
         logger.debug(str(('search',search,'metaWhereClause',metaWhereClause,'parameters',parameters)))
-        self.dataset_info = self._get_query_info(whereClause,metaWhereClause)
+        self.dataset_info = self._get_query_info(whereClause,metaWhereClause, parameters)
         #sql_for_count = 'SELECT count(distinct id) from db_datarecord where dataset_id ='+ str(self.dataset_id)
         queryset = PagedRawQuerySet(self.dataset_info.query_sql,self.dataset_info.count_query_sql, connection, 
                                     parameters=parameters,order_by=['datarecord_id'], verbose_name_plural='records')
@@ -1183,7 +987,7 @@ class DataSetManager():
         
     
 
-    def _get_query_info(self, whereClause=[],metaWhereClause=[]):
+    def _get_query_info(self, whereClause=[],metaWhereClause=[], parameters=[]):
         """
         generate a django tables2 table
         TODO: move the logic out of the view: so that it can be shared with the tastypie api (or make this rely on tastypie)
@@ -1226,7 +1030,8 @@ class DataSetManager():
                 if dc.precision == 0 or dc.data_type == 'omero_image':
                     column_to_select = "int_value"
                 else:
-                    column_to_select = "round( float_value::numeric, 2 )" # TODO: specify the precision in the fieldinformation for this column
+                    column_to_select = "round( float_value::numeric, %s )" 
+                    parameters.append(str(dc.precision))
             else:
                 column_to_select = "text_value"
             queryString +=  (",(SELECT " + column_to_select + " FROM db_datapoint " + alias + 
@@ -1472,6 +1277,18 @@ class SmallMoleculeTable(PagedTable):
         super(SmallMoleculeTable, self).__init__(queryset)
         sequence_override = ['facility_salt']
         set_table_column_info(self, ['smallmolecule','smallmoleculebatch',''],sequence_override)  
+
+class DataColumnTable(PagedTable):
+    
+    class Meta:
+        model = DataColumn
+        orderable = True
+        attrs = {'class': 'paleblue'}
+        
+    def __init__(self, table,*args, **kwargs):
+        super(DataColumnTable, self).__init__(table)
+        sequence_override = []
+        set_table_column_info(self, ['datacolumn',''],sequence_override)  
 
 class AttachedFileTable(PagedTable):
     filename=tables.LinkColumn("download_attached_file", args=[A('id')])
@@ -1729,52 +1546,35 @@ def download_attached_file(request, id):
         logger.error(str(('could not find attached file object for id', id, e)))
         raise e
 
-# todo, not used    
-#def download_attached_file_simple(request, path):
-#    # TODO Authorization
-#    logger.info(str(('download_attached_file',path)))
-#    if(not request.user.is_authenticated()):
-#        pass
-#    return HttpResponseRedirect(settings.STATIC_ROOT+path)
-        
-# works, can't ensure authorization however
-#def download_file(request, path):
-#    logger.info(str(('download_attached_file',path,request.user)))
-#    if(not request.user.is_authenticated()):
-#        pass
-#    return HttpResponseRedirect("/_static/"+path)
+def send_to_file1(outputType, name, ordered_datacolumns, cursor):
+    """
+    Export the datasetdata cursor to the file type pointed to by outputType
+    @param ordered_datacolumns the datacolumns for the datasetdata, in order, so that they can be indexed by column number
+    @param outputType '.csv','.xls'
+    @param table a django-tables2 table
+    @param name name of the table - to be used for the output file name
+     
+    """   
 
-#x-sendfile option
-# http://blog.zacharyvoase.com/2009/09/08/sendfile/
-# This would be best placed in your settings file.
-#def get_absolute_filename(filename='', safe=True):
-#    if not filename:
-#        return path.join(settings.STATIC_ROOT1, 'index')
-#    if safe and '..' in filename.split(path.sep):
-#        return get_absolute_filename(filename='')
-#    return path.join(settings.STATIC_ROOT1, filename)
-#
-#from django.contrib.auth.decorators import login_required
-#@login_required
-#def retrieve_file(request, path=''):
-#    logger.info(str(('get file', smart_str(path,'utf-8', errors='ignore'))))
-#    abs_filename = get_absolute_filename(path)
-#    response = HttpResponse() # 200 OK
-#    del response['content-type'] # We'll let the web server guess this.
-#    response['X-Sendfile'] = abs_filename
-#    logger.info(str(('get file', abs_filename)))
-#    return response
-        
-# TODO: currently, send_to_file1 is used specifically to export the large datasets; but would like for everything to use this method
-def send_to_file1(outputType, name, ordered_datacolumns, cursor, request):
+    col_key_name_map = get_cols_to_write(cursor, 
+                                         ['dataset','smallmolecule','datarecord','smallmoleculebatch','protein','cell',''],
+                                         ordered_datacolumns)   
     if(outputType == '.csv'):
-        return export_as_csv1(name,ordered_datacolumns , request, cursor)
+        return export_as_csv(name,col_key_name_map, cursor=cursor)
     elif(outputType == '.xls'):
-        return export_as_xls1(name, ordered_datacolumns, request, cursor)
-    
-def send_to_file(outputType, name, table, queryset, request):    
+        return export_as_xls(name, col_key_name_map, cursor=cursor)
+
+def send_to_file(outputType, name, table, queryset): 
+    """
+    Export the queryset to the file type pointed to by outputType.  Get the column header information from the django-tables2 table
+    @param outputType '.csv','.xls'
+    @param table a django-tables2 table
+    @param name name of the table - to be used for the output file name
+     
+    """   
     # ordered list (field,verbose_name)
-    columns = map(lambda (x,y): (x, y.verbose_name), filter(lambda (x,y): x != 'rank' and x!= 'snippet' and y.visible, table.base_columns.items()))
+    columns = map(lambda (x,y): (x, y.verbose_name), 
+                  filter(lambda (x,y): x != 'rank' and x!= 'snippet' and y.visible, table.base_columns.items()))
     columnsOrdered = []
     for col in table._sequence:
         for (field,verbose_name) in columns:
@@ -1784,62 +1584,14 @@ def send_to_file(outputType, name, table, queryset, request):
     # The type strings deliberately include a leading "." to make the URLs
     # trigger the analytics js code that tracks download events by extension.
     if(outputType == '.csv'):
-        return export_as_csv(name,columnsOrdered , request, queryset)
+        return export_as_csv(name,OrderedDict(columnsOrdered) , queryset=queryset)
     elif(outputType == '.xls'):
-        return export_as_xls(name, columnsOrdered, request, queryset)
-    
-def export_as_xls(name,columnNames, request, queryset):
-    """
-    Generic xls export admin action.
-    """
-    response = HttpResponse(mimetype='application/Excel')
-    response['Content-Disposition'] = 'attachment; filename=%s.xls' % unicode(name).replace('.', '_')
-    
-    wbk = xlwt.Workbook()
-    sheet = wbk.add_sheet('sheet 1')    # Write a first row with header information
-    for i, (field,verbose_name) in enumerate(columnNames):
-        sheet.write(0, i, verbose_name)        
-        
-    # Write data rows
-    debug_interval=1000
-    row = 0
-    for obj in queryset:
-        if isinstance(obj, dict):
-            vals = [obj[field] for (field,verbose_name) in columnNames]
-        else:
-            vals = [getattr(obj, field) for (field,verbose_name) in columnNames]
-        
-        for i,column in enumerate(vals):
-            sheet.write(row+1, i, column )
-        if(row % debug_interval == 0):
-            logger.info("row: " + str(row))
-        row += 1
-    wbk.save(response)
-    return response
-
-def export_as_csv(name,columnNames, request, queryset):
-    """
-    Generic csv export admin action.
-    """
-    response = HttpResponse(mimetype='text/csv')
-    response['Content-Disposition'] = 'attachment; filename=%s.csv' % unicode(name).replace('.', '_')
-    writer = csv.writer(response)
-    # Write a first row with header information
-    writer.writerow([verbose_name for (field,verbose_name) in columnNames])
-    # Write data rows
-    debug_interval=1000
-    row = 0
-    for obj in queryset:
-        if isinstance(obj, dict):
-            writer.writerow([smart_str(obj[field], 'utf-8', errors='ignore') for (field,verbose_name) in columnNames])
-        else:
-            writer.writerow([smart_str(getattr(obj, field), 'utf-8', errors='ignore') for (field,verbose_name) in columnNames])
-        if(row % debug_interval == 0):
-            logger.info("row: " + str(row))
-        row += 1
-    return response
+        return export_as_xls(name, OrderedDict(columnsOrdered), queryset=queryset)
 
 def get_cols_to_write(cursor, fieldinformation_tables=[''], ordered_datacolumns=None):
+    """
+    returns a dict of #column_number:verbose_name
+    """
     header_row = {}
     for i,col in enumerate(cursor.description):
         if(ordered_datacolumns != None and col.name.find('col')==0):
@@ -1858,58 +1610,79 @@ def get_cols_to_write(cursor, fieldinformation_tables=[''], ordered_datacolumns=
          
     return OrderedDict(sorted(header_row.items(),key=lambda x: x[0]))
 
-# TODO: is a cursor a queryset? if so then refactor all methods to use this
-def export_as_xls1(name,ordered_datacolumns, request, cursor):
+def export_as_csv(name,col_key_name_map, cursor=None, queryset=None):
+    """
+    Generic csv export admin action.
+    """
+    response = HttpResponse(mimetype='text/csv')
+    response['Content-Disposition'] = 'attachment; filename=%s.csv' % unicode(name).replace('.', '_')
+    writer = csv.writer(response)
+    # Write a first row with header information
+    writer.writerow(col_key_name_map.values())
+
+    debug_interval=1000
+    row = 0
+    assert (cursor or queryset) and not (cursor and queryset), 'must define either cursor or queryset'
+    if cursor:
+        obj=cursor.fetchone()
+        keys = col_key_name_map.keys()
+        logger.debug(str(('keys',keys,obj)))
+        while obj:
+            writer.writerow([smart_str(obj[int(key)], 'utf-8', errors='ignore') for key in keys])
+            if(row % debug_interval == 0):
+                logger.info("row: " + str(row))
+            row += 1
+            obj=cursor.fetchone()
+    elif queryset:
+        for obj in queryset:
+            if isinstance(obj, dict):
+                writer.writerow([smart_str(obj[field], 'utf-8', errors='ignore') for field in col_key_name_map.keys()])
+            else:
+                writer.writerow([smart_str(getattr(obj, field), 'utf-8', errors='ignore') for field in col_key_name_map.keys()])
+            if(row % debug_interval == 0):
+                logger.info("row: " + str(row))
+            row += 1
+    return response
+
+def export_as_xls(name,col_key_name_map, cursor=None, queryset=None):
     """
     Generic xls export admin action.
     """
     response = HttpResponse(mimetype='application/Excel')
     response['Content-Disposition'] = 'attachment; filename=%s.xls' % unicode(name).replace('.', '_')
 
-    cols_to_names = get_cols_to_write(cursor, ['dataset','smallmolecule','datarecord','smallmoleculebatch','protein','cell',''], ordered_datacolumns)   
-    
     wbk = xlwt.Workbook()
     sheet = wbk.add_sheet('sheet 1')    # Write a first row with header information
-    for i,name in enumerate(cols_to_names.values()):
+    for i,name in enumerate(col_key_name_map.values()):
         sheet.write(0, i, name)   
             
     debug_interval=1000
     row = 0
-    obj=cursor.fetchone()
-    keys = cols_to_names.keys()
-    logger.debug(str(('keys',keys)))
-    while obj:
-        for i,key in enumerate(keys):
-            sheet.write(row+1,i,obj[key])
-        if(row % debug_interval == 0):
-            logger.info("row: " + str(row))
-        row += 1
+    assert (cursor or queryset) and not (cursor and queryset), 'must define either cursor or queryset'
+    if cursor:
         obj=cursor.fetchone()
+        keys = col_key_name_map.keys()
+        logger.debug(str(('keys',keys)))
+        while obj:  # row in the dataset; a tuple to be indexed numerically
+            for i,key in enumerate(keys):
+                sheet.write(row+1,i,obj[key])
+            if(row % debug_interval == 0):
+                logger.info("row: " + str(row))
+            row += 1
+            obj=cursor.fetchone()
+    elif queryset:
+        for obj in queryset:  
+            if isinstance(obj, dict): # a ORM object as a dict
+                vals = [obj[field] for field in col_key_name_map.keys()]
+            else: # a ORM object
+                vals = [getattr(obj, field) for field in col_key_name_map.keys()]
+            
+            for i,column in enumerate(vals):
+                sheet.write(row+1, i, column )
+            if(row % debug_interval == 0):
+                logger.info("row: " + str(row))
+            row += 1    
+    
     wbk.save(response)
     return response
 
-def export_as_csv1(name,ordered_datacolumns, request, cursor):
-    """
-    Generic csv export admin action.
-    """
-    response = HttpResponse(mimetype='text/csv')
-    response['Content-Disposition'] = 'attachment; filename=%s.csv' % unicode(name).replace('.', '_')
-
-    cols_to_names = get_cols_to_write(cursor, ['dataset','smallmolecule','datarecord','smallmoleculebatch','protein','cell',''], ordered_datacolumns)   
-
-    writer = csv.writer(response)
-    # Write a first row with header information
-    writer.writerow(cols_to_names.values())
-    # Write data rows
-    debug_interval=1000
-    row = 0
-    obj=cursor.fetchone()
-    keys = cols_to_names.keys()
-    logger.debug(str(('keys',keys,obj)))
-    while obj:
-        writer.writerow([smart_str(obj[int(key)], 'utf-8', errors='ignore') for key in keys])
-        if(row % debug_interval == 0):
-            logger.info("row: " + str(row))
-        row += 1
-        obj=cursor.fetchone()
-    return response
