@@ -46,6 +46,8 @@ LOCKFILE=${LOCKFILE:-"$PROGDIR/lock"}
 ADMINDIR=${ADMINDIR:-"$($REALPATH $SUPPORTDIR/..)/docroot/admin/deploy"}
 INFOFILE=
 
+umask 022
+
 PRODSITE=prod
 DEVSITE=dev
 
@@ -84,7 +86,6 @@ function update_deploy_info {
   if [[ -n $INFOFILE ]]; then
     _debug "updating $INFOFILE"
     printf "$info" >"$INFOFILE"
-    chmod 664 $INFOFILE
     if [[ -n $INFOFILEBAK && -e $INFOFILEBAK ]]; then
       cat $INFOFILEBAK >>"$INFOFILE"
     fi
@@ -296,7 +297,7 @@ function killfcgi {
 }
 
 function _mkdirp {
-  ( umask 002 && mkdir -p $1 ) || error "could not make $1: $?"
+  mkdir -p $1 || error "could not make $1: $?"
 }
 
 function deploy {
@@ -317,8 +318,7 @@ exiting..."
   INFOFILE="$ADMINDIR/info.txt"
   INFOFILEBAK="$INFOFILE.bak"
   if [[ -e $INFOFILE ]]; then
-    sed "s/$INPROGRESS/(???)/" "$INFOFILE" >"$INFOFILEBAK"
-    chmod 664 $INFOFILEBAK
+    (umaks 022 && sed "s/$INPROGRESS/(???)/" "$INFOFILE" >"$INFOFILEBAK")
   fi
 
   update_deploy_info "$STATUS"
