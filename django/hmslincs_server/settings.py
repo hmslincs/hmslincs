@@ -69,7 +69,6 @@ if socket.getfqdn().endswith('.orchestra'):
         # Always use forward slashes, even on Windows.
         # Don't forget to use absolute paths, not relative paths.
         '/groups/pharmacoresponse/data/images/',
-        '/groups/pharmacoresponse/data/upload_files/',
     )   
 else:
 
@@ -79,7 +78,6 @@ else:
         # Always use forward slashes, even on Windows.
         # Don't forget to use absolute paths, not relative paths.
         '/home/sde4/docs/work/LINCS/data/images/',
-        '/home/sde4/docs/work/LINCS/data/upload_files/',
         op.join(_djangopath, '..', 'sampledata', 'images' ),
     )   
 
