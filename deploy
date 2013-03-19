@@ -318,7 +318,7 @@ exiting..."
   INFOFILE="$ADMINDIR/info.txt"
   INFOFILEBAK="$INFOFILE.bak"
   if [[ -e $INFOFILE ]]; then
-    (umaks 022 && sed "s/$INPROGRESS/(???)/" "$INFOFILE" >"$INFOFILEBAK")
+    (umask 022 && sed "s/$INPROGRESS/(???)/" "$INFOFILE" >"$INFOFILEBAK")
   fi
 
   update_deploy_info "$STATUS"
