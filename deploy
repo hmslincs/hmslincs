@@ -33,9 +33,11 @@ FIELDSEP='|'
 
 ARGS="$@"
 DEBUG=${DEBUG:-false}
-PROG=$(basename $0)
 REALPATH=${REALPATH:-realpath}
-BASEDIR=${BASEDIR:-"$(dirname $($REALPATH $0))"}
+SCRIPTPATH="$($REALPATH $0)"
+SAVEPATH="$SCRIPTPATH.save"
+PROG=$(basename $SCRIPTPATH)
+BASEDIR=${BASEDIR:-"$(dirname $SCRIPTPATH)"}
 SUPPORTDIR=${SUPPORTDIR:-"$(dirname $(dirname $BASEDIR))/support"}
 VENV=${VENV:-"$SUPPORTDIR/virtualenv"}
 REQUIREMENTS=${REQUIREMENTS:-"$BASEDIR/requirements.txt"}
@@ -46,7 +48,7 @@ LOCKFILE=${LOCKFILE:-"$PROGDIR/lock"}
 ADMINDIR=${ADMINDIR:-"$($REALPATH $SUPPORTDIR/..)/docroot/admin/deploy"}
 INFOFILE=
 
-umask 022
+UMASK=022
 
 PRODSITE=prod
 DEVSITE=dev
@@ -100,10 +102,14 @@ function wrapup {
   FINISHED=$(ts)
   update_deploy_info "$STATUS"
 
-  _debug -n "removing $LOCKFILE ..."
+  if [[ -e $SAVEPATH ]]; then
+    _debug "restoring $SAVEPATH"
+    mv -f $SAVEPATH $SCRIPTPATH
+  fi
+
+  _debug "removing $LOCKFILE ..."
   rm -f $LOCKFILE
 
-  _debug "done"
 }
 
 function warn {
@@ -204,8 +210,11 @@ EOF
 
 function gitpull {
   _debug -n "pulling branch $BRANCH from $REMOTE... "
+  cp -a $SCRIPTPATH $SAVEPATH
   git checkout $BRANCH >>"$LOGFILE" 2>&1 || error "git-checkout failed: $?"
-  git pull --ff-only $REMOTE $BRANCH: >>"$LOGFILE" 2>&1 || error "git-pull failed: $?"
+  git checkout -- $SCRIPTPATH >>"$LOGFILE" 2>&1 || error "git-checkout $SCRIPTPATH failed: $?"
+  git pull --ff-only $REMOTE $BRANCH >>"$LOGFILE" 2>&1 || error "git-pull failed: $?"
+  mv -f $SAVEPATH $SCRIPTPATH
   update_deploy_info "$STATUS"
   _debug 'done'
   return 0
@@ -296,14 +305,22 @@ function killfcgi {
   _debug 'done'
 }
 
-function _mkdirp {
-  mkdir -p $1 || error "could not make $1: $?"
+function _mkdir {
+  if [[ ! -e $1 ]]; then
+    (umask $UMASK && mkdir -p "$1") || error "could not create $1: $?"
+  fi
+}
+
+function _mkfile {
+  if [[ ! -e $1 ]]; then
+    (_mkdir $( dirname "$1" ) && umask $UMASK && touch "$1") \
+      || error "could not create $1: $?"
+  fi
 }
 
 function deploy {
 
-  _mkdirp $PROGDIR
-  _mkdirp $ADMINDIR
+  _mkdir $PROGDIR
 
   if [[ -e $LOCKFILE ]]; then
     error "$LOCKFILE exists:
@@ -313,12 +330,19 @@ $(cat $LOCKFILE)
 exiting..."
   else
     trap wrapup EXIT
+    rm -f $SAVEPATH
+    _mkfile "$LOCKFILE"
   fi
 
+  _mkfile "$LOGFILE"
+
+  _mkdir $ADMINDIR
   INFOFILE="$ADMINDIR/info.txt"
+  _mkfile $INFOFILE
   INFOFILEBAK="$INFOFILE.bak"
-  if [[ -e $INFOFILE ]]; then
-    (umask 022 && sed "s/$INPROGRESS/(???)/" "$INFOFILE" >"$INFOFILEBAK")
+  if [[ -s $INFOFILE ]]; then
+    _mkfile $INFOFILEBAK
+    sed "s/$INPROGRESS/(???)/" "$INFOFILE" >"$INFOFILEBAK"
   fi
 
   update_deploy_info "$STATUS"
