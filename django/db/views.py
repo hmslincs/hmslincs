@@ -3,7 +3,7 @@ from collections import OrderedDict
 from datetime import timedelta
 from db.models import PubchemRequest, SmallMolecule, SmallMoleculeBatch, Cell, \
     Protein, DataSet, Library, FieldInformation, AttachedFile, DataRecord, \
-    DataColumn, LibraryMapping, get_detail
+    DataColumn, LibraryMapping, get_detail, find_miami_lincs_mapping
 from django import forms
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
@@ -315,7 +315,7 @@ def smallMoleculeDetail(request, facility_salt_id): # TODO: let urls.py grep the
         # add in the LIFE System link: TODO: put this into the fieldinformation
         extralink = {   'title': 'LINCS Information Framework Structure Page' ,
                         'name': 'LIFE Compound Information',
-                        'link': 'http://baoquery.ccs.miami.edu/life/hms/summary?input=HMSL'+ str(sm.facility_id) + '&mode=compound',
+                        'link': 'http://baoquery.ccs.miami.edu/life/summary?mode=SmallMolecule&input=' + str(find_miami_lincs_mapping(sm.facility_id)),
                         'value': sm.facility_id }
         details['extralink'] = extralink
         
