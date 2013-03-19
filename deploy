@@ -105,10 +105,8 @@ function wrapup {
   FINISHED=$(ts)
   update_deploy_info "$STATUS"
 
-  if $DEBUG; then : ; else
-    _debug -n "removing $LOCKFILE ..."
-    rm -f $LOCKFILE
-  fi
+  _debug -n "removing $LOCKFILE ..."
+  rm -f $LOCKFILE
 
   _debug "done"
 }
