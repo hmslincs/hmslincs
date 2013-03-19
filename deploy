@@ -296,8 +296,7 @@ function killfcgi {
 }
 
 function _mkdirp {
-  mkdir -p $1 || error "could not make $1: $?"
-  chmod 777 $1 || error "could not chmod $1: $?"
+  ( umask 002 && mkdir -p $1 ) || error "could not make $1: $?"
 }
 
 function deploy {
