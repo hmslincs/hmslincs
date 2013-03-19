@@ -1,41 +1,37 @@
-import csv
+from PagedRawQuerySet import PagedRawQuerySet
 from collections import OrderedDict
 from datetime import timedelta
-import json
-from math import log, pow
-import os
-import re
-from threading import Thread
-import sys
-import urllib2
-import xlwt
-
+from db.models import PubchemRequest, SmallMolecule, SmallMoleculeBatch, Cell, \
+    Protein, DataSet, Library, FieldInformation, AttachedFile, DataRecord, \
+    DataColumn, LibraryMapping, get_detail
 from django import forms
-from django.core.exceptions import ObjectDoesNotExist
-from django.db import models
-from django.db import connection
-from django.utils.encoding import smart_str
-from django.forms import ModelForm
-from django.http import Http404,HttpResponseRedirect
-from django.utils.safestring import mark_safe
-from django.utils import timezone
-from django.http import HttpResponse
 from django.conf import settings
-import django_tables2 as tables
-from django_tables2 import RequestConfig
-from django_tables2.utils import A  # alias for Accessor
+from django.contrib.auth.decorators import login_required
+from django.contrib.staticfiles.finders import FileSystemFinder
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.servers.basehttp import FileWrapper
 from django.core.urlresolvers import reverse
+from django.db import connection, models
+from django.forms import ModelForm
+from django.http import Http404, HttpResponseRedirect, HttpResponse
 from django.shortcuts import render
-from django.contrib.staticfiles.finders import FileSystemFinder
-import os
-
-from db.models import SmallMolecule, SmallMoleculeBatch, Cell, Protein, DataSet, Library, FieldInformation,AttachedFile,DataRecord,DataColumn,LibraryMapping
-from db.models import PubchemRequest
-from db.models import get_detail
-from PagedRawQuerySet import PagedRawQuerySet
-
+from django.utils import timezone
+from django.utils.encoding import smart_str
+from django.utils.safestring import mark_safe
+from django_tables2 import RequestConfig
+from django_tables2.utils import A # alias for Accessor
+from dump_obj import dumpObj
+from hms.pubchem import pubchem_database_cache_service
+from math import log, pow
+import csv
+import django_tables2 as tables
+import json
 import logging
+import os
+import re
+import sys
+import xlwt
+
 
 logger = logging.getLogger(__name__)
 APPNAME = 'db',
@@ -48,11 +44,10 @@ facility_salt_batch_id_2 = " trim( both '-' from (" + facility_salt_id + " || '-
 OMERO_IMAGE_COLUMN_TYPE = 'omero_image'
 DAYS_TO_CACHE = 1
 DAYS_TO_CACHE_PUBCHEM_ERRORS = 1
-SECONDS_TO_WAIT = 300
+#SECONDS_TO_WAIT = 300
 
 filesystemfinder = FileSystemFinder()
 
-from dump_obj import dumpObj
 def dump(obj):
     dumpObj(obj)
 
@@ -547,7 +542,6 @@ def format_search(search_raw):
 
 # Pubchem search methods
 
-from hms.pubchem import pubchem_database_cache_service
 
 def structure_search(request):
     """
@@ -639,9 +633,6 @@ def get_cached_structure_search(request, search_request_id):
     # TODO: necessary to close the connection?            
     connection.close()
     logger.info(str(('pubchem search completed')))
-
-def test(request):
-    return render(request, 'db/test.html')
 
 def redirect_to_small_molecule_detail(smallmolecule):
     facility_salt_id = smallmolecule.facility_id + "-" + smallmolecule.salt_id
@@ -1503,7 +1494,6 @@ def dictfetchall(cursor): #TODO modify this to stream results properly
         dict(zip([col[0] for col in desc], row)) for row in cursor.fetchall()
     ]
 
-from django.contrib.auth.decorators import login_required
 #@login_required
 def restricted_image(request, filepath):
     if(not request.user.is_authenticated()):

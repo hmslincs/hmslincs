@@ -111,7 +111,6 @@ def sid_search(sids='', timeout=DEFAULT_TIMEOUT):
             if(results[key1].has_key(key2)):
                 return zip( [x[sid_key] for x in results[key1][key2]],
                             map(lambda x: x[cid_key] if x.has_key(cid_key) else '',results[key1][key2]))
-#                return map(lambda x: x[cid_key],filter(lambda x:x.has_key(cid_key), results[key1][key2]) )
 
 
 def identity_similarity_substructure_search(smiles='',sdf='', type='identity', 
@@ -126,10 +125,8 @@ def identity_similarity_substructure_search(smiles='',sdf='', type='identity',
     NOTE: see http://pubchem.ncbi.nlm.nih.gov/pug_rest/PUG_REST.html
 
     """
-# TODO:    returns a list of cids found for the smiles substructure search
     logger.info(str((os.getpid(), 'identity_similarity_substructure_search', smiles, 'has sdf' if sdf else 'no sdf')))
     
-    print 'loglevel pcs',logger.level    
     url = PUBCHEM_BASE_URL
     url += 'compound/'
     url += type + '/';
@@ -160,8 +157,6 @@ def identity_similarity_substructure_search(smiles='',sdf='', type='identity',
     if(r.status_code != 200): 
         logger.info(str(('synchronous response',r)))
         raise PubchemError(str(('HTTP response', r.status_code, json.dumps(r.json) ))) 
-    # TODO: how to put a dict in the exception and then use it later in the UI
-    #logger.info(r.text)
     results = json.loads(r.text)
     logger.info(str((os.getpid(), 'pubchem: initial request result', results)))
     

@@ -368,16 +368,6 @@ class DataSetDataResource(Resource):
         serializer = CursorSerializer()
         allowed_methods = ['get']
 
-    @staticmethod
-    def get_dataset_columns(dataset_id, unit_types_only=[]):
-        datacolumns = DataColumn.objects.filter(dataset_id=dataset_id)
-        
-        if unit_types_only:
-            datacolumns = datacolumns.filter(unit__in=unit_types_only)
-            
-        return datacolumns
-        
-
     def get_object_list(self, request):
         """
         A hook to generate the list of available objects.
@@ -404,6 +394,15 @@ class DataSetDataResource(Resource):
         else:
             raise Http404(str(('no facility id given',request.path)))
     
+    @staticmethod
+    def get_dataset_columns(dataset_id, unit_types_only=[]):
+        datacolumns = DataColumn.objects.filter(dataset_id=dataset_id)
+        
+        if unit_types_only:
+            datacolumns = datacolumns.filter(unit__in=unit_types_only)
+            
+        return datacolumns
+
     @staticmethod
     def get_datasetdata_column_fieldinformation(): #TODO: is this cached by python?
         """
