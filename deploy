@@ -278,7 +278,7 @@ function moveimg {
 function collectstatic {
   _debug -n 'collecting statics... '
   cd "$BASEDIR" || return 1
-  mkdir -p $SUPPORTDIR/images || return 1
+  _mkdir $SUPPORTDIR/images || return 1
   python django/manage.py collectstatic --noinput >>"$LOGFILE" 2>&1 || \
       error "manage.py collectstatic failed: $?"
   _debug 'done'
