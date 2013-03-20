@@ -343,91 +343,24 @@ var plotit = (function () {
   }
 })();
 
-function replot() {
-  plotit(parseFloat($( "#EC50-slider-value" ).html()),
-         1,
-         parseFloat($( "#Einf-slider-value" ).html()),
-         parseFloat($( "#HS-slider-value" ).html()));
-}
-
-$( function () {
-
-  var efmt = d3.format("0.2e");
-  var ffmt = d3.format("0.2f");
-
-  $( "#EC50-slider" ).slider(
-      {
-        range: "min",
-        value: log10(parseFloat($( "#EC50-slider-value" ).html())),
-        min: log10(xmin),
-        max: log10(xmax),
-        step: 0.01,
-        slide: function (event, ui) {
-           $( "#EC50-slider-value" ).html( efmt(Math.pow(10, ui.value)) );
-           replot();
-        }
-      });
-
-  $( "#Einf-slider" ).slider(
-      {
-        range: "min",
-        value: parseFloat($( "#Einf-slider-value" ).html()),
-        min: 0,
-        max: 1,
-        step: 0.01,
-        slide: function (event, ui) {
-           $( "#Einf-slider-value" ).html( ffmt(ui.value) );
-           replot();
-        }
-      });
-
-  // var minvscale = d3.scale.linear().domain([0, 1]).range([5, 1e-5]);
-  // var minvscaleinv = d3.scale.linear().domain([5, 1e-5]).range([0, 1]);
-
-  // $( "#HS-slider" ).slider(
-  //     {
-  //       range: "min",
-  //       value: minvscaleinv(parseFloat($( "#HS-slider-value" ).html())),
-  //       min: 0,
-  //       max: 1,
-  //       step: 0.001,
-  //       slide: function (event, ui) {
-  //          $( "#HS-slider-value" ).html( ffmt(1/minvscale(ui.value)) );
-  //          replot();
-  //       }
-  //     });
-
-  // var mscale = function (x) { return Math.exp(x) - 1; }
-  // var mscaleinv = function (y) { return Math.log(y + 1); }
-
-  var HSmin = 0.1;
-  var a = 1 - HSmin;
-  var ainv = 1/a;
-  var HSmax = 4;
-  var alpha = Math.log((HSmax - HSmin)/a)/Math.log(2);
-  var alphainv = 1/alpha;
-  var mscale = function (x) { return a * Math.pow(x, alpha) + HSmin; }
-  var mscaleinv = function (y) { return Math.pow((y - HSmin)*ainv, alphainv); }
-
-  var scalemin = mscaleinv(HSmin);
-  var scalemax = mscaleinv(HSmax);
-  $( "#HS-slider" ).slider(
-      {
-        range: "min",
-        value: mscaleinv(parseFloat($( "#HS-slider-value" ).html())),
-        min: scalemin,
-        max: scalemax,
-        step: (scalemax - scalemin) * 0.001,
-        slide: function (event, ui) {
-           $( "#HS-slider-value" ).html( ffmt(mscale(ui.value)) );
-           replot();
-        }
-      });
-
-  replot();
-});
-
 jQuery(document).ready(function ($) {
+
+    function replot() {
+      plotit(parseFloat($( "#EC50-slider-value" ).html()),
+             1,
+             parseFloat($( "#Einf-slider-value" ).html()),
+             parseFloat($( "#HS-slider-value" ).html()));
+    }
+
+    var HSmin = 0.1;
+    var a = 1 - HSmin;
+    var ainv = 1/a;
+    var HSmax = 4;
+    var alpha = Math.log((HSmax - HSmin)/a)/Math.log(2);
+    var alphainv = 1/alpha;
+    var hsscale = function (x) { return a * Math.pow(x, alpha) + HSmin; }
+    var hsscaleinv = function (y) { return Math.pow((y - HSmin)*ainv, alphainv); }
+
     var preset_values = {
         'PP242': {'EC50': Math.pow(10, -6.697),
                   'HS': 0.55,
@@ -438,19 +371,121 @@ jQuery(document).ready(function ($) {
         'BEZ235': {'EC50': Math.pow(10, -7.674),
                    'HS': 0.54,
                    'Einf': 0.14,},
+        '__RESET__': {'EC50': 1e-7,
+                      'HS': 0.5,
+                      'Einf': 0.15},
     };
 
-    var efmt = d3.format("0.2e");
-    var ffmt2 = d3.format("0.2f");
-    var ffmt3 = d3.format("0.3f");
+    for (var k in preset_values) {
+        var v = preset_values[k];
+        v.EC50_scaled = log10(v.EC50);
+        v.HS_scaled = hsscaleinv(v.HS);
+        v.Einf_scaled = v.Einf;
+    }
+
+    var $EC50_slider_value = $( '#EC50-slider-value' );
+    var $Einf_slider_value = $( '#Einf-slider-value' );
+    var $HS_slider_value = $( '#HS-slider-value' );
+
+    var $EC50_slider = $( '#EC50-slider' );
+    var $Einf_slider = $( '#Einf-slider' );
+    var $HS_slider = $( '#HS-slider' );
+
+    var __RESET__ = preset_values.__RESET__;
+
+    var efmt = d3.format("7.1e");
+    var ffmt = d3.format("5.3f");
+
+
+    function init () {
+      $EC50_slider.slider(
+          {
+            range: "min",
+            value: __RESET__.EC50_scaled,
+            min: log10(xmin),
+            max: log10(xmax),
+            step: 0.01,
+            slide: function (event, ui) {
+               $( "#EC50-slider-value" ).html( efmt(Math.pow(10, ui.value)) );
+               replot();
+            }
+          });
+
+      $Einf_slider.slider(
+          {
+            range: "min",
+            value: __RESET__.Einf_scaled,
+            min: 0,
+            max: 1,
+            step: 0.01,
+            slide: function (event, ui) {
+               $( "#Einf-slider-value" ).html( ffmt(ui.value) );
+               replot();
+            }
+          });
+
+      // var minvscale = d3.scale.linear().domain([0, 1]).range([5, 1e-5]);
+      // var minvscaleinv = d3.scale.linear().domain([5, 1e-5]).range([0, 1]);
+
+      // $( "#HS-slider" ).slider(
+      //     {
+      //       range: "min",
+      //       value: minvscaleinv(parseFloat($( "#HS-slider-value" ).html())),
+      //       min: 0,
+      //       max: 1,
+      //       step: 0.001,
+      //       slide: function (event, ui) {
+      //          $( "#HS-slider-value" ).html( ffmt(1/minvscale(ui.value)) );
+      //          replot();
+      //       }
+      //     });
+
+      // var hsscale = function (x) { return Math.exp(x) - 1; }
+      // var hsscaleinv = function (y) { return Math.log(y + 1); }
+
+      var scalemin = hsscaleinv(HSmin);
+      var scalemax = hsscaleinv(HSmax);
+      $HS_slider.slider(
+          {
+            range: "min",
+            value: __RESET__.HS_scaled,
+            min: scalemin,
+            max: scalemax,
+            step: (scalemax - scalemin) * 0.001,
+            slide: function (event, ui) {
+               $( "#HS-slider-value" ).html( ffmt(hsscale(ui.value)) );
+               replot();
+            }
+          });
+
+      replot();
+    }
+
+    init();
+
+    function reset(key) {
+        var vals = preset_values[key];
+        $EC50_slider_value.html( efmt(vals.EC50) )
+        $EC50_slider.slider( 'value', vals.EC50_scaled );
+
+        $Einf_slider_value.html( ffmt(vals.Einf) );
+        $Einf_slider.slider( 'value', vals.Einf_scaled );
+
+        $HS_slider_value.html( ffmt(vals.HS) );
+        $HS_slider.slider( 'value', vals.HS_scaled );
+
+        replot();
+    }
 
     $('.preset').bind({
         mouseup: function (e) {
-            var vals = preset_values[this.textContent];
-            $( "#EC50-slider-value" ).html( efmt(vals.EC50) )
-            $( "#Einf-slider-value" ).html( ffmt3(vals.Einf) );
-            $( "#HS-slider-value" ).html( ffmt2(vals.HS) );
-            replot();
+            reset(this.textContent)
+        }
+    });
+
+    $('#graph').bind({
+        mouseup: function (e) {
+            reset('__RESET__');
         }
     });
 
