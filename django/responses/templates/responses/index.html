@@ -11,58 +11,25 @@
 
 {% block body %}
 
-<h1>Cell-ligand responses</h1>
+<h1>Perturbational profiling of receptor signaling in cancer cells</h1>
+
+<p>The HMS LINCS center is undertaking a perturbational approach to receptor
+signaling in cancer cells by measuring basal and phosphorylation levels of
+multiple receptors along with their responsiveness to exogenous ligands across
+panels of cell lines. We then determine the information content of these
+perturbagen profiles by asking how predictive they are of a second set of
+perturbations involving small molecule drugs.
+
+<p>The 2D landscapes below display basal and response data for a set of
+well-characterized breast cancer cell lines. Clicking on a data point or cluster
+of points will display the corresponding cell line names and raw data values. We
+find that relatively simple receptor profiles can be predictive of drug
+response; the very last figure shows a predictor of <a
+href="/db/sm/10051-104/">lapatinib</a> sensitivity. The underlying data for
+these plots is currently being formatted for release via the LINCS Data
+Repository (Updated 3/19/2013).
 
 <table class="plain">
-
-  <tr>
-    <td colspan="2"><h2>Lapatinib sensitivity</h2></td>
-  </tr>
-  <tr>
-    <td class="featured">
-      <img class="scatterplot" id="slider-img" src="{{ STATIC_URL }}responses/img/slider/pakt,igf-1,100,10__perk,fgf-1,100,10.png" width="300" height="300">
-      <img src="{{ STATIC_URL }}responses/img/legends/graded.png" width="300" height="64">
-
-      <!-- hack to preload the images -->
-      <img class="scatterplot" style="display: none" src="{{ STATIC_URL }}responses/img/slider/pakt,igf-1,100,30__perk,fgf-1,100,30.png">
-      <img class="scatterplot" style="display: none" src="{{ STATIC_URL }}responses/img/slider/pakt,igf-1,100,90__perk,fgf-1,100,90.png">
-
-      <div id="slider-wrap">
-        <label for="timepoint">Time point:</label>
-        <input type="text" id="timepoint"/>
-        <div id="slider"></div>
-      </div>
-    </td>
-    <td class="featured righthand">
-      <h3>pERK response to FGF-1 vs. pAKT response to IGF-1, over time</h3>
-
-      <p>The pERK response to FGF-1 (y-axis) is strongest at the first time
-      point (10 minutes) and decreases thereafter, while the pAKT response to
-      IGF-1 occurs only at the last time point and is much weaker. In general,
-      the Her2amp cell lines (triangles) that are the most responsive to
-      Lapatinib (in red) are the weakest responders to FGF-1 or IGF-1.
-
-      <p>Move the time point slider to view the response at the
-      different time points (10, 30 and 90 minutes).
-
-    </td>
-  </tr>
-
-  <tr>
-    <td class="featured">
-      <img class="scatterplot" src="{{ STATIC_URL }}responses/img/basal_graded/erbb2__perbb2.png" width="300" height="300">
-      <img src="{{ STATIC_URL }}responses/img/legends/graded.png" width="300" height="64">
-    </td>
-    <td class="featured righthand">
-      <h3>Basal pErbB2 vs. ErbB2</h3>
-
-      <p>
-      Basal expression levels and phosphorylation levels of ErbB2 are strongly
-      correlated. The cell lines responsive to Lapatinib (red) are the ones with
-      the highest levels of ErbB2 which are mainly Her2amp (triangles).
-
-    </td>
-  </tr>
 
   <tr>
     <td colspan="2"><h2>Ligand responses</h2></td>
@@ -163,6 +130,39 @@
 
       Basal levels of pErbB3 are generally below the detection threshold expect
       for a majority of Her2amp cell lines (triangles) that have high pErbB2.
+
+    </td>
+  </tr>
+
+  <tr>
+    <td colspan="2"><h2>Lapatinib sensitivity</h2></td>
+  </tr>
+  <tr>
+    <td class="featured">
+      <img class="scatterplot" id="slider-img" src="{{ STATIC_URL }}responses/img/slider/pakt,igf-1,100,10__perk,fgf-1,100,10.png" width="300" height="300">
+      <img src="{{ STATIC_URL }}responses/img/legends/graded.png" width="300" height="64">
+
+      <!-- hack to preload the images -->
+      <img class="scatterplot" style="display: none" src="{{ STATIC_URL }}responses/img/slider/pakt,igf-1,100,30__perk,fgf-1,100,30.png">
+      <img class="scatterplot" style="display: none" src="{{ STATIC_URL }}responses/img/slider/pakt,igf-1,100,90__perk,fgf-1,100,90.png">
+
+      <div id="slider-wrap">
+        <label for="timepoint">Time point:</label>
+        <input type="text" id="timepoint"/>
+        <div id="slider"></div>
+      </div>
+    </td>
+    <td class="featured righthand">
+      <h3>pERK response to FGF-1 vs. pAKT response to IGF-1, over time</h3>
+
+      <p>The pERK response to FGF-1 (y-axis) is strongest at the first time
+      point (10 minutes) and decreases thereafter, while the pAKT response to
+      IGF-1 occurs only at the last time point and is much weaker. In general,
+      the Her2amp cell lines (triangles) that are the most responsive to
+      Lapatinib (in red) are the weakest responders to FGF-1 or IGF-1.
+
+      <p>Move the time point slider to view the response at the
+      different time points (10, 30 and 90 minutes).
 
     </td>
   </tr>
