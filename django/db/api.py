@@ -1,7 +1,17 @@
 # this file is for the tastypie REST api
 # db/api.py - tastypie resources
 from collections import OrderedDict
-from db import views
+from django.db import connection, DatabaseError
+try:
+    from db import views
+except DatabaseError, e:
+    if not 'no such table: db_fieldinformation' in str(e):
+        raise
+    else:
+        import os
+        if os.environ.get('HMSLINCS_DEV', 'false') != 'true':
+            raise
+
 from db.DjangoTables2Serializer import DjangoTables2Serializer, \
     get_visible_columns
 from db.models import SmallMolecule, DataSet, Cell, Protein, Library, DataRecord, \
@@ -9,7 +19,6 @@ from db.models import SmallMolecule, DataSet, Cell, Protein, Library, DataRecord
     get_detail_schema, get_detail, get_detail_bundle, get_fieldinformation, get_schema_fieldinformation
 from django.conf.urls.defaults import url
 from django.core.serializers.json import DjangoJSONEncoder
-from django.db import connection
 from django.http import Http404, HttpResponse
 from django.utils.encoding import smart_str
 from tastypie.authorization import Authorization
