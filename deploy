@@ -28,7 +28,13 @@ FIELDSEP='|'
 
 ARGS="$@"
 DEBUG=${DEBUG:-false}
-REALPATH=${REALPATH:-realpath}
+REALPATH=${REALPATH:-"$(which realpath 2>/dev/null)"}
+
+if [[ -z $REALPATH ]]; then
+  PROG=$( basename $0 )
+  error 'cannot find realpath'
+fi
+
 SCRIPTPATH="$($REALPATH $0)"
 SAVEPATH="$SCRIPTPATH.save"
 PROG=$(basename $SCRIPTPATH)
