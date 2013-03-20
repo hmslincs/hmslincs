@@ -400,17 +400,17 @@ $( function () {
   // var mscale = function (x) { return Math.exp(x) - 1; }
   // var mscaleinv = function (y) { return Math.log(y + 1); }
 
-  var mmin = 0.1;
-  var a = 1 - mmin;
+  var HSmin = 0.1;
+  var a = 1 - HSmin;
   var ainv = 1/a;
-  var mmax = 100000;
-  var alpha = Math.log((mmax - mmin)/a)/Math.log(2);
+  var HSmax = 4;
+  var alpha = Math.log((HSmax - HSmin)/a)/Math.log(2);
   var alphainv = 1/alpha;
-  var mscale = function (x) { return a * Math.pow(x, alpha) + mmin; }
-  var mscaleinv = function (y) { return Math.pow((y - mmin)*ainv, alphainv); }
+  var mscale = function (x) { return a * Math.pow(x, alpha) + HSmin; }
+  var mscaleinv = function (y) { return Math.pow((y - HSmin)*ainv, alphainv); }
 
-  var scalemin = mscaleinv(mmin);
-  var scalemax = mscaleinv(mmax);
+  var scalemin = mscaleinv(HSmin);
+  var scalemax = mscaleinv(HSmax);
   $( "#HS-slider" ).slider(
       {
         range: "min",
