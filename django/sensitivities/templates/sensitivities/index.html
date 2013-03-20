@@ -11,12 +11,16 @@
 
   <script src="http://d3js.org/d3.v3.min.js"></script>
   <link rel="stylesheet" href="{{ STATIC_URL }}sensitivities/css/sensitivities.css"/>
-
+  <title>Multi-parametric description of drug sensitivity - HMS LINCS Project</title>
 {% endblock %}
+
+{% block contentclass %}fullwidth{% endblock %}
+
 {% block body %}
 
 <div>
 
+<<<<<<< HEAD
 <h1>Parametrizing perturbagen dose-response relationships</h1>
 <hr>
 
@@ -60,7 +64,6 @@
       <a href="http://pubchem.ncbi.nlm.nih.gov/summary/summary.cgi?cid=23582824">GSK1059615</a>, and
       <a href="http://pubchem.ncbi.nlm.nih.gov/summary/summary.cgi?sid=26746658">BEZ235</a>.</span></p>
     </div>
-
 
 
 <p class="normal"><span>A dose-response curve is the most fundamental measure of cellular response to perturbing agents and drugs. The curve measures the magnitude of an effect (in this description, cell viability) across a range of drug concentrations and is typically illustrated in a log-linear plot. The most common parameter derived from this relationship is IC<sub>50</sub>, the point at which half-maximal effect is achieved (this is often referred to as the “potency” of a perturbagen). However, variation in maximum effect at the highest doses (<i>E<sub>max</sub></i>) is also common. Capturing these sources of variation requires a multi-parametric description involving variables such as IC<sub>50</sub>, <i>E</i><sub>max</sub> and the slope of the curve. The underlying logistic equation is shown below, as are the relationships of various parameters to a typical dose response curve.</span></p>

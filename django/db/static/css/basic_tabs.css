@@ -1,27 +1,35 @@
 /** tab style from: http://www.dynamicdrive.com/style/csslibrary/item/css-tabs-menu/ **/
-.basictab{
-padding: 3px 0;
-margin-left: 0;
-list-style-type: none;
-text-align: left; /*set to left, center, or right to align the menu as desired*/
+.basictab {
+  padding: 3px 0 0 5px;
+  margin-left: 0;
+  border-bottom: 1px solid #E0E0E0;
+  list-style-type: none;
+  text-align: left; /*set to left, center, or right to align the menu as desired*/
 }
 
-.basictab li{
-display: inline;
-margin: 0;
+.basictab li {
+  display: inline;
+  margin: 0;
 }
 
-.basictab li a{
-padding: 3px 7px;
-margin-right: 3px;
-border-bottom: none;
-color: #E6941E;
-text-decoration:none;
+.basictab li a {
+  padding: 3px 7px;
+  margin-right: 3px;
+  border: 1px solid #E0E0E0;
+  border-bottom: none;
+  color: #E6941E;
+  text-decoration:none;
 }
 
 .basictab li a:hover {
-	text-decoration: underline;
+  text-decoration: underline;
+  background-color: #F8F8F8;
 }
+
 .basictab .selected a {
-	font-weight:bold;
+  position: relative;
+  top: 1px;
+  padding-top: 4px;
+  font-weight: bold;
+  background-color: #F8F8F8;
 }

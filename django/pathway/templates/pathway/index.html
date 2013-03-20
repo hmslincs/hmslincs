@@ -3,7 +3,10 @@
 {% block head %}
   <link rel="stylesheet" href="{{ STATIC_URL }}pathway/css/pathway.css"/>
   <script src="{{ STATIC_URL }}pathway/js/pathway.js"></script>
+  <title>Kinase inhibitor pathways - HMS LINCS Project</title>
 {% endblock %}
+
+{% block contentclass %}fullwidth{% endblock %}
 
 {% block body %}
 
@@ -38,8 +41,9 @@ compound, the box shows the following summary information: the inhibitor's
 classification (Approved/Investigational/Tool - see below), a link to a
 KinomeScan profile of the compound (if available), and a graphical visualization
 of the compound's ability to inhibit growth of a panel of six breast cancer cell
-lines. Protein, compound and cell line names are all hyperlinked to entries in
-the HMS LINCS Database which contain detailed information.
+lines (data from <a href="http://dx.doi.org/10.1073/pnas.1018854108">Heiser et.
+al 2012</a>). Protein, compound and cell line names are all hyperlinked to
+entries in the HMS LINCS Database which contain detailed information.
 
 <p>Compound classifications:
 <ul>
@@ -51,5 +55,13 @@ the HMS LINCS Database which contain detailed information.
 <p>You may also use our full database search engine to
 find <a href="/db/sm/">compounds</a> or <a href="/db/proteins/">protein
 targets</a> by name or other attributes.
+
+<h2>References</h2>
+
+<ol>
+  <li id="ref1">Heiser, L. M. et al. Subtype and pathway specific responses to
+  anticancer compounds in breast cancer. PNAS 109, 2724-2729 (2012).
+  doi:<a href="http://dx.doi.org/10.1073/pnas.1018854108">10.1073/pnas.1018854108</a>
+</ol>
 
 {% endblock %}

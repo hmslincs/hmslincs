@@ -2,12 +2,8 @@ h2 {
   margin-bottom: 2em;
 }
 
-th, td {
-  padding: 1em;
-}
-
 table {
-  margin: 2em;
+  margin-top: 2em;
 }
 
 td p {
@@ -85,10 +81,6 @@ td p {
 
 #content td.matrix img {
   margin-left: -60px;
-}
-
-#content td.matrix p {
-  font-size: 8pt;
 }
 
 #slider {
