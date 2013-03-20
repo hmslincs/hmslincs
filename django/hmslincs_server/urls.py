@@ -1,7 +1,14 @@
 #from django.conf.urls import patterns, include, url
-from db.api import SmallMoleculeResource, CellResource, DataSetResource, \
-    DataSetDataFlattenedResource, DataSetDataResource, ProteinResource, \
-    LibraryResource, DataSetFlattenedResource
+
+from db.api import SmallMoleculeResource
+from db.api import CellResource
+from db.api import DataSetResource
+from db.api import DataSetDataFlattenedResource
+from db.api import DataSetDataResource
+from db.api import ProteinResource
+from db.api import LibraryResource
+from db.api import DataSetFlattenedResource
+
 from django.conf.urls.defaults import *
 from django.contrib import admin
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
