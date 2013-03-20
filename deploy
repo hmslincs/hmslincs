@@ -113,8 +113,9 @@ function wrapup {
   fi
 
   _debug "removing $LOCKFILE ..."
-  rm -f $LOCKFILE
-
+  if [[ -n $LOCKFILE ]]; then
+    rm -f $LOCKFILE
+  fi
 }
 
 function _debug {
