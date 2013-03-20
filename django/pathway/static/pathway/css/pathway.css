@@ -38,10 +38,10 @@
 }
 
 .signature-popup p.note {
-  padding: 0 0.5em 0 1.2em;
+  padding: 0 0.5em 0 1.5em;
   margin: 0;
   font-size: 8pt;
-  text-indent: -0.7em;
+  text-indent: -1em;
 }
 
 .signature {
