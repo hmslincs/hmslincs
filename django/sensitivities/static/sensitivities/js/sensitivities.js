@@ -154,7 +154,7 @@ ic50label.append("tspan").attr("class", "value");
       .attr("transform", "translate(" + scale_x(xmid) + ", 0)")
       .append("text")
       .style("text-anchor", "middle")
-      .text("concentration")
+      .text("D (drug concentration)")
       .attr("y", height + margins[2]/2);
 
   var tblock = graph.append("g")
@@ -454,7 +454,4 @@ jQuery(document).ready(function ($) {
         }
     });
 
-
-
 });
-

@@ -40,12 +40,32 @@ path {
     stroke-width: 0;
 }
 
+.equation-box {
+    width: 100%;
+}
+
+.equation-img {
+    width: 90%;
+    margin: 0px auto;
+}
+
+.equation-img img {
+    display: block;
+    margin: auto;
+}
+
 #control-panel {
     width: 100%;
 }
 
+.caption {
+  width: 80%;
+  margin: 0px auto;
+  margin-bottom: 7ex;
+}
+
 #controls {
-    width: 99%;
+    width: 100%;
     margin: 0px auto;
 }
 
@@ -68,12 +88,12 @@ path {
     margin: 0px auto;
 }
 
-#sliders table { 
+#sliders table {
     margin-bottom: 3ex;
 }
 
-#presets table { 
-    margin-bottom: 10ex;
+#presets table {
+    margin-bottom: 3ex;
 }
 
 #controls tr:nth-child(2n) { 
