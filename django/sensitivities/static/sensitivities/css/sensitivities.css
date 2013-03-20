@@ -89,7 +89,7 @@ path {
 
 #controls table { 
     border: 0px;
-    width: 100%;
+    width: 325px;
     margin: 0px auto;
 }
 
@@ -123,7 +123,7 @@ path {
 }
 
 .slider-value {
-    width: 3em;
+    width: 5em;
     text-align: right;
 }
 
