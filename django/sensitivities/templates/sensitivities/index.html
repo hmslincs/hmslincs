@@ -13,6 +13,9 @@
   <link rel="stylesheet" href="{{ STATIC_URL }}sensitivities/css/sensitivities.css"/>
 
 {% endblock %}
+
+{% block contentclass %}fullwidth{% endblock %}
+
 {% block body %}
 
 <div>
@@ -23,9 +26,12 @@
 <p class="normal"><span>&nbsp;</span></p>
 <!-- <p class="normal"><b><span>Dose-response curves</span></b></p> -->
 
-    <p class="normal"><span>&nbsp;</span></p>
+ 
+   <p class="normal"><span>&nbsp;</span></p>
 
+    <div id="graph-container">
     <div id="graph"></div>
+    </div>
 
     <script src="{{ STATIC_URL }}sensitivities/js/sensitivities.js"></script>
 
