@@ -302,15 +302,16 @@ var plotit = (function () {
   }
 })();
 
-$( function () {
-  function replot() {
-    plotit(parseFloat($( "#EC50-slider-value" ).html()),
-           1,
-           parseFloat($( "#Einf-slider-value" ).html()),
-           parseFloat($( "#m-slider-value" ).html()));
-  }
+function replot() {
+  plotit(parseFloat($( "#EC50-slider-value" ).html()),
+         1,
+         parseFloat($( "#Einf-slider-value" ).html()),
+         parseFloat($( "#m-slider-value" ).html()));
+}
 
-  var gfmt = d3.format("0.2g");
+$( function () {
+
+  var efmt = d3.format("0.2e");
   var ffmt = d3.format("0.2f");
 
   $( "#EC50-slider" ).slider(
@@ -321,7 +322,7 @@ $( function () {
         max: log10(xmax),
         step: 0.01,
         slide: function (event, ui) {
-           $( "#EC50-slider-value" ).html( gfmt(Math.pow(10, ui.value)) );
+           $( "#EC50-slider-value" ).html( efmt(Math.pow(10, ui.value)) );
            replot();
         }
       });
@@ -384,3 +385,35 @@ $( function () {
 
   replot();
 });
+
+jQuery(document).ready(function ($) {
+    var preset_values = {
+        'PP242': {'EC50': Math.pow(10, -6.697),
+                  'HS': 0.55,
+                  'Einf': 0.173,},
+        'GSK1059615': {'EC50': Math.pow(10, -6.831),
+                       'HS': 1.17,
+                       'Einf': 0.0039,},
+        'BEZ235': {'EC50': Math.pow(10, -7.674),
+                   'HS': 0.54,
+                   'Einf': 0.14,},
+    };
+
+    var efmt = d3.format("0.2e");
+    var ffmt2 = d3.format("0.2f");
+    var ffmt3 = d3.format("0.3f");
+
+    $('.preset').bind({
+        mouseup: function (e) {
+            var vals = preset_values[this.textContent];
+            $( "#EC50-slider-value" ).html( efmt(vals.EC50) )
+            $( "#Einf-slider-value" ).html( ffmt3(vals.Einf) );
+            $( "#m-slider-value" ).html( ffmt2(vals.HS) );
+            replot();
+        }
+    });
+
+
+
+});
+

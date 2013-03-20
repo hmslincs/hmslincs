@@ -4,8 +4,9 @@
   <!-- <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.min.js"></script> -->
 
   <script type="text/javascript" src="http://code.jquery.com/jquery-latest.min.js"></script>
-  <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.0/themes/base/jquery-ui.css" />
-  <script type="text/javascript" src="http://code.jquery.com/ui/1.10.0/jquery-ui.js"></script>
+  <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.2/themes/base/jquery-ui.css" />
+  <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.2/themes/smoothness/jquery-ui.css" />
+  <script type="text/javascript" src="http://code.jquery.com/ui/1.10.2/jquery-ui.js"></script>
 
   <script src="http://d3js.org/d3.v3.min.js"></script>
   <link rel="stylesheet" href="{{ STATIC_URL }}sensitivities/css/sensitivities.css"/>
@@ -44,12 +45,33 @@ The relationship among IC<sub>50</sub> and the various parameters of the dose-re
 
     <script src="{{ STATIC_URL }}sensitivities/js/sensitivities.js"></script>
 
-    <div id="sliders">
-      <table><tbody>
-        <tr><td><i>EC</i><sub>50</sub></td><td><div class="slider" id="EC50-slider"></div></td><td><div class="slider-value" id="EC50-slider-value">1e-7</div></td></tr>
-        <tr><td><i>E</i><sub>&infin;</sub></td><td><div class="slider" id="Einf-slider"></div></td><td><div class="slider-value" id="Einf-slider-value">0.15</div></td></tr>
-        <tr><td><i>HS</i></td><td><div class="slider" id="m-slider"></div></td><td><div class="slider-value" id="m-slider-value">0.5</div></td></tr>
-      </tbody></table>
+    <div id="control-panel">
+      <div id="controls">
+        <div id="sliders">
+          <table><tbody>
+            <tr><td><i>EC</i><sub>50</sub></td><td><div class="slider" id="EC50-slider"></div></td><td><div class="slider-value" id="EC50-slider-value">1e-7</div></td></tr>
+            <tr><td><i>E</i><sub>&infin;</sub></td><td><div class="slider" id="Einf-slider"></div></td><td><div class="slider-value" id="Einf-slider-value">0.15</div></td></tr>
+            <tr><td><i>HS</i></td><td><div class="slider" id="m-slider"></div></td><td><div class="slider-value" id="m-slider-value">0.5</div></td></tr>
+          </tbody></table>
+        </div>
+        <div id="presets">
+          <!-- <form> -->
+          <!--   <div id="radio"> -->
+          <!--     <input type="radio" id="radio1" name="radio" /><label for="radio1">PP242</label> -->
+          <!--     <input type="radio" id="radio2" name="radio" checked="checked" /><label for="radio2">GSK1059615</label> -->
+          <!--     <input type="radio" id="radio3" name="radio" /><label for="radio3">BEZ235</label> -->
+          <!--   </div> -->
+          <!-- </form> -->
+          <table><tbody>
+            <tr>
+              <!-- <td><button class="preset ui-button ui-widget ui-state-default ui-corner-all" role="button" aria-disabled="false"><span class="ui-button-text">PP242</span></button></td> -->
+              <td><button class="preset">PP242</button></td>
+              <td><button class="preset">GSK1059615</button></td>
+              <td><button class="preset">BEZ235</button></td>
+            </tr>
+          </tbody></table>
+        </div>
+      </div>
     </div>
 
     <!-- PP242 -->

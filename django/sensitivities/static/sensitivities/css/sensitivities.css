@@ -22,7 +22,7 @@ path {
     stroke: #000;
 }
 
-.axis text, .label, #sliders td {
+.axis text, .label, #controls td {
   font-family: Consolas, Monaco, "Andale Mono WT", "Andale Mono", "Nimbus Mono L", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Courier New", Courier, monospace;
   font-size: 10pt;
 }
@@ -40,22 +40,54 @@ path {
     stroke-width: 0;
 }
 
-#sliders {
-    margin-left: 180px;
+#control-panel {
+    width: 100%;
+}
+
+#controls {
+    width: 99%;
+    margin: 0px auto;
+}
+
+#sliders, #presets {
+    width: 50%;
+    margin: 0px auto;
+}
+
+#presets table {
+    table-layout: fixed;
+}
+
+#presets button {
+    width: 100%;
+}
+
+#controls table { 
+    border: 0px;
+    width: 100%;
+    margin: 0px auto;
 }
 
 #sliders table { 
-    border: 0px;
-    margin: 0 0 10ex;
+    margin-bottom: 3ex;
 }
 
-#sliders tr:nth-child(2n) { 
+#presets table { 
+    margin-bottom: 10ex;
+}
+
+#controls tr:nth-child(2n) { 
     background-color: #ffffff;
 }
 
-#sliders td { 
+#controls td { 
     border: 0px;
     vertical-align: middle;
+}
+
+#presets td {
+    margin: 0;
+    padding: 0;
 }
 
 .slider {
