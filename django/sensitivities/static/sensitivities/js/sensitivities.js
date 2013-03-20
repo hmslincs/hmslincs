@@ -152,12 +152,12 @@ ic50label.append("tspan").attr("class", "value");
       .style("text-anchor", "middle")
       .attr("y", margins[0]);
 
-  <!-- tblock.append("tspan").text("E"); -->
-  <!-- tblock.append("tspan").attr("class", "subscript") -->
-  <!--                       .attr("dy", 0.5 + "ex") -->
-  <!--                       .text("max"); -->
-  <!-- tblock.append("tspan").attr("dy", -0.5 + "ex").text("="); -->
-  <!-- tblock.append("tspan"); -->
+  // tblock.append("tspan").text("E");
+  // tblock.append("tspan").attr("class", "subscript")
+  //                       .attr("dy", 0.5 + "ex")
+  //                       .text("max"); -->
+  // tblock.append("tspan").attr("dy", -0.5 + "ex").text("=");
+  // tblock.append("tspan"); -->
 
   var yax = d3.svg.axis()
       .scale(scale_y)
@@ -302,37 +302,12 @@ var plotit = (function () {
   }
 })();
 
-var plotit2 = (function () {
-  return function (x, y, θ, dy) {
-    // ic50label.text("IC50")
-    //   .attr("x", x)
-    //   .attr("y", y)
-    //   .attr("dy", dy)
-    //   .attr("transform", "rotate(" + θ + ")");
-
-    // emaxlabel.text("Emax")
-    //   .attr("transform", "translate(" + x + ", " + y + ") " +
-    //                      "rotate(" + θ + ")")
-    //   .attr("dy", dy);
-  }
-})();
-
-
-
 $( function () {
   function replot() {
     plotit(parseFloat($( "#EC50-slider-value" ).html()),
            1,
            parseFloat($( "#Einf-slider-value" ).html()),
            parseFloat($( "#m-slider-value" ).html()));
-  }
-
-  function replot2() {
-    return;
-    // plotit2(parseInt($( "#x-slider-value" ).html()),
-    //         parseInt($( "#y-slider-value" ).html()),
-    //         parseInt($( "#θ-slider-value" ).html()),
-    //         parseInt($( "#dy-slider-value" ).html()));
   }
 
   var gfmt = d3.format("0.2g");
@@ -407,63 +382,5 @@ $( function () {
         }
       });
 
-
-
-  // $( "#x-slider" ).slider(
-  //     {
-  //       range: "min",
-  //       value: $( "#x-slider-value" ).html(),
-  //       min: -400,
-  //       max: 400,
-  //       step: 1,
-  //       slide: function (event, ui) {
-  //          $( "#x-slider-value" ).html( ui.value );
-  //          replot2();
-  //       }
-  //     });
-
-  // //var π = Math.pi;
-  // var π = 180;
-  // $( "#θ-slider" ).slider(
-  //     {
-  //       range: "min",
-  //       value: -parseFloat($( "#θ-slider-value" ).html()),
-  //       min: 0,
-  //       max: nudge(2*π, -1),
-  //       step: 1,
-  //       slide: function (event, ui) {
-  //          $( "#θ-slider-value" ).html( -ui.value );
-  //          replot2();
-  //       }
-  //     });
-
-  // $( "#y-slider" ).slider(
-  //     {
-  //       range: "min",
-  //       value: parseFloat($( "#y-slider-value" ).html()),
-  //       min: -400,
-  //       max: 400,
-  //       step: 1,
-  //       slide: function (event, ui) {
-  //          $( "#y-slider-value" ).html( ui.value );
-  //          replot2();
-  //       }
-  //     });
-
-  // $( "#dy-slider" ).slider(
-  //     {
-  //       range: "min",
-  //       value: parseFloat($( "#dy-slider-value" ).html()),
-  //       min: -400,
-  //       max: 400,
-  //       step: 1,
-  //       slide: function (event, ui) {
-  //          $( "#dy-slider-value" ).html( ui.value );
-  //          replot2();
-  //       }
-  //     });
-
   replot();
-  // replot2();
-
 });
