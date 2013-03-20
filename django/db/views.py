@@ -116,6 +116,14 @@ def cellDetail(request, facility_id):
             queryset = DataSet.objects.filter(pk__in=list(dataset_ids)).extra(where=where,
                        order_by=('facility_id',))        
             details['datasets'] = DataSetTable(queryset)
+
+        # add in the LIFE System link: TODO: put this into the fieldinformation
+        extralink = {   'title': 'LINCS Information Framework Structure Page' ,
+                        'name': 'LIFE Compound Information',
+                        'link': 'http://baoquery.ccs.miami.edu/life/summary?mode=Cell&input=' + str(find_miami_lincs_mapping(cell.facility_id)),
+                        'value': cell.facility_id }
+        details['extralink'] = extralink
+
         
         return render(request, 'db/cellDetail.html', details)
     except Cell.DoesNotExist:
@@ -181,7 +189,7 @@ def proteinDetail(request, lincs_id):
         # add in the LIFE System link: TODO: put this into the fieldinformation
         extralink = {   'title': 'LINCS Information Framework Page' ,
                         'name': 'LIFE Protein Information',
-                        'link': 'http://baoquery.ccs.miami.edu/life/hms/summary?input=HMSL'+ str(protein.lincs_id) + '&mode=protein',
+                        'link': 'http://baoquery.ccs.miami.edu/life/summary?mode=Protein&input=' + str(find_miami_lincs_mapping(protein.lincs_id)),
                         'value': protein.lincs_id }
         details['extralink'] = extralink
                 
@@ -315,7 +323,7 @@ def smallMoleculeDetail(request, facility_salt_id): # TODO: let urls.py grep the
         # add in the LIFE System link: TODO: put this into the fieldinformation
         extralink = {   'title': 'LINCS Information Framework Structure Page' ,
                         'name': 'LIFE Compound Information',
-                        'link': 'http://baoquery.ccs.miami.edu/life/summary?mode=SmallMolecule&input=' + str(find_miami_lincs_mapping(sm.facility_id)),
+                        'link': 'http://baoquery.ccs.miami.edu/life/summary?mode=SmallMolecule&input=' + str(find_miami_lincs_mapping(sm.facility_id + "-" + sm.salt_id)),
                         'value': sm.facility_id }
         details['extralink'] = extralink
         
