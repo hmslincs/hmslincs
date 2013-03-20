@@ -1,4 +1,4 @@
-var margins = [20, 20, 75, 180];
+var margins = [20, 20, 75, 100];
 var width = 600 - margins[1] - margins[3];
 var height = 350 - margins[0] - margins[2];
 
@@ -7,7 +7,7 @@ var nudge = (function () {
   return function (x, s) { return x * (1 + s*ε); }
 })();
 
-var xmin = nudge(1e-9, -1);
+var xmin = nudge(1e-11, -1);
 var xmax = 0.001;
 var ymin = 0;
 var ymax =  1.05;
@@ -179,7 +179,7 @@ ic50label.append("tspan").attr("class", "value");
       .append("text")
       .style("text-anchor", "middle")
       .text("relative viability")
-      .attr("y", -margins[3]/4);
+      .attr("y", -margins[3]/2);
 
 })();
 
@@ -197,7 +197,7 @@ var auxline = d3.svg.line()
     .x(function (d) { return ('absx' in d) ? d.absx : scale_x(d.x); })
     .y(function (d) { return ('absy' in d) ? d.absy : scale_y(d.y); });
 
-var mintested = 1e-8;
+var mintested = 1e-9;
 var maxtested = 1e-5;
 
 var area = (function () {
