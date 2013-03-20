@@ -251,21 +251,23 @@ function maybe_activate_virtualenv {
 }
 
 function runpip {
-  # if $DEFAULTMODE; then
-    if [[ ! -e $REQUIREMENTS ]]; then
-      error "cannot find requirements file ($REQUIREMENTS)"
-    fi
+  _debug -n 'updating virtualenv...'
 
-    maybe_activate_virtualenv
+  if [[ ! -e $REQUIREMENTS ]]; then
+    error "cannot find requirements file ($REQUIREMENTS)"
+  fi
 
-    sed 's/^\s*//; s/\s*#.*//' $REQUIREMENTS | \
-      while IFS= read -r line; do
-        if [[ -z $line ]]; then continue; fi
-        pip install -v $line >>"$LOGFILE" || error "pip install $line failed: $?"
-      done
-    _debug 'done'
-  # fi
-  return 0
+  maybe_activate_virtualenv
+
+  sed 's/^\s*//; s/\s*#.*//' $REQUIREMENTS | \
+    while IFS= read -r line; do
+      if [[ -z $line ]]; then continue; fi
+      pip install -v $line >>"$LOGFILE" || error "pip install $line failed: $?"
+    done
+  if [[ $? != 0 ]]; then
+    exit $?
+  fi
+  _debug 'done'
 }
 
 function builddb {
