@@ -1,23 +1,9 @@
 #!/usr/bin/env bash
 # -*- mode: shell-script -*-
 
-ds () {
-	d=$( date +%y%m%d%a ) 
-	case $d in
-		(*Thu) d=${d/Thu/H}  ;;
-		(*Sun) d=${d/Sun/U}  ;;
-		(*) d=${d%??}  ;;
-	esac
-	echo $d
+function ts {
+  date +%Y%m%dT%H%M%S%z
 }
-
-ts () {
-	echo $( ds )$( date +%T | tr -d ':' )
-}
-
-# function ts {
-#   date '+%FT%T%z (%A)'
-# }
 
 STARTED=$(ts)
 
