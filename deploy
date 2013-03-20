@@ -39,14 +39,17 @@ SCRIPTPATH="$($REALPATH $0)"
 SAVEPATH="$SCRIPTPATH.save"
 PROG=$(basename $SCRIPTPATH)
 BASEDIR=${BASEDIR:-"$(dirname $SCRIPTPATH)"}
-SUPPORTDIR=${SUPPORTDIR:-"$(dirname $BASEDIR)"}
-VENV=${VENV:-"$SUPPORTDIR/virtualenv"}
+SUPPORTDIR=${SUPPORTDIR-"$(dirname $BASEDIR)"}
+VENV=${VENV:-${SUPPORTDIR:+"$SUPPORTDIR/virtualenv"}}
+if [[ -z $VENV ]]; then
+  error 'no virtualenv available'
+fi
 REQUIREMENTS=${REQUIREMENTS:-"$BASEDIR/requirements.txt"}
 
-PROGDIR=${PROGDIR:-"$BASEDIR/.$PROG"}
-LOGFILE=${LOGFILE:-"$PROGDIR/log"}
-LOCKFILE=${LOCKFILE:-"$PROGDIR/lock"}
-ADMINDIR=${ADMINDIR:-"$($REALPATH $SUPPORTDIR/..)/docroot/admin/deploy"}
+PROGDIR=${PROGDIR-"$BASEDIR/.$PROG"}
+LOGFILE=${LOGFILE:-${PROGDIR:+"$PROGDIR/log"}}
+LOCKFILE=${LOCKFILE:-${PROGDIR:+"$PROGDIR/lock"}}
+ADMINDIR=${ADMINDIR-"$($REALPATH $SUPPORTDIR/..)/docroot/admin/deploy"}
 INFOFILE=
 
 UMASK=022
@@ -82,10 +85,11 @@ function update_deploy_info {
 
   local info="$PROG $ARGS$s$USER $UID $ssh_client$s$(hostname) $$$s$STARTED$s$FINISHED$s$rev\n"
 
-  _debug "updating $LOCKFILE"
-  printf "$info" >"$LOCKFILE"
+  if [[ -n $LOCKFILE ]]; then
+    _debug "updating $LOCKFILE"
+    printf "$info" >"$LOCKFILE"
+  fi
 
-  local s="$FIELDSEP"
   if [[ -n $INFOFILE ]]; then
     _debug "updating $INFOFILE"
     printf "$info" >"$INFOFILE"
@@ -152,6 +156,10 @@ function main {
          __usage 1;;
     esac
   done
+
+  if [[ -z $LOGFILE ]]; then
+    LOGFILE=/dev/null
+  fi
 
   shift $(( OPTIND - 1 ))
 
@@ -282,6 +290,7 @@ function moveimg {
 }
 
 function collectstatic {
+  if [[ -z $SUPPORTDIR ]]; then return 0; fi
   _debug -n 'collecting statics... '
   cd "$BASEDIR" || return 1
   _mkdir $SUPPORTDIR/images || return 1
@@ -328,13 +337,15 @@ exiting..."
 
   _mkfile "$LOGFILE"
 
-  _mkdir $ADMINDIR
-  INFOFILE="$ADMINDIR/info.txt"
-  _mkfile $INFOFILE
-  INFOFILEBAK="$INFOFILE.bak"
-  if [[ -s $INFOFILE ]]; then
-    _mkfile $INFOFILEBAK
-    sed "s/$INPROGRESS/(???)/" "$INFOFILE" >"$INFOFILEBAK"
+  if [[ -n $ADMINDIR ]]; then
+    _mkdir $ADMINDIR
+    INFOFILE="$ADMINDIR/info.txt"
+    _mkfile $INFOFILE
+    INFOFILEBAK="$INFOFILE.bak"
+    if [[ -s $INFOFILE ]]; then
+      _mkfile $INFOFILEBAK
+      sed "s/$INPROGRESS/(???)/" "$INFOFILE" >"$INFOFILEBAK"
+    fi
   fi
 
   update_deploy_info "$STATUS"
