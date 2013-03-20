@@ -9,16 +9,17 @@
 
   <script src="http://d3js.org/d3.v3.min.js"></script>
   <link rel="stylesheet" href="{{ STATIC_URL }}sensitivities/css/sensitivities.css"/>
-
+  <title>Multi-parametric description of drug sensitivity - HMS LINCS Project</title>
 {% endblock %}
+
+{% block contentclass %}fullwidth{% endblock %}
+
 {% block body %}
 
 <div>
 
 <h1>Multi-parametric description of drug sensitivity in cancer cell lines</h1>
-<hr>
 
-<p class="normal"><span>&nbsp;</span></p>
 <p class="normal"><b><span>Dose-response curves</span></b></p>
 <p class="normal"><span>The shape of the dose-response curve is the most fundamental measure of cellular response to drugs or other perturbing agents.  The curve is usually characterized by the IC<sub>50</sub>, the point at which half-maximal effect is achieved. This is known to vary with drug and cell type, as shown by the red curves, which show the dose-response behavior for of ~50 tumor cell lines to the drug fascaplysin, a natural product and selective inhibitor of the <span class="st">CDK4/cyclin D1 kinase</span>. In a very simple system IC<sub>50</sub> correspond to the point of half-maximal drug-target binding.</span></p>
 <!-- <p class="normal"><span>&nbsp;</span></p> -->
