@@ -61,7 +61,7 @@ elif socket.getfqdn().endswith('.orchestra'):
     # a user/password explicitly, use the PGUSER/PGPASS environment variables
     # and/or ~/.pgpass.
     del _dbdefault['USER']
-else:
+elif environ.get('HMSLINCS_DEV', 'false') == 'true':
     _dbdefault['ENGINE'] = 'django.db.backends.sqlite3'
     _dbdefault['NAME'] = _sqlite3dbpath
 
