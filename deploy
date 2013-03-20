@@ -112,8 +112,8 @@ function wrapup {
     mv -f $SAVEPATH $SCRIPTPATH
   fi
 
-  _debug "removing $LOCKFILE ..."
   if [[ -n $LOCKFILE ]]; then
+    _debug "removing $LOCKFILE ..."
     rm -f $LOCKFILE
   fi
 }
