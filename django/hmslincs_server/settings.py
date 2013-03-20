@@ -26,30 +26,31 @@ DATABASES = {
 
 # now we'll check to see if we're running in one of a few specific contexts and
 # modify the db connection settings accordingly
+_dbdefault = DATABASES['default']
 if 'LINCS_PGSQL_DB' in environ:
     # explicit db configuration for lincs site in environment variables
-    DATABASES['default']['NAME'] = environ['LINCS_PGSQL_DB']
-    DATABASES['default']['HOST'] = environ['LINCS_PGSQL_SERVER']
-    DATABASES['default']['USER'] = environ['LINCS_PGSQL_USER']
-    DATABASES['default']['PASSWORD'] = environ['LINCS_PGSQL_PASSWORD']
+    _dbdefault['NAME'] = environ['LINCS_PGSQL_DB']
+    _dbdefault['HOST'] = environ['LINCS_PGSQL_SERVER']
+    _dbdefault['USER'] = environ['LINCS_PGSQL_USER']
+    _dbdefault['PASSWORD'] = environ['LINCS_PGSQL_PASSWORD']
 elif 'OSHERNATPROD_PGSQL_DB' in environ:
     # explicit db configuration for oshernatprod site in environment variables
     # TODO REMOVE THIS SECTION ONCE WE HAVE A DEV/STAGING environment for LINCS
-    DATABASES['default']['NAME'] = environ['OSHERNATPROD_PGSQL_DB']
-    DATABASES['default']['HOST'] = environ['OSHERNATPROD_PGSQL_SERVER']
-    DATABASES['default']['USER'] = environ['OSHERNATPROD_PGSQL_USER']
-    DATABASES['default']['PASSWORD'] = environ['OSHERNATPROD_PGSQL_PASSWORD']
+    _dbdefault['NAME'] = environ['OSHERNATPROD_PGSQL_DB']
+    _dbdefault['HOST'] = environ['OSHERNATPROD_PGSQL_SERVER']
+    _dbdefault['USER'] = environ['OSHERNATPROD_PGSQL_USER']
+    _dbdefault['PASSWORD'] = environ['OSHERNATPROD_PGSQL_PASSWORD']
 elif socket.getfqdn().endswith('.orchestra'):
     # otherwise (no explicit db config in env vars), if we are running on
     # orchestra we will try and set up the db config by convention
     if op.abspath(__file__).startswith('/www/dev.lincs'):
         # running from the dev site dir, so set up for the dev db
-        DATABASES['default']['NAME'] = 'devlincs'
-        DATABASES['default']['HOST'] = 'dev.pgsql.orchestra'
+        _dbdefault['NAME'] = 'devlincs'
+        _dbdefault['HOST'] = 'dev.pgsql.orchestra'
     elif op.abspath(__file__).startswith('/www/'):
         # running from the live site dir, so set up for the live db
-        DATABASES['default']['NAME'] = 'lincs'
-        DATABASES['default']['HOST'] = 'pgsql.orchestra'
+        _dbdefault['NAME'] = 'lincs'
+        _dbdefault['HOST'] = 'pgsql.orchestra'
     else:
         raise RuntimeError("Please only run this from a website directory,"
                            "or explicitly set LINCS_PGSQL_{DB,SERVER,USER,PASSWORD}")
@@ -59,7 +60,12 @@ elif socket.getfqdn().endswith('.orchestra'):
     # to the db connection, which will work most of the time. if you need to set
     # a user/password explicitly, use the PGUSER/PGPASS environment variables
     # and/or ~/.pgpass.
-    del DATABASES['default']['USER']
+    del _dbdefault['USER']
+else:
+    _dbdefault['ENGINE'] = 'django.db.backends.sqlite3'
+    _dbdefault['NAME'] = _sqlite3dbpath
+
+del _dbdefault
 
 if socket.getfqdn().endswith('.orchestra'):
 
