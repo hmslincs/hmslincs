@@ -53,7 +53,11 @@ var hmelabel = graph.append("g")
     .attr("class", "label")
     .attr("transform", "translate(" + (leftedge + 3) + ", " + 0 + ")")
     .append("text");
-hmelabel.append("tspan").text("hme=");
+hmelabel.append("tspan").text("hme/E");
+hmelabel.append("tspan").attr("class", "subscript")
+                        .attr("dy", 0.5 + "ex")
+                        .text("0");
+hmelabel.append("tspan").attr("dy", -0.5 + "ex").text("=");
 hmelabel.append("tspan").attr("class", "value");
 
 var emaxlabel = graph.append("g")
@@ -64,6 +68,10 @@ emaxlabel.append("tspan").text("E");
 emaxlabel.append("tspan").attr("class", "subscript")
                          .attr("dy", 0.5 + "ex")
                          .text("max");
+emaxlabel.append("tspan").attr("dy", -0.5 + "ex").text("/E");
+emaxlabel.append("tspan").attr("class", "subscript")
+                         .attr("dy", 0.5 + "ex")
+                         .text("0");
 emaxlabel.append("tspan").attr("dy", -0.5 + "ex").text("=");
 emaxlabel.append("tspan").attr("class", "value");
 
@@ -76,6 +84,10 @@ einflabel.append("tspan").text("E");
 einflabel.append("tspan").attr("class", "subscript")
                          .attr("dy", 0.5 + "ex")
                          .text("∞");
+einflabel.append("tspan").attr("dy", -0.5 + "ex").text("/E");
+einflabel.append("tspan").attr("class", "subscript")
+                         .attr("dy", 0.5 + "ex")
+                         .text("0");
 einflabel.append("tspan").attr("dy", -0.5 + "ex").text("=");
 einflabel.append("tspan").attr("class", "value");
 
@@ -171,6 +183,32 @@ ic50label.append("tspan").attr("class", "value");
       .attr("class", "y axis")
       .call(yax);
 
+  var yax_label_baseline = -0.65 * margins[3];
+
+  var yax_label = graph.append("g")
+      .attr("class", "label")
+      .attr("transform", "translate(" + scale_x(xmin) + ", " +
+                                        scale_y(0.5) + ") " +
+                         "rotate(-90)")
+      .append("text")
+      .style("text-anchor", "middle")
+      .attr("y", yax_label_baseline);
+
+  yax_label.append("tspan").text("E(D)/E");
+  yax_label.append("tspan").attr("class", "subscript")
+                           .attr("dy", 0.5 + "ex")
+                           .text("0");
+
+  // graph.append("g")
+  //     .attr("class", "label")
+  //     .attr("transform", "translate(" + scale_x(xmin) + ", " +
+  //                                       scale_y(0.5) + ") " +
+  //                        "rotate(-90)")
+  //     .append("text")
+  //     .style("text-anchor", "middle")
+  //     .text("E(D)/E0")
+  //     .attr("y", yax_label_baseline);
+
   graph.append("g")
       .attr("class", "label")
       .attr("transform", "translate(" + scale_x(xmin) + ", " +
@@ -178,8 +216,11 @@ ic50label.append("tspan").attr("class", "value");
                          "rotate(-90)")
       .append("text")
       .style("text-anchor", "middle")
-      .text("relative viability")
-      .attr("y", -margins[3]/2);
+      .text("(relative cell viability)")
+      .attr("y", yax_label_baseline + 15 );
+
+
+
 
 })();
 
