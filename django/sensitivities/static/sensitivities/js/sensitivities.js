@@ -293,7 +293,7 @@ var plotit = (function () {
     }
     else {
       IC50 = xmax;
-      IC50text = "NA";
+      IC50text = "(NA)";
       IC50data = [{x: xmin, y: 0.5}, {x: IC50, y: 0.5}];
       IC50color = "not-defined";
     }
@@ -331,14 +331,13 @@ var plotit = (function () {
              .select(".value")
              .text(ffmt(Einf));
 
-
     ec50label.attr("y", scale_x(EC50))
              .select(".value")
              .text(efmt(EC50));
 
     ic50label.attr("y", scale_x(IC50))
              .select(".value")
-             .text(efmt(IC50));
+             .text(IC50text);
 
   }
 })();
