@@ -20,13 +20,9 @@
 
 <p class="normal"><span>&nbsp;</span></p>
 <p class="normal"><b><span>Dose-response curves</span></b></p>
-<p class="normal"><span>The shape of the dose-response curve is the most fundamental measure of cellular response to drugs or other perturbing agents.  The curve is usually characterized by the IC<sub>50</sub>, the point at which half-maximal effect is achieved. This is known to vary with drug and cell type, as shown by the red curves, which show the dose-response behavior for of ~50 tumor cell lines to the drug fascaplysin, a natural product and selective inhibitor of the <span class="st">CDK4/cyclin D1 kinase</span>. In a very simple system IC<sub>50</sub> correspond to the point of half-maximal drug-target binding.</span></p>
-<!-- <p class="normal"><span>&nbsp;</span></p> -->
-<p class="normal"><span>However, in many cases we observe variation in the maximum effect at the highest drug doses, as illustrated below by the dose-response relationships for the microtubule inhibitor and chemotherapeutic drug Docetaxel (blue curves). Variation of this type is not well described by IC<sub>50</sub> and remains poorly understood. We have prepared a brief tutorial describing ways of measuring and parameterizing dose-response. </span></p>
-<p class="normal"><span>&nbsp;</span></p>
-<p class="normal" style="text-align:center" align="center"><img id="Picture 1" src="{{ STATIC_URL }}sensitivities/img/image002.png" alt="Comparison of Fascaplysin and Docetaxel" height="216" width="385"></p>
 
-<p class="normal"><span>Dose-response curves are typically fitted to a logistical sigmoidal function characterized by four parameters: <i>E</i><sub>0</sub> and <i>E</i><sub>&infin;</sub> are the top and bottom asymptotes of the response; EC<sub>50</sub> is the concentration at half-maximal effect (hme) of the drug, and <i>m</i> is a slope parameter mathematically analogous to the Hill coefficient, a conventional measure of cooperative interactions:</p>
+
+<p class="normal"><span>Dose-response curves are typically fitted to a logistical sigmoidal function characterized by four parameters: <i>E</i><sub>0</sub> and <i>E</i><sub>&infin;</sub> are the top and bottom asymptotes of the response; EC<sub>50</sub> is the concentration at half-maximal effect (hme) of the drug, and <i>HS</i> is a slope parameter mathematically analogous to the Hill coefficient, a conventional measure of cooperative interactions:</p>
 
 <p class=normal>&nbsp;</p>
 
@@ -50,12 +46,47 @@ The relationship among IC<sub>50</sub> and the various parameters of the dose-re
 
     <div id="sliders">
       <table><tbody>
-        <tr><td><i>EC</i><sub>50</sub></td><td><div class="slider" id="EC50-slider"></div></td><td><div class="slider-value" id="EC50-slider-value">1e-6</div></td></tr>
-        <tr><td><i>E</i><sub>&infin;</sub></td><td><div class="slider" id="Einf-slider"></div></td><td><div class="slider-value" id="Einf-slider-value">0.20</div></td></tr>
-        <tr><td><i>m</i></td><td><div class="slider" id="m-slider"></div></td><td><div class="slider-value" id="m-slider-value">1.00</div></td></tr>
+        <tr><td><i>EC</i><sub>50</sub></td><td><div class="slider" id="EC50-slider"></div></td><td><div class="slider-value" id="EC50-slider-value">1e-7</div></td></tr>
+        <tr><td><i>E</i><sub>&infin;</sub></td><td><div class="slider" id="Einf-slider"></div></td><td><div class="slider-value" id="Einf-slider-value">0.15</div></td></tr>
+        <tr><td><i>HS</i></td><td><div class="slider" id="m-slider"></div></td><td><div class="slider-value" id="m-slider-value">0.5</div></td></tr>
       </tbody></table>
     </div>
 
+    <!-- PP242 -->
+    <!-- <div id="sliders"> -->
+    <!--   <table><tbody> -->
+    <!--     <tr><td><i>EC</i><sub>50</sub></td><td><div class="slider" id="EC50-slider"></div></td><td><div class="slider-value" id="EC50-slider-value">2e-7</div></td></tr> -->
+    <!--     <tr><td><i>E</i><sub>&infin;</sub></td><td><div class="slider" id="Einf-slider"></div></td><td><div class="slider-value" id="Einf-slider-value">0.173</div></td></tr> -->
+    <!--     <tr><td><i>HS</i></td><td><div class="slider" id="m-slider"></div></td><td><div class="slider-value" id="m-slider-value">0.55</div></td></tr> -->
+    <!--   </tbody></table> -->
+    <!-- </div> -->
+
+
+    <!-- GSK1059615 -->
+    <!-- <div id="sliders"> -->
+    <!--   <table><tbody> -->
+    <!--     <tr><td><i>EC</i><sub>50</sub></td><td><div class="slider" id="EC50-slider"></div></td><td><div class="slider-value" id="EC50-slider-value">1.5e-7</div></td></tr> -->
+    <!--     <tr><td><i>E</i><sub>&infin;</sub></td><td><div class="slider" id="Einf-slider"></div></td><td><div class="slider-value" id="Einf-slider-value">0.004</div></td></tr> -->
+    <!--     <tr><td><i>HS</i></td><td><div class="slider" id="m-slider"></div></td><td><div class="slider-value" id="m-slider-value">1.173</div></td></tr> -->
+    <!--   </tbody></table> -->
+    <!-- </div> -->
+
+
+    <!-- BEZ235 -->
+    <!-- <div id="sliders"> -->
+    <!--   <table><tbody> -->
+    <!--     <tr><td><i>EC</i><sub>50</sub></td><td><div class="slider" id="EC50-slider"></div></td><td><div class="slider-value" id="EC50-slider-value">2.1e-8</div></td></tr> -->
+    <!--     <tr><td><i>E</i><sub>&infin;</sub></td><td><div class="slider" id="Einf-slider"></div></td><td><div class="slider-value" id="Einf-slider-value">0.14</div></td></tr> -->
+    <!--     <tr><td><i>HS</i></td><td><div class="slider" id="m-slider"></div></td><td><div class="slider-value" id="m-slider-value">0.54</div></td></tr> -->
+    <!--   </tbody></table> -->
+    <!-- </div> -->
+
+
+<p class="normal"><span>The shape of the dose-response curve is the most fundamental measure of cellular response to drugs or other perturbing agents.  The curve is usually characterized by the IC<sub>50</sub>, the point at which half-maximal effect is achieved. This is known to vary with drug and cell type, as shown by the red curves, which show the dose-response behavior for of ~50 tumor cell lines to the drug fascaplysin, a natural product and selective inhibitor of the <span class="st">CDK4/cyclin D1 kinase</span>. In a very simple system IC<sub>50</sub> correspond to the point of half-maximal drug-target binding.</span></p>
+<!-- <p class="normal"><span>&nbsp;</span></p> -->
+<p class="normal"><span>However, in many cases we observe variation in the maximum effect at the highest drug doses, as illustrated below by the dose-response relationships for the microtubule inhibitor and chemotherapeutic drug Docetaxel (blue curves). Variation of this type is not well described by IC<sub>50</sub> and remains poorly understood. We have prepared a brief tutorial describing ways of measuring and parameterizing dose-response. </span></p>
+<p class="normal"><span>&nbsp;</span></p>
+<p class="normal" style="text-align:center" align="center"><img id="Picture 1" src="{{ STATIC_URL }}sensitivities/img/image002.png" alt="Comparison of Fascaplysin and Docetaxel" height="216" width="385"></p>
 
 <h3>HMS LINCS Center White Paper:</h3>
 Fallahi-Sichani&nbsp;M.&nbsp;and&nbsp;Sorger&nbsp;PK.&nbsp;&nbsp;Characterizing cellular dose-response relationships.&nbsp;&nbsp;(pdf <i>coming soon</i>)
