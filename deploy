@@ -1,6 +1,15 @@
 #!/usr/bin/env bash
 # -*- mode: shell-script -*-
 
+function warn () {
+  echo "$PROG: $@" >&2
+}
+
+function error () {
+  warn "$@"
+  exit 1
+}
+
 function ts {
   date +%Y%m%dT%H%M%S%z
 }
@@ -96,15 +105,6 @@ function wrapup {
   _debug "removing $LOCKFILE ..."
   rm -f $LOCKFILE
 
-}
-
-function warn {
-  echo "$PROG: $@" >&2
-}
-
-function error {
-  warn "$@"
-  exit 1
 }
 
 function _debug {
