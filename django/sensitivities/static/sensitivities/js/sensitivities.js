@@ -347,7 +347,7 @@ function replot() {
   plotit(parseFloat($( "#EC50-slider-value" ).html()),
          1,
          parseFloat($( "#Einf-slider-value" ).html()),
-         parseFloat($( "#m-slider-value" ).html()));
+         parseFloat($( "#HS-slider-value" ).html()));
 }
 
 $( function () {
@@ -384,15 +384,15 @@ $( function () {
   // var minvscale = d3.scale.linear().domain([0, 1]).range([5, 1e-5]);
   // var minvscaleinv = d3.scale.linear().domain([5, 1e-5]).range([0, 1]);
 
-  // $( "#m-slider" ).slider(
+  // $( "#HS-slider" ).slider(
   //     {
   //       range: "min",
-  //       value: minvscaleinv(parseFloat($( "#m-slider-value" ).html())),
+  //       value: minvscaleinv(parseFloat($( "#HS-slider-value" ).html())),
   //       min: 0,
   //       max: 1,
   //       step: 0.001,
   //       slide: function (event, ui) {
-  //          $( "#m-slider-value" ).html( ffmt(1/minvscale(ui.value)) );
+  //          $( "#HS-slider-value" ).html( ffmt(1/minvscale(ui.value)) );
   //          replot();
   //       }
   //     });
@@ -411,15 +411,15 @@ $( function () {
 
   var scalemin = mscaleinv(mmin);
   var scalemax = mscaleinv(mmax);
-  $( "#m-slider" ).slider(
+  $( "#HS-slider" ).slider(
       {
         range: "min",
-        value: mscaleinv(parseFloat($( "#m-slider-value" ).html())),
+        value: mscaleinv(parseFloat($( "#HS-slider-value" ).html())),
         min: scalemin,
         max: scalemax,
         step: (scalemax - scalemin) * 0.001,
         slide: function (event, ui) {
-           $( "#m-slider-value" ).html( ffmt(mscale(ui.value)) );
+           $( "#HS-slider-value" ).html( ffmt(mscale(ui.value)) );
            replot();
         }
       });
@@ -449,7 +449,7 @@ jQuery(document).ready(function ($) {
             var vals = preset_values[this.textContent];
             $( "#EC50-slider-value" ).html( efmt(vals.EC50) )
             $( "#Einf-slider-value" ).html( ffmt3(vals.Einf) );
-            $( "#m-slider-value" ).html( ffmt2(vals.HS) );
+            $( "#HS-slider-value" ).html( ffmt2(vals.HS) );
             replot();
         }
     });
