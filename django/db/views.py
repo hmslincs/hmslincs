@@ -498,7 +498,7 @@ def datasetDetail(request, facility_id, sub_page):
     
     if (sub_page == 'results'):
         search = request.GET.get('search','')
-        table = manager.get_table(search=search,metaWhereClause=[],parameters=[]) # TODO: not sure why have to set metaWhereClause=[] to erase former where clause (it is persistent somewhere?) - sde4
+        table = manager.get_table(search=search) 
         if(len(table.data)>0):
             details['table'] = table
             RequestConfig(request, paginate={"per_page": items_per_page}).configure(table)
@@ -919,7 +919,15 @@ class DataSetManager():
         return len(self.small_molecule_queryset) > 0
     
     #TODO: get_cursor and get_table violate DRY...
-    def get_cursor(self, whereClause=[],metaWhereClause=[],column_exclusion_overrides=[],parameters=[],search=''): 
+    def get_cursor(self, whereClause=None,metaWhereClause=None,column_exclusion_overrides=None,parameters=None,search=''): 
+        if not whereClause:
+            whereClause = []
+        if not metaWhereClause:
+            metaWhereClause = []
+        if not parameters:
+            parameters = []
+        if not column_exclusion_overrides:
+            column_exclusion_overrides = []
         if(search != ''):
             #TODO: NOTE: the dataset search does not use the full text search
             #TODO: dataset search to search the data fields as well?
@@ -940,11 +948,20 @@ class DataSetManager():
         
         self.dataset_info = self._get_query_info(whereClause,metaWhereClause,parameters) # TODO: column_exclusion_overrides
         cursor = connection.cursor()
-        cursor.execute(self.dataset_info.query_sql,parameters)
+        logger.info(str(('execute sql', self.dataset_info.query_sql, self.dataset_info.parameters)))
+        cursor.execute(self.dataset_info.query_sql,self.dataset_info.parameters)
         return cursor
 
     #TODO: get_cursor and get_table violate DRY...
-    def get_table(self, whereClause=[],metaWhereClause=[],column_exclusion_overrides=[],parameters=[],search=''): 
+    def get_table(self, whereClause=None,metaWhereClause=None,column_exclusion_overrides=None,parameters=None,search=''): 
+        if not whereClause:
+            whereClause = []
+        if not metaWhereClause:
+            metaWhereClause = []
+        if not parameters:
+            parameters = []
+        if not column_exclusion_overrides:
+            column_exclusion_overrides = []
         if(search != ''):
             #TODO: NOTE: the dataset search does not use the full text search
             #TODO: dataset search to search the data fields as well?
@@ -961,11 +978,11 @@ class DataSetManager():
             metaWhereClause.append(searchClause)
             parameters += searchParams
             
-        logger.debug(str(('search',search,'metaWhereClause',metaWhereClause,'parameters',parameters)))
         self.dataset_info = self._get_query_info(whereClause,metaWhereClause, parameters)
+        logger.debug(str(('search',search,'metaWhereClause',metaWhereClause,'parameters',self.dataset_info.parameters)))
         #sql_for_count = 'SELECT count(distinct id) from db_datarecord where dataset_id ='+ str(self.dataset_id)
         queryset = PagedRawQuerySet(self.dataset_info.query_sql,self.dataset_info.count_query_sql, connection, 
-                                    parameters=parameters,order_by=['datarecord_id'], verbose_name_plural='records')
+                                    parameters=self.dataset_info.parameters,order_by=['datarecord_id'], verbose_name_plural='records')
         if(not self.has_plate_wells_defined(self.dataset_id)): column_exclusion_overrides.extend(['plate','well'])
         if(not self.has_control_type_defined(self.dataset_id)): column_exclusion_overrides.append('control_type')
         _table = DataSetResultTable(queryset,
@@ -983,10 +1000,11 @@ class DataSetManager():
         datacolumns = []
         query_sql = ''
         count_query_sql = ''
+        parameters = []
         
     
 
-    def _get_query_info(self, whereClause=[],metaWhereClause=[], parameters=[]):
+    def _get_query_info(self, whereClause=None,metaWhereClause=None, parameters=None):
         """
         generate a django tables2 table
         TODO: move the logic out of the view: so that it can be shared with the tastypie api (or make this rely on tastypie)
@@ -994,7 +1012,14 @@ class DataSetManager():
         whereClause: use this to filter datarecords in the inner query
         metaWhereClause: use this to filter over the entire resultset: any column (as the entire query is made into a subquery)
         """
-        logger.debug(str(('_get_query_info', whereClause,metaWhereClause)))
+        if not whereClause:
+            whereClause = []
+        if not metaWhereClause:
+            metaWhereClause = []
+        if not parameters:
+            parameters = []
+        
+        logger.debug(str(('_get_query_info', whereClause,metaWhereClause, parameters)))
     
         #datacolumns = self.get_dataset_columns(self.dataset.id)
         # TODO: should be a fieldinformation here
@@ -1069,11 +1094,12 @@ class DataSetManager():
             countQueryString = "SELECT count(*) " + fromClause
             #countQueryString = " AND ".join([countQueryString]+metaWhereClause)
         if(logger.isEnabledFor(logging.DEBUG)): 
-            logger.debug(str(('--querystrings---',queryString, countQueryString)))
+            logger.debug(str(('--querystrings---',queryString, countQueryString, parameters)))
         dataset_info = self.DatasetInfo()
         dataset_info.query_sql = queryString
         dataset_info.count_query_sql = countQueryString
         dataset_info.datacolumns = datacolumns
+        dataset_info.parameters = parameters
         return dataset_info
    
 
@@ -1461,13 +1487,15 @@ def can_access_image(request, image_filename, is_restricted=False):
 def get_attached_files(facility_id, salt_id=None, batch_id=None):
     return AttachedFile.objects.filter(facility_id_for=facility_id, salt_id_for=salt_id, batch_id_for=batch_id)
 
-def set_table_column_info(table,table_names, sequence_override=[]):
+def set_table_column_info(table,table_names, sequence_override=None):
     # TODO: set_table_column info could pick the columns to include from the fieldinformation as well
     """
     Field information section
     param: table: a django-tables2 table
     param: table_names: a list of table names, by order of priority, include '' empty string for a general search.
     """ 
+    if not sequence_override: 
+        sequence_override = []
     fields = OrderedDict()
     exclude_list = [x for x in table.exclude]
     for fieldname,column in table.base_columns.iteritems():
@@ -1553,7 +1581,7 @@ def send_to_file1(outputType, name, ordered_datacolumns, cursor):
     @param name name of the table - to be used for the output file name
      
     """   
-
+    logger.info(str(('send_to_file1', outputType, name, ordered_datacolumns)))
     col_key_name_map = get_cols_to_write(cursor, 
                                          ['dataset','smallmolecule','datarecord','smallmoleculebatch','protein','cell',''],
                                          ordered_datacolumns)   
@@ -1586,10 +1614,12 @@ def send_to_file(outputType, name, table, queryset):
     elif(outputType == '.xls'):
         return export_as_xls(name, OrderedDict(columnsOrdered), queryset=queryset)
 
-def get_cols_to_write(cursor, fieldinformation_tables=[''], ordered_datacolumns=None):
+def get_cols_to_write(cursor, fieldinformation_tables=None, ordered_datacolumns=None):
     """
     returns a dict of #column_number:verbose_name
     """
+    if not fieldinformation_tables: 
+        fieldinformation_tables=['']
     header_row = {}
     for i,col in enumerate(cursor.description):
         if(ordered_datacolumns != None and col.name.find('col')==0):
