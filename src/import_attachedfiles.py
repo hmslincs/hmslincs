@@ -1,6 +1,8 @@
 #import os
 from os import path, environ
 from shutil import copy
+import os
+import os.path
 import argparse
 import logging
 from django.core.exceptions import ObjectDoesNotExist
@@ -120,7 +122,9 @@ if __name__ == "__main__":
         if(relativePath):
             deployed_path = path.join(deploy_dir, relativePath)
             
-        logger.info(str(('deploy to', deployed_path)))
+        logger.info(str(('deploy to', deployed_path, os.path.join(deployed_path,filename))))
+        if( path.exists(deployed_path)):
+            os.remove(deployed_path)
         copy(inputFile,deployed_path)
 #        os.system ("copy %s %s" % (inputFile, deployed_path ))
         if not path.isfile (deployed_path):
