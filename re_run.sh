@@ -24,7 +24,7 @@ SERVER=$1
 
 if [[ "$SERVER" == "PROD" ]] || [[ "$SERVER" == "prod" ]] 
 then
-  DATADIR=${DIR}/data/prod2
+  DATADIR=${DIR}/data/prod
   DB=lincs
   DB_USER=lincsweb
   LINCS_PGSQL_USER=lincsweb
@@ -36,7 +36,7 @@ then
   VIRTUALENV=/www/dev.lincs.hms.harvard.edu/support/virtualenv/bin/activate
 elif [[ "$SERVER" == "DEVTEST" ]] || [[ "$SERVER" == "devtest" ]] 
 then
-  # not needed for test data DATADIR=${DIR}/data/dev2
+  # not needed for test data DATADIR=${DIR}/data/dev
   DB=devlincs
   DB_USER=devlincsweb
   PGHOST=dev.pgsql.orchestra
@@ -47,7 +47,7 @@ then
   VIRTUALENV=/www/dev.lincs.hms.harvard.edu/support/virtualenv/bin/activate
 elif [[ "$SERVER" == "DEV" ]] || [[ "$SERVER" == "dev" ]] 
 then
-  DATADIR=${DIR}/data/dev2
+  DATADIR=${DIR}/data/dev
   DB=devlincs
   DB_USER=devlincsweb
   PGHOST=dev.pgsql.orchestra
@@ -58,7 +58,7 @@ then
   VIRTUALENV=/www/dev.lincs.hms.harvard.edu/support/virtualenv/bin/activate
 elif [[ "$SERVER" == "DEV2" ]] || [[ "$SERVER" == "dev2" ]] 
 then
-  DATADIR=${DIR}/data/dev2
+  DATADIR=${DIR}/data/dev
   DB=devoshernatprod
   DB_USER=devoshernatprodweb
   PGHOST=dev.pgsql.orchestra
@@ -69,7 +69,7 @@ then
   VIRTUALENV=/www/dev.oshernatprod.hms.harvard.edu/support/virtualenv/bin/activate
 elif [[ "$SERVER" == "LOCAL" ]] || [[ "$SERVER" == "local" ]] 
 then
-  DATADIR=${2:-/home/sde4/sean/docs/work/LINCS/data/dev2}
+  DATADIR=${2:-/home/sde4/sean/docs/work/LINCS/data/dev}
   DB=django
   DB_USER=django
   PGHOST=localhost
