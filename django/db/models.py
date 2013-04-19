@@ -609,12 +609,16 @@ def get_listing(model_object, search_tables):
     """
     return get_fielddata(model_object, search_tables, lambda x: x.show_in_list )
 
-def get_detail(model_object, search_tables, is_authorized=False ):
+def get_detail(model_object, search_tables, _filter=None ):
     """
     returns an ordered dict of field_name->{value:value,fieldinformation:}
     to be used to display the item in the UI Detail views
     """
-    return get_fielddata(model_object, search_tables, lambda x: x.show_in_detail & ( x.is_unrestricted | is_authorized ) )
+    if (_filter):
+        _filter = lambda x: x.show_in_detail and filter(x)
+    else:
+        _filter = lambda x: x.show_in_detail
+    return get_fielddata(model_object, search_tables, _filter )
 
 def get_fielddata(model_object, search_tables, field_information_filter=None):
     """
@@ -629,6 +633,7 @@ def get_fielddata(model_object, search_tables, field_information_filter=None):
         details = {}
         try:
             fi = FieldInformation.manager.get_column_fieldinformation_by_priority(field,search_tables)
+            
             if not fi:
                 ui_dict['field'] = 'field not defined: "' + field + '"'
             if (field_information_filter and field_information_filter(fi)
