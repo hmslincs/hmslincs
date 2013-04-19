@@ -22,6 +22,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.http import Http404, HttpResponse
 from django.utils.encoding import smart_str
 from tastypie.authorization import Authorization
+from tastypie.authentication import BasicAuthentication, SessionAuthentication, MultiAuthentication
 from tastypie.bundle import Bundle
 from tastypie.resources import ModelResource, Resource
 from tastypie.serializers import Serializer
@@ -33,6 +34,7 @@ import re
         
 logger = logging.getLogger(__name__)
 
+
 class SmallMoleculeResource(ModelResource):
     class Meta:
         # TODO: authorization
@@ -41,10 +43,12 @@ class SmallMoleculeResource(ModelResource):
         # to override: resource_name = 'sm'
         excludes = ['column']
         allowed_methods = ['get']
-        authorization= Authorization()
+
+#        authentication = MultiAuthentication(BasicAuthentication(), SessionAuthentication())
         
     def dehydrate(self, bundle):
-        bundle.data = get_detail_bundle(bundle.obj, ['smallmolecule',''])
+        is_authorized = not bundle.obj.is_restricted
+        bundle.data = get_detail_bundle(bundle.obj, ['smallmolecule',''], is_authorized=is_authorized)
         return bundle
 
     def build_schema(self):

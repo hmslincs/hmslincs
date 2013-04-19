@@ -609,12 +609,12 @@ def get_listing(model_object, search_tables):
     """
     return get_fielddata(model_object, search_tables, lambda x: x.show_in_list )
 
-def get_detail(model_object, search_tables):
+def get_detail(model_object, search_tables, is_authorized=False ):
     """
     returns an ordered dict of field_name->{value:value,fieldinformation:}
     to be used to display the item in the UI Detail views
     """
-    return get_fielddata(model_object, search_tables, lambda x: x.show_in_detail )
+    return get_fielddata(model_object, search_tables, lambda x: x.show_in_detail & ( x.is_unrestricted | is_authorized ) )
 
 def get_fielddata(model_object, search_tables, field_information_filter=None):
     """
@@ -647,12 +647,12 @@ def get_fielddata(model_object, search_tables, field_information_filter=None):
     #return self.DatasetForm(data)
  
 
-def get_detail_bundle(obj,tables_to_search):
+def get_detail_bundle(obj,tables_to_search, is_authorized=False):
     """
     returns a bundle (dict of {verbose_name->value}) for the object, using fieldinformation to 
     determine fields to show, and to find the verbose names
     """
-    detail = get_detail(obj, tables_to_search)
+    detail = get_detail(obj, tables_to_search, is_authorized=is_authorized)
     data = {}
     for entry in detail.values():
         data[entry['fieldinformation'].get_camel_case_dwg_name()]=entry['value']
