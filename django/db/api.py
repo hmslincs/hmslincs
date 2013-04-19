@@ -46,8 +46,8 @@ class SmallMoleculeResource(ModelResource):
 #        authentication = MultiAuthentication(BasicAuthentication(), SessionAuthentication())
         
     def dehydrate(self, bundle):
-        is_authorized = not bundle.obj.is_restricted
-        bundle.data = get_detail_bundle(bundle.obj, ['smallmolecule',''], is_authorized=is_authorized)
+        _filter = lambda field_information: not bundle.obj.is_restricted or field_information.is_unrestricted # or is_authorized
+        bundle.data = get_detail_bundle(bundle.obj, ['smallmolecule',''], _filter=_filter)
         return bundle
 
     def build_schema(self):

@@ -615,10 +615,10 @@ def get_detail(model_object, search_tables, _filter=None ):
     to be used to display the item in the UI Detail views
     """
     if (_filter):
-        _filter = lambda x: x.show_in_detail and filter(x)
+        field_information_filter = lambda x: x.show_in_detail and _filter(x)
     else:
-        _filter = lambda x: x.show_in_detail
-    return get_fielddata(model_object, search_tables, _filter )
+        field_information_filter = lambda x: x.show_in_detail
+    return get_fielddata(model_object, search_tables, field_information_filter=field_information_filter )
 
 def get_fielddata(model_object, search_tables, field_information_filter=None):
     """
@@ -652,12 +652,12 @@ def get_fielddata(model_object, search_tables, field_information_filter=None):
     #return self.DatasetForm(data)
  
 
-def get_detail_bundle(obj,tables_to_search, is_authorized=False):
+def get_detail_bundle(obj,tables_to_search, _filter=None):
     """
     returns a bundle (dict of {verbose_name->value}) for the object, using fieldinformation to 
     determine fields to show, and to find the verbose names
     """
-    detail = get_detail(obj, tables_to_search, is_authorized=is_authorized)
+    detail = get_detail(obj, tables_to_search, _filter)
     data = {}
     for entry in detail.values():
         data[entry['fieldinformation'].get_camel_case_dwg_name()]=entry['value']
