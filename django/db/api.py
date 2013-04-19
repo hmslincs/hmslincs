@@ -22,7 +22,6 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.http import Http404, HttpResponse
 from django.utils.encoding import smart_str
 from tastypie.authorization import Authorization
-from tastypie.authentication import BasicAuthentication, SessionAuthentication, MultiAuthentication
 from tastypie.bundle import Bundle
 from tastypie.resources import ModelResource, Resource
 from tastypie.serializers import Serializer
