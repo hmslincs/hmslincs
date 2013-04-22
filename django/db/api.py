@@ -254,13 +254,16 @@ class DataSetResource(ModelResource):
 
 
 def camel_case(string):
-    field_name = re.sub(r'[_\s]+',' ',string)
     
-    field_name = field_name.title()
-    field_name = re.sub(r'[_\s]+','',field_name)
-    temp = field_name[0].lower() + field_name[1:]
-    logger.info(str(('camelcased:', string,temp)))
-    return temp
+    return string;
+
+#    field_name = re.sub(r'[_\s]+',' ',string)
+#    
+#    field_name = field_name.title()
+#    field_name = re.sub(r'[_\s]+','',field_name)
+#    temp = field_name[0].lower() + field_name[1:]
+#    logger.info(str(('camelcased:', string,temp)))
+#    return temp
 
 class CursorSerializer(Serializer):
     """
@@ -278,8 +281,8 @@ class CursorSerializer(Serializer):
         'csv': 'text/csv',
     }
 
-    def get_saf_columns(self, query):
-        return ['one','two', 'three']
+#    def get_saf_columns(self, query):
+#        return ['one','two', 'three']
     
     def to_csv(self, cursor, options=None):
         logger.info(str(('typeof the object sent to_csv',type(cursor))))
@@ -297,7 +300,7 @@ class CursorSerializer(Serializer):
         #        raw_data.write(response)
         writer = csv.writer(raw_data)
         i=0
-        cols = [camel_case(col[0]) for col in cursor.description]
+        cols = [col[0] for col in cursor.description]
         
         # TODO: grab the column names here
         writer.writerow(cols)
@@ -311,7 +314,7 @@ class CursorSerializer(Serializer):
     
     def to_json(self,cursor, options=None):
         
-        logger.info(str(('typeof the object sent to_csv',type(cursor))))
+        logger.info(str(('typeof the object sent to_json',type(cursor))))
 #        logger.info(str(('to_csv for SAF for cursor', cursor)))
         raw_data = StringIO.StringIO()
                 
@@ -505,7 +508,7 @@ class DataSetDataResource(Resource):
             if i!=0: 
                 sql += ', \n'
             # TODO: this information is parsed when deserializing to create the "camel cased name"
-            sql += tablefield + ' as "' + fi.get_dwg_name_hms_name() +'"' 
+            sql += tablefield + ' as "' + fi.get_camel_case_dwg_name() +'"' 
         endpoint_value_fi = get_fieldinformation('endpoint_value', [''])  
         sql += ', coalesce(dp.int_value::TEXT, dp.float_value::TEXT, dp.text_value) as "' + endpoint_value_fi.get_dwg_name_hms_name() +'"\n'
             
