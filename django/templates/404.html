@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block head %}
+	<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/basic_tabs.css" />
+  <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/hmslincs.css" />
+	<title>HMS LINCS DB: Page not found</title>
+{% endblock %}	
+
+{% block body %}
+The page at {{ request_path }} can not be found.
+{% endblock %}
