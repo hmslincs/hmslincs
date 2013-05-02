@@ -329,7 +329,7 @@ class CursorSerializer(Serializer):
             return raw_data.getvalue()
         # TODO: sort the fields?
         i=0
-        cols = [camel_case(col[0]) for col in cursor.description]
+        cols = [col[0] for col in cursor.description]
         
         raw_data.write('[')
         for row in cursor.fetchall():
