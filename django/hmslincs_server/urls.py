@@ -62,7 +62,7 @@ urlpatterns = patterns('',
     url(r'^db/datasets/(?P<facility_id>\d+)/cells$', 'db.views.datasetDetailCells', name="dataset_detail_cells"),
     url(r'^db/datasets/(?P<facility_id>\d+)/proteins$', 'db.views.datasetDetailProteins', name="dataset_detail_proteins"),
     url(r'^db/datasets/(?P<facility_id>\d+)/smallmolecules$', 'db.views.datasetDetailSmallMolecules', name="dataset_detail_small_molecules"),
-    url(r'^db/datasets/(?P<facility_id>\d+)/endpoints$', 'db.views.datasetDetailDataColumns', name="dataset_detail_endpoints"),
+    url(r'^db/datasets/(?P<facility_id>\d+)/datapoints$', 'db.views.datasetDetailDataColumns', name="dataset_detail_datapoints"),
     url(r'^db/datasets/(?P<facility_id>\d+)/results$', 'db.views.datasetDetailResults', name="dataset_detail_results"),
     # TODO: if we install x-sendfile on the apache server, we can serve these files with an x-sendfile redirect
     url(r'^db/downloadattached/(?P<id>\d+)/$', 'db.views.download_attached_file', name='download_attached_file'),

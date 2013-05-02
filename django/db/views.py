@@ -445,7 +445,7 @@ def datasetDetailSmallMolecules(request, facility_id):
 def datasetDetailDataColumns(request, facility_id):
     try:
         details = datasetDetail(request,facility_id,'datacolumns')
-        details.setdefault('heading', 'Endpoints')
+        details.setdefault('heading', 'Data Columns')
         return render(request,'db/datasetDetailRelated.html', details)
     except Http401, e:
         return HttpResponse('Unauthorized', status=401)
@@ -527,8 +527,8 @@ def datasetDetail(request, facility_id, sub_page):
             RequestConfig(request, paginate={"per_page": items_per_page}).configure(table)
     elif (sub_page == 'datacolumns'):
         table = DataColumnTable(DataColumn.objects.all().filter(dataset_id=dataset.id).order_by('display_order'))
-        setattr(table.data,'verbose_name_plural','Endpoints')
-        setattr(table.data,'verbose_name','Endpoint')
+        setattr(table.data,'verbose_name_plural','Data Columns')
+        setattr(table.data,'verbose_name','Data Column')
         details['table'] = table
         RequestConfig(request, paginate={"per_page": items_per_page}).configure(table)
     elif sub_page != 'main':

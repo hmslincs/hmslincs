@@ -187,14 +187,14 @@ class DataSetResource(ModelResource):
         # TODO: drive the columns to show here from fieldinformation inputs
         dc_fieldinformation = FieldInformation.objects.all().filter(table='datacolumn', show_in_detail=True)
         dc_field_names = [fi.get_camel_case_dwg_name() for fi in dc_fieldinformation]
-        endpoints = [ dict(zip(dc_field_names, [ getattr(x,fi.field) for fi in dc_fieldinformation ] )) for x in datacolumns ]
+        datapoints = [ dict(zip(dc_field_names, [ getattr(x,fi.field) for fi in dc_fieldinformation ] )) for x in datacolumns ]
 
         # Custom fields for SAF: TODO: generate the names here from the fieldinformation
-        bundle.data['endpointFile'] = {'uri': saf_uri,
+        bundle.data['datapointFile'] = {'uri': saf_uri,
                                        'noCols':len(datasetDataColumns),
                                        'cols':datasetDataColumns,
-                                       'noEndpoints': len(endpoints),
-                                       'endpoints': endpoints
+                                       'noDatapoints': len(datapoints),
+                                       'datapoints': datapoints
                                        }
         
         bundle.data['safVersion'] = '0.1'  # TODO: drive this from data
@@ -206,13 +206,13 @@ class DataSetResource(ModelResource):
         original_dict = schema['fields'] # TODO: reincorporate this information (this default information is about the DB schema definition)
         fields = get_detail_schema(DataSet(), 'dataset', lambda x: x.show_in_detail )
         # Custom fields for SAF: TODO: generate the names here from the fieldinformation
-        fields['endpointFile'] = get_schema_fieldinformation('endpoint_file','')
+        fields['datapointFile'] = get_schema_fieldinformation('datapoint_file','')
         fields['safVersion'] = get_schema_fieldinformation('saf_version','')
         fields['screeningFacility'] = get_schema_fieldinformation('screening_facility','')
         schema['fields'] = OrderedDict(sorted(fields, key=lambda x: x[0])) # sort alpha, todo sort on fi.order
         
         ds_fieldinformation = DataSetDataResource.get_datasetdata_column_fieldinformation()
-        ds_fieldinformation.append(('endpoint_value',get_fieldinformation('endpoint_value',[''])) )
+        ds_fieldinformation.append(('datapoint_value',get_fieldinformation('datapoint_value',[''])) )
         ds_fieldinformation.append(('timepoint',get_fieldinformation('timepoint',[''])) )
         ds_fieldinformation.append(('timepoint_unit',get_fieldinformation('timepoint_unit',[''])) )
         ds_fieldinformation.append(('timepoint_description',get_fieldinformation('timepoint_description',[''])) )
@@ -230,15 +230,15 @@ class DataSetResource(ModelResource):
         schema['datasetDataFile'] = OrderedDict(sorted(fields, key=lambda x: x[0])) # sort alpha, todo sort on fi.order
 
         dc_fieldinformation = FieldInformation.objects.all().filter(table='datacolumn', show_in_detail=True)
-        endpoint_fields = {}
+        datapoint_fields = {}
         for fi in dc_fieldinformation:
             field_schema_info = {}
             for item in meta_field_info.items():
                 meta_fi_attr = item[0]
                 meta_fi = item[1]['fieldinformation']
                 field_schema_info[meta_fi.get_camel_case_dwg_name()] = getattr(fi,meta_fi_attr)
-            endpoint_fields[fi.get_camel_case_dwg_name()]= field_schema_info
-        schema['endpointInformation'] = OrderedDict(sorted(endpoint_fields, key=lambda x: x[0])) # sort alpha, todo sort on fi.order
+            datapoint_fields[fi.get_camel_case_dwg_name()]= field_schema_info
+        schema['datapointInformation'] = OrderedDict(sorted(datapoint_fields, key=lambda x: x[0])) # sort alpha, todo sort on fi.order
         
         return schema 
     
@@ -459,16 +459,16 @@ class DataSetDataResource(Resource):
             camel_columns.append('timepoint'+ ('','_'+str(i))[i>0]) # FYI we have to label manually, because timepoint is an alias, not real DataColumn
             camel_columns.append('timepoint_unit'+ ('','_'+str(i))[i>0])
             camel_columns.append('timepoint_description'+ ('','_'+str(i))[i>0])
-        endpoint_value_fi = get_fieldinformation('endpoint_value', ['']) 
-        camel_columns.append(endpoint_value_fi.get_camel_case_dwg_name())
+        datapoint_value_fi = get_fieldinformation('datapoint_value', ['']) 
+        camel_columns.append(datapoint_value_fi.get_camel_case_dwg_name())
         return camel_columns
                      
     @staticmethod
     def get_datasetdata_cursor(dataset_id):
         timepoint_columns = DataSetDataResource.get_dataset_columns(dataset_id, ['day','hour','minute','second'])
         logger.info(str(('timepoint_columns', timepoint_columns)))
-        endpoint_columns = DataSetDataResource.get_dataset_columns(dataset_id)
-        endpoint_columns = [col for col in endpoint_columns if col not in timepoint_columns]
+        datapoint_columns = DataSetDataResource.get_dataset_columns(dataset_id)
+        datapoint_columns = [col for col in datapoint_columns if col not in timepoint_columns]
         
         # pivot out the timepoint columns only
         timepoint_column_string = '';
@@ -509,8 +509,8 @@ class DataSetDataResource(Resource):
                 sql += ', \n'
             # TODO: this information is parsed when deserializing to create the "camel cased name"
             sql += tablefield + ' as "' + fi.get_camel_case_dwg_name() +'"' 
-        endpoint_value_fi = get_fieldinformation('endpoint_value', [''])  
-        sql += ', coalesce(dp.int_value::TEXT, dp.float_value::TEXT, dp.text_value) as "' + endpoint_value_fi.get_dwg_name_hms_name() +'"\n'
+        datapoint_value_fi = get_fieldinformation('datapoint_value', [''])  
+        sql += ', coalesce(dp.int_value::TEXT, dp.float_value::TEXT, dp.text_value) as "' + datapoint_value_fi.get_dwg_name_hms_name() +'"\n'
             
         sql += timepoint_column_string
         
@@ -544,7 +544,7 @@ class DataSetDataResource(Resource):
         original_dict = schema['fields'] # TODO: reincorporate this information (this default information is about the DB schema definition)
 
         ds_fieldinformation = DataSetDataResource.get_datasetdata_column_fieldinformation()
-        ds_fieldinformation.append(('endpoint_value',get_fieldinformation('endpoint_value',[''])) )
+        ds_fieldinformation.append(('datapoint_value',get_fieldinformation('datapoint_value',[''])) )
         ds_fieldinformation.append(('timepoint',get_fieldinformation('timepoint',[''])) )
         ds_fieldinformation.append(('timepoint_unit',get_fieldinformation('timepoint_unit',[''])) )
         ds_fieldinformation.append(('timepoint_description',get_fieldinformation('timepoint_description',[''])) )
@@ -619,7 +619,7 @@ class DataSetFlattenedResource(ModelResource):
         bundle.data = get_detail_bundle(bundle.obj, ['dataset',''])
         saf_uri = self.absolute_uri.replace('dataset','datasetdata')
         saf_uri = saf_uri.replace('json','csv');
-        bundle.data['endpointFile'] = {'uri': saf_uri,
+        bundle.data['datapointFile'] = {'uri': saf_uri,
                                        'noCols':len(visibleColumns),
                                        'cols':visibleColumns.values()
                                        }
