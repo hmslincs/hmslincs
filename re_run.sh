@@ -639,6 +639,18 @@ else
 	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20119_HMSL10214_kinomescan.xlsx
 	check_errs $? "import dataset fails"
 	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/Screen20121_Yale_A549.xlsx
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/Screen20122_Yale_U87.xlsx
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/Screen20123_Yale_U937.xlsx
+	check_errs $? "import dataset fails"
+	
 	echo 'import attached file...'      
 	python src/import_attachedfiles.py -f $DATADIR/qc/NMR_HMSL10001.101.01.pdf -fi 10001 -fd '2013-04-04' -si 101 -bi 1 -ft "QC-NMR" --restricted
 	check_errs $? "import attached file fails"
