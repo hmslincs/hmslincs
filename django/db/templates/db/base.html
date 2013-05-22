@@ -2,11 +2,14 @@
 
 {% load hms_tags %}
 
-{% block head %}
+{% block head_extra %}
 	<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/basic_tabs.css" />
   <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/hmslincs.css" />
-	<title>HMS LINCS DB</title>
 {% endblock %}	
+
+{% block title %}
+  HMS LINCS Database
+{% endblock %}
 
 {% block nav%}
 

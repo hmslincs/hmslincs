@@ -1,5 +1,10 @@
 {% extends "db/base.html" %}
 {% load hms_tags %}
+
+{% block title %}
+  {{ object.title.value }} - Dataset - {{ block.super }}
+{% endblock %}
+
 {% block content %}
         {% include "db/detailTitle.html" with name=object.title type="Dataset" id=object.facility_id %}
 	<ul class="basictab">

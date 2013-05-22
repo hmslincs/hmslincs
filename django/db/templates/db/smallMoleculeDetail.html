@@ -1,4 +1,9 @@
 {% extends "db/base.html" %}
+
+{% block title %}
+  {{ object.name.value }} - Small Molecule - {{ block.super }}
+{% endblock %}
+
 {% block content %}
 <script language="javascript" type="text/javascript">
 	function submit_getmolfile() {

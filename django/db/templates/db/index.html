@@ -1,4 +1,12 @@
 {% extends "db/base.html" %}
+
+{% block title %}
+        {% if search %}
+                Search: "{{ search }}" -
+        {% endif %}
+        {{ block.super }}
+{% endblock %}
+
 {% block content %}
 	<div id="search">
 	  <form action="{{ request.get_full_path }}" method="get"> <!-- needed for post: {% csrf_token %}  --> 
