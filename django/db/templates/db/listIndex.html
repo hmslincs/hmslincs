@@ -1,6 +1,11 @@
 {% extends "db/base.html" %}
 
 {% block title %}
+  {% if search %}
+    Search: "{{ search }}" -
+  {% elif structure_search %}
+    Structure search -
+  {% endif %}
   {{ heading }} - {{ block.super }}
 {% endblock %}
 
