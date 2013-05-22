@@ -2,8 +2,9 @@
 
 {% block title %}
         {% if search %}
-                Search: "{{ search }}" - {{ block.super }}
+                Search: "{{ search }}" -
         {% endif %}
+        {{ block.super }}
 {% endblock %}
 
 {% block content %}
