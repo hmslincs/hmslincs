@@ -1,9 +1,6 @@
 {% extends "base.html" %}
 
-{% block head %}
-  <title>Parameterizing perturbagen dose-response relationships</title>
-  <!-- <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.min.js"></script> -->
-
+{% block head_extra %}
   <script type="text/javascript" src="http://code.jquery.com/jquery-latest.min.js"></script>
   <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.2/themes/base/jquery-ui.css" />
   <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.2/themes/smoothness/jquery-ui.css" />
@@ -11,8 +8,9 @@
 
   <script src="http://d3js.org/d3.v3.min.js"></script>
   <link rel="stylesheet" href="{{ STATIC_URL }}sensitivities/css/sensitivities.css"/>
-
 {% endblock %}
+
+{% block title %}Parameterizing perturbagen dose-response relationships - {{ block.super }}{% endblock %}
 
 {% block contentclass %}fullwidth{% endblock %}
 

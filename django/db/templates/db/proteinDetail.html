@@ -1,4 +1,9 @@
 {% extends "db/base.html" %}
+
+{% block title %}
+  {{ object.name.value }} - Protein - {{ block.super }}
+{% endblock %}
+
 {% block content %}
         {% include "db/detailTitle.html" with name=object.name type="Protein" id=object.lincs_id %}
 	{% include "db/detailListing.html" %}

@@ -653,7 +653,7 @@ def smallMoleculeIndexList(request, facility_ids=''):
     if(len(queryset) == 1 ):
         return redirect_to_small_molecule_detail(queryset[0])
     table = SmallMoleculeTable(queryset)
-    return render_list_index(request, table, '','Small molecule','Small molecules')
+    return render_list_index(request, table, '','Small molecule','Small molecules', structure_search=True)
     
     
 def render_list_index(request, table, search, name, name_plural, **requestArgs):

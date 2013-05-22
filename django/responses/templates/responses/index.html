@@ -1,14 +1,15 @@
 {% extends "base.html" %}
 
-{% block head %}
+{% block head_extra %}
   <link rel="stylesheet" href="{{ STATIC_URL }}responses/css/responses.css"/>
   <link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.9.0/themes/base/jquery-ui.css" />
   <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.9.1/jquery-ui.min.js"></script>
   <script>var IMGBASE = "{{ STATIC_URL }}responses/img/";</script>
   <script src="{{ STATIC_URL }}responses/js/pointmap.js"></script>
   <script src="{{ STATIC_URL }}responses/js/responses.js"></script>
-  <title>Perturbational profiling of receptor signaling in cancer cells - HMS LINCS Project</title>
 {% endblock %}
+
+{% block title %}Perturbational profiling of receptor signaling in cancer cells  - {{ block.super }}{% endblock %}
 
 {% block contentclass %}fullwidth{% endblock %}
 
