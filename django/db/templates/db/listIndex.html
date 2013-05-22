@@ -1,4 +1,9 @@
 {% extends "db/base.html" %}
+
+{% block title %}
+  {{ heading }} - {{ block.super }}
+{% endblock %}
+
 {% block content %}
 <h2>{{ heading }}</h2>
 	{% include "db/searchBox.html" %}
