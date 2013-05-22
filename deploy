@@ -212,6 +212,7 @@ EOF
 function gitpull {
   _debug -n "pulling branch $BRANCH from $REMOTE... "
   cp -a $SCRIPTPATH $SAVEPATH
+  git fetch $REMOTE >>"$LOGFILE" 2>&1 || error "git-fetch failed: $?"
   git checkout $BRANCH >>"$LOGFILE" 2>&1 || error "git-checkout failed: $?"
   git checkout -- $SCRIPTPATH >>"$LOGFILE" 2>&1 || error "git-checkout $SCRIPTPATH failed: $?"
   git pull --ff-only $REMOTE $BRANCH >>"$LOGFILE" 2>&1 || error "git-pull failed: $?"
