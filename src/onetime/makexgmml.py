@@ -354,7 +354,7 @@ if True:
                     if allws.match(line):
                         break
 
-                    kinase, basallevel, phospholevel = line[:-1].split('\t')
+                    kinase, basallevel, phospholevel = line.rstrip('\r\n').split('\t')
                     diam, fontsize = nodesizes(kinase, basallevel)
                     fill, fontcolor = colors(phospholevel)
                     params = NodeParams(kinase, diam, fontsize, fill,
