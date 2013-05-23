@@ -16,7 +16,7 @@ import collections as co
 #
 # E.g.:
 #
-# % python src/onetime/makexgmml.py
+# % EXPORTTYPE=png python src/onetime/makexgmml.py
 # commandtool run file="/Users/berriz/Work/Sites/hmslincs/src/onetime/makepng"
 #
 
@@ -175,6 +175,7 @@ MAXFONT = 19
 BLACK = '#000000'
 WHITE = '#ffffff'
 DARKGRAY = '#666666'
+LIGHTGRAY = '#aaaaaa'
 GRAYCUTOFF = 128
 
 # "magic" constants
@@ -279,9 +280,9 @@ if True:
     import sys
 
     NodeParams = co.namedtuple('_nodeparams',
-                               'label diam fontsize fill fontcolor')
-    dummynode = NodeParams('', 1e-4, 0, WHITE, '')
-    # centernode= NodeParams('', 200, 0, '#00ffff', '')
+                               'label diam fontsize fill fontcolor outline')
+    dummynode = NodeParams('', 1e-4, 0, WHITE, '', WHITE)
+    # centernode= NodeParams('', 200, 0, '#00ffff', '', '#00ffff')
     fixednodes = dict(#ce=centernode,
                       ce=dummynode,
                       sw=dummynode,
@@ -292,8 +293,9 @@ if True:
     EdgeParams = co.namedtuple('_edgeparams',
                                'source target width arrow color linetype')
 
-    fixededges = tuple(EdgeParams(src, tgt, 1, 0, '', 'DOT')
-                       for src, tgt in EDGES['outer'])
+    # fixededges = tuple(EdgeParams(src, tgt, 1, 0, '', 'DOT')
+    #                    for src, tgt in EDGES['outer'])
+    fixededges = ()
     inneredges = set(EDGES['inner'])
     assert len(inneredges) == len(EDGES['inner'])
 
@@ -358,7 +360,7 @@ if True:
                     diam, fontsize = nodesizes(kinase, basallevel)
                     fill, fontcolor = colors(phospholevel)
                     params = NodeParams(kinase, diam, fontsize, fill,
-                                        fontcolor)
+                                        fontcolor, BLACK)
                     sym = kinase.upper()
                     assert sym not in nodeparams, sym
                     nodeparams[sym] = params
@@ -369,6 +371,7 @@ if True:
                     if allws.match(line):
                         break
                     rec = line[:-1].split('\t')
+                    eres, ares = [float(r) for r in rec[1:]]
                     srcnode = NORMALIZE.get(rec[0], rec[0])
                     sym = srcnode.upper()
                     assert sym not in nodeparams, sym
@@ -377,15 +380,24 @@ if True:
 
                     diam, fontsize = nodesizes(srcnode)
                     fill, fontcolor = colors()
+                    if not (eres > 0 or ares > 0):
+                        fontcolor = outline = LIGHTGRAY
+                    else:
+                        outline = BLACK
+
                     nodeparams[sym] = NodeParams(srcnode, diam, fontsize,
-                                                 fill, fontcolor)
+                                                 fill, fontcolor, outline)
 
                     werk, aerk = edgesizes(rec[1])
                     edgeparams['erk'].append(EdgeParams(sym, 'ERK', werk, aerk,
-                                                        cerk, 'SOLID'))
+                                                        cerk if eres > 0.0
+                                                        else LIGHTGRAY,
+                                                        'SOLID'))
                     wakt, aakt = edgesizes(rec[2])
                     edgeparams['akt'].append(EdgeParams(sym, 'AKT', wakt, aakt,
-                                                        cakt, 'SOLID'))
+                                                        cakt if ares > 0.0
+                                                        else LIGHTGRAY,
+                                                        'SOLID'))
 
             node2idx = dict()
             idx = 0
@@ -409,6 +421,8 @@ if True:
                 print >> out, prologue(title)
 
                 for grp, v in NODES.items():
+                    if grp == 'outer':
+                        continue
                     for sym, (x, y) in v.items():
                         node2idx[sym] = idx
                         params = nodeparams[sym]

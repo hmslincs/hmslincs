@@ -1,6 +1,6 @@
 RTK-kinases	Basal value (size)	Phospho (color)
-Erk	1	0
-Akt	1	0
+Erk	0.5	0
+Akt	0.5	0
 EGFR	0	1
 ErbB2	0	1
 ErbB3	0	1
