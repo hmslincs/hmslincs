@@ -1630,9 +1630,9 @@ def get_cols_to_write(cursor, fieldinformation_tables=None, ordered_datacolumns=
         else:
             try:
                 fi = FieldInformation.manager.get_column_fieldinformation_by_priority(col.name,fieldinformation_tables)
-                if(fi.show_in_detail):
+#                if(fi.show_in_detail):
                     #cols_to_write.append(i)
-                    header_row[i] = fi.get_verbose_name()
+                header_row[i] = fi.get_verbose_name()
             except (Exception) as e:
                 logger.warn(str(('no fieldinformation found for field:', col.name)))
          
