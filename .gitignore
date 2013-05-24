@@ -11,4 +11,6 @@ temp/*
 bak/*
 .DS_Store
 src/onetime/makepng
+src/onetime/makesvg
+data/networks/xgmml
 .deploy

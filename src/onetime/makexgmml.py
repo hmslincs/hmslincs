@@ -23,7 +23,8 @@ import collections as co
 # ---------------------------------------------------------------------------
 import setparams as _sp
 _params = dict(
-    EXPORTTYPE = 'svg'
+    EXPORTTYPE = 'svg',
+    SUBDIR = 'rtk'
 )
 _sp.setparams(_params)
 del _sp, _params
@@ -31,9 +32,13 @@ del _sp, _params
 # ---------------------------------------------------------------------------
 SRCDIR = op.dirname(op.abspath(__file__))
 BASEDIR = op.normpath(op.join(SRCDIR, '..', '..'))
-DATADIR = op.join(BASEDIR, *'data networks data'.split())
+DATADIR = op.join(BASEDIR, *('data networks data'.split() + [SUBDIR]))
 XMLDIR = op.join(BASEDIR, *'data networks xgmml'.split())
-IMGDIR = op.join(BASEDIR, *'django networks static networks img'.split())
+IMGDIR = op.join(BASEDIR,
+                 *('django networks static networks img'.split() +
+                   [SUBDIR]))
+print IMGDIR
+SIGNALING = SUBDIR == 'signaling'
 
 NODES = co.OrderedDict((
                         ('center', co.OrderedDict((
@@ -177,6 +182,8 @@ WHITE = '#ffffff'
 DARKGRAY = '#666666'
 LIGHTGRAY = '#aaaaaa'
 GRAYCUTOFF = 128
+RED = '#ff0000'
+BLUE = '#0000cc'
 
 # "magic" constants
 SCALEFUDGE = 44
@@ -265,7 +272,7 @@ def edgexml(label, sourceid, targetid, width, arrow, color, linetype):
 
     return ('<edge label="%(label)s" '
             'source="%(sourceid)d" target="%(targetid)d"><graphics '
-            'width="%(width)d" '
+            'width="%(width).2f" '
             '%(fill)s'
             'cy:targetArrow="%(arrow)d" '
             '%(arrowcolor)s'
@@ -293,9 +300,14 @@ if True:
     EdgeParams = co.namedtuple('_edgeparams',
                                'source target width arrow color linetype')
 
-    # fixededges = tuple(EdgeParams(src, tgt, 1, 0, '', 'DOT')
-    #                    for src, tgt in EDGES['outer'])
-    fixededges = ()
+    if SIGNALING:
+        fixededges = ()
+    else:
+        # fixededges = tuple(EdgeParams(src, tgt, 1, 0, '', 'DOT')
+        #                    for src, tgt in EDGES['outer'])
+        fixededges = tuple(EdgeParams(src, tgt, 0.25, 0, BLACK, 'SOLID')
+                           for src, tgt in EDGES['outer'])
+
     inneredges = set(EDGES['inner'])
     assert len(inneredges) == len(EDGES['inner'])
 
@@ -305,7 +317,8 @@ if True:
                   _minfont=MINFONT, _maxfont=MAXFONT,
                   _fudgefactor=FONTFUDGE):
         basallevel = float(basallevel)
-        assert 0 <= basallevel <= 1
+        assert basallevel == -1 or (0 <= basallevel <= 1)
+        basallevel = max(basallevel, 0)
         diam = MINDIAM + (basallevel * SCALEFUDGE)
         ll = len(label)
         # fontsize = (0 if ll == 0
@@ -317,13 +330,27 @@ if True:
                              _minfont))
         return diam, fontsize
 
-    def colors(phospholevel=0):
+    def maybe_to_float(x):
+        try:
+            return float(x)
+        except:
+            return x
+
+    def colors(basallevel=0, phospholevel=0):
         phospholevel = float(phospholevel)
-        assert 0 <= phospholevel <= 1
-        r = round((1 - phospholevel) * 256)
-        fill = '#%(n)02x%(n)02x%(n)02x' % {'n': min(r, 255)}
-        fontcolor = BLACK if r > GRAYCUTOFF else WHITE
+        if phospholevel == -1:
+            fill = WHITE
+            if float(basallevel) == -1:
+                fontcolor = LIGHTGRAY
+            else:
+                fontcolor = BLACK
+        else:
+            assert 0 <= phospholevel <= 1
+            r = round((1 - phospholevel) * 256)
+            fill = '#%(n)02x%(n)02x%(n)02x' % {'n': min(r, 255)}
+            fontcolor = BLACK if r > GRAYCUTOFF else WHITE
         return fill, fontcolor
+
 
     def edgesizes(response=None,
                   _minwidth=MINWIDTH,
@@ -334,8 +361,8 @@ if True:
         assert 0 <= response <= 1
         return round(_minwidth + _widthrng * response), 6
         
-    cerk = '#0000cc'
-    cakt = '#ff0000'
+    cerk = BLUE
+    cakt = RED
 
     scriptname = 'make' + EXPORTTYPE
     scriptfile = op.join(SRCDIR, scriptname)
@@ -356,11 +383,22 @@ if True:
                     if allws.match(line):
                         break
 
-                    kinase, basallevel, phospholevel = line.rstrip('\r\n').split('\t')
+                    kinase, basallevel, phospholevel = \
+                        [maybe_to_float(l) for l in
+                         line.rstrip('\r\n').split('\t')]
                     diam, fontsize = nodesizes(kinase, basallevel)
-                    fill, fontcolor = colors(phospholevel)
+                    fill, fontcolor = colors(basallevel, phospholevel)
+
+                    if SIGNALING:
+                        fill = WHITE
+
+                    if basallevel < 0 and phospholevel < 0:
+                        outline = LIGHTGRAY
+                    else:
+                        outline = BLACK
+
                     params = NodeParams(kinase, diam, fontsize, fill,
-                                        fontcolor, BLACK)
+                                        fontcolor, outline)
                     sym = kinase.upper()
                     assert sym not in nodeparams, sym
                     nodeparams[sym] = params
@@ -421,7 +459,7 @@ if True:
                 print >> out, prologue(title)
 
                 for grp, v in NODES.items():
-                    if grp == 'outer':
+                    if SIGNALING and grp == 'outer':
                         continue
                     for sym, (x, y) in v.items():
                         node2idx[sym] = idx
