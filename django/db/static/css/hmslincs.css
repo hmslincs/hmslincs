@@ -12,7 +12,7 @@ img {
 }
 .noborders {
 	border: 0px;
-	border-collapse:collapse; 
+	border-collapse:collapse;
 }
 .compound_image {
  position:absolute;
@@ -27,7 +27,13 @@ img {
 }
 td {
 	vertical-align: top;
+	white-space: nowrap;
 }
+
+td.propertyValueColumn {
+    white-space: normal
+}
+
 h2 {
   font-weight: bold;
 }
@@ -107,7 +113,7 @@ th.desc {
 	vertical-align: top;
 	padding-top: 1px;
 	padding-left: 3px;
-	padding-right: 3px;	
+	padding-right: 3px;
 }
 .propertyLabelColumn, .propertyLabel, .subduedLabel {
 	font-weight: bold;
@@ -177,9 +183,9 @@ td.facility_salt_batch {
 
 .structure_search_form form p {
 	position:relative;
-	display:block;  
+	display:block;
 }
-.structure_search_form form label { 
+.structure_search_form form label {
 	vertical-align: top
 }
 
@@ -189,8 +195,8 @@ td.facility_salt_batch {
 	padding-top: 1px;
 	padding-bottom: 1px;
 }
-.structure_search_form form input,.structure_search_form form select { 
-	position: absolute; left:8em; 
+.structure_search_form form input,.structure_search_form form select {
+	position: absolute; left:8em;
 }
 .structure_search_form form textarea {
 	/* TODO: Note: textarea overlaps subsequent elements unless position: relative; */
