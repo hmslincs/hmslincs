@@ -1409,6 +1409,7 @@ class LibrarySearchManager(models.Manager):
     
 class LibraryTable(PagedTable):
     id = tables.Column(visible=False)
+    name = tables.LinkColumn("library_detail", args=[A('short_name')])
     short_name = tables.LinkColumn("library_detail", args=[A('short_name')])
     well_count = tables.Column()
     plate_count = tables.Column()
