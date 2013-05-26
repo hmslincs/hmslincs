@@ -510,7 +510,7 @@ class DataSetDataResource(Resource):
             # TODO: this information is parsed when deserializing to create the "camel cased name"
             sql += tablefield + ' as "' + fi.get_camel_case_dwg_name() +'"' 
         datapoint_value_fi = get_fieldinformation('datapoint_value', [''])  
-        sql += ', coalesce(dp.int_value::TEXT, dp.float_value::TEXT, dp.text_value) as "' + datapoint_value_fi.get_dwg_name_hms_name() +'"\n'
+        sql += ', coalesce(dp.int_value::TEXT, dp.float_value::TEXT, dp.text_value) as "' + datapoint_value_fi.get_camel_case_dwg_name() +'"\n'
             
         sql += timepoint_column_string
         
