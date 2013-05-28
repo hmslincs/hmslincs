@@ -844,7 +844,7 @@ class DataSetResultTable(PagedTable):
         if(show_proteins): 
             temp.append('protein_name')
             temp.append('protein_lincs_id')
-        temp.extend(['col'+str(i) for (i,x) in enumerate(ordered_datacolumns)])
+        temp.extend(['col'+str(i) for (i,__) in enumerate(ordered_datacolumns)])
         temp.extend(['plate','well','control_type'])
         ordered_names = temp
         
@@ -860,7 +860,8 @@ class DataSetResultTable(PagedTable):
             else:
                 #logger.debug(str(('omero_image column template', TEMPLATE % ('omero_image_id','omero_image_id'))))
                 self.base_columns[col] = tables.TemplateColumn(OMERO_IMAGE_TEMPLATE % (col,col), verbose_name=display_name)
-            self.base_columns[col].attrs['th'] = { 'title':dc.description }
+            if dc.description: 
+                self.base_columns[col].attrs['th'] = { 'title':dc.description }
 
                 
         # Note: since every instance reuses the base_columns, each time the visibility must be set.
