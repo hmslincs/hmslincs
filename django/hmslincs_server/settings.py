@@ -289,7 +289,7 @@ LOGGING = {
         '': {  # set a default handler
             'handlers': ['console'],
             'propagate': True,
-            'level': 'DEBUG',
+            'level': 'INFO',
         },
     }
 }
