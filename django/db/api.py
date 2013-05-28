@@ -14,7 +14,7 @@ except DatabaseError, e:
 
 from db.DjangoTables2Serializer import DjangoTables2Serializer, \
     get_visible_columns
-from db.models import SmallMolecule, DataSet, Cell, Protein, Library, DataRecord, \
+from db.models import SmallMolecule, SmallMoleculeBatch, DataSet, Cell, Protein, Library, DataRecord, \
     DataColumn, FieldInformation, get_fieldinformation, get_listing, \
     get_detail_schema, get_detail, get_detail_bundle, get_fieldinformation, get_schema_fieldinformation
 from django.conf.urls.defaults import url
@@ -25,6 +25,7 @@ from tastypie.authorization import Authorization
 from tastypie.bundle import Bundle
 from tastypie.resources import ModelResource, Resource
 from tastypie.serializers import Serializer
+from tastypie import fields
 import StringIO
 import csv
 import json
@@ -35,9 +36,9 @@ logger = logging.getLogger(__name__)
 
 
 class SmallMoleculeResource(ModelResource):
+#    batches = fields.ToManyField('db.api.SmallMoleculeBatchResource', attribute='batches', related_name='batches')
+       
     class Meta:
-        # TODO: authorization
-        # TODO: it would be good to feed these from the view/tables2 code; or vice versa
         queryset = SmallMolecule.objects.all()
         # to override: resource_name = 'sm'
         excludes = ['column']
@@ -48,6 +49,11 @@ class SmallMoleculeResource(ModelResource):
     def dehydrate(self, bundle):
         _filter = lambda field_information: not bundle.obj.is_restricted or field_information.is_unrestricted # or is_authorized
         bundle.data = get_detail_bundle(bundle.obj, ['smallmolecule',''], _filter=_filter)
+        
+        smbs = SmallMoleculeBatch.objects.filter(smallmolecule=bundle.obj)
+        bundle.data['batches'] = []
+        for smb in smbs:
+            bundle.data['batches'].append(get_detail_bundle(smb, ['smallmoleculebatch',''], _filter=_filter))
         return bundle
 
     def build_schema(self):
@@ -63,10 +69,49 @@ class SmallMoleculeResource(ModelResource):
     def prepend_urls(self):
 
         return [
-            url(r"^(?P<resource_name>%s)/(?P<facility_id>\d+)\-(?P<salt_id>\d+)/$" % self._meta.resource_name, self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
+            url(r"^(?P<resource_name>%s)/(?P<facility_id>\d+)\-(?P<salt_id>\d+)/$" % self._meta.resource_name, 
+                self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
         ]
 
-
+# TODO: fix this after upgrading to Tastypie >= 0.9.14 (latest) - it should work but it doesn't find the smallMolecule resource
+#class SmallMoleculeBatchResource(ModelResource):
+##    smallMolecule  = fields.ForeignKey(SmallMolecule, 'smallMolecule')
+##    smallMolecule = fields.ToOneField(SmallMoleculeResource, 'smallMolecule')
+#
+#    smallMolecule = fields.ToOneField('api.SmallMoleculeResource', attribute = 'smallMolecule', related_name='smallMolecule', full=True) #, null=True)
+#    class Meta:
+#        resourceName = "batch"
+#        # TODO: authorization
+#        # TODO: it would be good to feed these from the view/tables2 code; or vice versa
+#        queryset = SmallMoleculeBatch.objects.all()
+#        # to override: resource_name = 'sm'
+#        excludes = []
+#        allowed_methods = ['get']
+#
+##        authentication = MultiAuthentication(BasicAuthentication(), SessionAuthentication())
+#        
+#    def dehydrate(self, bundle):
+#        _filter = lambda field_information: not bundle.obj.is_restricted or field_information.is_unrestricted # or is_authorized
+#        bundle.data = get_detail_bundle(bundle.obj, ['smallmoleculebatch',''], _filter=_filter)
+#        return bundle
+#
+#    def build_schema(self):
+#        schema = super(SmallMoleculeBatchResource,self).build_schema()
+#        schema['fields'] = get_detail_schema(SmallMoleculeBatch(),['smallmoleculebatch'])
+#        return schema 
+#    
+#    def override_urls(self):
+#        """ Note, will be deprecated in >0.9.12; delegate to new method, prepend_urls
+#        """
+#        return self.prepend_urls();
+#    
+#    def prepend_urls(self):
+#
+#        return [
+#            url(r"^(?P<resource_name>%s)/(?P<smallmolecule_id>\d+)\-(?P<facility_batch_id>\d+)/$" % 
+#                self._meta.resource_name, self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
+#        ]
+        
 
 class CellResource(ModelResource):
     class Meta:
@@ -209,7 +254,7 @@ class DataSetResource(ModelResource):
         fields['datapointFile'] = get_schema_fieldinformation('datapoint_file','')
         fields['safVersion'] = get_schema_fieldinformation('saf_version','')
         fields['screeningFacility'] = get_schema_fieldinformation('screening_facility','')
-        schema['fields'] = OrderedDict(sorted(fields, key=lambda x: x[0])) # sort alpha, todo sort on fi.order
+        schema['fields'] = OrderedDict(sorted(fields.items(), key=lambda x: x[0])) # sort alpha, todo sort on fi.order
         
         ds_fieldinformation = DataSetDataResource.get_datasetdata_column_fieldinformation()
         ds_fieldinformation.append(('datapoint_value',get_fieldinformation('datapoint_value',[''])) )
@@ -227,7 +272,7 @@ class DataSetResource(ModelResource):
                 meta_fi = item[1]['fieldinformation']
                 field_schema_info[meta_fi.get_camel_case_dwg_name()] = getattr(fi,meta_fi_attr)
             fields[fi.get_camel_case_dwg_name()]= field_schema_info
-        schema['datasetDataFile'] = OrderedDict(sorted(fields, key=lambda x: x[0])) # sort alpha, todo sort on fi.order
+        schema['datasetDataFile'] = OrderedDict(sorted(fields.items(), key=lambda x: x[0])) # sort alpha, todo sort on fi.order
 
         dc_fieldinformation = FieldInformation.objects.all().filter(table='datacolumn', show_in_detail=True)
         datapoint_fields = {}
@@ -238,7 +283,7 @@ class DataSetResource(ModelResource):
                 meta_fi = item[1]['fieldinformation']
                 field_schema_info[meta_fi.get_camel_case_dwg_name()] = getattr(fi,meta_fi_attr)
             datapoint_fields[fi.get_camel_case_dwg_name()]= field_schema_info
-        schema['datapointInformation'] = OrderedDict(sorted(datapoint_fields, key=lambda x: x[0])) # sort alpha, todo sort on fi.order
+        schema['datapointInformation'] = OrderedDict(sorted(datapoint_fields.items(), key=lambda x: x[0])) # sort alpha, todo sort on fi.order
         
         return schema 
     
