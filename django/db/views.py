@@ -779,8 +779,6 @@ class DataSetResultTable(PagedTable):
     Override of the tables.Table - columns are defined manually to conform to the DataSetManager query fields; 
     fields are added as Table "base_columns" in the __init__ method.
     # TODO: the cursor is converted to a list of dicts, all in memory; implement pagination
-    # TODO: Augment each column/verbose_name with column info for each of the dataset fields, 
-    just like set_table_column_info does with the fieldinformation class 
     """
     defined_base_columns = []
     id = tables.Column(visible=False)
@@ -862,6 +860,7 @@ class DataSetResultTable(PagedTable):
             else:
                 #logger.debug(str(('omero_image column template', TEMPLATE % ('omero_image_id','omero_image_id'))))
                 self.base_columns[col] = tables.TemplateColumn(OMERO_IMAGE_TEMPLATE % (col,col), verbose_name=display_name)
+            self.base_columns[col].attrs['th'] = { 'title':dc.description }
 
                 
         # Note: since every instance reuses the base_columns, each time the visibility must be set.
@@ -1119,12 +1118,16 @@ class DataSetManager():
          
     def cells_for_dataset(self, dataset_id):
         cursor = connection.cursor()
-        sql = 'SELECT cell.* FROM db_cell cell WHERE cell.id in (SELECT distinct(cell_id) FROM db_datarecord dr WHERE dr.dataset_id=%s) order by cell.name'
+        sql = ( ' SELECT cell.* '
+                ' FROM db_cell cell '
+                ' WHERE cell.id in (SELECT distinct(cell_id) FROM db_datarecord dr WHERE dr.dataset_id=%s) '
+                ' OR cell.id in (SELECT distinct(cell_id) FROM db_datacolumn dc WHERE dc.dataset_id=%s) '
+                ' order by cell.name' )
         # TODO: like this: SELECT * FROM TABLE, (SELECT COLUMN FROM TABLE) as dummytable WHERE dummytable.COLUMN = TABLE.COLUMN;
-        cursor.execute(sql, [dataset_id])
+        cursor.execute(sql, [dataset_id, dataset_id])
         return dictfetchall(cursor)
     
-# TODO: this usage of the django ORM is not performant - is there and indexing problem; or can we mimick the sql version above?   
+# Note: this usage of the django ORM is not performant - is there and indexing problem; or can we mimick the sql version above?   
 #    def cells_for_dataset(self,dataset_id):
 #        queryset = Cell.objects.filter(datarecord__dataset__id=dataset_id).distinct() 
 #        # Note: restriction not needed as this will only show in the limited view of the small molecule table
@@ -1133,12 +1136,17 @@ class DataSetManager():
     
     def proteins_for_dataset(self,dataset_id):
         cursor = connection.cursor()
-        sql = 'SELECT protein.* FROM db_protein protein WHERE protein.id in (SELECT distinct(protein_id) FROM db_datarecord dr WHERE dr.dataset_id=%s) order by protein.name'
-        cursor.execute(sql, [dataset_id])
+        sql = ( ' SELECT protein.* '
+                ' FROM db_protein protein '
+                ' WHERE protein.id in (SELECT distinct(protein_id) FROM db_datarecord dr WHERE dr.dataset_id=%s) '
+                ' OR protein.id in (SELECT distinct(protein_id) FROM db_datacolumn dc where dc.dataset_id=%s)'
+                ' order by protein.name' )
+
+        cursor.execute(sql, [dataset_id, dataset_id])
         return dictfetchall(cursor)
             
 
-# TODO: this usage of the django ORM is a bit more performant than the cell version above; still, going to stick with the non-ORM version for now    
+# Note: this usage of the django ORM is a bit more performant than the cell version above; still, going to stick with the non-ORM version for now    
 #    def proteins_for_dataset(self,dataset_id):
 #        queryset = Protein.objects.filter(datarecord__dataset__id=dataset_id).distinct() 
 #        # Note: restriction not needed as this will only show in the limited view of the small molecule table
@@ -1147,11 +1155,15 @@ class DataSetManager():
 
     def small_molecules_for_dataset(self,dataset_id):
         cursor = connection.cursor()
-        sql = 'SELECT *,' + facility_salt_id + ' as facility_salt, (lincs_id is null) as lincs_id_null, pubchem_cid is null as pubchem_cid_null FROM db_smallmolecule sm WHERE sm.id in (SELECT distinct(smallmolecule_id) FROM db_datarecord dr WHERE dr.dataset_id=%s) order by sm.facility_id'
+        sql = ( ' SELECT *,' + facility_salt_id + ' as facility_salt, '
+                ' (lincs_id is null) as lincs_id_null, pubchem_cid is null as pubchem_cid_null '
+                ' FROM db_smallmolecule sm '
+                ' WHERE sm.id in (SELECT distinct(smallmolecule_id) FROM db_datarecord dr WHERE dr.dataset_id=%s) '
+                ' order by sm.facility_id' )
         cursor.execute(sql, [dataset_id])
         return dictfetchall(cursor)
             
-# TODO: this usage of the django ORM is a bit more performant than the cell version above; still, going to stick with the non-ORM version for now    
+# Note: this usage of the django ORM is a bit more performant than the cell version above; still, going to stick with the non-ORM version for now    
 #    def small_molecules_for_dataset(self, dataset_id):
 #        queryset = SmallMolecule.objects.filter(datarecord__dataset__id=dataset_id).distinct() 
 #        # Note: restriction not needed as this will only show in the limited view of the small molecule table
@@ -1304,6 +1316,8 @@ class SmallMoleculeTable(PagedTable):
         set_table_column_info(self, ['smallmolecule','smallmoleculebatch',''],sequence_override)  
 
 class DataColumnTable(PagedTable):
+    protein = tables.LinkColumn("protein_detail", args=[A('protein.lincs_id')])
+    cell = tables.LinkColumn("cell_detail", args=[A('cell.facility_id')])
     
     class Meta:
         model = DataColumn

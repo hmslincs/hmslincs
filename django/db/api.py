@@ -338,7 +338,7 @@ class CursorSerializer(Serializer):
             logger.info(str(('report error', cursor)))
             raw_data.writelines(('error_message\n',cursor['error_message'],'\n'))
             return raw_data.getvalue() 
-
+        
         # no response header needed?
         #        response = HttpResponse(mimetype='text/csv')
         #        response['Content-Disposition'] = 'attachment; filename=%s.csv' % unicode('test.output').replace('.', '_')
@@ -548,17 +548,38 @@ class DataSetDataResource(Resource):
 
              
         sql = "select "
+        protein_pattern = re.compile(r'protein.(.*)')
+        cell_pattern = re.compile(r'cell.(.*)')
         meta_columns_to_fieldinformation = DataSetDataResource.get_datasetdata_column_fieldinformation()
         for i,(tablefield,fi) in enumerate(meta_columns_to_fieldinformation):
             if i!=0: 
                 sql += ', \n'
-            # TODO: this information is parsed when deserializing to create the "camel cased name"
-            sql += tablefield + ' as "' + fi.get_camel_case_dwg_name() +'"' 
+            # NOTE: Due to an updated requirement, proteins, cells may be linked to either datarecords, or datacolumns, 
+            # so the following ugliness ensues
+            m = protein_pattern.match(tablefield)
+            m2 = cell_pattern.match(tablefield)
+            if m:
+                sql += ( '(select p.' + m.group(1) + 
+                    ' from db_protein p where p.id in (datacolumn.protein_id,datarecord.protein_id))' + 
+                    ' as "' + fi.get_camel_case_dwg_name() +'"' ) 
+            elif m2:
+                sql += ( '(select c.' + m2.group(1) + 
+                    ' from db_cell c where c.id in (datacolumn.cell_id,datarecord.cell_id))' + 
+                    ' as "' + fi.get_camel_case_dwg_name() +'"' ) 
+            else:
+                # TODO: this information is parsed when deserializing to create the "camel cased name"
+                sql += tablefield + ' as "' + fi.get_camel_case_dwg_name() +'"' 
         datapoint_value_fi = get_fieldinformation('datapoint_value', [''])  
         sql += ', coalesce(dp.int_value::TEXT, dp.float_value::TEXT, dp.text_value) as "' + datapoint_value_fi.get_camel_case_dwg_name() +'"\n'
             
         sql += timepoint_column_string
         
+        # Note: older simple left join to proteins
+        #             left join db_protein protein on (datarecord.protein_id=protein.id)
+        # Also, cells:
+        #            left join db_cell cell on (datarecord.cell_id=cell.id)
+        # has been replaced to 
+        #            left join ( select datarecord.id as dr_id, * from db_protein p where p.id in (datarecord.protein_id,datacolumn.protein_id)) protein on(dr_id=datarecord.id)
         sql += """
             from db_dataset dataset 
             join db_datarecord datarecord on(datarecord.dataset_id=dataset.id) 
@@ -567,8 +588,6 @@ class DataSetDataResource(Resource):
             left join db_smallmoleculebatch smallmoleculebatch 
                 on(smallmoleculebatch.smallmolecule_id=smallmolecule.id 
                     and smallmoleculebatch.facility_batch_id=datarecord.batch_id)
-            left join db_cell cell on (datarecord.cell_id=cell.id)
-            left join db_protein protein on (datarecord.protein_id=protein.id)
             , db_datapoint dp 
             where dp.datarecord_id=datarecord.id and dp.datacolumn_id=datacolumn.id 
             and dataset.id = %s 

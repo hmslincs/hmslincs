@@ -24,6 +24,7 @@ del _sg, _params
 
 logger = logging.getLogger(__name__)
 
+
 def read_metadata(path):
     """
     Read in the DataSets, Datacolumns, and Data sheets.  In the Data sheet, rows are DataRecords, and columns are DataPoints
@@ -95,6 +96,8 @@ def readDataColumns(path):
     sheetname = 'Data Columns'
     dataColumnSheet = iu.readtable([path, sheetname])
 
+    # Lookup all of the field types of the Datacolumn table.  
+    # These will be used to validate input type by converting on read
     _fields = util.get_fields(DataColumn)
     _typelookup = dict((f.name, iu.totype(f)) for f in _fields)
     
@@ -110,11 +113,16 @@ def readDataColumns(path):
               'Replicate Number':'replicate',
               'Unit':'unit', 
               'Assay readout type':'readout_type',
-              'Comments':'comments'}
+              'Comments':'comments',
+              'Protein HMS LINCS ID': 'protein', 
+              'Cell HMS LINCS ID': 'cell'}
 
     # create an array of dict's, each dict defines a DataColumn    
     dataColumnDefinitions = []
-    # first put the label row in (it contains the worksheet column, and its unique)
+    #Note we also allow a list of pro
+    dataset_wide_protein_ids = []
+    dataset_wide_cell_ids = []
+    # first put the label row in (it contains the worksheet column, and it is unique)
     for v in dataColumnSheet.labels[1:]:
         dataColumnDefinitions.append({labels['Worksheet Column']:v})
     # now, for each row, create the appropriate dictionary entry in the dataColumnDefinitions
@@ -122,13 +130,29 @@ def readDataColumns(path):
         rowAsUnicode = util.make_row(row)
         keyRead = rowAsUnicode[0]
         for i,cellText in enumerate(rowAsUnicode[1:]):
-            for key,fieldName in labels.items():
-                if re.match(key,keyRead,re.M|re.I): # if the row is one of the DataColumn fields, then add it to the dict
-                    dataColumnDefinitions[i][fieldName] = util.convertdata(cellText,_typelookup.get(fieldName, None)) # Note: convert the data to the model field type
-                else:
-                    logger.debug(str(( '"Data Column definition not used: ', cellText)) ) 
-                    pass
-    logger.debug(str(("definitions: ", dataColumnDefinitions)) )
+            try:
+                for key,fieldName in labels.items():
+                    if re.match(key,keyRead,re.M|re.I): # if the row is one of the DataColumn fields, then add it to the dict
+                        if re.match('Protein HMS LINCS ID', keyRead, re.M|re.I):
+                            facility_id = util.convertdata(cellText, int);
+                            if facility_id:
+                                dataColumnDefinitions[i][fieldName] = Protein.objects.get(lincs_id=facility_id) 
+                        elif re.match('Cell HMS LINCS ID', keyRead, re.M|re.I):
+                            facility_id = util.convertdata(cellText, int);
+                            if facility_id:
+                                dataColumnDefinitions[i][fieldName] = Cell.objects.get(facility_id=facility_id) 
+                        else:
+                            # Use the type of the field from the fieldinformation table 
+                            # to read in the data for each DC field
+                            dataColumnDefinitions[i][fieldName] = util.convertdata(cellText,_typelookup.get(fieldName, None)) 
+                    
+                    else:
+                        logger.debug(str(( '"Data Column definition not used: ', cellText)) ) 
+                        pass
+            except Exception, e:
+                logger.error(str(('Exception reading data for cell', i, cellText, e)))
+                raise e
+        logger.debug(str(("definitions: ", dataColumnDefinitions)) )
     
     return dataColumnDefinitions
 

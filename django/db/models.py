@@ -519,6 +519,10 @@ class DataColumn(models.Model):
     comments                = _TEXT(**_NULLOKSTR)
     display_order           = _INTEGER(null=True) # an example of why fieldinformation may need to be combined with datacolumn
 
+    #Note we also allow cells and proteins to be associated on a column granularity
+    cell                    = models.ForeignKey('Cell', null=True)
+    protein                 = models.ForeignKey('Protein', null=True)
+
     def __unicode__(self):
         return unicode(str((self.dataset,self.name,self.data_type, self.unit)))
 
