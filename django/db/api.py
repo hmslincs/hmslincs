@@ -548,7 +548,9 @@ class DataSetDataResource(Resource):
 
              
         sql = "select "
-        protein_pattern = re.compile(r'protein.(.*)')
+        # patterns to match the protein and cell fields, which will be handled differently below,
+        # because they can be linked through the DataRecord or the DataColumn
+        protein_pattern = re.compile(r'protein.(.*)') 
         cell_pattern = re.compile(r'cell.(.*)')
         meta_columns_to_fieldinformation = DataSetDataResource.get_datasetdata_column_fieldinformation()
         for i,(tablefield,fi) in enumerate(meta_columns_to_fieldinformation):
@@ -616,7 +618,7 @@ class DataSetDataResource(Resource):
         meta_field_info = get_listing(FieldInformation(),['fieldinformation'])
     
         fields = {}
-        for field,fi in ds_fieldinformation:
+        for __,fi in ds_fieldinformation:
             field_schema_info = {}
             for item in meta_field_info.items():
                 meta_fi_attr = item[0]
@@ -624,10 +626,8 @@ class DataSetDataResource(Resource):
                 field_schema_info[meta_fi.get_camel_case_dwg_name()] = getattr(fi,meta_fi_attr)
             fields[fi.get_camel_case_dwg_name()]= field_schema_info
         schema['fields'] = OrderedDict(sorted(fields.items(), key=lambda x: x[0])) # TODO, use the fieldinformation order
-
         
         return schema 
-
     
     def obj_get_list(self, request=None, **kwargs):
         logger.info('obj_get_list')

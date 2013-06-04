@@ -2,10 +2,10 @@
 {% block datasetContent %}
 {% if table %}
 	<h2>{{ heading }}</h2>
+    {% include "db/searchExportBox.html" %}
 	{% load render_table from django_tables2 %}
 	{% render_table table %}
 {% else %}
   <h2>No {{ heading }} Studied</h2>
 {% endif %}
 {% endblock %}
-	

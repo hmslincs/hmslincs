@@ -13,6 +13,7 @@ from django.core.servers.basehttp import FileWrapper
 from django.core.urlresolvers import reverse
 from django.db import connection, models
 from django.forms import ModelForm
+from django.forms.models import model_to_dict
 from django.http import Http404, HttpResponseRedirect, HttpResponse
 from django.shortcuts import render
 from django.utils import timezone
@@ -162,10 +163,10 @@ def proteinIndex(request):
             order_by=('lincs_id',))
     
     table = ProteinTable(queryset)
-    RequestConfig(request, paginate={"per_page": 25}).configure(table)
     outputType = request.GET.get('output_type','')
     if(outputType != ''):
         return send_to_file(outputType, 'proteins', table, queryset )
+    RequestConfig(request, paginate={"per_page": 25}).configure(table)
     return render_list_index(request, table,search,'Protein','Proteins')
     
 def proteinDetail(request, lincs_id):
@@ -419,6 +420,16 @@ def datasetDetailMain(request, facility_id):
         return HttpResponse('Unauthorized', status=401)
     
 def datasetDetailCells(request, facility_id):
+    outputType = request.GET.get('output_type','')
+    if(outputType != ''):
+        try:
+            dataset = DataSet.objects.get(facility_id=facility_id)
+            if(dataset.is_restricted and not request.user.is_authenticated()):
+                raise Http401
+            manager = DataSetManager(dataset)
+            return send_to_file(outputType, 'cells_for_'+ str(facility_id) , CellTable(manager.cell_queryset), manager.cell_queryset )
+        except DataSet.DoesNotExist:
+            raise Http404
     try:
         details = datasetDetail(request,facility_id, 'cells')
         details.setdefault('heading', 'Cells Studied')
@@ -427,6 +438,16 @@ def datasetDetailCells(request, facility_id):
         return HttpResponse('Unauthorized', status=401)
     
 def datasetDetailProteins(request, facility_id):
+    outputType = request.GET.get('output_type','')
+    if(outputType != ''):
+        try:
+            dataset = DataSet.objects.get(facility_id=facility_id)
+            if(dataset.is_restricted and not request.user.is_authenticated()):
+                raise Http401
+            manager = DataSetManager(dataset)
+            return send_to_file(outputType, 'proteins_for_'+ str(facility_id) , ProteinTable(manager.protein_queryset), manager.protein_queryset )
+        except DataSet.DoesNotExist:
+            raise Http404
     try:
         details = datasetDetail(request,facility_id,'proteins')
         details.setdefault('heading', 'Proteins Studied')
@@ -435,6 +456,16 @@ def datasetDetailProteins(request, facility_id):
         return HttpResponse('Unauthorized', status=401)
     
 def datasetDetailSmallMolecules(request, facility_id):
+    outputType = request.GET.get('output_type','')
+    if(outputType != ''):
+        try:
+            dataset = DataSet.objects.get(facility_id=facility_id)
+            if(dataset.is_restricted and not request.user.is_authenticated()):
+                raise Http401
+            manager = DataSetManager(dataset)
+            return send_to_file(outputType, 'small_molecules_for_'+ str(facility_id) , SmallMoleculeTable(manager.small_molecule_queryset), manager.small_molecule_queryset )
+        except DataSet.DoesNotExist:
+            raise Http404
     try:
         details = datasetDetail(request,facility_id,'small_molecules')
         details.setdefault('heading', 'Small Molecules Studied')
@@ -443,6 +474,45 @@ def datasetDetailSmallMolecules(request, facility_id):
         return HttpResponse('Unauthorized', status=401)
     
 def datasetDetailDataColumns(request, facility_id):
+    outputType = request.GET.get('output_type','')
+    if(outputType != ''):
+        try:
+            dataset = DataSet.objects.get(facility_id=facility_id)
+            if(dataset.is_restricted and not request.user.is_authenticated()):
+                raise Http401
+            queryset = DataColumn.objects.all().filter(dataset_id=dataset.id).order_by('display_order')
+            
+            # because the datacolumn queryset contains references to full objects, and xlrt doesn't know what to do with them,
+            # we have to convert all objects to values 
+            # also, we're stuffing in some added information that isn't shown in the table view (cell id, protein id) 
+            array_of_dicts = []
+            has_cells = False;
+            has_proteins = False;
+            for dc in queryset:
+                row = model_to_dict(dc)
+                if dc.cell: 
+                    row['cell'] = dc.cell.name;
+                    row['cell_facility_id'] = dc.cell.facility_id
+                    has_cells=True
+                else: row['cell_facility_id'] = None
+                if dc.protein: 
+                    row['protein'] = dc.protein.name;
+                    row['protein_lincs_id'] = dc.protein.lincs_id
+                    has_proteins = True
+                else:
+                    row['protein_lincs_id'] = None
+                array_of_dicts.append(row)
+                logger.info(str(('row', row)))
+            
+            extra_columns = []
+            if has_cells:                     
+                extra_columns.append(('cell_facility_id', 'cell_facility_id'))
+            if has_proteins:
+                extra_columns.append(('protein_lincs_id', 'protein_lincs_id'))
+            return send_to_file(outputType, 'datacolumns_for_'+ str(facility_id),
+                                DataColumnTable(queryset), array_of_dicts, extra_columns=extra_columns )
+        except DataSet.DoesNotExist:
+            raise Http404
     try:
         details = datasetDetail(request,facility_id,'datacolumns')
         details.setdefault('heading', 'Data Columns')
@@ -493,7 +563,7 @@ def datasetDetail(request, facility_id, sub_page):
     form = PaginationForm(request.GET)
     details['items_per_page_form'] = form
     if(form.is_valid()):
-        if(form.cleaned_data['items_per_page']): # TODO: is there another way to determine if the form has been used yet?
+        if(form.cleaned_data['items_per_page']): 
             items_per_page = int(form.cleaned_data['items_per_page'])
     
     if (sub_page == 'results'):
@@ -891,7 +961,7 @@ class DataSetResultTable(PagedTable):
 
 
 # TODO: this class has grown - needs refactoring to allow ability to filter in a less clumsy way
-# (who are we kidding, this is raw sql, after all).
+# (who are we kidding, this is raw sql, after all!).
 class DataSetManager():
     
     def __init__(self,dataset,is_authenticated=False):
@@ -899,8 +969,10 @@ class DataSetManager():
         self.dataset_id = dataset.id
         
         # grab these now and cache them
-        self.cell_queryset = self.cells_for_dataset(self.dataset_id)  # TODO: use ORM
+        self.cell_queryset = self.cells_for_dataset(self.dataset_id) 
+        self.has_cells_for_datarecords = self.has_cells_for_datarecords(self.dataset_id)
         self.protein_queryset = self.proteins_for_dataset(self.dataset_id)
+        self.has_proteins_for_datarecords = self.has_proteins_for_datarecords(self.dataset_id)
         self.small_molecule_queryset = self.small_molecules_for_dataset(self.dataset_id)
                 
     class DatasetForm(ModelForm):
@@ -981,14 +1053,14 @@ class DataSetManager():
         self.dataset_info = self._get_query_info(whereClause,metaWhereClause, parameters)
         logger.debug(str(('search',search,'metaWhereClause',metaWhereClause,'parameters',self.dataset_info.parameters)))
         #sql_for_count = 'SELECT count(distinct id) from db_datarecord where dataset_id ='+ str(self.dataset_id)
-        queryset = PagedRawQuerySet(self.dataset_info.query_sql,self.dataset_info.count_query_sql, connection, 
-                                    parameters=self.dataset_info.parameters,order_by=['datarecord_id'], verbose_name_plural='records')
+        queryset = PagedRawQuerySet( self.dataset_info.query_sql, self.dataset_info.count_query_sql, connection, 
+                                    parameters=self.dataset_info.parameters, order_by=['datarecord_id'], verbose_name_plural='records')
         if(not self.has_plate_wells_defined(self.dataset_id)): column_exclusion_overrides.extend(['plate','well'])
         if(not self.has_control_type_defined(self.dataset_id)): column_exclusion_overrides.append('control_type')
         _table = DataSetResultTable(queryset,
                                   self.dataset_info.datacolumns, 
-                                  self.has_cells(), 
-                                  self.has_proteins(),
+                                  self.has_cells_for_datarecords, 
+                                  self.has_proteins_for_datarecords,
                                   column_exclusion_overrides) # TODO: again, all these flags are confusing
         setattr(_table.data,'verbose_name_plural','records')
         setattr(_table.data,'verbose_name','record')
@@ -1127,6 +1199,14 @@ class DataSetManager():
         # TODO: like this: SELECT * FROM TABLE, (SELECT COLUMN FROM TABLE) as dummytable WHERE dummytable.COLUMN = TABLE.COLUMN;
         cursor.execute(sql, [dataset_id, dataset_id])
         return dictfetchall(cursor)
+             
+    # Need a second distinction, because we'll only show the cell column if there are datarecord entries with cells
+    def has_cells_for_datarecords(self, dataset_id):
+        sql = ( 'SELECT count (distinct(cell_id)) FROM db_datarecord dr WHERE dr.dataset_id=%s')
+        cursor = connection.cursor()
+        cursor.execute(sql, [dataset_id])
+        rows = cursor.fetchone()[0]
+        return rows > 0
     
 # Note: this usage of the django ORM is not performant - is there and indexing problem; or can we mimick the sql version above?   
 #    def cells_for_dataset(self,dataset_id):
@@ -1146,6 +1226,13 @@ class DataSetManager():
         cursor.execute(sql, [dataset_id, dataset_id])
         return dictfetchall(cursor)
             
+    # Need a second distinction, because we'll only show the protein column if there are datarecord entries with proteins
+    def has_proteins_for_datarecords(self, dataset_id):
+        sql = ( 'SELECT count (distinct(protein_id)) FROM db_datarecord dr WHERE dr.dataset_id=%s')
+        cursor = connection.cursor()
+        cursor.execute(sql, [dataset_id])
+        rows = cursor.fetchone()[0]
+        return rows > 0
 
 # Note: this usage of the django ORM is a bit more performant than the cell version above; still, going to stick with the non-ORM version for now    
 #    def proteins_for_dataset(self,dataset_id):
@@ -1539,8 +1626,8 @@ def set_table_column_info(table,table_names, sequence_override=None):
     logger.debug(str(('excl',table.exclude)))
     logger.debug(str(('seq',table.sequence)))
         
-def dictfetchall(cursor): #TODO modify this to stream results properly
-    "Returns all rows from a cursor as a dict"
+def dictfetchall(cursor): 
+    "Returns all rows from a cursor as an array of dicts, using cursor columns as keys"
     desc = cursor.description
     return [
         dict(zip([col[0] for col in desc], row)) for row in cursor.fetchall()
@@ -1599,14 +1686,14 @@ def send_to_file1(outputType, name, ordered_datacolumns, cursor):
     """   
     logger.info(str(('send_to_file1', outputType, name, ordered_datacolumns)))
     col_key_name_map = get_cols_to_write(cursor, 
-                                         ['dataset','smallmolecule','datarecord','smallmoleculebatch','protein','cell',''],
+                                         ['dataset','smallmolecule','datarecord','smallmoleculebatch','protein','cell','datacolumn', ''],
                                          ordered_datacolumns)   
     if(outputType == '.csv'):
         return export_as_csv(name,col_key_name_map, cursor=cursor)
     elif(outputType == '.xls'):
         return export_as_xls(name, col_key_name_map, cursor=cursor)
 
-def send_to_file(outputType, name, table, queryset): 
+def send_to_file(outputType, name, table, queryset, extra_columns = []): 
     """
     Export the queryset to the file type pointed to by outputType.  Get the column header information from the django-tables2 table
     @param outputType '.csv','.xls'
@@ -1617,18 +1704,35 @@ def send_to_file(outputType, name, table, queryset):
     # ordered list (field,verbose_name)
     columns = map(lambda (x,y): (x, y.verbose_name), 
                   filter(lambda (x,y): x != 'rank' and x!= 'snippet' and y.visible, table.base_columns.items()))
+
+    # TODO: the following two step process looks a the table def, then at fieldinformation, 
+    # make this simpler by just looking at the fieldinformation
+    
+    # grab the columns from the table definition
     columnsOrdered = []
     for col in table._sequence:
         for (field,verbose_name) in columns:
             if(field==col):
                 columnsOrdered.append((field,verbose_name))
                 break
+    columnsOrdered.extend(extra_columns)
+    # use field information to clean up and remove unneeded columns
+    fieldinformation_tables = ['dataset','smallmolecule','datarecord','smallmoleculebatch','protein','cell','datacolumn', '']
+    columnsOrdered_filtered = []
+    for field,verbose_name in columnsOrdered:
+        try:
+            fi = FieldInformation.manager.get_column_fieldinformation_by_priority(field,fieldinformation_tables)
+            if(fi.show_in_detail):
+                columnsOrdered_filtered.append((field,fi.get_verbose_name()))
+        except (Exception) as e:
+            logger.warn(str(('no fieldinformation found for field:', field)))        
     # The type strings deliberately include a leading "." to make the URLs
     # trigger the analytics js code that tracks download events by extension.
+    logger.info(str(('columnsOrdered_filtered:',columnsOrdered_filtered)))
     if(outputType == '.csv'):
-        return export_as_csv(name,OrderedDict(columnsOrdered) , queryset=queryset)
+        return export_as_csv(name,OrderedDict(columnsOrdered_filtered) , queryset=queryset)
     elif(outputType == '.xls'):
-        return export_as_xls(name, OrderedDict(columnsOrdered), queryset=queryset)
+        return export_as_xls(name, OrderedDict(columnsOrdered_filtered), queryset=queryset)
 
 def get_cols_to_write(cursor, fieldinformation_tables=None, ordered_datacolumns=None):
     """
@@ -1647,7 +1751,6 @@ def get_cols_to_write(cursor, fieldinformation_tables=None, ordered_datacolumns=
             try:
                 fi = FieldInformation.manager.get_column_fieldinformation_by_priority(col.name,fieldinformation_tables)
 #                if(fi.show_in_detail):
-                    #cols_to_write.append(i)
                 header_row[i] = fi.get_verbose_name()
             except (Exception) as e:
                 logger.warn(str(('no fieldinformation found for field:', col.name)))
