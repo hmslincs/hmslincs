@@ -640,6 +640,10 @@ else
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/Screen20120_Fallahi-Sichani.xlsx
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
 	python src/import_dataset.py -f $DATADIR/Screen20121_Yale_A549.xlsx
 	check_errs $? "import dataset fails"
 	
