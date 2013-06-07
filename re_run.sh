@@ -639,9 +639,10 @@ else
 	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20119_HMSL10214_kinomescan.xlsx
 	check_errs $? "import dataset fails"
 	
-	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/Screen20120_Fallahi-Sichani.xlsx
-	check_errs $? "import dataset fails"
+	# removed, per CES request, 2013-06-07 - sde
+	#echo 'import screen results...'
+	#python src/import_dataset.py -f $DATADIR/Screen20120_Fallahi-Sichani.xlsx
+	#check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
 	python src/import_dataset.py -f $DATADIR/Screen20121_Yale_A549.xlsx
