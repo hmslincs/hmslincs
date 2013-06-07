@@ -38,6 +38,10 @@ h2 {
   font-weight: bold;
 }
 
+h2#dataset_h2 {
+    float: left;
+}
+
 #search {
   border-radius: 3px;
   border: solid 1px #E6941E;
