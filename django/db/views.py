@@ -239,6 +239,8 @@ def smallMoleculeIndex(request):
     return render_list_index(request, table,search,'Small molecule','Small molecules') #, **kwargs )    
     
 def smallMoleculeMolfile(request, facility_salt_id):
+    if(not request.user.is_authenticated()): 
+        return HttpResponse('Unauthorized', status=401)
     try:
         temp = facility_salt_id.split('-') # TODO: let urls.py grep the facility and the salt
         logger.debug(str(('find sm detail for', temp)))
