@@ -208,6 +208,7 @@ def smallMoleculeIndex(request):
         searchProcessed = format_search(search)
         criteria = "search_vector @@ to_tsquery(%s)"
         where = [criteria]
+        where.append("(not is_restricted or is_restricted is NULL)")
         
         # postgres fulltext search with rank and snippets
         logger.debug(str(("SmallMoleculeTable.snippet_def:",SmallMoleculeTable.snippet_def)))
@@ -223,7 +224,8 @@ def smallMoleculeIndex(request):
             )        
     else:
         where = []
-        #if(not request.user.is_authenticated()): where.append("(not is_restricted or is_restricted is NULL)")
+        #if(not request.user.is_authenticated()): 
+        where.append("(not is_restricted or is_restricted is NULL)")
         queryset = SmallMolecule.objects.extra(
             where=where,
             order_by=('facility_id','salt_id')) 
