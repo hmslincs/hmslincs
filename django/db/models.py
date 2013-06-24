@@ -254,13 +254,13 @@ class SmallMolecule(models.Model):
     pubchem_cid             = _CHAR(max_length=15, **_NULLOKSTR)
     chembl_id               = _CHAR(max_length=15, **_NULLOKSTR)
     chebi_id                = _CHAR(max_length=15, **_NULLOKSTR)
-    inchi                   = _TEXT(**_NULLOKSTR)
-    inchi_key               = _TEXT(**_NULLOKSTR)
-    smiles                  = _TEXT(**_NULLOKSTR)
+    _inchi                   = _TEXT( db_column='inchi', **_NULLOKSTR)
+    _inchi_key               = _TEXT(db_column='inchi_key', **_NULLOKSTR)
+    _smiles                  = _TEXT( db_column='smiles', **_NULLOKSTR)
     software                = _TEXT(**_NULLOKSTR)
     # Following fields not listed for the canonical information in the DWG, but per HMS policy will be - sde4
-    molecular_mass          = models.DecimalField(max_digits=8, decimal_places=2, null=True) # Note: FloatField results in a (postgres) double precision datatype - 8 bytes; approx 15 digits of decimal precision
-    molecular_formula       = _TEXT(**_NULLOKSTR)
+    _molecular_mass          = models.DecimalField(db_column='molecular_mass', max_digits=8, decimal_places=2, null=True) # Note: FloatField results in a (postgres) double precision datatype - 8 bytes; approx 15 digits of decimal precision
+    _molecular_formula       = _TEXT(db_column='molecular_formula', **_NULLOKSTR)
     # concentration          = _CHAR(max_length=35, **_NULLOKSTR)
     #plate                   = _INTEGER(null=True)
     #row                     = _CHAR(max_length=1, **_NULLOKSTR)
@@ -272,6 +272,36 @@ class SmallMolecule(models.Model):
         unique_together = ('facility_id', 'salt_id')    
     def __unicode__(self):
         return unicode(str((self.facility_id, self.salt_id)))
+    
+    def get_molecular_formula(self, is_authenticated=False):
+        if(not self.is_restricted or is_authenticated):
+            return self._molecular_formula
+        else:
+            return 'restricted'
+        
+    def get_molecular_mass(self, is_authenticated=False):
+        if(not self.is_restricted or is_authenticated):
+            return self._molecular_mass
+        else:
+            return 'restricted'
+        
+    def get_inchi(self, is_authenticated=False):
+        if(not self.is_restricted or is_authenticated):
+            return self._inchi
+        else:
+            return 'restricted'
+
+    def get_inchi_key(self, is_authenticated=False):
+        if(not self.is_restricted or is_authenticated):
+            return self._inchi_key
+        else:
+            return 'restricted'
+        
+    def get_smiles(self, is_authenticated=False):
+        if(not self.is_restricted or is_authenticated):
+            return self._smiles
+        else:
+            return 'restricted'
     
     def _get_facility_salt(self):
         "Returns the 'facilty_id-salt_id'"

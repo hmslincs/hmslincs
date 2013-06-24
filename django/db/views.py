@@ -26,6 +26,7 @@ from hms.pubchem import pubchem_database_cache_service
 from math import log, pow
 import csv
 import django_tables2 as tables
+import inspect
 import json
 import logging
 import os
@@ -208,7 +209,7 @@ def smallMoleculeIndex(request):
         searchProcessed = format_search(search)
         criteria = "search_vector @@ to_tsquery(%s)"
         where = [criteria]
-        where.append("(not is_restricted or is_restricted is NULL)")
+#        where.append("(not is_restricted or is_restricted is NULL)")
         
         # postgres fulltext search with rank and snippets
         logger.debug(str(("SmallMoleculeTable.snippet_def:",SmallMoleculeTable.snippet_def)))
@@ -225,7 +226,7 @@ def smallMoleculeIndex(request):
     else:
         where = []
         #if(not request.user.is_authenticated()): 
-        where.append("(not is_restricted or is_restricted is NULL)")
+#        where.append("(not is_restricted or is_restricted is NULL)")
         queryset = SmallMolecule.objects.extra(
             where=where,
             order_by=('facility_id','salt_id')) 
@@ -234,7 +235,7 @@ def smallMoleculeIndex(request):
 
     outputType = request.GET.get('output_type','')
     if outputType:
-        return send_to_file(outputType, 'small_molecule', table, queryset )
+        return send_to_file(outputType, 'small_molecule', table, queryset, is_authenticated=request.user.is_authenticated() )
     
         if(len(queryset) == 1 ):
             return redirect_to_small_molecule_detail(queryset[0])
@@ -1380,11 +1381,21 @@ class SmallMoleculeBatchTable(PagedTable):
         sequence_override = ['facility_salt_batch']
         set_table_column_info(self, ['smallmolecule','smallmoleculebatch',''],sequence_override)  
 
+#class Restricted_Column(tables.Column):
+#    def render(self, record, value):
+#        logger.info(str(('record', record, value)))
+#        if(record.is_restricted):
+#            return 'restricted'
+#        else:
+#            return value
+        
+
 class SmallMoleculeTable(PagedTable):
     facility_salt = tables.LinkColumn("sm_detail", args=[A('facility_salt')], order_by=['facility_id','salt_id']) 
     facility_salt.attrs['td'] = {'nowrap': 'nowrap'}
     rank = tables.Column()
     snippet = tables.Column()
+#    smiles = Restricted_Column()
     
     # django-tables2 trick to get these columns to sort with NULLS LAST in Postgres; 
     # note this requires the use of an "extra" clause in the query definition passed to this table (see the _init_ method below)
@@ -1679,7 +1690,7 @@ def download_attached_file(request, id):
         logger.error(str(('could not find attached file object for id', id, e)))
         raise e
 
-def send_to_file1(outputType, name, ordered_datacolumns, cursor):
+def send_to_file1(outputType, name, ordered_datacolumns, cursor, is_authenticated=False):
     """
     Export the datasetdata cursor to the file type pointed to by outputType
     @param ordered_datacolumns the datacolumns for the datasetdata, in order, so that they can be indexed by column number
@@ -1695,9 +1706,9 @@ def send_to_file1(outputType, name, ordered_datacolumns, cursor):
     if(outputType == '.csv'):
         return export_as_csv(name,col_key_name_map, cursor=cursor)
     elif(outputType == '.xls'):
-        return export_as_xls(name, col_key_name_map, cursor=cursor)
+        return export_as_xls(name, col_key_name_map, cursor=cursor, is_authenticated=is_authenticated)
 
-def send_to_file(outputType, name, table, queryset, extra_columns = []): 
+def send_to_file(outputType, name, table, queryset, extra_columns = [], is_authenticated=False): 
     """
     Export the queryset to the file type pointed to by outputType.  Get the column header information from the django-tables2 table
     @param outputType '.csv','.xls'
@@ -1729,14 +1740,27 @@ def send_to_file(outputType, name, table, queryset, extra_columns = []):
             if(fi.show_in_detail):
                 columnsOrdered_filtered.append((field,fi.get_verbose_name()))
         except (Exception) as e:
-            logger.warn(str(('no fieldinformation found for field:', field)))        
+            try:
+                # _ is the marker for private fields - only accessible through logic defined on the ORM object
+                # i.e. if authorized
+                if(field[0] == '_'):
+                    temp = field[1:]
+                    field = 'get_' + temp
+                    fi = FieldInformation.manager.get_column_fieldinformation_by_priority(temp,fieldinformation_tables)
+                    columnsOrdered_filtered.append((field,fi.get_verbose_name()))
+                    logger.info(str(('found', field, fi)))
+                else:
+                    logger.warn(str(('no fieldinformation found for field:', field)))        
+                
+            except (Exception) as e:
+                logger.warn(str(('no fieldinformation found for field:', field)))        
     # The type strings deliberately include a leading "." to make the URLs
     # trigger the analytics js code that tracks download events by extension.
     logger.info(str(('columnsOrdered_filtered:',columnsOrdered_filtered)))
     if(outputType == '.csv'):
         return export_as_csv(name,OrderedDict(columnsOrdered_filtered) , queryset=queryset)
     elif(outputType == '.xls'):
-        return export_as_xls(name, OrderedDict(columnsOrdered_filtered), queryset=queryset)
+        return export_as_xls(name, OrderedDict(columnsOrdered_filtered), queryset=queryset, is_authenticated=is_authenticated)
 
 def get_cols_to_write(cursor, fieldinformation_tables=None, ordered_datacolumns=None):
     """
@@ -1795,7 +1819,7 @@ def export_as_csv(name,col_key_name_map, cursor=None, queryset=None):
             row += 1
     return response
 
-def export_as_xls(name,col_key_name_map, cursor=None, queryset=None):
+def export_as_xls(name,col_key_name_map, cursor=None, queryset=None, is_authenticated=False):
     """
     Generic xls export admin action.
     """
@@ -1829,7 +1853,11 @@ def export_as_xls(name,col_key_name_map, cursor=None, queryset=None):
                 vals = [getattr(obj, field) for field in col_key_name_map.keys()]
             
             for i,column in enumerate(vals):
-                sheet.write(row+1, i, column )
+                # if the method is a column, we are referencing the method wrapper for restricted columns
+                if(inspect.ismethod(column)):
+                    sheet.write(row+1,i, column(is_authenticated=is_authenticated) )
+                else:
+                    sheet.write(row+1, i, column )
             if(row % debug_interval == 0):
                 logger.info("row: " + str(row))
             row += 1    
