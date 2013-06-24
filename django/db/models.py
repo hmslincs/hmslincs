@@ -241,8 +241,10 @@ class FieldInformation(models.Model):
         field_name = field_name[0].lower() + field_name[1:];
         #        logger.info(str(('created camel case name', field_name, 'for', self)))
         return field_name
-     
+
+
 class SmallMolecule(models.Model):
+    
     nominal_target          = models.ForeignKey('Protein', null=True)
     facility_id             = _CHAR(max_length=_FACILITY_ID_LENGTH, **_NOTNULLSTR)
     salt_id                 = _CHAR(max_length=_SALT_ID_LENGTH, **_NOTNULLSTR)
@@ -254,7 +256,7 @@ class SmallMolecule(models.Model):
     pubchem_cid             = _CHAR(max_length=15, **_NULLOKSTR)
     chembl_id               = _CHAR(max_length=15, **_NULLOKSTR)
     chebi_id                = _CHAR(max_length=15, **_NULLOKSTR)
-    _inchi                   = _TEXT( db_column='inchi', **_NULLOKSTR)
+    _inchi                   = _TEXT(db_column='inchi', **_NULLOKSTR)
     _inchi_key               = _TEXT(db_column='inchi_key', **_NULLOKSTR)
     _smiles                  = _TEXT( db_column='smiles', **_NULLOKSTR)
     software                = _TEXT(**_NULLOKSTR)
@@ -273,6 +275,41 @@ class SmallMolecule(models.Model):
     def __unicode__(self):
         return unicode(str((self.facility_id, self.salt_id)))
     
+#    @property
+#    def molecular_formula(self, is_authenticated=False):
+#        if(not self.is_restricted or is_authenticated):
+#            return self._molecular_formula
+#        else:
+#            return 'restricted'
+#        
+#    @property
+#    def molecular_mass(self, is_authenticated=False):
+#        if(not self.is_restricted or is_authenticated):
+#            return self._molecular_mass
+#        else:
+#            return 'restricted'
+#        
+#    @property
+#    def inchi(self, is_authenticated=False):
+#        if(not self.is_restricted or is_authenticated):
+#            return self._inchi
+#        else:
+#            return 'restricted'
+#
+#    @property
+#    def inchi_key(self, is_authenticated=False):
+#        if(not self.is_restricted or is_authenticated):
+#            return self._inchi_key
+#        else:
+#            return 'restricted'
+#        
+#    @property
+#    def smiles(self, is_authenticated=False):
+#        if(not self.is_restricted or is_authenticated):
+#            return self._smiles
+#        else:
+#            return 'restricted'
+      
     def get_molecular_formula(self, is_authenticated=False):
         if(not self.is_restricted or is_authenticated):
             return self._molecular_formula
@@ -643,7 +680,7 @@ def get_listing(model_object, search_tables):
     """
     return get_fielddata(model_object, search_tables, lambda x: x.show_in_list )
 
-def get_detail(model_object, search_tables, _filter=None ):
+def get_detail(model_object, search_tables, _filter=None, extra_properties=[] ):
     """
     returns an ordered dict of field_name->{value:value,fieldinformation:}
     to be used to display the item in the UI Detail views
@@ -652,18 +689,27 @@ def get_detail(model_object, search_tables, _filter=None ):
         field_information_filter = lambda x: x.show_in_detail and _filter(x)
     else:
         field_information_filter = lambda x: x.show_in_detail
-    return get_fielddata(model_object, search_tables, field_information_filter=field_information_filter )
+    return get_fielddata(model_object, search_tables, field_information_filter=field_information_filter, extra_properties=extra_properties )
 
-def get_fielddata(model_object, search_tables, field_information_filter=None):
+def get_fielddata(model_object, search_tables, field_information_filter=None, extra_properties=[]):
     """
     returns an ordered dict of field_name->{value:value,fieldinformation:fi}
     to be used to display the item in the UI Detail views
+    extra_properties are non-standard getters that wouldn't normally be returned (restricted fields)
     """
     #dump(self.dataset)
     #data=model_to_dict(self.dataset)
     property_dict = get_properties(model_object)
+    logger.info(str(('extra', extra_properties)))
+    if len(extra_properties) > 0:
+        for prop in extra_properties:
+            property_dict[prop] = getattr(model_object, prop)
+            logger.info(str(('got extra prop',prop,getattr(model_object, prop) )))
+            
+    logger.info(str(('property_dict', property_dict)))
     ui_dict = { }
     for field,value in property_dict.iteritems():
+        logger.info(str(('get_field_info', field)))
         details = {}
         try:
             fi = FieldInformation.manager.get_column_fieldinformation_by_priority(field,search_tables)

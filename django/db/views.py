@@ -204,7 +204,7 @@ def proteinDetail(request, lincs_id):
 def smallMoleculeIndex(request):
     search = request.GET.get('search','')
     logger.debug(str(("is_authenticated:", request.user.is_authenticated(), 'search: ', search))) #, 'items_per_page', items_per_page)))
-
+    
     if(search != ''):
         searchProcessed = format_search(search)
         criteria = "search_vector @@ to_tsquery(%s)"
@@ -269,9 +269,16 @@ def smallMoleculeDetail(request, facility_salt_id): # TODO: let urls.py grep the
         smb = None
         if(len(temp)>2):
             smb = SmallMoleculeBatch.objects.get(smallmolecule=sm,facility_batch_id=temp[2]) 
-        
-    
-        details = {'object': get_detail(sm, ['smallmolecule',''])}
+
+        # extra_properties is a hack: inform the model we will overrride and grab these "hidden" properties
+        # that are "restricted" properties: 
+        # TODO: this demands an architectural solution: the django ORM is not set 
+        # up for per-field restriction.  Best strategy may be to compose a proxy object 
+        # from restricted and unrestricted models
+        extra_properties = []
+        if(not sm.is_restricted or request.user.is_authenticated()):
+            extra_properties=['_inchi', '_inchi_key', '_smiles', '_molecular_formula', '_molecular_mass']
+        details = {'object': get_detail(sm, ['smallmolecule',''],extra_properties=extra_properties )}
         details['facility_salt_id'] = sm.facility_id + '-' + sm.salt_id
         #TODO: set is_restricted if the user is not logged in only
         details['is_restricted'] = sm.is_restricted
@@ -1704,7 +1711,7 @@ def send_to_file1(outputType, name, ordered_datacolumns, cursor, is_authenticate
                                          ['dataset','smallmolecule','datarecord','smallmoleculebatch','protein','cell','datacolumn', ''],
                                          ordered_datacolumns)   
     if(outputType == '.csv'):
-        return export_as_csv(name,col_key_name_map, cursor=cursor)
+        return export_as_csv(name,col_key_name_map, cursor=cursor, is_authenticated=is_authenticated)
     elif(outputType == '.xls'):
         return export_as_xls(name, col_key_name_map, cursor=cursor, is_authenticated=is_authenticated)
 
@@ -1736,29 +1743,38 @@ def send_to_file(outputType, name, table, queryset, extra_columns = [], is_authe
     columnsOrdered_filtered = []
     for field,verbose_name in columnsOrdered:
         try:
-            fi = FieldInformation.manager.get_column_fieldinformation_by_priority(field,fieldinformation_tables)
+            # _ is the marker for private fields - only accessible through logic defined on the ORM object
+            # i.e. if authorized
+            if(field[0] == '_'):
+                temp = field[1:]
+                field = 'get_' + temp
+                fi = FieldInformation.manager.get_column_fieldinformation_by_priority(field,fieldinformation_tables)
+                columnsOrdered_filtered.append((field,fi.get_verbose_name()))
+                logger.info(str(('found', field, fi)))
+            else:
+                fi = FieldInformation.manager.get_column_fieldinformation_by_priority(field,fieldinformation_tables)
             if(fi.show_in_detail):
                 columnsOrdered_filtered.append((field,fi.get_verbose_name()))
         except (Exception) as e:
-            try:
-                # _ is the marker for private fields - only accessible through logic defined on the ORM object
-                # i.e. if authorized
-                if(field[0] == '_'):
-                    temp = field[1:]
-                    field = 'get_' + temp
-                    fi = FieldInformation.manager.get_column_fieldinformation_by_priority(temp,fieldinformation_tables)
-                    columnsOrdered_filtered.append((field,fi.get_verbose_name()))
-                    logger.info(str(('found', field, fi)))
-                else:
-                    logger.warn(str(('no fieldinformation found for field:', field)))        
-                
-            except (Exception) as e:
-                logger.warn(str(('no fieldinformation found for field:', field)))        
+#            try:
+#                # _ is the marker for private fields - only accessible through logic defined on the ORM object
+#                # i.e. if authorized
+#                if(field[0] == '_'):
+#                    temp = field[1:]
+#                    field = 'get_' + temp
+#                    fi = FieldInformation.manager.get_column_fieldinformation_by_priority(temp,fieldinformation_tables)
+#                    columnsOrdered_filtered.append((field,fi.get_verbose_name()))
+#                    logger.info(str(('found', field, fi)))
+#                else:
+#                    logger.warn(str(('no fieldinformation found for field:', field)))        
+#                
+#            except (Exception) as e:
+            logger.warn(str(('no fieldinformation found for field:', field)))        
     # The type strings deliberately include a leading "." to make the URLs
     # trigger the analytics js code that tracks download events by extension.
     logger.info(str(('columnsOrdered_filtered:',columnsOrdered_filtered)))
     if(outputType == '.csv'):
-        return export_as_csv(name,OrderedDict(columnsOrdered_filtered) , queryset=queryset)
+        return export_as_csv(name,OrderedDict(columnsOrdered_filtered) , queryset=queryset, is_authenticated=is_authenticated)
     elif(outputType == '.xls'):
         return export_as_xls(name, OrderedDict(columnsOrdered_filtered), queryset=queryset, is_authenticated=is_authenticated)
 
@@ -1785,7 +1801,7 @@ def get_cols_to_write(cursor, fieldinformation_tables=None, ordered_datacolumns=
          
     return OrderedDict(sorted(header_row.items(),key=lambda x: x[0]))
 
-def export_as_csv(name,col_key_name_map, cursor=None, queryset=None):
+def export_as_csv(name,col_key_name_map, cursor=None, queryset=None, is_authenticated=False):
     """
     Generic csv export admin action.
     """
@@ -1812,8 +1828,16 @@ def export_as_csv(name,col_key_name_map, cursor=None, queryset=None):
         for obj in queryset:
             if isinstance(obj, dict):
                 writer.writerow([smart_str(obj[field], 'utf-8', errors='ignore') for field in col_key_name_map.keys()])
-            else:
-                writer.writerow([smart_str(getattr(obj, field), 'utf-8', errors='ignore') for field in col_key_name_map.keys()])
+            else:# a ORM object
+                vals = [getattr(obj, field) for field in col_key_name_map.keys()]
+                vals_authenticated = []
+                for i,column in enumerate(vals):
+                    # if the method is a column, we are referencing the method wrapper for restricted columns
+                    if(inspect.ismethod(column)):
+                        vals_authenticated.append(smart_str(column(is_authenticated=is_authenticated),'utf-8', errors='ignore'))
+                    else:
+                        vals_authenticated.append(smart_str(column, 'utf-8', errors='ignore'))
+                writer.writerow(vals_authenticated)
             if(row % debug_interval == 0):
                 logger.info("row: " + str(row))
             row += 1
@@ -1823,6 +1847,7 @@ def export_as_xls(name,col_key_name_map, cursor=None, queryset=None, is_authenti
     """
     Generic xls export admin action.
     """
+    logger.info(str(('------is auth:',is_authenticated)) )
     response = HttpResponse(mimetype='application/Excel')
     response['Content-Disposition'] = 'attachment; filename=%s.xls' % unicode(name).replace('.', '_')
 
@@ -1853,7 +1878,8 @@ def export_as_xls(name,col_key_name_map, cursor=None, queryset=None, is_authenti
                 vals = [getattr(obj, field) for field in col_key_name_map.keys()]
             
             for i,column in enumerate(vals):
-                # if the method is a column, we are referencing the method wrapper for restricted columns
+                # if the columnn is a method, we are referencing the method wrapper for restricted columns
+#                logger.info(str(('--column:', column, inspect.ismethod(column), type(column))))
                 if(inspect.ismethod(column)):
                     sheet.write(row+1,i, column(is_authenticated=is_authenticated) )
                 else:
