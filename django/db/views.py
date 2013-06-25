@@ -270,7 +270,7 @@ def smallMoleculeDetail(request, facility_salt_id): # TODO: let urls.py grep the
         if(len(temp)>2):
             smb = SmallMoleculeBatch.objects.get(smallmolecule=sm,facility_batch_id=temp[2]) 
 
-        # extra_properties is a hack: inform the model we will overrride and grab these "hidden" properties
+        # extra_properties is a hack: inform the model we will override and grab these "hidden" properties
         # that are "restricted" properties: 
         # TODO: this demands an architectural solution: the django ORM is not set 
         # up for per-field restriction.  Best strategy may be to compose a proxy object 
