@@ -115,7 +115,7 @@ class FieldsManager(models.Manager):
         """
         table = model._meta.module_name
         # Only text or char fields considered, must add numeric fields manually
-        fields = map(lambda x: x.name, filter(lambda x: isinstance(x, models.CharField) or isinstance(x, models.TextField), tuple(model._meta.fields)))
+        fields = map(lambda x: x.column, filter(lambda x: isinstance(x, models.CharField) or isinstance(x, models.TextField), tuple(model._meta.fields)))
         final_fields = []
         for fi in self.get_table_fields(table):
             if(fi.use_for_search_index and fi.field in fields):  final_fields.append(fi)
