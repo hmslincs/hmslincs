@@ -26,6 +26,8 @@ from tastypie.bundle import Bundle
 from tastypie.resources import ModelResource, Resource
 from tastypie.serializers import Serializer
 from tastypie import fields
+from tastypie.constants import ALL
+
 import StringIO
 import csv
 import json
@@ -211,6 +213,7 @@ class DataSetResource(ModelResource):
         # TODO: authorization
         allowed_methods = ['get']
         excludes = ['lead_screener_firstname','lead_screener_lastname','lead_screener_email']
+        filtering = {'date_loaded':ALL }
      
     def dispatch(self, request_type, request, **kwargs):
         """ override in order to be able to grab the request uri
@@ -458,6 +461,7 @@ class DataSetDataResource(Resource):
     def get_dataset_columns(dataset_id, unit_types_only=[]):
         datacolumns = DataColumn.objects.filter(dataset_id=dataset_id)
         
+        # filter for the columns that are identified as having these unit fields
         if unit_types_only:
             datacolumns = datacolumns.filter(unit__in=unit_types_only)
             
