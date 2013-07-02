@@ -1,9 +1,7 @@
 from collections import OrderedDict
-from django.contrib.staticfiles.finders import FileSystemFinder
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.db import models
 from django.utils import timezone
-import csv
 import logging
 import re
 import types
@@ -792,25 +790,25 @@ def get_detail_schema(obj,tables_to_search, field_information_filter=None):
         fields[fi.get_camel_case_dwg_name()]= field_schema_info
     return fields
 
-from django.core.cache import cache
-def find_miami_lincs_mapping(sm_id):
-    miami_lincs_id_map = cache.get('miami_lincs_id_map')
-    if not miami_lincs_id_map:
-        filesystemfinder = FileSystemFinder()
-        matches = filesystemfinder.find("miami_lincs_mapping.csv")
-        logger.info(str(('read in file', matches)))
-        if matches:
-            if not isinstance(matches, basestring): matches = matches[0]
-            with open(matches) as _file:
-                reader = csv.reader(_file,delimiter=',')
-                miami_lincs_id_map = {}
-                for line in reader:
-                    miami_lincs_id_map[line[0]]=line[1]
-            cache.set('miami_lincs_id_map', miami_lincs_id_map)
-        else:
-            logger.error(str(('filesystem finder cannot locate the miami_incs_mapping.csv')))
-    if sm_id in miami_lincs_id_map:
-        return miami_lincs_id_map[sm_id]
-    else:
-        logger.warn(str(('miami_lincs_mapping.csv does not contain sm id', sm_id)))
+#from django.core.cache import cache
+#def find_miami_lincs_mapping(sm_id):
+#    miami_lincs_id_map = cache.get('miami_lincs_id_map')
+#    if not miami_lincs_id_map:
+#        filesystemfinder = FileSystemFinder()
+#        matches = filesystemfinder.find("miami_lincs_mapping.csv")
+#        logger.info(str(('read in file', matches)))
+#        if matches:
+#            if not isinstance(matches, basestring): matches = matches[0]
+#            with open(matches) as _file:
+#                reader = csv.reader(_file,delimiter=',')
+#                miami_lincs_id_map = {}
+#                for line in reader:
+#                    miami_lincs_id_map[line[0]]=line[1]
+#            cache.set('miami_lincs_id_map', miami_lincs_id_map)
+#        else:
+#            logger.error(str(('filesystem finder cannot locate the miami_incs_mapping.csv')))
+#    if sm_id in miami_lincs_id_map:
+#        return miami_lincs_id_map[sm_id]
+#    else:
+#        logger.warn(str(('miami_lincs_mapping.csv does not contain sm id', sm_id)))
     

@@ -3,12 +3,10 @@ from collections import OrderedDict
 from datetime import timedelta
 from db.models import PubchemRequest, SmallMolecule, SmallMoleculeBatch, Cell, \
     Protein, DataSet, Library, FieldInformation, AttachedFile, DataRecord, \
-    DataColumn, LibraryMapping, get_detail, find_miami_lincs_mapping
+    DataColumn, get_detail
 from django import forms
 from django.conf import settings
-from django.contrib.auth.decorators import login_required
 from django.contrib.staticfiles.finders import FileSystemFinder
-from django.core.exceptions import ObjectDoesNotExist
 from django.core.servers.basehttp import FileWrapper
 from django.core.urlresolvers import reverse
 from django.db import connection, models
@@ -122,7 +120,8 @@ def cellDetail(request, facility_id):
         # add in the LIFE System link: TODO: put this into the fieldinformation
         extralink = {   'title': 'LINCS Information Framework Structure Page' ,
                         'name': 'LIFE Compound Information',
-                        'link': 'http://baoquery.ccs.miami.edu/life/summary?mode=CellLine&input=' + str(find_miami_lincs_mapping(cell.facility_id)),
+                        'link': 'http://life.ccs.miami.edu/life/summary?mode=CellLine&input={cl_center_specific_id}&source=HMS'
+                            .format(cl_center_specific_id=cell.facility_id),
                         'value': cell.facility_id }
         details['extralink'] = extralink
 
@@ -191,7 +190,8 @@ def proteinDetail(request, lincs_id):
         # add in the LIFE System link: TODO: put this into the fieldinformation
         extralink = {   'title': 'LINCS Information Framework Page' ,
                         'name': 'LIFE Protein Information',
-                        'link': 'http://baoquery.ccs.miami.edu/life/summary?mode=Protein&input=' + str(find_miami_lincs_mapping(protein.lincs_id)),
+                        'link': 'http://life.ccs.miami.edu/life/summary?mode=Protein&input={pp_center_specific_id}&source=HMS'
+                                .format(pp_center_specific_id=protein.lincs_id), # Note, protein.lincs_id will be changed to protein.facility_id
                         'value': protein.lincs_id }
         details['extralink'] = extralink
                 
@@ -336,8 +336,9 @@ def smallMoleculeDetail(request, facility_salt_id): # TODO: let urls.py grep the
         # add in the LIFE System link: TODO: put this into the fieldinformation
         extralink = {   'title': 'LINCS Information Framework Structure Page' ,
                         'name': 'LIFE Compound Information',
-                        'link': 'http://baoquery.ccs.miami.edu/life/summary?mode=SmallMolecule&input=' + str(find_miami_lincs_mapping(sm.facility_id + "-" + sm.salt_id)),
-                        'value': sm.facility_id }
+                        'link': 'http://life.ccs.miami.edu/life/summary?mode=SmallMolecule&input={sm_lincs_id}&source=LINCS'
+                            .format(sm_lincs_id=sm.lincs_id),
+                        'value': sm.lincs_id }
         details['extralink'] = extralink
         
         return render(request,'db/smallMoleculeDetail.html', details)
