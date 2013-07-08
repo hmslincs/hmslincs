@@ -1,7 +1,12 @@
+import itertools as it
+
 class NoClobberDict(dict):
     """
     A dictionary whose keys may be assigned to at most once.
     """
+    def __init__(self, d=(), **kwargs):
+        self.update(d, **kwargs)
+
     def __setitem__(self, key, value):
         """
         Assign value to self[key].
@@ -15,25 +20,26 @@ class NoClobberDict(dict):
                 raise ValueError('key "%s" is already in dictionary, '
                                  'with value %s' % (str(key), str(v)))
         else:
-            super(NoClobberDict, self).__setitem__(key, value)
+            self.set(key, value)
 
-    def update(self, d=None, **kw):
+    def update(self, d=(), **kw):
         """
         Update this dictionary with the values in d and **kw.
 
         The setting raises an exception if the updating would clobber
         an existing value.
         """
-        if not d is None:
-            if hasattr(d, 'items'):
-                items = d.items()
-            else:
-                items = d
-            for k, v in items:
-                self[k] = v
-                
-        for k, v in kw.items():
+        for k, v in it.chain((d.iteritems() if hasattr(d, 'iteritems') else d),
+                             kw.iteritems()):
             self[k] = v
+
+    def set(self, key, value):
+        """
+        Assign value to self[key] unconditionally.
+        
+        Will not raise an error, even if self[key] already exists.
+        """
+        super(NoClobberDict, self).__setitem__(key, value)
 
 if __name__ == '__main__':
     import unittest
@@ -61,6 +67,16 @@ if __name__ == '__main__':
             d.update(x=1)
             self.assertRaises(ValueError, d.update, {'x': 2})
             self.assertRaises(ValueError, d.update, x=2)
+
+        def test_set(self):
+            """Test unconditional setting of key-value pairs."""
+            d = NoClobberDict(x=1)
+            d.set('x', 2)
+
+        def test_init(self):
+            self.assertRaises(ValueError, NoClobberDict, {'x': 1}, x=2)
+            self.assertRaises(ValueError, NoClobberDict, (('x', 1)), x=2)
+            self.assertRaises(ValueError, NoClobberDict, (('x', 1), ('x', 2)))
 
     print "running tests"
     unittest.main()
