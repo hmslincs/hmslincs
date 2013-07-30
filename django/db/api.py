@@ -45,6 +45,7 @@ class SmallMoleculeResource(ModelResource):
         # to override: resource_name = 'sm'
         excludes = ['column']
         allowed_methods = ['get']
+        filtering = {'date_loaded':ALL, 'date_publicly_available':ALL, 'date_data_received':ALL }
 
 #        authentication = MultiAuthentication(BasicAuthentication(), SessionAuthentication())
         
@@ -123,6 +124,7 @@ class CellResource(ModelResource):
         # to override: resource_name = 'sm'
         allowed_methods = ['get']
         excludes = []
+        filtering = {'date_loaded':ALL, 'date_publicly_available':ALL, 'date_data_received':ALL }
         
     def dehydrate(self, bundle):
         bundle.data = get_detail_bundle(bundle.obj, ['cell',''])
@@ -152,7 +154,8 @@ class ProteinResource(ModelResource):
         # to override: resource_name = 'sm'
         allowed_methods = ['get']
         excludes = []
-        
+        filtering = {'date_loaded':ALL, 'date_publicly_available':ALL, 'date_data_received':ALL }
+            
     def dehydrate(self, bundle):
         bundle.data = get_detail_bundle(bundle.obj, ['protein',''])
         return bundle
@@ -180,6 +183,7 @@ class LibraryResource(ModelResource):
         # to override: resource_name = 'sm'
         allowed_methods = ['get']
         excludes = []
+        filtering = {'date_loaded':ALL, 'date_publicly_available':ALL, 'date_data_received':ALL }
         
     def dehydrate(self, bundle):
         bundle.data = get_detail_bundle(bundle.obj, ['library',''])
@@ -213,7 +217,7 @@ class DataSetResource(ModelResource):
         # TODO: authorization
         allowed_methods = ['get']
         excludes = ['lead_screener_firstname','lead_screener_lastname','lead_screener_email']
-        filtering = {'date_loaded':ALL }
+        filtering = {'date_loaded':ALL, 'date_publicly_available':ALL, 'date_data_received':ALL }
      
     def dispatch(self, request_type, request, **kwargs):
         """ override in order to be able to grab the request uri
