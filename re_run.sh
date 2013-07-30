@@ -656,6 +656,54 @@ else
 	python src/import_dataset.py -f $DATADIR/Screen20123_Yale_U937.xlsx
 	check_errs $? "import dataset fails"
 	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20124_HMSL10001_kinomescan.xlsx
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20125_HMSL10073_kinomescan.xlsx
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20126_HMSL10285_kinomescan.xlsx
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20127_HMSL10286_kinomescan.xlsx
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20128_HMSL10287_kinomescan.xlsx
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20129_HMSL10289_kinomescan.xlsx
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20130_HMSL10337_kinomescan.xlsx
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20131_HMSL10284_kinomescan.xlsx
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20132_HMSL10340_kinomescan.xlsx
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20133_HMSL10341_kinomescan.xlsx
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20134_HMSL10342_kinomescan.xlsx
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20135_HMSL10158_kinomescan.xlsx
+	check_errs $? "import dataset fails"
+	
 	echo 'import attached file...'      
 	python src/import_attachedfiles.py -f $DATADIR/qc/NMR_HMSL10001.101.01.pdf -fi 10001 -fd '2013-04-04' -si 101 -bi 1 -ft "QC-NMR" --restricted
 	check_errs $? "import attached file fails"
