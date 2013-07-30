@@ -9,7 +9,7 @@
 
 {% block content %}
 	<div id="search">
-	  <form action="{{ request.get_full_path }}" method="get"> <!-- needed for post: {% csrf_token %}  --> 
+	  <form action="{{ request.get_full_path }}" method="get"> <!-- needed for post: {% csrf_token %}  -->
             <label for="id_search">Search all categories:</label>
             <input type="submit" value="search" />
             <span class="input-auto-width-wrapper">
@@ -32,10 +32,11 @@
 			<li>Metadata standards for the data in the HMS LINCS DB are currently being developed in collaboration with the LINCS centers.  Updated information about these standards can be found at the <a target="_blank" href="http://lincsproject.org/data-standards/">LINCS project website data standards page</a>.</li>
    	</ul>
 
-    <p style="font-weight:bold; font-size:large; font-variant:small-caps">A quick guide to using the HMS LINCS Database (updated March 2013):</p>
+    <p style="font-weight:bold; font-size:large; font-variant:small-caps">A quick guide to using the HMS LINCS Database (updated July 2013):</p>
     <ul>
 			<li>For detailed instructions, see the <a target="_blank"  href='http://lincs.hms.harvard.edu/wordpress/wp-content/uploads/2013/03/HMSLINCSDatabase-Tutorial_20130319.pdf'>HMS LINCS DB Tutorial</a>.</li>
-			<li>To search for <a href='sm'>small molecule reagents</a>, <a href='cells'>cells</a>, or <a href='proteins'>proteins</a> in the repository, enter a search term in the search box on this page.</li>
+            <li>To find <a href='datasets'>datasets</a> from <a href="http://lincs.hms.harvard.edu/about/publications/">LINCS publications</a>, type the relevant PMID in the "search all categories" search box, or the search box on the datasets page.</li>
+            <li>To search for <a href='sm'>small molecule reagents</a>, <a href='cells'>cells</a>, or <a href='proteins'>proteins</a> in the repository, enter a search term in the search box on this page.</li>
 			<li>Select <a href='structuresearch/'>Structure Search</a> to perform a chemical structure search for a small molecule reagent. The search will accept input in the format of SMILES or sdf file format.</li>
 			<li>To browse a specific entity type, select from the menu on the left.</li>
 			<li>Soon, this interface will support searches for lists of reagents.</li>

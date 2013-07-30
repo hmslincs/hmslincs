@@ -11,6 +11,12 @@
 
 {% block content %}
 <h2>{{ heading }}</h2>
+    {% if usage_message %}
+        <div class='usage_message'>
+            {{ usage_message|safe }}
+        </div>
+        <br/>
+    {% endif %}
 	{% include "db/searchBox.html" %}
 	{% include "db/searchExportBox.html" %}
 	{% if table %}

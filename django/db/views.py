@@ -242,14 +242,14 @@ def smallMoleculeIndex(request):
     return render_list_index(request, table,search,'Small molecule','Small molecules') #, **kwargs )    
     
 def smallMoleculeMolfile(request, facility_salt_id):
-    if(not request.user.is_authenticated()): 
-        return HttpResponse('Unauthorized', status=401)
     try:
         temp = facility_salt_id.split('-') # TODO: let urls.py grep the facility and the salt
         logger.debug(str(('find sm detail for', temp)))
         facility_id = temp[0]
         salt_id = temp[1]
         sm = SmallMolecule.objects.get(facility_id=facility_id, salt_id=salt_id) 
+        if(sm.is_restricted and not request.user.is_authenticated()): 
+            return HttpResponse('Unauthorized', status=401)
         response = HttpResponse(mimetype='text/csv')
         response['Content-Disposition'] = 'attachment; filename=%s.sdf' % facility_salt_id 
         response.write(sm.molfile)
@@ -410,8 +410,8 @@ def datasetIndex(request): #, type='screen'):
     outputType = request.GET.get('output_type','')
     if(outputType != ''):
         return send_to_file(outputType, 'datasetIndex', table, queryset )
-        
-    return render_list_index(request, table,search,'Dataset','Datasets')
+    requestArgs = { 'usage_message': 'To find <a href="datasets">datasets</a> from <a href="http://lincs.hms.harvard.edu/about/publications/">LINCS publications</a>, type the relevant PMID in the datasets search box below.'}
+    return render_list_index(request, table,search,'Dataset','Datasets', **requestArgs)
 
 # Follows is a messy way to differentiate each tab for the dataset detail page (each tab calls it's respective method)
 def getDatasetType(facility_id):
