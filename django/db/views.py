@@ -58,6 +58,7 @@ def main(request):
     logger.debug(str(('main search: ', search)))
     if(search != ''):
         queryset = SiteSearchManager().search(search, is_authenticated=request.user.is_authenticated());
+
         table = SiteSearchTable(queryset)
         if(len(table.data)>0):
             RequestConfig(request, paginate={"per_page": 25}).configure(table)
@@ -70,6 +71,8 @@ def main(request):
 def cellIndex(request):
     search = request.GET.get('search','')
     logger.debug(str(("is_authenticated:", request.user.is_authenticated(), 'search: ', search)))
+    search = re.sub(r'[\'"]','',search)
+ 
     if(search != ''):
         searchProcessed = format_search(search)
         criteria = "search_vector @@ to_tsquery(%s)"
@@ -134,6 +137,8 @@ def cellDetail(request, facility_id):
 def proteinIndex(request):
     search = request.GET.get('search','')
     logger.debug(str(("is_authenticated:", request.user.is_authenticated(), 'search: ', search)))
+    search = re.sub(r'[\'"]','',search)
+    
     if(search != ''):
         searchProcessed = format_search(search)
         # NOTE: - change plaintext search to use "to_tsquery" as opposed to
@@ -205,24 +210,27 @@ def smallMoleculeIndex(request):
     search = request.GET.get('search','')
     logger.debug(str(("is_authenticated:", request.user.is_authenticated(), 'search: ', search))) #, 'items_per_page', items_per_page)))
     
+    search = re.sub(r'[\'"]','',search)
     if(search != ''):
-        searchProcessed = format_search(search)
-        criteria = "search_vector @@ to_tsquery(%s)"
-        where = [criteria]
-#        where.append("(not is_restricted or is_restricted is NULL)")
-        
-        # postgres fulltext search with rank and snippets
-        logger.debug(str(("SmallMoleculeTable.snippet_def:",SmallMoleculeTable.snippet_def)))
-        queryset = SmallMolecule.objects.extra(
-            select={
-                'snippet': "ts_headline(" + SmallMoleculeTable.snippet_def + ", to_tsquery(%s))",
-                'rank': "ts_rank_cd(search_vector, to_tsquery(%s), 32)",
-                },
-            where=where,
-            params=[searchProcessed],
-            select_params=[searchProcessed,searchProcessed],
-            order_by=('-rank',)
-            )        
+#        searchProcessed = format_search(search)
+#        criteria = "search_vector @@ to_tsquery(%s) or name like %s or alternative_names like %s"
+#        where = [criteria]
+##        where.append("(not is_restricted or is_restricted is NULL)")
+#        
+#        # postgres fulltext search with rank and snippets
+#        logger.debug(str(("SmallMoleculeTable.snippet_def:",SmallMoleculeTable.snippet_def)))
+#        queryset = SmallMolecule.objects.extra(
+#            select={
+#                'snippet': "ts_headline(" + SmallMoleculeTable.snippet_def + ", to_tsquery(%s))",
+#                'rank': "ts_rank_cd(search_vector, to_tsquery(%s), 32)",
+#                },
+#            where=where,
+#            params=[searchProcessed, '%'+search+'%', '%'+search+'%'],
+#            select_params=[searchProcessed,searchProcessed],
+#            order_by=('-rank',)
+#            )        
+#        
+        queryset = SmallMoleculeSearchManager().search(search, is_authenticated=request.user.is_authenticated())
     else:
         where = []
         #if(not request.user.is_authenticated()): 
@@ -348,6 +356,7 @@ def smallMoleculeDetail(request, facility_salt_id): # TODO: let urls.py grep the
 
 def libraryIndex(request):
     search = request.GET.get('search','')
+    search = re.sub(r'[\'"]','',search)
     queryset = LibrarySearchManager().search(search, is_authenticated=request.user.is_authenticated());
     table = LibraryTable(queryset)
     outputType = request.GET.get('output_type','')
@@ -627,8 +636,10 @@ def format_search(search_raw):
     Formats the search term for use with postgres to_tsquery function.
     non-word characters (anything but letter, digit or underscore) is replaced with an AND condition
     """
+    # TODO: temp fix for issue #188 - perm fix is to update all ID's to the "HMSL###" form
+    search_raw = re.sub('HMSL','', search_raw)
     if(search_raw != ''):
-        return " & ".join([x+":*" for x in re.split(r'\W+', search_raw)])
+        return " & ".join([x+":*" for x in re.split(r'\W+', search_raw) if x])
     return search_raw
 
 # Pubchem search methods
@@ -1584,9 +1595,46 @@ class SiteSearchManager(models.Manager):
         if(not is_authenticated): 
             sql += " AND (not is_restricted or is_restricted is NULL)"
         sql += " ORDER by rank DESC;"
-        cursor.execute(
-                       sql , [queryStringProcessed,queryStringProcessed,queryStringProcessed,queryStringProcessed])
-        return dictfetchall(cursor)
+        cursor.execute(sql , [queryStringProcessed,queryStringProcessed,queryStringProcessed,queryStringProcessed])
+        _data = dictfetchall(cursor)
+        
+        smqs = SmallMoleculeSearchManager().search(queryString, is_authenticated=is_authenticated);
+        if len(smqs) > 0:
+            for obj in smqs:
+                skip = False
+                facility_id = obj.facility_id + '-'+ obj.salt_id
+                for x in _data:
+                    if x['facility_id'] == facility_id: 
+                        skip=True
+                if not skip:
+                    _data.append({'id':obj.id,'facility_id':facility_id, 'snippet':obj.name, 'type':'sm_detail', 'rank':1})
+        return _data
+
+class SmallMoleculeSearchManager(models.Manager):
+    
+    def search(self, searchString, is_authenticated=False):
+        
+        # TODO: temp fix for issue #188 - perm fix is to update all ID's to the "HMSLXXX" form
+        searchString = re.sub('HMSL','', searchString)
+        
+        searchProcessed = format_search(searchString)
+        criteria = "search_vector @@ to_tsquery(%s) or name like %s or alternative_names like %s"
+        where = [criteria]
+#        where.append("(not is_restricted or is_restricted is NULL)")
+        
+        # postgres fulltext search with rank and snippets
+        logger.debug(str(("SmallMoleculeTable.snippet_def:",SmallMoleculeTable.snippet_def)))
+        queryset = SmallMolecule.objects.extra(
+            select={
+                'snippet': "ts_headline(" + SmallMoleculeTable.snippet_def + ", to_tsquery(%s))",
+                'rank': "ts_rank_cd(search_vector, to_tsquery(%s), 32)",
+                },
+            where=where,
+            params=[searchProcessed, '%'+searchString+'%', '%'+searchString+'%'],
+            select_params=[searchProcessed,searchProcessed],
+            order_by=('-rank',)
+            )        
+        return queryset  
 
 class SiteSearchTable(PagedTable):
     id = tables.Column(visible=False)
