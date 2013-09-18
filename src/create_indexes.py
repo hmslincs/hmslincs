@@ -2,7 +2,8 @@
 import sys
 import init_utils as iu
 
-from db.models import Cell, DataSet, SmallMolecule, Library, Protein, FieldInformation
+from db.models import Cell, DataSet, SmallMolecule, Library, Protein, FieldInformation,\
+    Antibody, OtherReagent
 from django.db import models
 
 # ---------------------------------------------------------------------------
@@ -28,6 +29,10 @@ def main():
     createTableIndex('db_library', Library)
     print '/** creating index definitions for Protein **/'
     createTableIndex('db_protein', Protein)
+    print '/** creating index definitions for Antibody **/'
+    createTableIndex('db_antibody', Antibody)
+    print '/** creating index definitions for OtherReagent **/'
+    createTableIndex('db_otherreagent', OtherReagent)
     print "\n"
 
 def ignore_errors(yn):

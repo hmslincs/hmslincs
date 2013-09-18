@@ -5,7 +5,7 @@
 {% block head_extra %}
 	<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/basic_tabs.css" />
   <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/hmslincs.css" />
-{% endblock %}	
+{% endblock %}
 
 {% block title %}
   HMS LINCS Database
@@ -20,6 +20,8 @@
     <li class='{% selectedTag request "^/db/structuresearch/" %}'><a  href="{% url structureSearch %}">Structure search</a></li>
     <li class='{% selectedTag request "^/db/cells/" %}'><a " href="{% url listCells %}">Cells</a></li>
     <li class='{% selectedTag request "^/db/proteins/" %}'><a " href="{% url listProteins %}">Proteins</a></li>
+    <li class='{% selectedTag request "^/db/antibodies/" %}'><a " href="{% url listAntibodies %}">Antibodies</a></li>
+    <li class='{% selectedTag request "^/db/otherreagents/" %}'><a " href="{% url listOtherReagents %}">Other Reagents</a></li>
     <li class='{% selectedTag request "^/db/datasets/" %}'><a " href="{% url listDatasets %}">Datasets</a></li>
     <li class='{% selectedTag request "^/db/libraries/" %}'><a " href="{% url listLibraries %}">Libraries</a></li>
   </ul>

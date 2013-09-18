@@ -16,7 +16,13 @@
 		<li class='{% selectedTag request "^/db/datasets/\d+/cells$" %}'><a  href="{% url dataset_detail_cells   facility_id=facilityId%}">Cells Studied</a></li>
 {% endif %}
 {% if has_proteins %}
-		<li class='{% selectedTag request "^/db/datasets/\d+/proteins$" %}'><a  href="{% url dataset_detail_proteins   facility_id=facilityId%}">Proteins Studied</a></li>
+        <li class='{% selectedTag request "^/db/datasets/\d+/proteins$" %}'><a  href="{% url dataset_detail_proteins   facility_id=facilityId%}">Proteins Studied</a></li>
+{% endif %}
+{% if has_antibodies %}
+        <li class='{% selectedTag request "^/db/datasets/\d+/antibodies$" %}'><a  href="{% url dataset_detail_antibodies   facility_id=facilityId%}">Antibodies Studied</a></li>
+{% endif %}
+{% if has_otherreagents %}
+        <li class='{% selectedTag request "^/db/datasets/\d+/otherreagents$" %}'><a  href="{% url dataset_detail_otherreagents   facility_id=facilityId%}">Other Reagents Studied</a></li>
 {% endif %}
 		<li class='{% selectedTag request "^/db/datasets/\d+/datapoints$" %}'><a  href="{% url dataset_detail_datapoints  facility_id=facilityId%}">Data Columns</a></li>
 		<li class='{% selectedTag request "^/db/datasets/\d+/results$" %}'><a  href="{% url dataset_detail_results  facility_id=facilityId%}">Results</a></li>
@@ -25,4 +31,3 @@
 	    {% block datasetContent %}{% endblock %}
 	</div>
 {% endblock %}
-	

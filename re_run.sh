@@ -122,10 +122,18 @@ then
 	echo 'import library mapping tables...'
 	python src/import_libraries.py -f sampledata/libraries.xls
 	check_errs $? "import library fails"
-	
-	echo 'import kinase tables...'
-	python src/import_protein.py -f sampledata/HMS-LINCS_ProteinMetadata_forLoading.xls
-	check_errs $? 'import kinases fails'
+    
+    echo 'import kinase tables...'
+    python src/import_protein.py -f sampledata/HMS-LINCS_ProteinMetadata_forLoading.xls
+    check_errs $? 'import kinases fails'
+    
+    echo 'import antibody tables...'
+    python src/import_antibody.py -f sampledata/HMS-LINCS_antibodies.xls
+    check_errs $? 'import antibodies fails'
+    
+    echo 'import other reagent tables...'
+    python src/import_other_reagent.py -f sampledata/HMS-LINCS_other_reagents.xls
+    check_errs $? 'import other reagents fails'
 	
 	echo 'import test_dataset...'
 	python src/import_dataset.py -f sampledata/test_dataset.xls 

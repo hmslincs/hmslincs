@@ -94,6 +94,6 @@ source $VIRTUALENV
 
 export DJANGO_SETTINGS_MODULE=hmslincs_server.settings
 export PYTHONPATH=./django:./src
-echo "python path for execute: $PYTHONPATH, command $@"
+#echo "python path for execute: $PYTHONPATH, command $@"
 
 python $@

@@ -485,6 +485,57 @@ class Protein(models.Model):
     def __unicode__(self):
         return unicode(self.lincs_id)
 
+class Antibody(models.Model):
+    facility_id             = _CHAR(max_length=_FACILITY_ID_LENGTH, **_NOTNULLSTR)
+    lincs_id                = _CHAR(max_length=15, **_NULLOKSTR)
+    name                    = _TEXT(**_NOTNULLSTR)
+    alternative_names       = _TEXT(**_NULLOKSTR) 
+    target_protein_name     = _TEXT(**_NULLOKSTR) 
+    target_protein_uniprot_id       = _CHAR(max_length=13, **_NULLOKSTR) # Note: UNIPROT ID's are 6 chars long, but we have a record with two in it, see issue #74
+    target_gene_name      = _CHAR(max_length=35, **_NULLOKSTR)
+    target_gene_id          = _CHAR(max_length=35, **_NULLOKSTR)
+    target_organism         = _CHAR(max_length=35, **_NULLOKSTR) #TODO: controlled vocabulary
+    immunogen               = _TEXT(**_NULLOKSTR) 
+    immunogen_sequence      = _TEXT(**_NULLOKSTR) 
+    antibody_clonality      = _TEXT(**_NULLOKSTR) 
+    source_organism         = _CHAR(max_length=35, **_NULLOKSTR) #TODO: controlled vocabulary
+    antibody_isotype        = _CHAR(max_length=35, **_NULLOKSTR)
+    engineering             = _TEXT(**_NULLOKSTR) 
+    antibody_purity         = _TEXT(**_NULLOKSTR) 
+    antibody_labeling       = _TEXT(**_NULLOKSTR) 
+    recommended_experiment_type     = _TEXT(**_NULLOKSTR) 
+    relevant_reference      = _TEXT(**_NULLOKSTR) 
+    specificity             = _TEXT(**_NULLOKSTR) 
+    date_data_received      = models.DateField(null=True,blank=True)
+    date_loaded             = models.DateField(null=True,blank=True)
+    date_publicly_available = models.DateField(null=True,blank=True)
+    is_restricted           = models.BooleanField(default=False) # Note: default=False are not set at the db level, only at the Db-api level
+    
+class AntibodyBatch(models.Model):
+    antibody           = models.ForeignKey('Antibody')
+    facility_batch_id       = _CHAR(max_length=_BATCH_ID_LENGTH, **_NOTNULLSTR)
+    provider                = _TEXT(**_NULLOKSTR)
+    provider_catalog_id     = _CHAR(max_length=64, **_NULLOKSTR)
+    
+class OtherReagent(models.Model):
+    facility_id             = _CHAR(max_length=_FACILITY_ID_LENGTH, **_NOTNULLSTR)
+    lincs_id                = _CHAR(max_length=15, **_NULLOKSTR)
+    alternate_id            = _CHAR(max_length=15, **_NULLOKSTR)
+    name                    = _TEXT(**_NOTNULLSTR)
+    alternative_names       = _TEXT(**_NULLOKSTR) 
+    role                    = _CHAR(max_length=35, **_NULLOKSTR)
+    reference               = _TEXT(**_NULLOKSTR) 
+    date_data_received      = models.DateField(null=True,blank=True)
+    date_loaded             = models.DateField(null=True,blank=True)
+    date_publicly_available = models.DateField(null=True,blank=True)
+    is_restricted           = models.BooleanField(default=False) # Note: default=False are not set at the db level, only at the Db-api level
+
+class OtherReagentBatch(models.Model):
+    other_reagent           = models.ForeignKey('OtherReagent')
+    facility_batch_id       = _CHAR(max_length=_BATCH_ID_LENGTH, **_NOTNULLSTR)
+    provider                = _TEXT(**_NULLOKSTR)
+    provider_catalog_id     = _CHAR(max_length=64, **_NULLOKSTR)
+    
 class DataSet(models.Model):
     #cells                   = models.ManyToManyField(Cell, verbose_name="Cells screened")
     facility_id             = _CHAR(max_length=_FACILITY_ID_LENGTH, unique=True, **_NOTNULLSTR)
@@ -602,6 +653,8 @@ class DataRecord(models.Model):
     library_mapping         = models.ForeignKey('LibraryMapping',null=True)  
     cell                    = models.ForeignKey('Cell', null=True)
     protein                 = models.ForeignKey('Protein', null=True)
+    antibody                = models.ForeignKey('Antibody', null=True)
+    otherreagent            = models.ForeignKey('OtherReagent', null=True)
     plate                   = _INTEGER(null=True)
     well                    = _CHAR(max_length=4, **_NULLOKSTR) # AA99
     control_type            = _CHAR(max_length=35, **_NULLOKSTR) # TODO: controlled vocabulary
@@ -704,7 +757,7 @@ def get_fielddata(model_object, search_tables, field_information_filter=None, ex
             property_dict[prop] = getattr(model_object, prop)
             logger.info(str(('got extra prop',prop,getattr(model_object, prop) )))
             
-    logger.info(str(('property_dict', property_dict)))
+    logger.debug(str(('property_dict', property_dict)))
     ui_dict = { }
     for field,value in property_dict.iteritems():
         logger.info(str(('get_field_info', field)))

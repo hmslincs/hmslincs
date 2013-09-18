@@ -16,7 +16,8 @@ from db.DjangoTables2Serializer import DjangoTables2Serializer, \
     get_visible_columns
 from db.models import SmallMolecule, SmallMoleculeBatch, DataSet, Cell, Protein, Library, DataRecord, \
     DataColumn, FieldInformation, get_fieldinformation, get_listing, \
-    get_detail_schema, get_detail, get_detail_bundle, get_fieldinformation, get_schema_fieldinformation
+    get_detail_schema, get_detail, get_detail_bundle, get_fieldinformation, get_schema_fieldinformation,\
+    Antibody, OtherReagent
 from django.conf.urls.defaults import url
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import Http404, HttpResponse
@@ -145,7 +146,64 @@ class CellResource(ModelResource):
             url(r"^(?P<resource_name>%s)/(?P<facility_id>\d+)/$" % self._meta.resource_name, self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
         ]
     
+class AntibodyResource(ModelResource):
+    class Meta:
+        # TODO: authorization
+        # TODO: it would be good to feed these from the view/tables2 code; or vice versa
+        queryset = Antibody.objects.all()
+        # to override: resource_name = 'sm'
+        allowed_methods = ['get']
+        excludes = []
+        filtering = {'date_loaded':ALL, 'date_publicly_available':ALL, 'date_data_received':ALL }
+        
+    def dehydrate(self, bundle):
+        bundle.data = get_detail_bundle(bundle.obj, ['antibody',''])
+        return bundle
 
+    def build_schema(self):
+        schema = super(AntibodyResource,self).build_schema()
+        schema['fields'] = get_detail_schema(Antibody(),['antibody'])
+        return schema 
+    
+    def override_urls(self):
+        """ Note, will be deprecated in >0.9.12; delegate to new method, prepend_urls
+        """
+        return self.prepend_urls();
+    
+    def prepend_urls(self):
+        return [
+            url(r"^(?P<resource_name>%s)/(?P<facility_id>\d+)/$" % self._meta.resource_name, self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
+        ]
+    
+class OtherReagentResource(ModelResource):
+    class Meta:
+        # TODO: authorization
+        # TODO: it would be good to feed these from the view/tables2 code; or vice versa
+        queryset = OtherReagent.objects.all()
+        # to override: resource_name = 'sm'
+        allowed_methods = ['get']
+        excludes = []
+        filtering = {'date_loaded':ALL, 'date_publicly_available':ALL, 'date_data_received':ALL }
+        
+    def dehydrate(self, bundle):
+        bundle.data = get_detail_bundle(bundle.obj, ['otherreagent',''])
+        return bundle
+
+    def build_schema(self):
+        schema = super(OtherReagentResource,self).build_schema()
+        schema['fields'] = get_detail_schema(OtherReagent(),['otherreagent'])
+        return schema 
+    
+    def override_urls(self):
+        """ Note, will be deprecated in >0.9.12; delegate to new method, prepend_urls
+        """
+        return self.prepend_urls();
+    
+    def prepend_urls(self):
+        return [
+            url(r"^(?P<resource_name>%s)/(?P<facility_id>\d+)/$" % self._meta.resource_name, self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
+        ]
+    
 class ProteinResource(ModelResource):
     class Meta:
         # TODO: authorization

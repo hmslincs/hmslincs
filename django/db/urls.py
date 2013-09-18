@@ -4,6 +4,8 @@ from tastypie.api import Api
 from db.views import *
 from db.api import SmallMoleculeResource
 from db.api import CellResource
+from db.api import AntibodyResource
+from db.api import OtherReagentResource
 from db.api import DataSetResource
 from db.api import DataSetDataFlattenedResource
 from db.api import DataSetDataResource
@@ -22,6 +24,8 @@ v1_api.register(DataSetDataResource())
 v1_api.register(DataSetDataFlattenedResource())
 v1_api.register(ProteinResource())
 v1_api.register(LibraryResource())
+v1_api.register(AntibodyResource())
+v1_api.register(OtherReagentResource())
 
 admin.autodiscover()
 
@@ -38,6 +42,10 @@ urlpatterns = patterns('',
     url(r'^sm/(?P<facility_salt_id>[0-9\-]+)/$', 'db.views.smallMoleculeDetail', name="sm_detail"),
     url(r'^cells/$','db.views.cellIndex', name="listCells"),
     url(r'^cells/(?P<facility_id>\d+)/$', 'db.views.cellDetail', name="cell_detail"),
+    url(r'^antibodies/$','db.views.antibodyIndex', name="listAntibodies"),
+    url(r'^antibodies/(?P<facility_id>\d+)/$', 'db.views.antibodyDetail', name="antibody_detail"),
+    url(r'^otherreagents/$','db.views.otherReagentIndex', name="listOtherReagents"),
+    url(r'^otherreagents/(?P<facility_id>\d+)/$', 'db.views.otherReagentDetail', name="otherreagent_detail"),
     url(r'^proteins/$','db.views.proteinIndex', name="listProteins"),
     url(r'^proteins/(?P<lincs_id>\d+)/$', 'db.views.proteinDetail', name="protein_detail"),
     url(r'^libraries/$','db.views.libraryIndex', name="listLibraries"),
@@ -46,6 +54,8 @@ urlpatterns = patterns('',
     url(r'^datasets/(?P<facility_id>\d+)/$', 'db.views.datasetDetailMain', name="dataset_detail"),
     url(r'^datasets/(?P<facility_id>\d+)/main$', 'db.views.datasetDetailMain', name="dataset_detail_main"),
     url(r'^datasets/(?P<facility_id>\d+)/cells$', 'db.views.datasetDetailCells', name="dataset_detail_cells"),
+    url(r'^datasets/(?P<facility_id>\d+)/antibodies$', 'db.views.datasetDetailAntibodies', name="dataset_detail_antibodies"),
+    url(r'^datasets/(?P<facility_id>\d+)/otherreagents$', 'db.views.datasetDetailOtherReagents', name="dataset_detail_otherreagents"),
     url(r'^datasets/(?P<facility_id>\d+)/proteins$', 'db.views.datasetDetailProteins', name="dataset_detail_proteins"),
     url(r'^datasets/(?P<facility_id>\d+)/smallmolecules$', 'db.views.datasetDetailSmallMolecules', name="dataset_detail_small_molecules"),
     url(r'^datasets/(?P<facility_id>\d+)/datapoints$', 'db.views.datasetDetailDataColumns', name="dataset_detail_datapoints"),

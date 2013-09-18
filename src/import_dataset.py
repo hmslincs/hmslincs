@@ -7,7 +7,8 @@ import time;
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction, models
 
-from db.models import DataSet, DataColumn, DataRecord, DataPoint, SmallMolecule, Cell, Protein, LibraryMapping
+from db.models import DataSet, DataColumn, DataRecord, DataPoint, SmallMolecule, Cell, Protein, LibraryMapping,\
+    Antibody, OtherReagent
 
 
 # ---------------------------------------------------------------------------
@@ -120,8 +121,6 @@ def readDataColumns(path):
     # create an array of dict's, each dict defines a DataColumn    
     dataColumnDefinitions = []
     #Note we also allow a list of pro
-    dataset_wide_protein_ids = []
-    dataset_wide_cell_ids = []
     # first put the label row in (it contains the worksheet column, and it is unique)
     for v in dataColumnSheet.labels[1:]:
         dataColumnDefinitions.append({labels['Worksheet Column']:v})
@@ -204,7 +203,7 @@ def main(path):
     dataColumnList = {}
     # follows are optional columns
     metaColumnDict = {'Control Type':-1, 'batch_id':-1} # meta columns contain forensic information, all are optional
-    mappingColumnDict = {'Small Molecule Batch':-1, 'Plate':-1, 'Well':-1, 'Cell':-1, 'Protein':-1} # what is being studied - at least one is required
+    mappingColumnDict = {'Small Molecule Batch':-1, 'Plate':-1, 'Well':-1, 'Cell':-1, 'Protein':-1, 'Antibody': -1, 'OtherReagent': -1} # what is being studied - at least one is required
     # NOTE: this scheme is matching based on the labels between the "Data Column" sheet and the "Data" sheet
     for i,label in enumerate(dataSheet.labels):
         if(label == 'None' or  label.strip()=='' or label == 'Exclude' ): continue  
@@ -321,6 +320,30 @@ def main(path):
                     mapped = True
             except Exception, e:
                 logger.error(str(("Invalid Cell facility id: ", facility_id,'row',current_row), e))
+                raise    
+        map_column = mappingColumnDict['Antibody']
+        if(map_column > -1):
+            try:
+                value = util.convertdata(r[map_column].strip())
+                facility_id = None
+                if(value != None and value != '' ):
+                    facility_id = util.convertdata(value,int) 
+                    dataRecord.antibody = Antibody.objects.get(facility_id=facility_id) 
+                    mapped = True
+            except Exception, e:
+                logger.error(str(("Invalid Antibody facility id: ", facility_id,'row',current_row), e))
+                raise    
+        map_column = mappingColumnDict['OtherReagent']
+        if(map_column > -1):
+            try:
+                value = util.convertdata(r[map_column].strip())
+                facility_id = None
+                if(value != None and value != '' ):
+                    facility_id = util.convertdata(value,int) 
+                    dataRecord.otherreagent = OtherReagent.objects.get(facility_id=facility_id) 
+                    mapped = True
+            except Exception, e:
+                logger.error(str(("Invalid OtherReagent facility id: ", facility_id,'row',current_row), e))
                 raise    
         map_column = mappingColumnDict['Protein']
         if(map_column > -1):
