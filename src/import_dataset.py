@@ -124,6 +124,8 @@ def readDataColumns(path):
     # first put the label row in (it contains the worksheet column, and it is unique)
     for v in dataColumnSheet.labels[1:]:
         dataColumnDefinitions.append({labels['Worksheet Column']:v})
+        
+    logger.info(str(('========== datacolumns:',dataColumnDefinitions)))
     # now, for each row, create the appropriate dictionary entry in the dataColumnDefinitions
     for row in dataColumnSheet:
         rowAsUnicode = util.make_row(row)
@@ -154,6 +156,15 @@ def readDataColumns(path):
         logger.debug(str(("definitions: ", dataColumnDefinitions)) )
     
     return dataColumnDefinitions
+
+def colForInt(i):
+    j = i/26
+    rem = i%26
+    baseColName = ''
+    if j > 0:
+        baseColName = colForInt(j-1)
+    return  baseColName + chr(ord('A') + rem)
+
 
 def main(path):
     datarecord_batch = []
@@ -192,7 +203,7 @@ def main(path):
         if(not 'display_order' in dc or dc['display_order']==None): dc['display_order']=i
         dataColumn = DataColumn(**dc)
         dataColumn.save()
-        logger.debug(str(('datacolumn created:', dataColumn)))
+        logger.debug(str(('====datacolumn created:', dataColumn)))
         dataColumns[dataColumn.name] = dataColumn    
 
     logger.debug('read the Data sheet')
@@ -218,7 +229,8 @@ def main(path):
             
         else:
             #raise Exception("no datacolumn for the label: " + label)
-            columnName = chr(ord('A') + i)
+            #columnName = chr(ord('A') + i)
+            columnName = colForInt(i)
             findError = True
             for column in dataColumns.values():
                 if(column.worksheet_column == columnName):
@@ -319,7 +331,7 @@ def main(path):
                     dataRecord.cell = Cell.objects.get(facility_id=facility_id) 
                     mapped = True
             except Exception, e:
-                logger.error(str(("Invalid Cell facility id: ", facility_id,'row',current_row), e))
+                logger.error(str(("Invalid Cell facility id: ", facility_id,'row',current_row, e)))
                 raise    
         map_column = mappingColumnDict['Antibody']
         if(map_column > -1):
@@ -331,7 +343,7 @@ def main(path):
                     dataRecord.antibody = Antibody.objects.get(facility_id=facility_id) 
                     mapped = True
             except Exception, e:
-                logger.error(str(("Invalid Antibody facility id: ", facility_id,'row',current_row), e))
+                logger.error(str(("Invalid Antibody facility id: ", facility_id,'row',current_row, e)))
                 raise    
         map_column = mappingColumnDict['OtherReagent']
         if(map_column > -1):
@@ -343,7 +355,7 @@ def main(path):
                     dataRecord.otherreagent = OtherReagent.objects.get(facility_id=facility_id) 
                     mapped = True
             except Exception, e:
-                logger.error(str(("Invalid OtherReagent facility id: ", facility_id,'row',current_row), e))
+                logger.error(str(("Invalid OtherReagent facility id: ", facility_id,'row',current_row, e)))
                 raise    
         map_column = mappingColumnDict['Protein']
         if(map_column > -1):
