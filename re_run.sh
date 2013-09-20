@@ -175,6 +175,10 @@ else
 	python src/import_protein.py -f $DATADIR/HMS-LINCS_ProteinMetadata_forLoading.xls
 	check_errs $? 'import kinases fails'
 	
+	echo 'import other reagent tables...'
+    python src/import_other_reagent.py -f $DATADIR/HMS-LINCS_other_reagents.xls
+    check_errs $? 'import other reagents fails'
+	
 	echo 'import screen results...'
 	python src/import_dataset.py -f $DATADIR/Study20000_NominalTargets_forLoading.xlsx 
 	check_errs $? "import dataset fails"
