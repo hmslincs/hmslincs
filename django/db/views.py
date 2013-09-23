@@ -16,7 +16,7 @@ from django.http import Http404, HttpResponseRedirect, HttpResponse
 from django.shortcuts import render
 from django.utils import timezone
 from django.utils.encoding import smart_str
-from django.utils.safestring import mark_safe
+from django.utils.safestring import mark_safe, SafeString
 from django_tables2 import RequestConfig
 from django_tables2.utils import A # alias for Accessor
 from dump_obj import dumpObj
@@ -1047,7 +1047,7 @@ def set_field_information_to_table_column(fieldname,table_names,column):
     try:
         fi = FieldInformation.manager.get_column_fieldinformation_by_priority(fieldname,table_names)
         column.attrs['th']={'title':fi.get_column_detail()}
-        column.verbose_name = fi.get_verbose_name()
+        column.verbose_name = SafeString(fi.get_verbose_name())
     except (Exception) as e:
         raise Exception(str(('no fieldinformation found for field:', fieldname,e)))
     
@@ -1157,7 +1157,7 @@ class DataSetResultTable(PagedTable):
         for i,dc in enumerate(ordered_datacolumns):    
             #logger.debug(str(('create column:',name,verbose_name)))
             col = 'col%d'%i
-            display_name = (dc.display_name, dc.name)[dc.display_name == None or len(dc.display_name)==0]
+            display_name = (SafeString(dc.display_name), dc.name)[dc.display_name == None or len(dc.display_name)==0]
             logger.debug(str(('create column', col, dc.id, dc.data_type, display_name, dc.name)))
             if(dc.data_type.lower() != OMERO_IMAGE_COLUMN_TYPE):
                 self.base_columns[col] = tables.Column(verbose_name=display_name)
@@ -2023,7 +2023,7 @@ def set_table_column_info(table,table_names, sequence_override=None):
                     exclude_list.append(fieldname)
             else:
                 column.attrs['th']={'title':fi.get_column_detail()}
-                column.verbose_name = fi.get_verbose_name()
+                column.verbose_name = SafeString(fi.get_verbose_name())
                 fields[fieldname] = fi
         except (Exception) as e:
             logger.debug(str(('no fieldinformation found for field:', fieldname)))

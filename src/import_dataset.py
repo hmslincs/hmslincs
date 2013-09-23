@@ -125,7 +125,7 @@ def readDataColumns(path):
     for v in dataColumnSheet.labels[1:]:
         dataColumnDefinitions.append({labels['Worksheet Column']:v})
         
-    logger.info(str(('========== datacolumns:',dataColumnDefinitions)))
+    logger.debug(str(('========== datacolumns:',dataColumnDefinitions)))
     # now, for each row, create the appropriate dictionary entry in the dataColumnDefinitions
     for row in dataColumnSheet:
         rowAsUnicode = util.make_row(row)
