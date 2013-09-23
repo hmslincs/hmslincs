@@ -175,6 +175,10 @@ else
 	python src/import_protein.py -f $DATADIR/HMS-LINCS_ProteinMetadata_forLoading.xls
 	check_errs $? 'import kinases fails'
 	
+	echo 'import other reagent tables...'
+    python src/import_other_reagent.py -f $DATADIR/HMS-LINCS_other_reagents.xls
+    check_errs $? 'import other reagents fails'
+	
 	echo 'import screen results...'
 	python src/import_dataset.py -f $DATADIR/Study20000_NominalTargets_forLoading.xlsx 
 	check_errs $? "import dataset fails"
@@ -648,9 +652,10 @@ else
 	check_errs $? "import dataset fails"
 	
 	# removed, per CES request, 2013-06-07 - sde
-	#echo 'import screen results...'
-	#python src/import_dataset.py -f $DATADIR/Screen20120_Fallahi-Sichani.xlsx
-	#check_errs $? "import dataset fails"
+	# reinstated since paper published, 2013-09-09 - djw
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/Screen20120_Fallahi-Sichani.xlsx
+	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
 	python src/import_dataset.py -f $DATADIR/Screen20121_Yale_A549.xlsx
