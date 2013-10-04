@@ -6,14 +6,10 @@ import requests
 import os
 import re
 import codecs
+import shutil
 
-def render_template(dirname, filename, data):
-    out_filename = os.path.join(dirname, filename)
-    content = ligand_template.render(data)
-    with codecs.open(out_filename, 'w', 'utf-8') as out_file:
-        out_file.write(content)
 
-ligand_path = site_path('SignalingPage', 'LigandPage')
+ligand_path = resource_path('SignalingPage', 'LigandPage')
 
 filename = os.path.join(ligand_path, 'Ligand_info.xlsx')
 workbook = openpyxl.load_workbook(filename)
@@ -31,31 +27,27 @@ template_env = jinja2.Environment(
     loader=jinja2.PackageLoader('niepel_2013', 'templates'))
 ligand_template = template_env.get_template('ligand.html')
 
-doseresponse_path = os.path.join(ligand_path, 'DoseResponsePlots')
-pathwaybias_path = os.path.join(ligand_path, 'PathwayBiasPlots')
-responsekinetics_path = os.path.join(ligand_path, 'ResponseKinetics')
-sensitivity_path = os.path.join(ligand_path, 'SensitivityClass')
-timecourse_path = os.path.join(ligand_path, 'TimeCoursePlots')
+image_dirs = [
+    ('doseresponse', 'DoseResponsePlots'),
+    ('pathwaybias', 'PathwayBiasPlots'),
+    ('responsekinetics', 'ResponseKinetics'),
+    ('sensitivity', 'SensitivityClass'),
+    ('timecourse', 'TimeCoursePlots'),
+    ]
 
-html_path = site_path('html', 'ligand')
-try:
-    os.makedirs(html_path)
-except OSError as e:
-    # pass only if error is EEXIST
-    if e.errno != 17:
-        raise
+html_path = create_output_path('ligand')
 
 all_data = []
 print(' ' * 15 + 'DR PB RK SE TC RA DB UP  status')
+
 for row in sheet.rows[1:]:
+
     data = dict(zip(column_names, (r.value for r in row)))
     print('%-15s' % data['name'], end='')
-    plot_filename = data['name'] + '.png'
 
-    fig_paths = (doseresponse_path, pathwaybias_path, responsekinetics_path,
-                 sensitivity_path, timecourse_path)
-    all_ok = all([print_status_accessible(p, plot_filename)
-                  for p in fig_paths])
+    plot_filename = data['name'] + '.png'
+    all_ok = all([print_status_accessible(ligand_path, d_in, plot_filename)
+                  for d_out, d_in in image_dirs])
 
     for row_affinity in sheet_affinities.rows[1:]:
         if row_affinity[0].value == data['name']:
@@ -75,7 +67,8 @@ for row in sheet.rows[1:]:
         all_ok = False
 
     db_data = None
-    db_url = 'http://lincs.hms.harvard.edu/db/api/v1/protein/%s/' % data['hmsl_id']
+    db_url = ('http://lincs.hms.harvard.edu/db/api/v1/protein/%s/' %
+              data['hmsl_id'])
     db_response = requests.get(db_url)
     if db_response.ok:
         PASS()
@@ -85,7 +78,8 @@ for row in sheet.rows[1:]:
         all_ok = False
 
     if 'db' in data:
-        uniprot_url = 'http://www.uniprot.org/uniprot/%s.txt' % data['db']['ppUniprotID']
+        uniprot_url = ('http://www.uniprot.org/uniprot/%s.txt' %
+                       data['db']['ppUniprotID'])
         uniprot_response = requests.get(uniprot_url)
     # Avoid nested 'if', otherwise we'd need to duplicate the FAIL/all_ok code.
     # Ideally we would write a little more library code to support this idiom.
@@ -108,4 +102,6 @@ name_data = {'all_names': [data['name'] for data in all_data]}
 for data in all_data:
     data.update(name_data)
     html_filename = data['name'] + '.html'        
-    render_template(html_path, html_filename, data)
+    render_template(ligand_template, data, html_path, html_filename)
+    image_filename = data['name'] + '.png'
+    copy_images(image_dirs, image_filename, ligand_path, ('ligand', 'img'))

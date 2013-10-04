@@ -5,15 +5,7 @@ import jinja2
 import requests
 import os
 import re
-import codecs
-import shutil
 
-
-def render_template(dirname, filename, data):
-    out_filename = os.path.join(dirname, filename)
-    content = cellline_template.render(data)
-    with codecs.open(out_filename, 'w', 'utf-8') as out_file:
-        out_file.write(content)
 
 cellline_path = resource_path('SignalingPage', 'CellLinePage')
 
@@ -40,7 +32,7 @@ html_path = create_output_path('cell_line')
 all_data = []
 print(' ' * 15 + 'FC NE ST TM DB  status')
 
-for row in sheet.rows[1:3]:
+for row in sheet.rows[1:]:
 
     data = dict(zip(column_names, (r.value for r in row)))
     print('%-15s' % data['name'], end='')
@@ -73,10 +65,19 @@ name_data = {'all_names': [data['name'] for data in all_data]}
 for data in all_data:
     data.update(name_data)
     html_filename = data['name'] + '.html'        
-    render_template(html_path, html_filename, data)
-    for d_out, d_in in image_dirs:
-        image_path = create_output_path('cell_line', 'img', d_out)
-        base_filename = data['name'] + '.png'
-        source_filename = os.path.join(cellline_path, d_in, base_filename)
-        dest_filename = os.path.join(image_path, base_filename)
-        shutil.copy(source_filename, dest_filename)
+    render_template(cellline_template, data, html_path, html_filename)
+    image_filename = data['name'] + '.png'
+    copy_images(image_dirs, image_filename, cellline_path, ('cell_line', 'img'))
+
+
+print()
+subtypes = set(d['class_consensus'] for d in all_data)
+for subtype in subtypes:
+    image_filename = 'NetMap_%s.png' % subtype
+    # We are only copying one image, but we can reuse copy_images with a little
+    # creativity in crafting the first arg.
+    copy_images([('nodeedge', 'NodeEdgeFigures')], image_filename,
+                cellline_path, ('cell_line', 'img'))
+    print(base_filename, end=' ')
+    PASS()
+    print()
