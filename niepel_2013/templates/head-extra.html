@@ -1,0 +1,40 @@
+<style type="text/css">
+#content table table {
+  border: 0;
+}
+#content table table td {
+  border-right: 0;
+}
+#content table table td:first-child {
+  padding-left: 0;
+}
+#content table table tr:nth-child(2n) {
+  background-color: inherit;
+}
+h2 {
+  padding-top: 1em;
+}
+.sibling-browser {
+  float: right;
+  border: 1px solid #e0e0e0;
+  position: absolute;
+  right: 0;
+  top: 0;
+  background-color: #ffffff;
+  padding: 0.5em 1em 0.5em 1.5em;
+}
+.sibling-browser-list {
+  display: none;
+}
+</style>
+
+<script type="text/javascript">
+jQuery(document).ready(
+    function ($) {
+        var $sb = $('.sibling-browser');
+        var $sb_list = $sb.find('.sibling-browser-list');
+        $sb.mouseenter(function() { $sb_list.stop().slideDown(); });
+        $sb.mouseleave(function() { $sb_list.stop().slideUp(); });
+    }
+);
+</script>

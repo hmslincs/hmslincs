@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block head %}
+<title>Cell line {{ name }}</title>
+{% include "head-extra.html" %}
+{% endblock %}
+
+{% block contentclass %}fullwidth{% endblock %}
+
+{% block body %}
+
+{% set type_name_plural = 'cell lines' %}
+{% include "sibling_browser.html" %}
+                          
+<h1>
+  Cell line 
+  <a href="http://lincs.hms.harvard.edu/db/cells/{{ hmsl_id }}/">{{ name }}</a>
+  response profile
+</h1>
+
+<h2>General information</h2>
+<table style="width: 60em;">
+  <tr>
+    <td style="width: 10em;">Subtype</td>
+    <td>{{ class_consensus }}</td>
+  </tr>
+  <tr>
+    <td>HMS LINCS ID</td>
+    <td><a href="http://lincs.hms.harvard.edu/db/cells/{{ hmsl_id }}/">{{ hmsl_id }}</a></td>
+  </tr>
+  <tr>
+    <td>COSMIC ID</td>
+    <td>
+      {% if db._cosmic_id %}
+      <a href="http://cancer.sanger.ac.uk/cell_lines/sample/overview?id={{ db._cosmic_id }}">{{ db._cosmic_id }}</a>
+      {% else %}
+      N/A
+      {% endif %}
+    </td>
+  </tr>
+  <tr>
+    <td>ATCC ID</td>
+    <td>
+      {% if db.clProviderName == 'ATCC' %}
+      <a href="http://www.atcc.org/products/all/{{ db.clProviderCatalogID }}.aspx">{{ db.clProviderCatalogID }}</a>
+      {% else %}
+      N/A
+      {% endif %}
+    </td>
+  </tr>
+  <tr>
+    <td style="vertical-align: top;">Culture conditions</td>
+    <td>
+      {% if db.clRecommendedCultureConditions %}
+      {{ db.clRecommendedCultureConditions }}
+      {% else %}
+      unknown
+      {% endif %}
+    </td>
+  </tr>
+</table>
+
+<h2>Node-edge graph</h2>
+<p style="text-align: center; float: left;">
+  {{ name }}
+  <br />
+  <a href="img/nodeedge/{{ name }}.png"><img src="img/nodeedge/{{ name }}.png" width="250" height="235" /></a>
+</p>
+<p style="text-align: center; float: left;">
+  {{ class_consensus }} average
+  <br />
+  <a href="img/nodeedge/NetMap_{{ class_consensus }}.png"><img src="img/nodeedge/NetMap_{{ class_consensus }}.png" width="250" height="235" /></a>
+</p>
+<p style="clear: left;"></p>
+
+<h2>Characteristic response to major ligands</h2>
+<img src="img/subtype/{{ name }}.png"
+     width="700" height="237" />
+
+<h2>Most up- and down-regulated (phospho-) kinases</h2>
+<img src="img/topmeasures/{{ name }}.png"
+     width="700" height="385" />
+
+<h2>Fold change pERK and pAKT response to ligands</h2>
+<img src="img/foldchange/{{ name }}.png"
+     width="700" height="237" />
+
+{% endblock %}

@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block head %}
+<title>Responses to ligand {{ name }}</title>
+{% include "head-extra.html" %}
+{% endblock %}
+
+{% block contentclass %}fullwidth{% endblock %}
+
+{% block body %}
+
+{% set type_name_plural = 'ligands' %}
+{% include "sibling_browser.html" %}
+                          
+<h1>
+  Responses to ligand 
+  <a href="http://lincs.hms.harvard.edu/db/proteins/{{ hmsl_id }}/">
+    {{ full_name }} ({{ name }})
+  </a>
+</h1>
+
+<h2>General information</h2>
+<table style="width: 60em;">
+  <tr>
+    <td style="width: 10em;"><strong>Ligand family</strong></td>
+    <td>{{ family }} ligand</td>
+  </tr>
+  <tr>
+    <td><strong>HMS LINCS ID</strong></td>
+    <td><a href="http://lincs.hms.harvard.edu/db/proteins/{{ hmsl_id }}/">{{ hmsl_id }}</a></td>
+  </tr>
+  <tr>
+    <td><strong>UniProt ID</strong></td>
+    <td>
+      {% if db.ppUniprotID %}
+      <a href="http://www.uniprot.org/uniprot/{{ db.ppUniprotID }}">{{ db.ppUniprotID }}</a>
+      {% else %}
+      N/A
+      {% endif %}
+    </td>
+  </tr>
+  <tr>
+    <td><strong>Molecular weight</strong></td>
+    <td>
+      {% if molecular_weight %}
+      {{ molecular_weight }} kDa
+      {% else %}
+      unknown
+      {% endif %}
+    </td>
+  </tr>
+  <tr>
+    <td><strong>Receptor affinity</strong></td>
+    <td>
+      <table>
+        <tr>
+          <td><strong>Receptor</strong></td>
+          <td><strong>KD</strong></td>
+        </tr>
+        {% for receptor in affinity.receptors %}
+        <tr>
+          <td>{{ receptor.name }}</td>
+          <td>{{ receptor.kd }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+      <em>Affinity references: {{ affinity.reference }}</em>
+    </td>
+  </tr>
+</table>
+
+<h2>Time course response</h2>
+<img src="../../SignalingPage/LigandPage/TimeCoursePlots/{{ name }}.png"
+     width="700" height="233" />
+
+<h2>Pathway bias</h2>
+<img src="../../SignalingPage/LigandPage/PathwayBiasPlots/{{ name }}.png"
+     width="700" height="292" />
+
+<h2>Dose response</h2>
+<img src="../../SignalingPage/LigandPage/DoseResponsePlots/{{ name }}.png"
+     width="700" height="233" />
+
+<h2>Sensitivity class</h2>
+<img src="../../SignalingPage/LigandPage/SensitivityClass/{{ name }}.png"
+     width="700" height="292" />
+
+<h2>Kinetic cluster</h2>
+<img src="../../SignalingPage/LigandPage/ResponseKinetics/{{ name }}.png"
+     width="700" height="245" />
+
+{% endblock %}
