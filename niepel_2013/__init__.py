@@ -60,11 +60,26 @@ def render_template(template, data, dirname, basename):
     with codecs.open(out_filename, 'w', 'utf-8') as out_file:
         out_file.write(content)
 
-def copy_images(image_dirs, base_filename, source_path, dest_path_elements):
-    "Copy a set of same-named images in parallel subdirectories."
+# TODO Should probably write a simple copy_image and then rename this
+# copy_images_parallel or something, implemented using copy_image. The interface
+# is baroque for the single-image use case. Also should probably swap d_out,d_in
+# in image_dirs for a more logical ordering.
+def copy_images(image_dirs, base_filename, source_path, dest_path_elements,
+                permissive=False):
+    """Copy a set of same-named images in parallel subdirectories.
+
+    permissive: Set this to True if IOErrors should be ignored.
+
+    """
     for d_out, d_in in image_dirs:
         dest_path = list(dest_path_elements) + [d_out]
         image_path = create_output_path(*dest_path)
         source_filename = os.path.join(source_path, d_in, base_filename)
         dest_filename = os.path.join(image_path, base_filename)
-        shutil.copy(source_filename, dest_filename)
+        try:
+            shutil.copy(source_filename, dest_filename)
+        except IOError:
+            if permissive:
+                pass
+            else:
+                raise

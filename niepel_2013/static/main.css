@@ -1,0 +1,52 @@
+#content table table {
+  border: 0;
+}
+#content table table td {
+  border-right: 0;
+}
+#content table table td:first-child {
+  padding-left: 0;
+}
+#content table table tr:nth-child(2n) {
+  background-color: inherit;
+}
+h2 {
+  padding-top: 1em;
+}
+.sibling-browser {
+  float: right;
+  border: 1px solid #e0e0e0;
+  position: absolute;
+  right: 0;
+  top: 0;
+  background-color: #ffffff;
+  padding: 0.5em 1em 0.5em 1.5em;
+}
+.sibling-browser-list {
+  display: none;
+}
+.lookup-table-container {
+  position: relative;
+  margin: 0 auto;
+  width: 870px;
+}
+.lookup-table-hotspot {
+  position: absolute;
+  cursor: pointer;
+  background: #000;
+  opacity: 0.0;
+  filter: alpha(opacity = 0);
+}
+.lookup-table-popup {
+  display: none;
+  position: absolute;
+  background: white;
+  border: 1px solid black;
+  box-shadow: 10px 10px 10px rgba(0,0,0,0.7)
+}
+
+/* Override some jquery theme items. */
+
+.ui-dialog .ui-dialog-titlebar {
+  padding: 0 0.4em;
+}

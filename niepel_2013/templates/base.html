@@ -1,5 +1,7 @@
 <!DOCTYPE html>
 
+{% set STATIC_URL = 'http://lincs.hms.harvard.edu/_static/' %}
+
 <html>
 
 <head>
@@ -37,6 +39,9 @@
         </script>
 
         <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/hmslincs.css" />
+
+        <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.2/themes/smoothness/jquery-ui.css" />
+        <script type="text/javascript" src="http://code.jquery.com/ui/1.10.2/jquery-ui-min.js"></script>
 
         {% block head %}
           <title>HMS LINCS Project</title>

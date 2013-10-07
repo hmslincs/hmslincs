@@ -39,15 +39,24 @@ origin_y = 73
 cell_w = 18.07
 cell_h = 26.5
 
-ligand_names = [
-    
-    ]
+# FIXME make ligand.py stash this list somewhere we can read it in (pickle?)
+ligands = ['EGF', 'EPR', 'BTC', 'HRG', 'INS', 'IGF-1', 'IGF-2', 'PDGF-BB',
+           'HGF', 'SCF', 'FGF-1', 'FGF-2', 'NGF-beta', 'EFNA1', 'VEGF165']
+# FIXME same thing here for cell_line.py
+cell_lines = ['184B5', 'BT-20', 'BT-549', 'HCC1187', 'HCC1395', 'HCC1806',
+              'HCC1937', 'HCC38', 'HCC70', 'Hs 578T', 'MCF 10A', 'MCF 10F',
+              'MCF-12A', 'MDA-MB-157', 'MDA-MB-231', 'MDA-MB-436', 'MDA-MB-453',
+              'MDA-MB-468', 'AU-565', 'BT-474', 'HCC1419', 'HCC1569', 'HCC1954',
+              'HCC202', 'MDA-MB-361', 'SK-BR-3', 'UACC-812', 'UACC-893',
+              'ZR-75-30', 'BT-483', 'CAMA-1', 'HCC1428', 'HCC1500', 'MCF7',
+              'MDA-MB-134-VI', 'MDA-MB-175-VII', 'MDA-MB-415', 'T47D',
+              'ZR-75-1']
 
 cells = []
-for row in xrange(15):
-    for column in xrange(39):
+for row, ligand in enumerate(ligands):
+    for column, cell_line in enumerate(cell_lines):
         cell = {
-            'name': '%s_%s' % (row, column),
+            'name': '%s_%s' % (ligand, cell_line),
             'left': origin_x + column * cell_w,
             'top': origin_y + row * cell_h,
             'width': cell_w,
@@ -67,3 +76,10 @@ data = {
         ]
     }
 render_template(table_template, data, html_path, 'index.html')
+
+for cell in cells:
+    image_filename = cell['name'] + '.png'
+    # We are only copying one image, but we can reuse copy_images with a little
+    # creativity in crafting the first arg.
+    copy_images([('', 'subfigures')], image_filename,
+                lookup_path, ('lookup_table', 'img'), permissive=True)
