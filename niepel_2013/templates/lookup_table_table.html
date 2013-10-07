@@ -1,0 +1,20 @@
+<h2>{{ table.name }}</h2>
+
+<div class="lookup-table-container">
+
+  {% for cell in table.cells %}
+
+  <div data-name="{{ cell.name }}" class="lookup-table-hotspot"
+       style="left: {{ cell.left }}px; top: {{ cell.top }}px;
+       width: {{ cell.width }}px; height: {{ cell.height }}px;"></div>
+
+  {% endfor %}
+
+  <div class="lookup-table-popup-template">
+    <img width="350" height="292" />
+  </div>
+
+  <img src="{{ table.image_path }}" id="" border="0" 
+       width="{{ table.image.width / 2}}" height="{{ table.image.height / 2}}" />
+
+</div>

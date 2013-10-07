@@ -78,6 +78,6 @@ for subtype in subtypes:
     # creativity in crafting the first arg.
     copy_images([('nodeedge', 'NodeEdgeFigures')], image_filename,
                 cellline_path, ('cell_line', 'img'))
-    print(base_filename, end=' ')
+    print(image_filename, end=' ')
     PASS()
     print()

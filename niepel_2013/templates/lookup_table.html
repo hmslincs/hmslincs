@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block head %}
+<title>Cell line {{ name }}</title>
+{% include "head-extra.html" %}
+{% endblock %}
+
+{% block contentclass %}fullwidth{% endblock %}
+
+{% block body %}
+
+<h1>Lookup tables</h1>
+
+{% for table in tables %}
+{% include "lookup_table_table.html" %}
+{% endfor %}
+
+
+{% endblock %}
