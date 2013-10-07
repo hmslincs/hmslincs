@@ -1,7 +1,7 @@
 from __future__ import print_function, division
 from niepel_2013 import *
 import jinja2
-import wand.image
+import wand.image, wand.color
 import math
 import os
 import re
@@ -30,12 +30,22 @@ img_tmp.close()
 
 img_akt = wand.image.Image(filename=akt_pdf_filename, resolution=resolution)
 img_akt.rotate(-90)
-img_akt.save(filename=os.path.join(html_path, 'table_akt.png'))
+with wand.image.Image(width=img_akt.width, height=img_akt.height,
+                      background=wand.color.Color('white')) as img_out:
+    img_out.composite(image=img_akt, left=0, top=0)
+    img_out.save(filename=os.path.join(html_path, 'img', 'table_akt.png'))
+
+img_erk = wand.image.Image(filename=erk_pdf_filename, resolution=resolution)
+img_erk.rotate(-90)
+with wand.image.Image(width=img_erk.width, height=img_erk.height,
+                      background=wand.color.Color('white')) as img_out:
+    img_out.composite(image=img_erk, left=0, top=0)
+    img_out.save(filename=os.path.join(html_path, 'img', 'table_erk.png'))
 
 # Constants determined empirically by inspecting the output images (and tweaking
 # a bit after looking at the output html). All values in CSS px.
 origin_x = 76
-origin_y = 73
+origin_y = 96.5
 cell_w = 18.07
 cell_h = 26.5
 
@@ -57,6 +67,8 @@ for row, ligand in enumerate(ligands):
     for column, cell_line in enumerate(cell_lines):
         cell = {
             'name': '%s_%s' % (ligand, cell_line),
+            'ligand': ligand,
+            'cell_line': cell_line,
             'left': origin_x + column * cell_w,
             'top': origin_y + row * cell_h,
             'width': cell_w,
@@ -69,7 +81,7 @@ data = {
     'tables': [
         {
             'name': 'akt',
-            'image_path': 'table_akt.png',
+            'image_path': 'img/table_akt.png',
             'image': img_akt,
             'cells': cells,
             },

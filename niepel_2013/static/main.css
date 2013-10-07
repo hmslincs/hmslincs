@@ -39,14 +39,14 @@ h2 {
 }
 .lookup-table-popup {
   display: none;
-  position: absolute;
   background: white;
-  border: 1px solid black;
-  box-shadow: 10px 10px 10px rgba(0,0,0,0.7)
 }
 
 /* Override some jquery theme items. */
 
 .ui-dialog .ui-dialog-titlebar {
   padding: 0 0.4em;
+}
+.ui-dialog {
+  box-shadow: 10px 10px 10px rgba(0,0,0,0.7)
 }
