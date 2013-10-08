@@ -3,8 +3,14 @@ jQuery(document).ready(
 
         var $sb = $('.sibling-browser');
         var $sb_list = $sb.find('.sibling-browser-list');
-        $sb.mouseenter(function() { $sb_list.stop().slideDown(); });
-        $sb.mouseleave(function() { $sb_list.stop().slideUp(); });
+        $sb.mouseenter(function() {
+            $sb_list.stop().slideDown(400, function() {
+                $(this).css('overflow','visible');
+            });
+        });
+        $sb.mouseleave(function() {
+            $sb_list.stop().slideUp(400);
+        });
 
         var $hotspots = $('.lookup-table-hotspot');
         $hotspots.click(function() {
