@@ -1,10 +1,14 @@
 from __future__ import print_function
 import os.path
+import sys
+import errno
 import codecs
+import cPickle as pickle
 import shutil
 
 __all__ = ['resource_path', 'create_output_path', 'print_status_accessible',
-           'PASS', 'FAIL', 'render_template', 'copy_images']
+           'PASS', 'FAIL', 'render_template', 'copy_images', 'stash_put',
+           'stash_get', 'makedirs_exist_ok', 'print_partial', 'PASS_nl']
 
 # Environment variable which points to the resource library.
 _ENV_RESOURCE_PATH = 'RESOURCE_PATH'
@@ -25,12 +29,7 @@ def create_output_path(*elements):
     src_path = os.path.dirname(__file__)
     path = os.path.join(src_path, os.path.pardir, 'output')
     path = os.path.abspath(os.path.join(path, *elements))
-    try:
-        os.makedirs(path)
-    except OSError as e:
-        # pass only if error is EEXIST
-        if e.errno != 17:
-            raise
+    makedirs_exist_ok(path)
     return path
 
 def print_status_accessible(*elements):
@@ -42,12 +41,20 @@ def print_status_accessible(*elements):
         FAIL()
     return accessible
 
+def print_partial(*s):
+    "Print to stdout without a terminating newline, and flush."
+    print(*s, end='')
+    sys.stdout.flush()
+
 def _print_status_inline(s):
-    print(s, ' ', end='')
+    print_partial(s, ' ')  # prints two spaces due to sep=' '
 
 def PASS():
     # 'CHECK MARK'
     _print_status_inline(u'\u2713')
+
+def PASS_nl():
+    print(u'\u2713')
 
 def FAIL():
     # 'MULTIPLICATION X'
@@ -83,3 +90,29 @@ def copy_images(image_dirs, base_filename, source_path, dest_path_elements,
                 pass
             else:
                 raise
+
+def stash_put(name, obj):
+    "Stash an object by name (to disk) for later retrieval."
+    src_path = os.path.dirname(__file__)
+    path = os.path.join(src_path, os.path.pardir, 'stash', name + '.pck')
+    path = os.path.abspath(path)
+    makedirs_exist_ok(os.path.dirname(path))
+    pickle_file = open(path, 'w');
+    pickle.dump(obj, pickle_file)
+
+def stash_get(name):
+    "Retrieve an object from the stash by name."
+    src_path = os.path.dirname(__file__)
+    path = os.path.join(src_path, os.path.pardir, 'stash', name + '.pck')
+    try:
+        pickle_file = open(path)
+        return pickle.load(pickle_file)
+    except (IOError, EOFError, pickle.UnpicklingError, ValueError):
+        return None
+
+def makedirs_exist_ok(name):
+    try:
+        os.makedirs(name)
+    except OSError as e:
+        if e.errno != errno.EEXIST:
+            raise

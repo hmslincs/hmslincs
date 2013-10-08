@@ -49,22 +49,20 @@ origin_y = 96.5
 cell_w = 18.07
 cell_h = 26.5
 
-# FIXME make ligand.py stash this list somewhere we can read it in (pickle?)
-ligands = ['EGF', 'EPR', 'BTC', 'HRG', 'INS', 'IGF-1', 'IGF-2', 'PDGF-BB',
-           'HGF', 'SCF', 'FGF-1', 'FGF-2', 'NGF-beta', 'EFNA1', 'VEGF165']
-# FIXME same thing here for cell_line.py
-cell_lines = ['184B5', 'BT-20', 'BT-549', 'HCC1187', 'HCC1395', 'HCC1806',
-              'HCC1937', 'HCC38', 'HCC70', 'Hs 578T', 'MCF 10A', 'MCF 10F',
-              'MCF-12A', 'MDA-MB-157', 'MDA-MB-231', 'MDA-MB-436', 'MDA-MB-453',
-              'MDA-MB-468', 'AU-565', 'BT-474', 'HCC1419', 'HCC1569', 'HCC1954',
-              'HCC202', 'MDA-MB-361', 'SK-BR-3', 'UACC-812', 'UACC-893',
-              'ZR-75-30', 'BT-483', 'CAMA-1', 'HCC1428', 'HCC1500', 'MCF7',
-              'MDA-MB-134-VI', 'MDA-MB-175-VII', 'MDA-MB-415', 'T47D',
-              'ZR-75-1']
+ligands = stash_get('ligands')
+assert ligands, "'ligands' not found in stash -- please run ligand.py"
+ligand_names = [ligand['name'] for ligand in ligands]
+
+cell_lines = stash_get('cell_lines')
+assert cell_lines, "'cell_lines' not found in stash -- please run cell_line.py"
+subtype_order_list = ['TNBC', 'HER2amp', 'HR+']
+subtype_order = dict(zip(subtype_order_list, range(len(subtype_order_list))))
+cell_lines.sort(key=lambda c: (subtype_order[c['class_consensus']], c['name']))
+cell_line_names = [c['name'] for c in cell_lines]
 
 cells = []
-for row, ligand in enumerate(ligands):
-    for column, cell_line in enumerate(cell_lines):
+for row, ligand in enumerate(ligand_names):
+    for column, cell_line in enumerate(cell_line_names):
         cell = {
             'name': '%s_%s' % (ligand, cell_line),
             'ligand': ligand,
