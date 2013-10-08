@@ -1,14 +1,6 @@
 jQuery(document).ready(
     function ($) {
 
-        function cell_name(popup_elt) {
-            var matches = $.map(popup_elt.classList, function (c, i) {
-                var filtered = c.replace(/^cell-/, '');
-                return filtered !== c ? filtered : null;
-            });
-            return matches[0];
-        }
-
         var $sb = $('.sibling-browser');
         var $sb_list = $sb.find('.sibling-browser-list');
         $sb.mouseenter(function() { $sb_list.stop().slideDown(); });
