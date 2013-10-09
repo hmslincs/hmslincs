@@ -34,6 +34,16 @@ then
   export LINCS_PGSQL_SERVER=$PGHOST
   export LINCS_PGSQL_PASSWORD=`cat ~/.pgpass |grep "\W$DB_USER\W" | awk -F ':' '{print $5}'`
   VIRTUALENV=/www/dev.lincs.hms.harvard.edu/support/virtualenv/bin/activate
+  
+  echo 'backing up db... '
+  DATE=`date +%Y%m%d%H%M%S`
+  set -x
+  pg_dump -Fc --no-owner -U $DB_USER -h $PGHOST -f ${DIR}/data/db_dumps/${DB}.${DATE}.pre_build.pg_dump $DB
+  check_errs $? "pg_dump fails"
+  set +x
+  echo 'backup done'
+  
+  
 elif [[ "$SERVER" == "DEVTEST" ]] || [[ "$SERVER" == "devtest" ]] 
 then
   # not needed for test data DATADIR=${DIR}/data/dev
@@ -87,7 +97,6 @@ else
 fi
 
 
-#/home/sde4/sql/drop-all.pl devlincs
 ./generate_drop_all.sh $DB_USER $DB $PGHOST | psql -U$DB_USER  $DB -h $PGHOST 
 check_errs $? "dropdb fails"
 
@@ -2211,3 +2220,13 @@ fi
 PGUSER=$DB_USER python src/create_indexes.py | psql -U$DB_USER  $DB -h $PGHOST -v ON_ERROR_STOP=1
 #check_errs $? "create indexes fails"
 
+if [[ "$SERVER" == "PROD" ]] || [[ "$SERVER" == "prod" ]] 
+then
+  echo 'backing up db... '
+  DATE=`date +%Y%m%d%H%M%S`
+  set -x
+  pg_dump -Fc --no-owner -U $DB_USER -h $PGHOST -f ${DIR}/data/db_dumps/${DB}.${DATE}.post_build.pg_dump $DB
+  check_errs $? "pg_dump fails"
+  set +x
+  echo 'backup done'
+fi
