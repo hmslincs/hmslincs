@@ -2,7 +2,21 @@
 
 <div class="lookup-table-container">
 
-  
+  {% for link in ligand_links %}
+  <a class="level-label" href="../ligand/{{ link.name }}.html"
+            style="left: {{ link.left }}px; top: {{ link.top }}px;
+       width: {{ link.width }}px; height: {{ link.height }}px;">
+    ligand {{ link.name }}
+  </a>
+  {% endfor %}
+
+  {% for link in cell_line_links %}
+  <a class="level-label" href="../cell_line/{{ link.name }}.html"
+            style="left: {{ link.left }}px; top: {{ link.top }}px;
+       width: {{ link.width }}px; height: {{ link.height }}px;">
+    ligand {{ link.name }}
+  </a>
+  {% endfor %}
 
   {% for cell in table.cells %}
   <div class="lookup-table-hotspot cell-{{ cell.name }}"

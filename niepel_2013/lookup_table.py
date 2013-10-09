@@ -73,9 +73,32 @@ for row, ligand in enumerate(ligand_names):
             'height': cell_h,
             }
         cells.append(cell)
-        
+
+ligand_links = []
+for row, ligand in enumerate(ligand_names):
+    link = {
+        'name': ligand,
+        'left': 0,
+        'top': origin_y + row * cell_h,
+        'width': origin_x,
+        'height': cell_h,
+        }
+    ligand_links.append(link)
+
+cell_line_links = []
+for column, cell_line in enumerate(cell_line_names):
+    link = {
+        'name': cell_line,
+        'left': origin_x + column * cell_w,
+        'top': 0,
+        'width': cell_w,
+        'height': origin_y,
+        }
+    cell_line_links.append(link)
 
 data = {
+    'ligand_links': ligand_links,
+    'cell_line_links': cell_line_links,
     'tables': [
         {
             'name': 'akt',

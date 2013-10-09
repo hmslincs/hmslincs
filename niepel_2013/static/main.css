@@ -41,6 +41,12 @@ h2 {
   display: none;
   background: white;
 }
+.lookup-table-container > .level-label {
+  display: block;
+  position: absolute;
+  font-size: 0;
+}
+
 
 /* Override some jquery theme items. */
 
