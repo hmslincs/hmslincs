@@ -1,10 +1,10 @@
 <ul class="sibling-browser">
   <li>
-    Browse other {{ type_name_plural }}
+    Browse {{ class }}s
     <ol class="sibling-browser-list">
-      {% for other_name in all_names %}
+      {% for name in all_names %}
       <li>
-        <a href="{{ other_name }}.html">{{ other_name }}</a>
+        <a href="../{{ class|replace(' ', '_') }}/{{ name }}.html">{{ name }}</a>
       </li>
       {% endfor %}
     </ol>

@@ -2,15 +2,14 @@
 
 {% block head %}
 <title>Cell line {{ name }}</title>
-{% include "head-extra.html" %}
 {% endblock %}
 
 {% block contentclass %}fullwidth{% endblock %}
 
 {% block body %}
 
-{% set type_name_plural = 'cell lines' %}
-{% include "sibling_browser.html" %}
+{% set class = 'cell line' %}
+{% include "sibling_browser_fixed.html" %}
                           
 <h1>
   Cell line response profile for<br>
@@ -49,7 +48,7 @@
   </tr>
   <tr>
     <td style="vertical-align: top;">Culture conditions</td>
-    <td>
+    <td class="culture-conditions">
       {% if db.clRecommendedCultureConditions %}
       {{ db.clRecommendedCultureConditions }}
       {% else %}

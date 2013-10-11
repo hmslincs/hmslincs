@@ -42,12 +42,12 @@ def print_status_accessible(*elements):
     return accessible
 
 def print_partial(*s):
-    "Print to stdout without a terminating newline, and flush."
-    print(*s, end='')
+    "Print to stdout with space as the terminator, and flush."
+    print(*s, end=' ')
     sys.stdout.flush()
 
 def _print_status_inline(s):
-    print_partial(s, ' ')  # prints two spaces due to sep=' '
+    print_partial(s, '')  # prints two spaces due to sep=' '
 
 def PASS():
     # 'CHECK MARK'

@@ -10,17 +10,25 @@
 #content table table tr:nth-child(2n) {
   background-color: inherit;
 }
+.culture-conditions {
+  /* TODO 2013/10/09 left off here - implementing overflow click-to-show  */
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 h2 {
   padding-top: 1em;
 }
 .sibling-browser {
-  float: right;
   border: 1px solid #e0e0e0;
+  background-color: #ffffff;
+  padding: 0.5em 1em 0.5em 1.5em;
+  display: inline-block;
+}
+.sibling-browser-fixed {
+  float: right;
   position: absolute;
   right: 0;
   top: 0;
-  background-color: #ffffff;
-  padding: 0.5em 1em 0.5em 1.5em;
 }
 .sibling-browser-list {
   display: none;
@@ -45,6 +53,13 @@ h2 {
   display: block;
   position: absolute;
   font-size: 0;
+}
+.titled-figure {
+  text-align: center;
+  float: left;
+}
+.titled-figure-clear {
+  clear: left;
 }
 
 

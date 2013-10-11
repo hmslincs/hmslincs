@@ -2,14 +2,13 @@ jQuery(document).ready(
     function ($) {
 
         var $sb = $('.sibling-browser');
-        var $sb_list = $sb.find('.sibling-browser-list');
         $sb.mouseenter(function() {
-            $sb_list.stop().slideDown(400, function() {
+            $('.sibling-browser-list', this).stop().slideDown(400, function() {
                 $(this).css('overflow','visible');
             });
         });
         $sb.mouseleave(function() {
-            $sb_list.stop().slideUp(400);
+            $('.sibling-browser-list', this).stop().slideUp(400);
         });
 
         var $hotspots = $('.lookup-table-hotspot');

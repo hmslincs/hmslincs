@@ -22,25 +22,31 @@ html_path = create_output_path('lookup_table')
 akt_pdf_filename = os.path.join(lookup_path, 'lookup table pAKT.pdf')
 erk_pdf_filename = os.path.join(lookup_path, 'lookup table pERK.pdf')
 
+print_partial('determine PDF resolution')
 img_tmp = wand.image.Image(filename=akt_pdf_filename)
 # Use img_tmp height because the source image is rotated 90 degrees.
 height_inches = img_tmp.height / img_tmp.resolution[1]
 resolution = int(math.floor(DESIRED_WIDTH_PX / height_inches))
 img_tmp.close()
+PASS_nl()
 
+print_partial(os.path.basename(akt_pdf_filename))
 img_akt = wand.image.Image(filename=akt_pdf_filename, resolution=resolution)
 img_akt.rotate(-90)
 with wand.image.Image(width=img_akt.width, height=img_akt.height,
                       background=wand.color.Color('white')) as img_out:
     img_out.composite(image=img_akt, left=0, top=0)
     img_out.save(filename=os.path.join(html_path, 'img', 'table_akt.png'))
+PASS_nl()
 
+print_partial(os.path.basename(erk_pdf_filename))
 img_erk = wand.image.Image(filename=erk_pdf_filename, resolution=resolution)
 img_erk.rotate(-90)
 with wand.image.Image(width=img_erk.width, height=img_erk.height,
                       background=wand.color.Color('white')) as img_out:
     img_out.composite(image=img_erk, left=0, top=0)
     img_out.save(filename=os.path.join(html_path, 'img', 'table_erk.png'))
+PASS_nl()
 
 # Constants determined empirically by inspecting the output images (and tweaking
 # a bit after looking at the output html). All values in CSS px.

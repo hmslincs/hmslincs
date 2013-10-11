@@ -23,7 +23,7 @@ image_dirs = [
 
 html_path = create_output_path('ligand')
 
-print_partial('ligand info ')
+print_partial('ligand info')
 ligand_info = stash_get('ligand_info')
 if not ligand_info:
     filename = os.path.join(ligand_path, 'Ligand_info.xlsx')
@@ -35,7 +35,7 @@ if not ligand_info:
     stash_put('ligand_info', ligand_info)
 PASS_nl()
 
-print_partial('ligand affinity ')
+print_partial('ligand affinity')
 ligand_affinity = stash_get('ligand_affinity')
 if not ligand_affinity:
     filename_affinities = os.path.join(ligand_path,

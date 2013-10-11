@@ -2,15 +2,14 @@
 
 {% block head %}
 <title>Responses to ligand {{ name }}</title>
-{% include "head-extra.html" %}
 {% endblock %}
 
 {% block contentclass %}fullwidth{% endblock %}
 
 {% block body %}
 
-{% set type_name_plural = 'ligands' %}
-{% include "sibling_browser.html" %}
+{% set class = 'ligand' %}
+{% include "sibling_browser_fixed.html" %}
                           
 <h1>
   Responses to ligand<br>

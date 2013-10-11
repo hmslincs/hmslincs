@@ -22,7 +22,7 @@ image_dirs = [
 
 html_path = create_output_path('cell_line')
 
-print_partial('cell line info ')
+print_partial('cell line info')
 cellline_info = stash_get('cellline_info')
 if not cellline_info:
     filename = os.path.join(cellline_path, 'CellLine_sutypes.xlsx')

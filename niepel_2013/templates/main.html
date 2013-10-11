@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+
+{% block head %}
+<title>Index</title>
+{% endblock %}
+
+{% block contentclass %}fullwidth{% endblock %}
+
+
+{% macro titled_figure(class, img_type, name, width, height,
+                       link=true, fname_prefix='') %}
+  <p class="titled-figure">
+    {% if link %}<a href="../{{ class }}/{{ name }}.html">{% endif %}
+    {{ name }}<br />
+    <img src="../{{ class }}/img/{{ img_type }}/{{ fname_prefix }}{{ name }}.png"
+         width="{{ width }}" height="{{ height }}" />
+    {% if link %}</a>{% endif %}
+  </p>
+{% endmacro %}
+
+
+{% macro titled_figures(class, img_type, names, width, height,
+                        link=true, fname_prefix='') %}
+  {% for name in names %}
+    {{ titled_figure(class, img_type, name, width, height, link, fname_prefix) }}
+  {% endfor %}
+  <p class="titled-figure-clear"></p>
+{% endmacro %}
+
+
+{% block body %}
+
+<h1>Explore signaling</h1>
+
+<p>Growth factor signaling is a key determinant of cellular behavior in normal
+and diseased tissue. Here we determine the variance of signaling responses
+across a panel of breast cancer lines and we identify the molecular
+underpinnings of these responses. We combine biochemical data with known
+mutational data for the cell lines and put forth a simple heuristic to
+approximate the responsiveness of cells to individual growth factors.</p>
+
+<h2>Exploring the Data</h2>
+
+<p>The data we collected here is complicated to display, not necessarily due to
+its size, but rather due to its high dimensionality. We prepared ‘signaling
+profiles’ where we tested 15 ligands x 2 doses x 3 exposure times x 2 targets x
+40 cell lines resulting in 7200 unique data points. In addition we collected
+‘basal profiles’ where we measured about 40 different expression or
+phosphorylation levels of key receptor tyrosine kinases of each cell line. To
+investigate these data, we plot different (often simplified) features of the
+data and show how it differs across another dimension. There are two main
+organizing principles of the data: <a href="#data-by-cell-line">data by cell
+line</a> and <a href="#data-by-ligand">data by ligand</a>. In the sections below
+we illustrate how we put data from individual examples into context by comparing
+it either to the remainder of the lines or ligands.</p>
+
+<p>Link to the raw data (xls for now; maybe a query page afterwards).
+[[TODO]]</p>
+
+<h2 id="data-by-cell-line">Data by Cell Line</h2>
+
+<p>One way to show the data of individual cell lines is to construct individual
+graphs that summarize much of the data collected for a single cell line.
+However, most measures fluctuate significantly across all cell lines, so another
+important way to display data from a single cell line is to show it in the
+context of the distribution of the same metric across all cell lines.</p>
+
+{% set class = 'cell line' %}
+{% set all_names = cell_line_names %}
+{% include "sibling_browser.html" %}
+
+<p style="position: relative;">A compact overview of both the basal and
+signaling profiles of each cell are simple network maps displayed as node-edge
+graphs. The outer and inner circles represent basal measurements with circle
+size indicating expression levels and the shading indicating phosphorylation
+levels. The data is normalized across all cell lines and gray outer circles
+denote phosphorylation levels below the threshold of detection. The lines
+between the outer and middle circles denote simplified ligand/receptor binding.
+The colored arrows between the outer and middle circles denote the strength of
+pERK (blue) or pAkt (red) induction by ligand. The maximal response by ligand
+was normalized across all responses and gray lines denote responses that are not
+significant.</p>
+
+{{ titled_figures('cell_line', 'nodeedge', ['MCF7', 'BT-20', 'MDA-MB-453'],
+                  250, 235) }}
+
+<p>To put the individual network maps into context we created three maps that
+represent each subtype. To create these maps we displayed the trimmed mean of
+all values of a given subtype to reduce artifacts due to ligand/receptor
+combinations that only sporadically result in significant responses.</p>
+
+{{ titled_figures('cell_line', 'nodeedge', ['TNBC', 'HER2amp', 'HR+'],
+                  250, 235, link=false, fname_prefix='NetMap_') }}
+
+<p>We can also plot the distribution of individual signaling features by
+subtype. Here we show the fraction of responses to low doses of ligands by pERK
+and pAkt. TNBCs are particularly sensitive and respond even to low doses of
+ligand when measuring pERK. No such difference is apparent when looking at pAkt.
+Other features that can be similarly compared are mean fold-changes or the
+pERK/pAkt induction bias. We can then show the data of individual cell types
+overlayed on these graphs in context of the overall distribution. </p>
+
+{{ titled_figures('cell_line', 'subtype', ['MCF7'], 700, 237) }}
+
+<p>Also the basal expression and phosphorylation levels of RTKs have a wide
+distribution across all cell lines. For each cell line we can highlight the five
+most upregulated and the five most downregulated basal measurements and compare
+them to the overall distribution of the same measurement across all lines.</p>
+
+{{ titled_figures('cell_line', 'topmeasures', ['MCF7'], 700, 385) }}
+
+<p>The magnitude of response to individual ligands varies significantly from one
+cell line to the next. We can illustrate this range of responses as boxplot for
+each ligand for pERK and pAkt fold-changes. Again, we can overlay data of an
+individual cell line over these distributions to put a single cell line into its
+appropriate context.</p>
+
+{{ titled_figures('cell_line', 'foldchange', ['MCF7'], 700, 237) }}
+
+<h2 id="data-by-ligand">Data by Ligand</h2>
+
+<p>For individual ligands we display the data in two different ways. For one, we
+can show groups of the raw data for individual ligand/target combinations.
+Alternatively, we can extract derived metrics and show the distribution of these
+derived metrics for individual ligands or ligand families.</p>
+
+{% set class = 'ligand' %}
+{% set all_names = ligand_names %}
+{% include "sibling_browser.html" %}
+
+<p>We can display the full time courses for individual ligand/target combination
+across all cell lines to see both the variance in the kinetics and the magnitude
+of the responses.</p>
+
+{{ titled_figures('ligand', 'timecourse', ['EGF'], 700, 233) }}
+
+<p>We can then classify these time course into four kinetic response classes
+(sustained, transient, late, none) and plot the distribution of these kinetic
+response classes by ligand-family/target for all cell lines. This shows that
+certain ligands predominantly give responses of certain classes, like the
+ErbB/FGF responses being mainly sustained or the INS/IGF responses being often
+late.</p>
+
+{{ titled_figures('ligand', 'responsekinetics', ['EGF'], 700, 245) }}
+
+<p>Even though we collected responses only at two different doses, we can still
+use this data to estimate the sensitivity of any cell line to a particular
+ligand. Analogous to the timecourses above, we can plot the response of all cell
+lines to a specific ligand measured by a specific target across the two doses.
+We find that there is a significant range in the magnitude of responses both at
+low and high dose. This means we can classify these sensitivities based on
+whether cells respond equally at high and low dose, higher at high than at low
+dose, only at high dose, or not at all.</p>
+
+{{ titled_figures('ligand', 'doseresponse', ['EGF'], 700, 233) }}
+
+<p>Once classified this way we can plot the overall distribution of these
+sensitivity classes for all cell lines given a ligand/target combination. This
+shows that certain ligands measured by certain targets predominantly fall into
+certain classes, like the ErbB and FGF responses being higher at high dose than
+at low dose meaning they are rarely saturated at low dose.</p>
+
+{{ titled_figures('ligand', 'sensitivity', ['EGF'], 700, 292) }}
+
+<p>Comparing the pERK and pAkt response for the same ligand (see above) it is
+apparent that individual ligands have a pathway bias. We can plot this bias as
+the response angle distribution or boxplots to compare individual ligands to the
+remaining ligands.</p>
+
+{{ titled_figures('ligand', 'pathwaybias', ['EGF'], 700, 292) }}
+
+{% endblock %}
