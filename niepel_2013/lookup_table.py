@@ -18,6 +18,7 @@ table_template = template_env.get_template('lookup_table.html')
 panel_path = os.path.join(lookup_path, 'subfigures')
 
 html_path = create_output_path('lookup_table')
+create_output_path('lookup_table', 'img')
 
 akt_pdf_filename = os.path.join(lookup_path, 'lookup table pAKT.pdf')
 erk_pdf_filename = os.path.join(lookup_path, 'lookup table pERK.pdf')
