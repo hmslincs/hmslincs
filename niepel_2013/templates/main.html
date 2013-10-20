@@ -43,16 +43,14 @@ approximate the responsiveness of cells to individual growth factors.</p>
 
 <p>The data we collected here is complicated to display, not necessarily due to
 its size, but rather due to its high dimensionality. We prepared ‘signaling
-profiles’ where we tested 15 ligands x 2 doses x 3 exposure times x 2 targets x
+profiles’ where we tested 15 ligands x 2 doses x 3 exposure times x 2 downstream kinase x
 40 cell lines resulting in 7200 unique data points. In addition we collected
 ‘basal profiles’ where we measured about 40 different expression or
 phosphorylation levels of key receptor tyrosine kinases of each cell line. To
 investigate these data, we plot different (often simplified) features of the
 data and show how it differs across another dimension. There are two main
 organizing principles of the data: <a href="#data-by-cell-line">data by cell
-line</a> and <a href="#data-by-ligand">data by ligand</a>. In the sections below
-we illustrate how we put data from individual examples into context by comparing
-it either to the remainder of the lines or ligands.</p>
+line</a> and <a href="#data-by-ligand">data by ligand</a>.
 
 <p>Link to the raw data (xls for now; maybe a query page afterwards).
 [[TODO]]</p>
@@ -86,12 +84,6 @@ combinations that only sporadically result in significant responses.</p>
 {{ titled_figures('cell_line', 'nodeedge', ['TNBC', 'HER2amp', 'HR+'],
                   250, 235, link=false, fname_prefix='NetMap_') }}
 
-
-<p>Most measures fluctuate significantly across all cell lines, so
-another important way to display data from a single cell line is to
-show it in the context of the distribution of the same metric across
-all cell lines.
-
 <p>We can also plot the distribution of individual signaling features by
 subtype. Here we show the fraction of responses to low doses of ligands by pERK
 and pAkt. TNBCs are particularly sensitive and respond even to low doses of
@@ -123,7 +115,7 @@ appropriate context.</p>
 {% set all_names = ligand_names %}
 {% include "sibling_browser.html" %}
 
-<p>We can display the full time courses for individual ligand/target combination
+<p>We can display the full time courses for individual ligand/downstream kinase combination
 across all cell lines to see both the variance in the kinetics and the magnitude
 of the responses.</p>
 
@@ -138,10 +130,10 @@ late.</p>
 
 {{ titled_figures('ligand', 'responsekinetics', ['EGF'], 700, 245) }}
 
-<p>Even though we collected responses only at two different doses, we can still
+<p>Even though we collected responses only at two different doses, we can
 use this data to estimate the sensitivity of any cell line to a particular
 ligand. Analogous to the timecourses above, we can plot the response of all cell
-lines to a specific ligand measured by a specific target across the two doses.
+lines to a specific ligand measured by a specific downstream kinase across the two doses.
 We find that there is a significant range in the magnitude of responses both at
 low and high dose. This means we can classify these sensitivities based on
 whether cells respond equally at high and low dose, higher at high than at low
@@ -150,7 +142,7 @@ dose, only at high dose, or not at all.</p>
 {{ titled_figures('ligand', 'doseresponse', ['EGF'], 700, 233) }}
 
 <p>Once classified this way we can plot the overall distribution of these
-sensitivity classes for all cell lines given a ligand/target combination. This
+sensitivity classes for all cell lines given a ligand/downstream kinase combination. This
 shows that certain ligands measured by certain targets predominantly fall into
 certain classes, like the ErbB and FGF responses being higher at high dose than
 at low dose meaning they are rarely saturated at low dose.</p>
