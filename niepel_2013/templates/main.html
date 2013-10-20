@@ -59,12 +59,6 @@ it either to the remainder of the lines or ligands.</p>
 
 <h2 id="data-by-cell-line">Data by Cell Line</h2>
 
-<p>One way to show the data of individual cell lines is to construct individual
-graphs that summarize much of the data collected for a single cell line.
-However, most measures fluctuate significantly across all cell lines, so another
-important way to display data from a single cell line is to show it in the
-context of the distribution of the same metric across all cell lines.</p>
-
 {% set class = 'cell line' %}
 {% set all_names = cell_line_names %}
 {% include "sibling_browser.html" %}
@@ -91,6 +85,12 @@ combinations that only sporadically result in significant responses.</p>
 
 {{ titled_figures('cell_line', 'nodeedge', ['TNBC', 'HER2amp', 'HR+'],
                   250, 235, link=false, fname_prefix='NetMap_') }}
+
+
+<p>Most measures fluctuate significantly across all cell lines, so
+another important way to display data from a single cell line is to
+show it in the context of the distribution of the same metric across
+all cell lines.
 
 <p>We can also plot the distribution of individual signaling features by
 subtype. Here we show the fraction of responses to low doses of ligands by pERK
@@ -119,14 +119,15 @@ appropriate context.</p>
 
 <h2 id="data-by-ligand">Data by Ligand</h2>
 
-<p>For individual ligands we display the data in two different ways. For one, we
-can show groups of the raw data for individual ligand/target combinations.
-Alternatively, we can extract derived metrics and show the distribution of these
-derived metrics for individual ligands or ligand families.</p>
-
 {% set class = 'ligand' %}
 {% set all_names = ligand_names %}
 {% include "sibling_browser.html" %}
+
+<p>
+For individual ligands we can display the full time courses for
+ligand/target combination across all cell lines to see both the
+variance in the kinetics and the magnitude of the responses.
+</p>
 
 <p>We can display the full time courses for individual ligand/target combination
 across all cell lines to see both the variance in the kinetics and the magnitude
