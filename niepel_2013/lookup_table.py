@@ -55,6 +55,7 @@ origin_x = 76
 origin_y = 96.5
 cell_w = 18.07
 cell_h = 26.5
+offset_y = 18
 
 ligands = stash_get('ligands')
 assert ligands, "'ligands' not found in stash -- please run ligand.py"
@@ -99,7 +100,7 @@ for column, cell_line in enumerate(cell_line_names):
         'left': origin_x + column * cell_w,
         'top': 0,
         'width': cell_w,
-        'height': origin_y,
+        'height': origin_y - offset_y,
         }
     cell_line_links.append(link)
 

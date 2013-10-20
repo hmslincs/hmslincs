@@ -58,12 +58,20 @@ h2 {
   margin: 0 auto;
   width: 870px;
 }
-.lookup-table-hotspot {
+.lookup-table-container > .level-label > div {
+  width:100%;
+  height:100%;
+}
+.lookup-table-hotspot,.lookup-table-container > .level-label > div {
   position: absolute;
   cursor: pointer;
-  background: #000;
+  background: #f7ab53;
   opacity: 0.0;
   filter: alpha(opacity = 0);
+}
+.lookup-table-hotspot:hover,.lookup-table-container > .level-label > div:hover {
+  opacity: 0.35;
+  filter: alpha(opacity = 35);
 }
 .lookup-table-popup {
   display: none;
