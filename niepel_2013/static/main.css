@@ -48,6 +48,18 @@ h2 {
   font-size: 0;
 }
 
+#citation-notice { 
+  border-top:1px solid #aaa  !important;
+  padding-top:1ex            !important;
+  padding-left:1em           !important;
+  margin-top:10ex            !important;
+  margin-bottom:0            !important;
+}
+
+#citation-notice p{
+  margin:0                   !important;
+}
+
 #legend-smallbox-lookuptables {
   width:200px                !important;
   float:right                !important;
