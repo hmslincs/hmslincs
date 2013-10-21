@@ -55,7 +55,7 @@ origin_x = 76
 origin_y = 96.5
 cell_w = 18.07
 cell_h = 26.5
-offset_y = 18
+offset_y = 16
 
 ligands = stash_get('ligands')
 assert ligands, "'ligands' not found in stash -- please run ligand.py"
