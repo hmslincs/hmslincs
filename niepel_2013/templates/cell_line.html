@@ -18,9 +18,9 @@
 </div>
 
 <h2>General information</h2>
-<table style="width: 60em;">
+<table class="general-info-cell-line">
   <tr>
-    <td style="width: 10em;">Subtype</td>
+    <td>Subtype</td>
     <td>{{ class_consensus }}</td>
   </tr>
   <tr>
@@ -48,7 +48,7 @@
     </td>
   </tr>
   <tr>
-    <td style="vertical-align: top;">Culture conditions</td>
+    <td>Culture conditions</td>
     <td class="culture-conditions">
       {% if db.clRecommendedCultureConditions %}
       {{ db.clRecommendedCultureConditions }}

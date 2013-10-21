@@ -71,6 +71,25 @@ h2 {
   border:1px solid #aaa      !important;
 }
 
+table.general-info-cell-line{
+  table-layout:fixed         !important;
+  width:100%                 !important;
+  min-width:40em             !important;
+}
+
+table.general-info-cell-line td{
+  vertical-align:top         !important;
+}
+
+table.general-info-cell-line td:first-child{
+  width:10em                 !important;
+  white-space:nowrap         !important;
+}
+
+table.general-info-cell-line td.culture-conditions{
+  white-space:normal         !important;
+}
+
 .titled-figure {
   text-align: center;
   float: left;
