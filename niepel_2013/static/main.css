@@ -47,6 +47,18 @@ h2 {
   position: absolute;
   font-size: 0;
 }
+
+#legend-smallbox-lookuptables {
+  width:200px                !important;
+  float:right                !important;
+  margin:0 20px              !important;
+  padding:10px               !important;
+  -webkit-border-radius: 4px !important;
+  -moz-border-radius: 4px    !important;
+  border-radius: 4px         !important;
+  border:1px solid #aaa      !important;
+}
+
 .titled-figure {
   text-align: center;
   float: left;
