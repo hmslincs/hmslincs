@@ -18,41 +18,6 @@
 h2 {
   padding-top: 1em;
 }
-.sibling-browser {
-  border: 1px solid #e0e0e0;
-  background-color: #ffffff;
-  padding: 0.5em 1em 0.5em 1.5em;
-  display: inline-block;
-}
-.sibling-browser-fixed {
-  float: right;
-  position: absolute;
-  right: 0;
-  top: 0;
-}
-.sibling-browser-list {
-  display: none;
-}
-.sibling-browser > li{
-  position:relative;         !important;
-  margin:0                   !important;
-  padding:0 1em              !important;
-  background-color:#fff;     !important;
-  z-index:10;                !important;
-}
-.sibling-browser-list{
-  position:absolute          !important;
-  margin:0                   !important;
-  padding:8px 0              !important;
-  width:100%                 !important;
-  border:1px solid #e0e0e0;  !important;
-  background-color:#fff;     !important;
-}
-.sibling-browser-list > li{
-  margin:0                   !important;
-  padding:0 1em              !important;
-  list-style:none            !important;
-}
 .lookup-table-container {
   position: relative;
   margin: 0 auto;

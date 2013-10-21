@@ -60,11 +60,15 @@ line</a> and <a href="#data-by-ligand">data by ligand</a>.
   <img src="{{ STATIC_URL_2 }}/table_erk_05.gif"/>
 </a>
 
+<div class="sibling-browser-container">
+
 <h2 id="data-by-cell-line">Data by Cell Line</h2>
 
 {% set class = 'cell line' %}
 {% set all_names = cell_line_names %}
 {% include "sibling_browser.html" %}
+
+</div> <!-- <div class="sibling-browser-container"> -->
 
 <p style="position: relative;">A compact overview of both the basal and
 signaling profiles of each cell are simple network maps displayed as node-edge
@@ -114,11 +118,15 @@ appropriate context.</p>
 
 {{ titled_figures('cell_line', 'foldchange', ['MCF7'], 700, 237) }}
 
+<div class="sibling-browser-container">
+
 <h2 id="data-by-ligand">Data by Ligand</h2>
 
 {% set class = 'ligand' %}
 {% set all_names = ligand_names %}
 {% include "sibling_browser.html" %}
+
+</div> <!-- <div class="sibling-browser-container"> -->
 
 <p>We can display the full time courses for individual ligand/downstream kinase combination
 across all cell lines to see both the variance in the kinetics and the magnitude
