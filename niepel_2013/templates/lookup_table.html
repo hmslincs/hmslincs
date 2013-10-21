@@ -10,6 +10,8 @@
 
 <h1>Lookup tables</h1>
 
+<p>Below is a summary of all signaling response data and signaling feature classifications for all cell lines and ligands. Each small subplot shows the results by ligand and cell line: the upper bar is colored according to the response sensitivity class, the black bars show the maximal fold change response for 1ng/ml and 100ng/ml, and the color of the lower bar corresponds to the kinetic cluster for 1ng/ml and 100ng/ml responses. Cell lines are grouped by subtype and ligands by family.</p>
+<p>The names of cell lines and ligands link to their respective summary pages. Clicking on each individual cell opens a window showing the underlying raw data in context of all other cell lines or all other ligands. Multiple different windows can be opened at the same time to compare different selections.</p>
 {% for table in tables %}
 {% include "lookup_table_table.html" %}
 {% endfor %}
