@@ -114,14 +114,6 @@ data = {
             'image': img_akt,
             'cells': cells,
             },
-        ]
-    }
-render_template(table_template, data, html_path, 'table_akt.html')
-
-data = {
-    'ligand_links': ligand_links,
-    'cell_line_links': cell_line_links,
-    'tables': [
         {
             'name': 'erk',
             'image_path': 'img/table_erk.png',
@@ -130,8 +122,8 @@ data = {
             },
         ]
     }
-render_template(table_template, data, html_path, 'table_erk.html')
 
+render_template(table_template, data, html_path, 'index.html')
 
 for cell in cells:
     image_filename = cell['name'] + '.png'
