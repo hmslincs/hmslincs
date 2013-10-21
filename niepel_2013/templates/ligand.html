@@ -9,17 +9,16 @@
 {% block body %}
 
 <div class="sibling-browser-container">
+{% set class = 'ligand' %}
+{% include "sibling_browser.html" %}
+
 <h1>
   Responses to ligand<br>
   <a href="http://lincs.hms.harvard.edu/db/proteins/{{ hmsl_id }}/">
     {{ full_name }} ({{ name }})
   </a>
 </h1>
-{# NOTE, the sibling-browser divs are float:right, hence the ordering below #}
-{% set class = 'cell line' %}
-{% include "sibling_browser.html" %}
-{% set class = 'ligand' %}
-{% include "sibling_browser.html" %}
+
 </div>
 
 
