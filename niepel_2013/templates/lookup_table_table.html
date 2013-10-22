@@ -1,6 +1,9 @@
-<h2>p{{ table.name|capitalize }} responses</h2>
 
 <div class="lookup-table-container">
+
+  <h2>p{{ table.name|capitalize }} responses</h2>
+
+  <div>
 
   {% for link in ligand_links %}
   <a class="level-label" href="../ligand/{{ link.name }}.html"
@@ -32,4 +35,5 @@
   <img src="{{ table.image_path }}" id="" border="0" 
        width="{{ table.image.width / 2}}" height="{{ table.image.height / 2}}" />
 
+</div>
 </div>
