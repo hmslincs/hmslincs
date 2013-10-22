@@ -21,14 +21,10 @@
   </a>
   {% endfor %}
 
-  {% for cell in table.cells %}
+  {% for cell in cells %}
   <div class="lookup-table-hotspot cell-{{ cell.name }}"
        style="left: {{ cell.left }}px; top: {{ cell.top }}px;
        width: {{ cell.width }}px; height: {{ cell.height }}px;">
-  </div>
-  <div class="lookup-table-popup cell-{{ cell.name }}"
-       title="{{ cell.cell_line }} responses to {{ cell.ligand }}">
-    <img src="img/{{ cell.name }}.png" width="350" height="257" />
   </div>
   {% endfor %}
 

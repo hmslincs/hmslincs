@@ -107,18 +107,17 @@ for column, cell_line in enumerate(cell_line_names):
 data = {
     'ligand_links': ligand_links,
     'cell_line_links': cell_line_links,
+    'cells': cells,
     'tables': [
         {
             'name': 'akt',
             'image_path': 'img/table_akt.png',
             'image': img_akt,
-            'cells': cells,
             },
         {
             'name': 'erk',
             'image_path': 'img/table_erk.png',
             'image': img_erk,
-            'cells': cells,
             },
         ]
     }
