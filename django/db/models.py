@@ -272,41 +272,6 @@ class SmallMolecule(models.Model):
         unique_together = ('facility_id', 'salt_id')    
     def __unicode__(self):
         return unicode(str((self.facility_id, self.salt_id)))
-    
-#    @property
-#    def molecular_formula(self, is_authenticated=False):
-#        if(not self.is_restricted or is_authenticated):
-#            return self._molecular_formula
-#        else:
-#            return 'restricted'
-#        
-#    @property
-#    def molecular_mass(self, is_authenticated=False):
-#        if(not self.is_restricted or is_authenticated):
-#            return self._molecular_mass
-#        else:
-#            return 'restricted'
-#        
-#    @property
-#    def inchi(self, is_authenticated=False):
-#        if(not self.is_restricted or is_authenticated):
-#            return self._inchi
-#        else:
-#            return 'restricted'
-#
-#    @property
-#    def inchi_key(self, is_authenticated=False):
-#        if(not self.is_restricted or is_authenticated):
-#            return self._inchi_key
-#        else:
-#            return 'restricted'
-#        
-#    @property
-#    def smiles(self, is_authenticated=False):
-#        if(not self.is_restricted or is_authenticated):
-#            return self._smiles
-#        else:
-#            return 'restricted'
       
     def get_molecular_formula(self, is_authenticated=False):
         if(not self.is_restricted or is_authenticated):

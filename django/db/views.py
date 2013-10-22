@@ -74,22 +74,7 @@ def cellIndex(request):
     search = re.sub(r'[\'"]','',search)
  
     if(search != ''):
-        searchProcessed = format_search(search)
-        criteria = "search_vector @@ to_tsquery(%s)"
-        where = [criteria]
-        if(not request.user.is_authenticated()): 
-            where.append("( not is_restricted or is_restricted is NULL )")
-        # postgres fulltext search with rank and snippets
-        queryset = Cell.objects.extra(
-            select={
-                'snippet': "ts_headline(" + CellTable.snippet_def + ", to_tsquery(%s))",
-                'rank': "ts_rank_cd(search_vector, to_tsquery(%s), 32)",
-                },
-            where=where,
-            params=[searchProcessed],
-            select_params=[searchProcessed,searchProcessed],
-            order_by=('-rank',)
-            )        
+        queryset = CellSearchManager().search(search, is_authenticated=request.user.is_authenticated())      
     else:
         where = []
         if(not request.user.is_authenticated()): where.append("( not is_restricted or is_restricted is NULL)")
@@ -140,26 +125,7 @@ def proteinIndex(request):
     search = re.sub(r'[\'"]','',search)
     
     if(search != ''):
-        searchProcessed = format_search(search)
-        # NOTE: - change plaintext search to use "to_tsquery" as opposed to
-        # "plainto_tsquery".  The "plain" version does not recognized the ":*"
-        # syntax (override of the weighting syntax to do a greedy search)
-        #        criteria = "search_vector @@ plainto_tsquery(%s)"
-        criteria = "search_vector @@ to_tsquery(%s)"
-        where = [criteria]
-        if(not request.user.is_authenticated()): 
-            where.append("(not is_restricted or is_restricted is NULL)")
-        # postgres fulltext search with rank and snippets
-        queryset = Protein.objects.extra(
-            select={
-                'snippet': "ts_headline(" + ProteinTable.snippet_def + ", to_tsquery(%s))",
-                'rank': "ts_rank_cd(search_vector, to_tsquery(%s), 32)",
-                },
-            where=where,
-            params=[searchProcessed],
-            select_params=[searchProcessed,searchProcessed],
-            order_by=('-rank',)
-            )        
+        queryset = ProteinSearchManager().search(search, is_authenticated = request.user.is_authenticated())
     else:
         where = []
         if(not request.user.is_authenticated()): where.append("(not is_restricted or is_restricted is NULL)")
@@ -211,26 +177,7 @@ def antibodyIndex(request):
     search = re.sub(r'[\'"]','',search)
     
     if(search != ''):
-        searchProcessed = format_search(search)
-        # NOTE: - change plaintext search to use "to_tsquery" as opposed to
-        # "plainto_tsquery".  The "plain" version does not recognized the ":*"
-        # syntax (override of the weighting syntax to do a greedy search)
-        #        criteria = "search_vector @@ plainto_tsquery(%s)"
-        criteria = "search_vector @@ to_tsquery(%s)"
-        where = [criteria]
-        if(not request.user.is_authenticated()): 
-            where.append("(not is_restricted or is_restricted is NULL)")
-        # postgres fulltext search with rank and snippets
-        queryset = Antibody.objects.extra(
-            select={
-                'snippet': "ts_headline(" + AntibodyTable.snippet_def + ", to_tsquery(%s))",
-                'rank': "ts_rank_cd(search_vector, to_tsquery(%s), 32)",
-                },
-            where=where,
-            params=[searchProcessed],
-            select_params=[searchProcessed,searchProcessed],
-            order_by=('-rank',)
-            )        
+        queryset = AntibodySearchManager().search(search, is_authenticated = request.user.is_authenticated())
     else:
         where = []
         if(not request.user.is_authenticated()): where.append("(not is_restricted or is_restricted is NULL)")
@@ -282,26 +229,7 @@ def otherReagentIndex(request):
     search = re.sub(r'[\'"]','',search)
     
     if(search != ''):
-        searchProcessed = format_search(search)
-        # NOTE: - change plaintext search to use "to_tsquery" as opposed to
-        # "plainto_tsquery".  The "plain" version does not recognized the ":*"
-        # syntax (override of the weighting syntax to do a greedy search)
-        #        criteria = "search_vector @@ plainto_tsquery(%s)"
-        criteria = "search_vector @@ to_tsquery(%s)"
-        where = [criteria]
-        if(not request.user.is_authenticated()): 
-            where.append("(not is_restricted or is_restricted is NULL)")
-        # postgres fulltext search with rank and snippets
-        queryset = OtherReagent.objects.extra(
-            select={
-                'snippet': "ts_headline(" + OtherReagentTable.snippet_def + ", to_tsquery(%s))",
-                'rank': "ts_rank_cd(search_vector, to_tsquery(%s), 32)",
-                },
-            where=where,
-            params=[searchProcessed],
-            select_params=[searchProcessed,searchProcessed],
-            order_by=('-rank',)
-            )        
+        queryset = OtherReagentSearchManager().search(search, is_authenticated = request.user.is_authenticated())
     else:
         where = []
         if(not request.user.is_authenticated()): where.append("(not is_restricted or is_restricted is NULL)")
@@ -346,24 +274,6 @@ def smallMoleculeIndex(request):
     
     search = re.sub(r'[\'"]','',search)
     if(search != ''):
-#        searchProcessed = format_search(search)
-#        criteria = "search_vector @@ to_tsquery(%s) or name like %s or alternative_names like %s"
-#        where = [criteria]
-##        where.append("(not is_restricted or is_restricted is NULL)")
-#        
-#        # postgres fulltext search with rank and snippets
-#        logger.debug(str(("SmallMoleculeTable.snippet_def:",SmallMoleculeTable.snippet_def)))
-#        queryset = SmallMolecule.objects.extra(
-#            select={
-#                'snippet': "ts_headline(" + SmallMoleculeTable.snippet_def + ", to_tsquery(%s))",
-#                'rank': "ts_rank_cd(search_vector, to_tsquery(%s), 32)",
-#                },
-#            where=where,
-#            params=[searchProcessed, '%'+search+'%', '%'+search+'%'],
-#            select_params=[searchProcessed,searchProcessed],
-#            order_by=('-rank',)
-#            )        
-#        
         queryset = SmallMoleculeSearchManager().search(search, is_authenticated=request.user.is_authenticated())
     else:
         where = []
@@ -1950,34 +1860,145 @@ class SiteSearchManager(models.Manager):
                     if x['facility_id'] == facility_id: 
                         skip=True
                 if not skip:
-                    _data.append({'id':obj.id,'facility_id':facility_id, 'snippet':obj.name, 'type':'sm_detail', 'rank':1})
-        return _data
-
-class SmallMoleculeSearchManager(models.Manager):
+                    _data.append({'id':obj.id,'facility_id':facility_id, 
+                        'snippet': ', '.join([x for x in [obj.name, obj.alternative_names, obj.lincs_id ] if x and len(x) > 0]),
+                        'type':'sm_detail', 'rank':1})
+                    
+        cqs = CellSearchManager().search(queryString, is_authenticated=is_authenticated);
+        if len(cqs) > 0:
+            for obj in cqs:
+                skip = False
+                for x in _data:
+                    if x['facility_id'] == obj.facility_id: skip = True
+                if not skip:
+                    _data.append({ 'id': obj.id, 'facility_id':obj.facility_id, 
+                        'snippet': ', '.join([x for x in [obj.name, obj.alternate_name, obj.provider_name] if x and len(x) > 0]),
+                        'type': 'cell_detail', 'rank': 1})
     
-    def search(self, searchString, is_authenticated=False):
+        pqs = ProteinSearchManager().search(queryString, is_authenticated=is_authenticated)
+        if len(pqs) > 0:
+            for obj in pqs:
+                skip = False
+                for x in _data:
+                    if x['facility_id'] == obj.lincs_id: skip = True
+                if not skip:
+                    _data.append({ 'id': obj.id, 'facility_id': obj.lincs_id, 
+                        'snippet': ', '.join([x for x in [obj.name, obj.uniprot_id, obj.alternate_name] if x and len(x) > 0]),
+                        'type': 'protein_detail', 'rank': 1 })
+
+        aqs = AntibodySearchManager().search(queryString, is_authenticated=is_authenticated)
+        if len(aqs) > 0:
+            for obj in aqs:
+                skip = False
+                for x in _data:
+                    if x['facility_id'] == obj.facility_id: skip = True
+                if not skip:
+                    _data.append({ 'id': obj.id, 'facility_id': obj.facility_id, 
+                        'snippet': ', '.join([x for x in [obj.name, obj.alternative_names] if x and len(x) > 0]),
+                        'type': 'antibody_detail', 'rank': 1 })
+                    
+        oqs = OtherReagentSearchManager().search(queryString, is_authenticated=is_authenticated)
+        if len(oqs) > 0:
+            for obj in aqs:
+                skip = False
+                for x in _data:
+                    if x['facility_id'] == obj.facility_id: skip = True
+                if not skip:
+                    _data.append({ 'id': obj.id, 'facility_id': obj.facility_id, 
+                        'snippet': ', '.join([x for x in [obj.name, obj.alternative_names] if x and len(x) > 0]),
+                        'type': 'otherreagent_detail', 'rank': 1 })
+        return _data
+    
+class SearchManager(models.Manager):
+    
+    def search(self, base_query, searchString, id_fields, snippet_def):
+        # format the search string to be compatible with the plain text search
+        searchProcessed = format_search(searchString) 
+        # because the "ID" fields contain a log of non-words (by english dict),
+        # we augment the plain text search with simple contains searches on these fields
+        criteria = 'search_vector @@ to_tsquery(%s)'
+        params = [searchProcessed]
+        criteria += ' or ' + ' or '.join([x + ' like %s ' for x in id_fields]) 
+        for x in id_fields: params.append( '%' + searchString + '%')
         
-        # TODO: temp fix for issue #188 - perm fix is to update all ID's to the "HMSLXXX" form
-        searchString = re.sub('HMSL','', searchString)
-        
-        searchProcessed = format_search(searchString)
-        criteria = "search_vector @@ to_tsquery(%s) or name like %s or alternative_names like %s"
         where = [criteria]
-#        where.append("(not is_restricted or is_restricted is NULL)")
-        
+        #        if not is_authenticated: 
+        #            where.append("(not is_restricted or is_restricted is NULL)")
         # postgres fulltext search with rank and snippets
-        logger.debug(str(("SmallMoleculeTable.snippet_def:",SmallMoleculeTable.snippet_def)))
-        queryset = SmallMolecule.objects.extra(
+        queryset = base_query.extra(
             select={
-                'snippet': "ts_headline(" + SmallMoleculeTable.snippet_def + ", to_tsquery(%s))",
+                'snippet': "ts_headline(" + snippet_def + ", to_tsquery(%s))",
                 'rank': "ts_rank_cd(search_vector, to_tsquery(%s), 32)",
                 },
             where=where,
-            params=[searchProcessed, '%'+searchString+'%', '%'+searchString+'%'],
+            params=params,
             select_params=[searchProcessed,searchProcessed],
             order_by=('-rank',)
-            )        
-        return queryset  
+            )  
+        return queryset     
+
+class CellSearchManager(SearchManager):
+
+    def search(self, searchString, is_authenticated=False):
+
+        id_fields = ['name', 'alternate_name', 'provider_name', 'provider_catalog_id', 'center_name']
+        return super(CellSearchManager, self).search(Cell.objects, searchString, id_fields, CellTable.snippet_def)
+
+class ProteinSearchManager(SearchManager):
+
+    def search(self, searchString, is_authenticated=False):
+
+        id_fields = ['name', 'uniprot_id', 'alternate_name', 'alternate_name_2', 'provider_catalog_id']
+        return super(ProteinSearchManager, self).search(Protein.objects, searchString, id_fields, ProteinTable.snippet_def)        
+    
+class SmallMoleculeSearchManager(SearchManager):
+
+    def search(self, searchString, is_authenticated=False):
+        # TODO: temp fix for issue #188 - perm fix is to update all ID's to the "HMSLXXX" form
+        searchString = re.sub('HMSL','', searchString)
+        id_fields = ['name', 'alternative_names', 'lincs_id']
+        return super(SmallMoleculeSearchManager, self).search(SmallMolecule.objects, searchString, id_fields, SmallMoleculeTable.snippet_def)        
+
+class AntibodySearchManager(SearchManager):
+    
+    def search(self, searchString, is_authenticated=False):
+
+        id_fields = ['name', 'alternative_names', 'lincs_id']
+        return super(AntibodySearchManager, self).search(Antibody.objects, searchString, id_fields, AntibodyTable.snippet_def)        
+
+class OtherReagentSearchManager(SearchManager):
+    
+    def search(self, searchString, is_authenticated=False):
+
+        id_fields = ['name', 'alternative_names', 'lincs_id']
+        return super(OtherReagentSearchManager, self).search(OtherReagent.objects, searchString, id_fields, OtherReagentTable.snippet_def)        
+#
+#class SmallMoleculeSearchManager(models.Manager):
+#    
+#    def search(self, searchString, is_authenticated=False):
+#        
+#        # TODO: temp fix for issue #188 - perm fix is to update all ID's to the "HMSLXXX" form
+#        searchString = re.sub('HMSL','', searchString)
+#        
+#        searchProcessed = format_search(searchString)
+#        criteria = "search_vector @@ to_tsquery(%s) or name like %s or alternative_names like %s"
+#        where = [criteria]
+##        where.append("(not is_restricted or is_restricted is NULL)")
+#        
+#        # postgres fulltext search with rank and snippets
+#        logger.debug(str(("SmallMoleculeTable.snippet_def:",SmallMoleculeTable.snippet_def)))
+#        queryset = SmallMolecule.objects.extra(
+#            select={
+#                'snippet': "ts_headline(" + SmallMoleculeTable.snippet_def + ", to_tsquery(%s))",
+#                'rank': "ts_rank_cd(search_vector, to_tsquery(%s), 32)",
+#                },
+#            where=where,
+#            params=[searchProcessed, '%'+searchString+'%', '%'+searchString+'%'],
+#            select_params=[searchProcessed,searchProcessed],
+#            order_by=('-rank',)
+#            )        
+#        return queryset  
+ 
 
 class SiteSearchTable(PagedTable):
     id = tables.Column(visible=False)
