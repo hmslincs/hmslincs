@@ -10,9 +10,9 @@
 {% macro titled_figure(class, img_type, name, width, height,
                        link=true, fname_prefix='') %}
   <p class="titled-figure">
-    {% if link %}<a href="../{{ class }}/{{ name }}.html">{% endif %}
+    {% if link %}<a href="explore/{{ class }}/{{ name }}.html">{% endif %}
     {{ name }}<br />
-    <img src="../{{ class }}/img/{{ img_type }}/{{ fname_prefix }}{{ name }}.png"
+    <img src="explore/{{ class }}/img/{{ img_type }}/{{ fname_prefix }}{{ name }}.png"
          width="{{ width }}" height="{{ height }}" />
     {% if link %}</a>{% endif %}
   </p>
@@ -57,9 +57,10 @@ line</a> and <a href="#data-by-ligand">data by ligand</a>.</p>
 
 <div class="thumbnail-box">
   <p>
-  <a href="../lookup_table/index.html" title="Click for a summary of response data and feature classifications">
-    <img src="{{ STATIC_URL_2 }}/table_akt_10.gif"/>
-    <img src="{{ STATIC_URL_2 }}/table_erk_10.gif"/>
+  <a href="explore/signaling_response_matrix/index.html"
+     title="Click for a summary of response data and feature classifications">
+    <img src="{{ STATIC_URL_2 }}img/table_akt_10.gif"/>
+    <img src="{{ STATIC_URL_2 }}img/table_erk_10.gif"/>
   </a></p>
   <p class="thumbnail-caption">Click for a summary of response data and feature classifications</p>
 </div>

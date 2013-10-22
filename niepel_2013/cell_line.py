@@ -20,7 +20,8 @@ image_dirs = [
     ('topmeasures', 'BasalTopMeasures'),
     ]
 
-html_path = create_output_path('cell_line')
+img_path_elements = ('explore', 'cell_line', 'img')
+html_path = create_output_path(*img_path_elements[:-1])
 
 print_partial('cell line info')
 cellline_info = stash_get('cellline_info')
@@ -77,13 +78,16 @@ for row in cellline_info:
 
 stash_put('cell_lines', all_data)
 
-name_data = {'all_names': [data['name'] for data in all_data]}
+common = {
+          'all_names': [data['name'] for data in all_data],
+          'STATIC_URL_2': '../../.etc/',
+         }
 for data in all_data:
-    data.update(name_data)
-    html_filename = data['name'] + '.html'        
+    data.update(common)
+    html_filename = data['name'] + '.html'
     render_template(cellline_template, data, html_path, html_filename)
     image_filename = data['name'] + '.png'
-    copy_images(image_dirs, image_filename, cellline_path, ('cell_line', 'img'))
+    copy_images(image_dirs, image_filename, cellline_path, img_path_elements)
 
 
 print()
@@ -93,7 +97,7 @@ for subtype in subtypes:
     # We are only copying one image, but we can reuse copy_images with a little
     # creativity in crafting the first arg.
     copy_images([('nodeedge', 'NodeEdgeFigures')], image_filename,
-                cellline_path, ('cell_line', 'img'))
+                cellline_path, img_path_elements)
     print(image_filename, end=' ')
     PASS()
     print()

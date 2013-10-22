@@ -1,5 +1,6 @@
 from __future__ import print_function
-import os.path
+import os
+import os.path as op
 import sys
 import errno
 import codecs
@@ -13,6 +14,8 @@ __all__ = ['resource_path', 'create_output_path', 'print_status_accessible',
 # Environment variable which points to the resource library.
 _ENV_RESOURCE_PATH = 'RESOURCE_PATH'
 
+DOCROOT = op.abspath(op.join(op.dirname(__file__), os.pardir, 'signaling'))
+
 def resource_path(*elements):
     "Canonicalize a path relative to the resource library."
     try:
@@ -22,19 +25,17 @@ def resource_path(*elements):
                'library (the folder containing SignalingPage, '
                'DrugPredictionPage, etc.)' % _ENV_RESOURCE_PATH)
         raise RuntimeError(msg)
-    return os.path.abspath(os.path.join(root_path, *elements))
+    return op.abspath(op.join(root_path, *elements))
 
 def create_output_path(*elements):
     "Create and canonicalize a path relative to the output directory."
-    src_path = os.path.dirname(__file__)
-    path = os.path.join(src_path, os.path.pardir, 'output')
-    path = os.path.abspath(os.path.join(path, *elements))
+    path = op.join(DOCROOT, *elements)
     makedirs_exist_ok(path)
     return path
 
 def print_status_accessible(*elements):
     "Print a marker and return a bool reflecting a path's accessibility."
-    accessible = os.access(os.path.join(*elements), os.F_OK)
+    accessible = os.access(op.join(*elements), os.F_OK)
     if accessible:
         PASS()
     else:
@@ -60,9 +61,17 @@ def FAIL():
     # 'MULTIPLICATION X'
     _print_status_inline(u'\u2715')
 
+
+import jinja2
+@jinja2.contextfunction
+def get_context(c):
+    return c
+
 def render_template(template, data, dirname, basename):
     "Render a template with data to a file specified by dirname and basename."
-    out_filename = os.path.join(dirname, basename)
+    out_filename = op.join(dirname, basename)
+    template.globals['context'] = get_context
+    template.globals['callable'] = callable
     content = template.render(data)
     with codecs.open(out_filename, 'w', 'utf-8') as out_file:
         out_file.write(content)
@@ -81,8 +90,8 @@ def copy_images(image_dirs, base_filename, source_path, dest_path_elements,
     for d_out, d_in in image_dirs:
         dest_path = list(dest_path_elements) + [d_out]
         image_path = create_output_path(*dest_path)
-        source_filename = os.path.join(source_path, d_in, base_filename)
-        dest_filename = os.path.join(image_path, base_filename)
+        source_filename = op.join(source_path, d_in, base_filename)
+        dest_filename = op.join(image_path, base_filename)
         try:
             shutil.copy(source_filename, dest_filename)
         except IOError:
@@ -93,17 +102,17 @@ def copy_images(image_dirs, base_filename, source_path, dest_path_elements,
 
 def stash_put(name, obj):
     "Stash an object by name (to disk) for later retrieval."
-    src_path = os.path.dirname(__file__)
-    path = os.path.join(src_path, os.path.pardir, 'stash', name + '.pck')
-    path = os.path.abspath(path)
-    makedirs_exist_ok(os.path.dirname(path))
+    src_path = op.dirname(__file__)
+    path = op.join(src_path, op.pardir, 'stash', name + '.pck')
+    path = op.abspath(path)
+    makedirs_exist_ok(op.dirname(path))
     pickle_file = open(path, 'w');
     pickle.dump(obj, pickle_file)
 
 def stash_get(name):
     "Retrieve an object from the stash by name."
-    src_path = os.path.dirname(__file__)
-    path = os.path.join(src_path, os.path.pardir, 'stash', name + '.pck')
+    src_path = op.dirname(__file__)
+    path = op.join(src_path, op.pardir, 'stash', name + '.pck')
     try:
         pickle_file = open(path)
         return pickle.load(pickle_file)

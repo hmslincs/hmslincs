@@ -6,7 +6,7 @@ template_env = jinja2.Environment(
     loader=jinja2.PackageLoader('niepel_2013', 'templates'))
 template = template_env.get_template('main.html')
 
-html_path = create_output_path('main')
+html_path = create_output_path()
 
 ligands = stash_get('ligands')
 assert ligands, "'ligands' not found in stash -- please run ligand.py"
@@ -19,6 +19,7 @@ cell_line_names = [c['name'] for c in cell_lines]
 data = {
     'ligand_names': ligand_names,
     'cell_line_names': cell_line_names,
+    'STATIC_URL_2': '.etc/',
     }
 
-render_template(template, data, html_path, 'index.html')
+render_template(template, data, html_path, 'home.html')

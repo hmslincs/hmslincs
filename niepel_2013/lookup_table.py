@@ -17,8 +17,8 @@ table_template = template_env.get_template('lookup_table.html')
 
 panel_path = os.path.join(lookup_path, 'subfigures')
 
-html_path = create_output_path('lookup_table')
-create_output_path('lookup_table', 'img')
+img_path_elements = ('explore', 'signaling_response_matrix', 'img')
+html_path = os.path.dirname(create_output_path(*img_path_elements))
 
 akt_pdf_filename = os.path.join(lookup_path, 'lookup table pAKT.pdf')
 erk_pdf_filename = os.path.join(lookup_path, 'lookup table pERK.pdf')
@@ -119,8 +119,9 @@ data = {
             'image_path': 'img/table_erk.png',
             'image': img_erk,
             },
-        ]
-    }
+        ],
+    'STATIC_URL_2': '../../.etc/',
+}
 
 render_template(table_template, data, html_path, 'index.html')
 
@@ -129,4 +130,4 @@ for cell in cells:
     # We are only copying one image, but we can reuse copy_images with a little
     # creativity in crafting the first arg.
     copy_images([('', 'subfigures')], image_filename,
-                lookup_path, ('lookup_table', 'img'), permissive=True)
+                lookup_path, img_path_elements, permissive=True)
