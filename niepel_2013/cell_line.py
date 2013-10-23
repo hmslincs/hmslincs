@@ -26,7 +26,7 @@ html_path = create_output_path(*img_path_elements[:-1])
 print_partial('cell line info')
 cellline_info = stash_get('cellline_info')
 if not cellline_info:
-    filename = os.path.join(cellline_path, 'CellLine_sutypes.xlsx')
+    filename = os.path.join(cellline_path, 'CellLine_info.xlsx')
     workbook = openpyxl.load_workbook(filename, use_iterators=True)
     sheet = workbook.worksheets[0]
     sheet_iter = sheet.iter_rows()
@@ -37,7 +37,8 @@ PASS_nl()
 
 column_names = ('hmsl_id', 'name', 'short_name', 'atcc_id_ignored',
                 'vendor', 'class_neve', 'class_heiser', 'class_kao', 'notes',
-                'class_consensus')
+                'class_consensus', 'growth_medium', 'culture_temperature',
+                'culture_atmosphere')
 
 all_data = []
 print()

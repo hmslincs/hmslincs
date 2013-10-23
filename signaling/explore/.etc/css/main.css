@@ -10,13 +10,11 @@
 #content table table tr:nth-child(2n) {
   background-color: inherit;
 }
-.culture-conditions {
-  /* TODO 2013/10/09 left off here - implementing overflow click-to-show  */
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
 h2 {
   padding-top: 1em;
+}
+td {
+  white-space: inherit;
 }
 
 .lookup-table-container{

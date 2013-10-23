@@ -48,13 +48,15 @@
     </td>
   </tr>
   <tr>
+    <td>Growth medium</td>
+    <td>
+      {{ growth_medium }}
+    </td>
+  </tr>
+  <tr>
     <td>Culture conditions</td>
-    <td class="culture-conditions">
-      {% if db.clRecommendedCultureConditions %}
-      {{ db.clRecommendedCultureConditions }}
-      {% else %}
-      unknown
-      {% endif %}
+    <td>
+      {{ culture_temperature }} ; {{ culture_atmosphere }}
     </td>
   </tr>
 </table>
