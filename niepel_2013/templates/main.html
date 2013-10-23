@@ -73,19 +73,18 @@ line</a> and <a href="#data-by-ligand">data by ligand</a>.</p>
 {% set all_names = cell_line_names %}
 {% include "sibling_browser.html" %}
 
-</div> <!-- <div class="sibling-browser-container"> -->
+</div>
 
-<p style="position: relative;">A compact overview of both the basal and
-signaling profiles of each cell are simple network maps displayed as node-edge
-graphs. The outer and inner circles represent basal measurements with circle
-size indicating expression levels and the shading indicating phosphorylation
-levels. The data is normalized across all cell lines and gray outer circles
-denote phosphorylation levels below the threshold of detection. The lines
-between the outer and middle circles denote simplified ligand/receptor binding.
-The colored arrows between the outer and middle circles denote the strength of
-pERK (blue) or pAkt (red) induction by ligand. The maximal response by ligand
-was normalized across all responses and gray lines denote responses that are not
-significant.</p>
+<p>A compact overview of both the basal and signaling profiles of each cell are
+simple network maps displayed as node-edge graphs. The outer and inner circles
+represent basal measurements with circle size indicating expression levels and
+the shading indicating phosphorylation levels. The data is normalized across all
+cell lines and gray outer circles denote phosphorylation levels below the
+threshold of detection. The lines between the outer and middle circles denote
+simplified ligand/receptor binding. The colored arrows between the outer and
+middle circles denote the strength of pERK (blue) or pAkt (red) induction by
+ligand. The maximal response by ligand was normalized across all responses and
+gray lines denote responses that are not significant.</p>
 
 {{ titled_figures('cell_line', 'nodeedge', ['MCF7', 'BT-20', 'MDA-MB-453'],
                   250, 235) }}
