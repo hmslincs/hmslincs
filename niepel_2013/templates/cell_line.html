@@ -70,18 +70,21 @@
   <br />
   <a href="img/nodeedge/NetMap_{{ class_consensus }}.png"><img src="img/nodeedge/NetMap_{{ class_consensus }}.png" width="250" height="235" /></a>
 </p>
-<p style="clear: left;"></p>
+<p class="caption" style="clear: left;">Network map of {{ name }} (left) and its corresponding subtype (right) with data normalized across all cell lines.  Outer and inner circles represent basal measurements: circle size represents expression levels and shading phosphorylation levels. Lines between outer and middle circles depict simplified ligand/receptor binding. The thickness of the arrows between outer and middle circles denotes the strength of pERK or pAKT induction by ligand with maximal response normalized by ligand across all cell lines. Levels of pFGFR1-4 were not measured.  Gray circles and lines denote responses that were not statistically significant or below the detection threshold.</p>
 
 <h2>Characteristic response to major ligands</h2>
 <img src="img/subtype/{{ name }}.png"
      width="700" height="237" />
+<p class="caption">Key response characteristics for {{ name }} are shown by stars in context of the responses across all cell lines from each subtype (colored box plots) following ErbB, FGF, IGF/Ins, and HGF stimulation. Shown are the fraction of significant responses at 1ng/ml stimulation (left), the mean fold change at 100ng/ml (middle), and the pathway bias at 100ng/ml (right).</p>
 
 <h2>Most up- and down-regulated (phospho-) kinases</h2>
 <img src="img/topmeasures/{{ name }}.png"
      width="700" height="385" />
+<p class="caption">List of the most up-regulated (left) and down-regulated (right) variables in {{ name }}. The star denotes the measured value for {{ name }}, the black line shows the distribution of the variable across all cell lines, and the colored bars show the interquartile within the different subtypes.</p>
 
 <h2>Fold change pERK and pAKT response to ligands</h2>
 <img src="img/foldchange/{{ name }}.png"
      width="700" height="237" />
+<p class="caption">The magnitude of the fold-change response at 100ng/ml ligand stimulation for {{ name }} measured by pERK (left) and pAKT (right) denoted by stars. The box plot shows the distribution of the fold-change response for all cell lines, clustered by strength of the pERK or pAKT response. Black lines represent the median, shaded zones the interquartile range, dashed lines the 5% and 95% quantiles, and dots the outliers.</p>
 
 {% endblock %}
