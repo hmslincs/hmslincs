@@ -19,7 +19,7 @@ cell_line_names = [c['name'] for c in cell_lines]
 data = {
     'ligand_names': ligand_names,
     'cell_line_names': cell_line_names,
-    'STATIC_URL_2': '.etc/',
+    'STATIC_URL_2': 'explore/.etc/',
     'DOCROOT': '',
     }
 

@@ -129,7 +129,7 @@ stash_put('ligands', all_data)
 
 common = {
           'all_names': [data['name'] for data in all_data],
-          'STATIC_URL_2': '../../.etc/',
+          'STATIC_URL_2': '../.etc/',
           'DOCROOT': '../../',
          }
 for data in all_data:

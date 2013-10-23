@@ -120,7 +120,7 @@ data = {
             'image': img_erk,
             },
         ],
-    'STATIC_URL_2': '../../.etc/',
+    'STATIC_URL_2': '../.etc/',
     'DOCROOT': '../../',
 }
 
