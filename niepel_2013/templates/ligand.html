@@ -80,10 +80,10 @@
 <h2>Pathway bias</h2>
 <img src="img/pathwaybias/{{ name }}.png"
      width="700" height="292" />
-<p class="caption">(Left) Distribution of the pathway bias across cell lines for {{ name }} (in black) and {% if name == "FGF-1" %}2 reference ligands (EGF, red; and IGF-1, off-white)
-   {% else %}{% if name == "EGF" %}2 reference ligands (FGF-1, blue; and IGF-1, off-white)
+<p class="caption">(Left) Distribution of the pathway bias across cell lines for {{ name }} (in black) and {% if name == "FGF-1" %}2 reference ligands (IGF-1, yellow; and EGF, red)
+   {% else %}{% if name == "EGF" %}2 reference ligands (FGF-1, blue; and IGF-1, yellow)
    {% else %}{% if name == "IGF-1" %}2 reference ligands (FGF-1, blue; and EGF, red)
-   {% else %}3 reference ligands (FGF-1, blue; EGF, red; and IGF-1, off-white){% endif %}{% endif %}{% endif %} where the bias is defined as the arctangent of the ratio of the pAKT to pERK fold change responses (maximum across the three time points at 100ng/ml). (Right) Distribution of the pathway bias for all ligands that exhibited a least 50% significant responses across all cell lines when stimulated at 100ng/ml. Ligands are sorted according the median of the pathway bias and colored as in the left panel.</p>
+   {% else %}3 reference ligands (FGF-1, blue; IGF-1, yellow; and EGF, red){% endif %}{% endif %}{% endif %} where the bias is defined as the arctangent of the ratio of the pAKT to pERK fold change responses (maximum across the three time points at 100ng/ml). (Right) Distribution of the pathway bias for all ligands that exhibited a least 50% significant responses across all cell lines when stimulated at 100ng/ml. Ligands are sorted according the median of the pathway bias and colored as in the left panel.</p>
 
 <h2>Dose response</h2>
 <img src="img/doseresponse/{{ name }}.png"
@@ -93,7 +93,7 @@
 <h2>Sensitivity class</h2>
 <img src="img/sensitivity/{{ name }}.png"
      width="700" height="292" />
-<p class="caption">Distribution of sensitivity classes by ligands for pERK (left) and pAKT (right): ‘Equal’ means that the fold change response at low dose is at least 75% of the high dose response; ‘100ng>1ng’, low dose response is statistically significant but less than 75% of the high dose response; off-white, only the high dose response is significant.</p>
+<p class="caption">Distribution of sensitivity classes by ligands for pERK (left) and pAKT (right): ‘Equal’ (red) means that the fold change response at low dose is at least 75% of the high dose response; ‘100ng>1ng’ (blue) means that low dose response is statistically significant but less than 75% of the high dose response; ‘only 100ng’ (yellow) means that only the high dose response is significant.</p>
 
 <h2>Kinetic cluster</h2>
 <img src="img/responsekinetics/{{ name }}.png"

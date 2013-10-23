@@ -158,5 +158,6 @@ ul.button-bar > li:first-child{
 
 
 p.caption {
-  border-bottom:1px solid #aaa;
+  font-size: 90%;
+  margin: 0 30px 10px;
 }
