@@ -155,3 +155,8 @@ ul.button-bar > li:first-child{
 .ui-dialog {
   box-shadow: 10px 10px 10px rgba(0,0,0,0.7)
 }
+
+
+p.caption {
+  border-bottom:1px solid #aaa;
+}
