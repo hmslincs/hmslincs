@@ -121,6 +121,7 @@ data = {
             },
         ],
     'STATIC_URL_2': '../../.etc/',
+    'DOCROOT': '../../',
 }
 
 render_template(table_template, data, html_path, 'index.html')

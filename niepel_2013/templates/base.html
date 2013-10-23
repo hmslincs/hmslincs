@@ -32,19 +32,15 @@
 			<h1>HMS LINCS Project</h1>
 			<span class="tagline">Library of Integrated Network-based Cellular Signatures</span>
 
-<div class="menu-mini-container">
-  <ul>
-    <li class="button" id="explore-link">&nbsp; {# nbsp is a hack to get Safari to lay the menu out right #}
-      <a title="Explore" href="/explore/">Explore</a>
+<div class="top-nav">
+  <ul class="button-bar">
+    <li class="pseudo-button" id="home-link">{# &nbsp; #}{# nbsp is a hack to get Safari to lay the menu out right #}
+      <a title="Home" href="{{ DOCROOT }}home.html">Home</a>
     </li>
-    <li class="button" id="data-link">
-      <a title="Data" href="/data/">Data</a>
-    </li>
-    <li>
-      <a title="About" href="/about/">About</a>
-    </li>
-    <li>
-      <a title="Funding" href="/about/funding/">Funding</a>
+    <li class="pseudo-button" id="signaling-matrix-link">
+      <a title="Signaling Matrix" href="{{ DOCROOT }}explore/signaling_response_matrix/index.html">
+        Signaling Matrix
+      </a>
     </li>
   </ul>
 </div>

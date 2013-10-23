@@ -108,6 +108,46 @@ table.general-info-cell-line td.culture-conditions{
   clear: left;
 }
 
+.top-nav {
+  position: absolute;
+  right: 0px;
+  top: 35px;
+}
+.top-nav a{
+  text-decoration:none       !important;
+  text-transform:uppercase   !important;
+  font-weight:bold           !important;
+  color:#fff                 !important;
+  font-size:14px             !important;
+}
+
+ul.button-bar > li{
+  display:inline-block       !important;
+  margin-left:10px;
+}
+ul.button-bar > li:first-child{
+  margin-left:0;
+}
+
+.pseudo-button{
+  -webkit-border-radius:4px  !important;
+  -moz-border-radius:4px     !important;
+  border-radius:4px          !important;
+  color:#fff                 !important;
+  font-size:17px             !important;
+  font-weight:bold           !important;
+  padding:6px 11px           !important;
+  text-align:center          !important;
+  margin:0                   !important;
+  border:0                   !important;
+  background-color:#e91      !important;
+}
+.pseudo-button:hover{
+  background-color:#e70      !important;
+}
+/* #signaling-matrix-link{ */
+/*   margin-left:10px           !important; */
+/* } */
 
 /* Override some jquery theme items. */
 

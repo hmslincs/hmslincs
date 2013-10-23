@@ -20,6 +20,7 @@ data = {
     'ligand_names': ligand_names,
     'cell_line_names': cell_line_names,
     'STATIC_URL_2': '.etc/',
+    'DOCROOT': '',
     }
 
 render_template(template, data, html_path, 'home.html')

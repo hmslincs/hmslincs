@@ -57,21 +57,3 @@
   background-color:#fda      !important;
   font-weight:bold           !important;
 }
-
-.browse-pseudo-button{
-  margin:0                   !important;
-  padding:0                  !important;
-  -webkit-border-radius: 4px !important;
-  -moz-border-radius: 4px    !important;
-  border-radius: 4px         !important;
-  /* background-color:#e6941e   !important; */
-  background-color:#e91      !important;
-  color:#fff                 !important;
-  font-size:17px             !important;
-  font-weight:bold           !important;
-  padding:6px 11px           !important;
-}
-
-.browse-pseudo-button:hover{
-  background-color:#e70      !important;
-}
