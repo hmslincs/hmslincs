@@ -18,7 +18,6 @@
 .sibling-browser {
   background-color: #fff  !important;
   padding:0               !important;
-  margin:0 1em            !important;
   float:right !important;
   vertical-align:top-text !important;
 }
@@ -30,27 +29,21 @@
 }
 .sibling-browser-list {
   display: none;
-}
-.sibling-browser > li{
-  position:relative          !important;
-  margin:0                   !important;
-  padding:0                  !important;
-  background-color:#fff      !important;
-  z-index:10                 !important;
-  cursor:default             !important;
-}
-.sibling-browser-list{
   position:absolute          !important;
   margin:0                   !important;
   padding:8px 0              !important;
-  width:100%                 !important;
+  width:550px                !important;
+  right:0;
   border:1px solid #e0e0e0;  !important;
   background-color:#fff;     !important;
+  box-shadow: -10px 10px 10px rgba(0,0,0,0.7);
 }
 .sibling-browser-list > li{
   margin:0                   !important;
   padding:0 1em              !important;
   list-style:none            !important;
+  display:inline-block;
+  width:8em;
 }
 
 .sibling-browser-list > li:hover{
