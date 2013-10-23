@@ -23,4 +23,4 @@ data = {
     'DOCROOT': '',
     }
 
-render_template(template, data, html_path, 'home.html')
+render_template(template, data, html_path, 'start.html')
