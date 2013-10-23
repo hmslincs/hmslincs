@@ -2,7 +2,7 @@
   <li>
     <div class="browse-pseudo-button">Browse {{ class }}s</div>
     <ol class="sibling-browser-list">
-{% for name in all_names %}      <li><a href="../{{ class|replace(' ', '_') }}/{{ name }}.html">{{ name }}</a></li>
+{% for name in all_names %}      <li><a href="{{ DOCROOT }}explore/{{ class|replace(' ', '_') }}/{{ name }}.html">{{ name }}</a></li>
 {% endfor %}
     </ol>
   </li>
