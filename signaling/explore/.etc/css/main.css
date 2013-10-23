@@ -139,6 +139,7 @@ ul.button-bar > li:first-child{
   margin:0                   !important;
   border:0                   !important;
   background-color:#e91      !important;
+  cursor:default             !important;
 }
 .pseudo-button:hover{
   background-color:#e70      !important;
