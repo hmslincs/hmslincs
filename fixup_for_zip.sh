@@ -21,10 +21,15 @@ for f in signaling/explore/cell_line/img/nodeedge/*.png; do
 done
 perl -pi -e "$png_filename_fixup_regex" signaling/start.html
 
+echo
 # Optimize remaining PNGs.
+echo "Running pngcrush..."
 for f in signaling/explore/*/img/*/*.png; do
+    echo -n "  $f"
     convert "$f" -type Optimize optimize.png
-    pngcrush -brute optimize.png crush.png
+    # These 5 methods empirically determined to be optimal for these images.
+    pngcrush -m 113 -m 115 -m 117 -m 119 -m 123 optimize.png crush.png | \
+        grep filesize
     mv crush.png "$f"
 done
 rm optimize.png
