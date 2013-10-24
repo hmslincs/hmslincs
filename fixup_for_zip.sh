@@ -7,6 +7,7 @@ cd $(dirname $0)
 
 # Convert the large node-edge PNGs to 1x-resolution JPGs.
 echo "Node-edge resizing..."
+png_filename_fixup_regex="s/(?<=nodeedge\\/)([^.]+)\.png/\$1.jpg/g"
 for f in signaling/explore/cell_line/img/nodeedge/*.png; do
     echo " " $(basename "$f")
     base=$(basename "${f%.png}")
@@ -15,9 +16,10 @@ for f in signaling/explore/cell_line/img/nodeedge/*.png; do
     rm "$f"
     html=signaling/explore/cell_line/$base.html
     if [[ -e "$html" ]]; then
-        perl -pi -e "s/(?<=nodeedge\\/)([^.]+)\.png/\$1.jpg/g" "$html"
+        perl -pi -e "$png_filename_fixup_regex" "$html"
     fi
 done
+perl -pi -e "$png_filename_fixup_regex" signaling/start.html
 
 # Optimize remaining PNGs.
 for f in signaling/explore/*/img/*/*.png; do
