@@ -1292,7 +1292,6 @@ class DataSetManager():
         #        from db_datapoint dp join db_datarecord dr on(datarecord_id=dr.id) join db_smallmoleculebatch smb on(smb.id=dr.smallmolecule_batch_id) join db_smallmolecule sm on(sm.id=smb.smallmolecule_id) 
         #        where dp.dataset_id = 1 order by datarecord_id;
         
-#        queryString =   "SELECT distinct (dr_id) as datarecord_id,"
         queryString =   "SELECT dr_id as datarecord_id,"
         queryString +=  " trim( both '-' from ( sm_facility_id || '-' || salt_id  || '-' || coalesce(smb_facility_batch_id::TEXT,''))) as facility_salt_batch " # Note: because we have a composite key for determining unique sm structures, we need to do this
         queryString +=  ' ,sm_name, sm_alternative_names, plate, well, control_type '
@@ -1499,7 +1498,6 @@ class DataSetManager():
         res= len(DataRecord.objects.all().filter(dataset_id=dataset_id).filter(control_type__isnull=False))>0
         return res
 
-
 def find_datasets_for_protein(protein_id):
     #TODO: can we return a django model queryset instead of just the id's (and then post-filter?)
     datasets = [x.id for x in DataSet.objects.filter(datarecord__protein__id=protein_id).distinct()]
@@ -1527,17 +1525,6 @@ def find_datasets_for_smallmolecule(smallmolecule_id):
     datasets = [x.id for x in DataSet.objects.filter(datarecord__smallmolecule__id=smallmolecule_id).distinct()]
     logger.debug(str(('datasets',datasets)))
     return datasets
-    #    cursor = connection.cursor()
-    #    sql = ( 'SELECT distinct(dataset_id) from db_datarecord dr' +  
-    #            ' join db_smallmoleculebatch smb on(dr.smallmolecule_batch_id=smb.id) ' + 
-    #            ' WHERE smb.smallmolecule_id=%s' )
-    #    cursor.execute(sql, [smallmolecule_id])
-    #    dataset_ids = [];
-    #    for val in cursor.fetchall():
-    #        logger.info(str(('val',val)))
-    #        dataset_ids.append(val[0])
-    #        
-    #    return dataset_ids
             
 class LibraryMappingTable(PagedTable):
     facility_salt_batch = tables.LinkColumn("sm_detail", args=[A('facility_salt_batch')]) 
@@ -1546,8 +1533,6 @@ class LibraryMappingTable(PagedTable):
     well = tables.Column()
     plate = tables.Column()
     display_concentration = tables.Column(order_by='concentration')
-    #concentration = tables.Column()
-    #concentration_unit = tables.Column()
         
     snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce("+x.field+",'') ", FieldInformation.manager.get_search_fields(SmallMolecule)))) # TODO: specialized search for librarymapping, if needed
     
@@ -1615,14 +1600,6 @@ class SmallMoleculeBatchTable(PagedTable):
         sequence_override = ['facility_salt_batch']
         set_table_column_info(self, ['smallmolecule','smallmoleculebatch',''],sequence_override)  
 
-#class Restricted_Column(tables.Column):
-#    def render(self, record, value):
-#        logger.info(str(('record', record, value)))
-#        if(record.is_restricted):
-#            return 'restricted'
-#        else:
-#            return value
-        
 
 class SmallMoleculeTable(PagedTable):
     facility_salt = tables.LinkColumn("sm_detail", args=[A('facility_salt')], order_by=['facility_id','salt_id']) 
@@ -1918,8 +1895,8 @@ class SearchManager(models.Manager):
         # we augment the plain text search with simple contains searches on these fields
         criteria = 'search_vector @@ to_tsquery(%s)'
         params = [searchProcessed]
-        criteria += ' or ' + ' or '.join([x + ' like %s ' for x in id_fields]) 
-        for x in id_fields: params.append( '%' + searchString + '%')
+        criteria += ' or ' + ' or '.join(['lower('+ x + ') like %s ' for x in id_fields]) 
+        for x in id_fields: params.append( '%' + searchString.lower() + '%')
         
         where = [criteria]
         #        if not is_authenticated: 
@@ -1972,33 +1949,6 @@ class OtherReagentSearchManager(SearchManager):
 
         id_fields = ['name', 'alternative_names', 'lincs_id']
         return super(OtherReagentSearchManager, self).search(OtherReagent.objects, searchString, id_fields, OtherReagentTable.snippet_def)        
-#
-#class SmallMoleculeSearchManager(models.Manager):
-#    
-#    def search(self, searchString, is_authenticated=False):
-#        
-#        # TODO: temp fix for issue #188 - perm fix is to update all ID's to the "HMSLXXX" form
-#        searchString = re.sub('HMSL','', searchString)
-#        
-#        searchProcessed = format_search(searchString)
-#        criteria = "search_vector @@ to_tsquery(%s) or name like %s or alternative_names like %s"
-#        where = [criteria]
-##        where.append("(not is_restricted or is_restricted is NULL)")
-#        
-#        # postgres fulltext search with rank and snippets
-#        logger.debug(str(("SmallMoleculeTable.snippet_def:",SmallMoleculeTable.snippet_def)))
-#        queryset = SmallMolecule.objects.extra(
-#            select={
-#                'snippet': "ts_headline(" + SmallMoleculeTable.snippet_def + ", to_tsquery(%s))",
-#                'rank': "ts_rank_cd(search_vector, to_tsquery(%s), 32)",
-#                },
-#            where=where,
-#            params=[searchProcessed, '%'+searchString+'%', '%'+searchString+'%'],
-#            select_params=[searchProcessed,searchProcessed],
-#            order_by=('-rank',)
-#            )        
-#        return queryset  
- 
 
 class SiteSearchTable(PagedTable):
     id = tables.Column(visible=False)
@@ -2169,19 +2119,6 @@ def send_to_file(outputType, name, table, queryset, extra_columns = [], is_authe
             if(fi.show_in_detail):
                 columnsOrdered_filtered.append((field,fi.get_verbose_name()))
         except (Exception) as e:
-#            try:
-#                # _ is the marker for private fields - only accessible through logic defined on the ORM object
-#                # i.e. if authorized
-#                if(field[0] == '_'):
-#                    temp = field[1:]
-#                    field = 'get_' + temp
-#                    fi = FieldInformation.manager.get_column_fieldinformation_by_priority(temp,fieldinformation_tables)
-#                    columnsOrdered_filtered.append((field,fi.get_verbose_name()))
-#                    logger.info(str(('found', field, fi)))
-#                else:
-#                    logger.warn(str(('no fieldinformation found for field:', field)))        
-#                
-#            except (Exception) as e:
             logger.warn(str(('no fieldinformation found for field:', field)))        
     # The type strings deliberately include a leading "." to make the URLs
     # trigger the analytics js code that tracks download events by extension.
@@ -2207,7 +2144,6 @@ def get_cols_to_write(cursor, fieldinformation_tables=None, ordered_datacolumns=
         else:
             try:
                 fi = FieldInformation.manager.get_column_fieldinformation_by_priority(col.name,fieldinformation_tables)
-#                if(fi.show_in_detail):
                 header_row[i] = fi.get_verbose_name()
             except (Exception) as e:
                 logger.warn(str(('no fieldinformation found for field:', col.name)))
