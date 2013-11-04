@@ -86,7 +86,7 @@ def cellIndex(request):
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
     outputType = request.GET.get('output_type','')
     if(outputType != ''):
-        return send_to_file(outputType, 'cells', table, queryset )
+        return send_to_file(outputType, 'cells', table, queryset, 'cell' )
     return render_list_index(request, table,search,'Cell','Cells')
 
 def cellDetail(request, facility_id):
@@ -136,7 +136,7 @@ def proteinIndex(request):
     table = ProteinTable(queryset)
     outputType = request.GET.get('output_type','')
     if(outputType != ''):
-        return send_to_file(outputType, 'proteins', table, queryset )
+        return send_to_file(outputType, 'proteins', table, queryset, 'protein' )
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
     return render_list_index(request, table,search,'Protein','Proteins')
     
@@ -188,7 +188,7 @@ def antibodyIndex(request):
     table = AntibodyTable(queryset)
     outputType = request.GET.get('output_type','')
     if(outputType != ''):
-        return send_to_file(outputType, 'antibodies', table, queryset )
+        return send_to_file(outputType, 'antibodies', table, queryset, 'antibody' )
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
     return render_list_index(request, table,search,'Antibody','Antibodies')
     
@@ -240,7 +240,7 @@ def otherReagentIndex(request):
     table = OtherReagentTable(queryset)
     outputType = request.GET.get('output_type','')
     if(outputType != ''):
-        return send_to_file(outputType, 'other_reagents', table, queryset )
+        return send_to_file(outputType, 'other_reagents', table, queryset, 'otherreagent' )
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
     return render_list_index(request, table,search,'Other Reagent','Other Reagents')
     
@@ -287,7 +287,7 @@ def smallMoleculeIndex(request):
 
     outputType = request.GET.get('output_type','')
     if outputType:
-        return send_to_file(outputType, 'small_molecule', table, queryset, is_authenticated=request.user.is_authenticated() )
+        return send_to_file(outputType, 'small_molecule', table, queryset, 'smallmolecule', is_authenticated=request.user.is_authenticated() )
     
         if(len(queryset) == 1 ):
             return redirect_to_small_molecule_detail(queryset[0])
@@ -405,7 +405,7 @@ def libraryIndex(request):
     table = LibraryTable(queryset)
     outputType = request.GET.get('output_type','')
     if(outputType != ''):
-        return send_to_file(outputType, 'libraries', table, queryset )
+        return send_to_file(outputType, 'libraries', table, queryset, 'library' )
     return render_list_index(request, table,search,'Library','Libraries')
 
 def libraryDetail(request, short_name):
@@ -424,7 +424,7 @@ def libraryDetail(request, short_name):
             outputType = request.GET.get('output_type','')
             logger.error(str(("outputType:", outputType)))
             if(outputType != ''):
-                return send_to_file(outputType, 'library_'+library.short_name , table, queryset )
+                return send_to_file(outputType, 'library_'+library.short_name , table, queryset, 'library' )
         
         return render(request,'db/libraryDetail.html', response_dict)
     except Library.DoesNotExist:
@@ -462,7 +462,7 @@ def datasetIndex(request): #, type='screen'):
     
     outputType = request.GET.get('output_type','')
     if(outputType != ''):
-        return send_to_file(outputType, 'datasetIndex', table, queryset )
+        return send_to_file(outputType, 'datasetIndex', table, queryset, 'dataset' )
     requestArgs = { 'usage_message': 'To find <a href="datasets">datasets</a> from <a href="http://lincs.hms.harvard.edu/about/publications/">LINCS publications</a>, type the relevant PMID in the datasets search box below.'}
     return render_list_index(request, table,search,'Dataset','Datasets', **requestArgs)
 
@@ -493,7 +493,7 @@ def datasetDetailCells(request, facility_id):
             if(dataset.is_restricted and not request.user.is_authenticated()):
                 raise Http401
             manager = DataSetManager(dataset)
-            return send_to_file(outputType, 'cells_for_'+ str(facility_id) , CellTable(manager.cell_queryset), manager.cell_queryset )
+            return send_to_file(outputType, 'cells_for_'+ str(facility_id) , CellTable(manager.cell_queryset), manager.cell_queryset, 'cell' )
         except DataSet.DoesNotExist:
             raise Http404
     try:
@@ -511,7 +511,7 @@ def datasetDetailProteins(request, facility_id):
             if(dataset.is_restricted and not request.user.is_authenticated()):
                 raise Http401
             manager = DataSetManager(dataset)
-            return send_to_file(outputType, 'proteins_for_'+ str(facility_id) , ProteinTable(manager.protein_queryset), manager.protein_queryset )
+            return send_to_file(outputType, 'proteins_for_'+ str(facility_id) , ProteinTable(manager.protein_queryset), manager.protein_queryset, 'protein' )
         except DataSet.DoesNotExist:
             raise Http404
     try:
@@ -529,7 +529,7 @@ def datasetDetailAntibodies(request, facility_id):
             if(dataset.is_restricted and not request.user.is_authenticated()):
                 raise Http401
             manager = DataSetManager(dataset)
-            return send_to_file(outputType, 'antibodies_for_'+ str(facility_id) , AntibodyTable(manager.antibody_queryset), manager.antibody_queryset )
+            return send_to_file(outputType, 'antibodies_for_'+ str(facility_id) , AntibodyTable(manager.antibody_queryset), manager.antibody_queryset, 'antibody' )
         except DataSet.DoesNotExist:
             raise Http404
     try:
@@ -547,7 +547,7 @@ def datasetDetailOtherReagents(request, facility_id):
             if(dataset.is_restricted and not request.user.is_authenticated()):
                 raise Http401
             manager = DataSetManager(dataset)
-            return send_to_file(outputType, 'other_reagents_for_'+ str(facility_id) , OtherReagentTable(manager.otherreagent_queryset), manager.otherreagent_queryset )
+            return send_to_file(outputType, 'other_reagents_for_'+ str(facility_id) , OtherReagentTable(manager.otherreagent_queryset), manager.otherreagent_queryset, 'otherreagent' )
         except DataSet.DoesNotExist:
             raise Http404
     try:
@@ -565,7 +565,7 @@ def datasetDetailSmallMolecules(request, facility_id):
             if(dataset.is_restricted and not request.user.is_authenticated()):
                 raise Http401
             manager = DataSetManager(dataset)
-            return send_to_file(outputType, 'small_molecules_for_'+ str(facility_id) , SmallMoleculeTable(manager.small_molecule_queryset), manager.small_molecule_queryset )
+            return send_to_file(outputType, 'small_molecules_for_'+ str(facility_id) , SmallMoleculeTable(manager.small_molecule_queryset), manager.small_molecule_queryset, 'smallmolecule' )
         except DataSet.DoesNotExist:
             raise Http404
     try:
@@ -614,7 +614,7 @@ def datasetDetailDataColumns(request, facility_id):
             if has_proteins:
                 extra_columns.append(('protein_lincs_id', 'protein_lincs_id'))
             return send_to_file(outputType, 'datacolumns_for_'+ str(facility_id),
-                                DataColumnTable(queryset), array_of_dicts, extra_columns=extra_columns )
+                                DataColumnTable(queryset), array_of_dicts, 'dataset', extra_columns=extra_columns )
         except DataSet.DoesNotExist:
             raise Http404
     try:
@@ -637,7 +637,7 @@ def datasetDetailResults(request, facility_id):
             search = request.GET.get('search','')
             cursor = manager.get_cursor(search=search)
             datacolumns = DataColumn.objects.filter(dataset=dataset).order_by('display_order')
-            return send_to_file1(outputType, 'dataset_'+str(facility_id), datacolumns, cursor )
+            return send_to_file1(outputType, 'dataset_'+str(facility_id), 'dataset', datacolumns, cursor, 'dataset' )
         
         details = datasetDetail(request,facility_id, 'results')
 
@@ -2060,7 +2060,7 @@ def download_attached_file(request, id):
         logger.error(str(('could not find attached file object for id', id, e)))
         raise e
 
-def send_to_file1(outputType, name, ordered_datacolumns, cursor, is_authenticated=False):
+def send_to_file1(outputType, name, ordered_datacolumns, table_name, cursor, is_authenticated=False):
     """
     Export the datasetdata cursor to the file type pointed to by outputType
     @param ordered_datacolumns the datacolumns for the datasetdata, in order, so that they can be indexed by column number
@@ -2071,14 +2071,14 @@ def send_to_file1(outputType, name, ordered_datacolumns, cursor, is_authenticate
     """   
     logger.info(str(('send_to_file1', outputType, name, ordered_datacolumns)))
     col_key_name_map = get_cols_to_write(cursor, 
-                                         ['dataset','smallmolecule','datarecord','smallmoleculebatch','protein','antibody', 'otherreagent', 'cell','datacolumn', ''],
+                                         [table_name, 'dataset','smallmolecule','datarecord','smallmoleculebatch','protein','antibody', 'otherreagent', 'cell','datacolumn', ''],
                                          ordered_datacolumns)   
     if(outputType == '.csv'):
         return export_as_csv(name,col_key_name_map, cursor=cursor, is_authenticated=is_authenticated)
     elif(outputType == '.xls'):
         return export_as_xls(name, col_key_name_map, cursor=cursor, is_authenticated=is_authenticated)
 
-def send_to_file(outputType, name, table, queryset, extra_columns = [], is_authenticated=False): 
+def send_to_file(outputType, name, table, queryset, table_name, extra_columns = [], is_authenticated=False): 
     """
     Export the queryset to the file type pointed to by outputType.  Get the column header information from the django-tables2 table
     @param outputType '.csv','.xls'
@@ -2102,7 +2102,7 @@ def send_to_file(outputType, name, table, queryset, extra_columns = [], is_authe
                 break
     columnsOrdered.extend(extra_columns)
     # use field information to clean up and remove unneeded columns
-    fieldinformation_tables = ['dataset','smallmolecule','datarecord','smallmoleculebatch','protein','antibody', 'otherreagent','cell','datacolumn', '']
+    fieldinformation_tables = [ table_name, 'dataset','smallmolecule','datarecord','smallmoleculebatch','protein','antibody', 'otherreagent','cell','datacolumn', '']
     columnsOrdered_filtered = []
     for field,verbose_name in columnsOrdered:
         try:
