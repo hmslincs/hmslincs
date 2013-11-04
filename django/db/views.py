@@ -2197,10 +2197,10 @@ def export_as_xls(name,col_key_name_map, cursor=None, queryset=None, is_authenti
     Generic xls export admin action.
     """
     logger.info(str(('------is auth:',is_authenticated)) )
-    response = HttpResponse(mimetype='application/Excel')
+    response = HttpResponse(mimetype='applicatxlwt.Workbookion/Excel')
     response['Content-Disposition'] = 'attachment; filename=%s.xls' % unicode(name).replace('.', '_')
 
-    wbk = xlwt.Workbook()
+    wbk = xlwt.Workbook(encoding='utf8')
     sheet = wbk.add_sheet('sheet 1')    # Write a first row with header information
     for i,name in enumerate(col_key_name_map.values()):
         sheet.write(0, i, name)   
@@ -2232,7 +2232,7 @@ def export_as_xls(name,col_key_name_map, cursor=None, queryset=None, is_authenti
                 if(inspect.ismethod(column)):
                     sheet.write(row+1,i, str(column(is_authenticated=is_authenticated)) )
                 else:
-                    sheet.write(row+1, i, str(column) )
+                    sheet.write(row+1, i, smart_str(column, 'utf-8', errors='ignore') )
             if(row % debug_interval == 0):
                 logger.info("row: " + str(row))
             row += 1    
