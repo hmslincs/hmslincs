@@ -52,6 +52,7 @@ def read_metadata(path):
               'Date Publicly Available': ('date_publicly_available',False,None,util.date_converter),
               'Is Restricted':('is_restricted',False,False,util.bool_converter),
               'Dataset Type':('dataset_type',False),
+              'Dataset Keywords':('dataset_keywords',False),
               'Usage Message':('usage_message',False),
               }
     
