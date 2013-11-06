@@ -52,6 +52,7 @@ def dump(obj):
     dumpObj(obj)
 
 # --------------- View Functions -----------------------------------------------
+dataset_types = [str(x) for x in set([x.dataset_type for x in DataSet.objects.all()])]
 
 def main(request):
     search = request.GET.get('search','')
@@ -64,9 +65,9 @@ def main(request):
             RequestConfig(request, paginate={"per_page": 25}).configure(table)
         else:
             table = None
-        return render(request, 'db/index.html', {'table': table, 'search':search })
+        return render(request, 'db/index.html', {'table': table, 'search':search, 'dataset_types': json.dumps(dataset_types) })
     else:
-        return render(request, 'db/index.html')
+        return render(request, 'db/index.html', {'dataset_types': json.dumps(dataset_types) })
 
 def cellIndex(request):
     search = request.GET.get('search','')
@@ -634,8 +635,8 @@ def datasetDetailResults(request, facility_id):
             if(dataset.is_restricted and not request.user.is_authenticated()):
                 raise Http401
             manager = DataSetManager(dataset)
-            search = request.GET.get('search','')
-            cursor = manager.get_cursor(search=search)
+            form = manager.get_result_set_data_form(request)
+            cursor = manager.get_cursor(whereClause=form.get_where_clause())
             datacolumns = DataColumn.objects.filter(dataset=dataset).order_by('display_order')
             return send_to_file1(outputType, 'dataset_'+str(facility_id), 'dataset', datacolumns, cursor, 'dataset' )
         
@@ -673,12 +674,14 @@ def datasetDetail(request, facility_id, sub_page):
             items_per_page = int(form.cleaned_data['items_per_page'])
     
     if (sub_page == 'results'):
-        search = request.GET.get('search','')
-        table = manager.get_table(search=search) 
+
+        form = manager.get_result_set_data_form(request)
+        table = manager.get_table(whereClause=form.get_where_clause()) 
+        details['search_form'] = form
         if(len(table.data)>0):
             details['table'] = table
             RequestConfig(request, paginate={"per_page": items_per_page}).configure(table)
-        details['search'] = search
+
         
     elif (sub_page == 'cells'):
         if(manager.has_cells()):
@@ -869,8 +872,29 @@ def render_list_index(request, table, search, name, name_plural, **requestArgs):
         requestArgs.setdefault('items_per_page_form',form )
         logger.debug(str(('requestArgs', requestArgs)))
     return render(request, 'db/listIndex.html', requestArgs)
-    
 
+class ResultSetDataForm(forms.Form):
+    def __init__(self, entity_id_name_map={}, *args, **kwargs):
+        super(ResultSetDataForm, self).__init__(*args, **kwargs)
+        self.entity_id_name_map = entity_id_name_map    
+        for key, item in entity_id_name_map.items():
+            list_of_id_name_tuple = item['choices']
+            self.fields[key] = forms.MultipleChoiceField(required=False, choices=list_of_id_name_tuple)
+#        super(ResultSetDataForm, self).__init__(*args, **kwargs)    
+    
+    def get_where_clause(self):
+        whereClause = []
+        if self.is_valid():
+            whereClause=[]
+            for key in self.entity_id_name_map.keys():
+                id_field = self.entity_id_name_map[key]['id_field']
+                if key in self.fields:
+                    vals = self.cleaned_data[key]
+                    if(vals and len(vals) > 0):
+                        logger.info(str(('vals', vals)))
+                        whereClause.append(id_field + " in (" + ','.join([str(val) for val in vals]) + ')')
+        return whereClause
+    
 class PaginationForm(forms.Form):
     items_per_page = forms.ChoiceField(widget=forms.Select(attrs={'onchange': 'this.form.submit();'}), 
                                        choices=(('25','25'),('50','50'),('100','100'),('250','250'),('1000','1000')),
@@ -1143,19 +1167,56 @@ class DataSetManager():
 
     def has_cells(self):
         return len(self.cell_queryset) > 0
+    def get_cells(self):
+        return self.cell_queryset
     
     def has_proteins(self):
         return len(self.protein_queryset) > 0
-
+    def get_proteins(self):
+        return self.protein_queryset
+    
     def has_antibodies(self):
         return len(self.antibody_queryset) > 0
-
+    def get_antibodies(self):
+        return self.antibody_queryset
+    
     def has_otherreagents(self):
         return len(self.otherreagent_queryset) > 0
-
+    def get_otherreagents(self):
+        return self.otherreagent_queryset
+    
     def has_small_molecules(self):
         return len(self.small_molecule_queryset) > 0
+    def get_small_molecules(self):
+        return self.small_molecule_queryset
     
+    def get_result_set_data_form(self, request):
+        # TODO: data drive this
+        entity_id_name_map = {}
+        if self.has_cells():
+            entity_id_name_map['cells'] = { 
+                'id_field': 'cell_id', 
+                'choices': [ (str(item['id']), '{facility_id}:{name}'.format(**item) ) for item in self.get_cells()] }
+        if self.has_proteins():
+            entity_id_name_map['proteins'] = { 
+                'id_field': 'protein_id', 
+                'choices': [ (str(item['id']), '{lincs_id}:{name}'.format(**item) ) for item in self.get_proteins()]}
+        if self.has_small_molecules():
+            entity_id_name_map['small molecules'] = { 
+                'id_field': 'smallmolecule_id', 
+                'choices': [ (str(item['id']), '{facility_id}:{name}'.format(**item) ) for item in self.get_small_molecules()]}
+        if self.has_antibodies():
+            entity_id_name_map['antibodies'] = { 
+                'id_field': 'antibody_id', 
+                'choices': [ (str(item['id']), '{facility_id}:{name}'.format(**item) ) for item in self.get_antibodies()]}
+        if self.has_otherreagents():
+            entity_id_name_map['other reagents'] = { 
+                'id_field': 'otherreagent_id', 
+                'choices': [ (str(item['id']), '{facility_id}:{name}'.format(**item) ) for item in self.get_otherreagents()]}
+        form = ResultSetDataForm(entity_id_name_map=entity_id_name_map, data=request.GET)
+        return form
+        
+        
     #TODO: get_cursor and get_table violate DRY...
     def get_cursor(self, whereClause=None,metaWhereClause=None,column_exclusion_overrides=None,parameters=None,search=''): 
         if not whereClause:
@@ -1208,28 +1269,28 @@ class DataSetManager():
             parameters = []
         if not column_exclusion_overrides:
             column_exclusion_overrides = []
-        if(search != ''):
-            #TODO: NOTE: the dataset search does not use the full text search
-            #TODO: dataset search to search the data fields as well?
-            searchParam = '%'+search+'%'
-            searchClause = "facility_salt_batch like %s or lower(sm_name) like lower(%s) or lower(sm_alternative_names) like lower(%s) "
-            searchParams = [searchParam,searchParam,searchParam]
-            if(self.has_cells()): 
-                searchClause += " or cell_facility_id::TEXT like %s or lower(cell_name) like lower(%s) "
-                searchParams += [searchParam,searchParam]
-            if(self.has_proteins()): 
-                searchClause += " or protein_lincs_id::TEXT like %s or lower(protein_name) like lower(%s) "
-                searchParams += [searchParam,searchParam]
-            if(self.has_antibodies()): 
-                searchClause += " or antibody_facility_id::TEXT like %s or lower(antibody_name) like lower(%s) "
-                searchParams += [searchParam,searchParam]
-            if(self.has_otherreagents()): 
-                searchClause += " or otherreagent_facility_id::TEXT like %s or lower(otherreagent_name) like lower(%s) "
-                searchParams += [searchParam,searchParam]
+#        if(search != ''):
+#            #TODO: NOTE: the dataset search does not use the full text search
+#            #TODO: dataset search to search the data fields as well?
+#            searchParam = '%'+search+'%'
+#            searchClause = "facility_salt_batch like %s or lower(sm_name) like lower(%s) or lower(sm_alternative_names) like lower(%s) "
+#            searchParams = [searchParam,searchParam,searchParam]
+#            if(self.has_cells()): 
+#                searchClause += " or cell_facility_id::TEXT like %s or lower(cell_name) like lower(%s) "
+#                searchParams += [searchParam,searchParam]
+#            if(self.has_proteins()): 
+#                searchClause += " or protein_lincs_id::TEXT like %s or lower(protein_name) like lower(%s) "
+#                searchParams += [searchParam,searchParam]
+#            if(self.has_antibodies()): 
+#                searchClause += " or antibody_facility_id::TEXT like %s or lower(antibody_name) like lower(%s) "
+#                searchParams += [searchParam,searchParam]
+#            if(self.has_otherreagents()): 
+#                searchClause += " or otherreagent_facility_id::TEXT like %s or lower(otherreagent_name) like lower(%s) "
+#                searchParams += [searchParam,searchParam]
                 
-                
-            metaWhereClause.append(searchClause)
-            parameters += searchParams
+#            logger.info(str(('datasetresults.get_table search:', searchClause, searchParams)))
+#            metaWhereClause.append(searchClause)
+#            parameters += searchParams
             
         self.dataset_info = self._get_query_info(whereClause,metaWhereClause, parameters)
         logger.debug(str(('search',search,'metaWhereClause',metaWhereClause,'parameters',self.dataset_info.parameters)))
@@ -1355,8 +1416,8 @@ class DataSetManager():
             # all bets are off if using the metawhereclause, unfortunately, since it can filter on the inner, dynamic cols
             countQueryString = "SELECT count(*) " + fromClause
             #countQueryString = " AND ".join([countQueryString]+metaWhereClause)
-        if(logger.isEnabledFor(logging.DEBUG)): 
-            logger.debug(str(('--querystrings---',queryString, countQueryString, parameters)))
+#        if(logger.isEnabledFor(logging.DEBUG)): 
+        logger.info(str(('--querystrings---',queryString, countQueryString, parameters)))
         dataset_info = self.DatasetInfo()
         dataset_info.query_sql = queryString
         dataset_info.count_query_sql = countQueryString
@@ -1790,8 +1851,89 @@ class LibraryForm(ModelForm):
         model = Library        
             
 class SiteSearchManager(models.Manager):
+
+    tags = [ 'datasets:', 'cells:', 'proteins:', 'small molecules:' ];
+    tags2 = [ 'KINOMEscan', 'KiNativ', 'MGH/CMT Growth Inhibition',
+                'Microfluidics" (Yale)', 'Microscopy/Imaging', 'ELISA',
+                'Analysis', 'Nominal Targets','Other' ];
+
     
     def search(self, queryString, is_authenticated=False):
+        
+        
+        logger.warn(str(('searching', queryString)))
+        match = re.match(r'(.*):\s+(.*)', queryString)
+        data = []
+        if match:
+            logger.info(str(('matched', match)))
+            match1 = match.group(1)
+            match2 = match.group(2)
+            logger.info(str(('match1',match1, 'match2', match2)))
+            if match1 == 'datasets':
+                queryset = DataSet.objects.filter(dataset_type=match2)
+                for x in queryset:
+                    data.append({ 
+                        'id': x.id, 
+                        'facility_id': str(x.facility_id), 
+                        'snippet': x.title, 
+                        'rank': 1, 
+                        'type': 'dataset_detail' })
+                
+                return data;
+            elif match1 == 'cells':
+                queryset = Cell.objects.filter(datacolumn_set__dataset__dataset_type=match2)
+                for x in queryset:
+                    data.append({ 
+                        'id': x.id, 
+                        'facility_id': str(x.facility_id), 
+                        'snippet': x.title, 
+                        'rank': 1, 
+                        'type': 'dataset_detail' })
+                
+                return data;
+            elif match1 == 'proteins':
+                pass;
+            elif match1 == 'small molecules':
+
+                cursor = connection.cursor()
+                sql = ( ' select id, facility_id, salt_id, name from db_smallmolecule sm1 where sm1.id in (SELECT distinct(sm.id) '
+                        ' FROM db_smallmolecule sm '
+                        ' join db_datarecord dr on(sm.id=dr.smallmolecule_id) join db_dataset ds on(ds.id=dr.dataset_id)'
+                        ' WHERE ds.dataset_type =%s)'
+                        ' order by sm1.facility_id' )
+                logger.info(str((sql)))
+                # TODO: like this: SELECT * FROM TABLE, (SELECT COLUMN FROM TABLE) as dummytable WHERE dummytable.COLUMN = TABLE.COLUMN;
+                cursor.execute(sql, [match2])
+                sms = dictfetchall(cursor)
+                
+#                datasets = DataSet.objects.filter(dataset_type__icontains=match2)
+#                logger.info(str(('=============_++++++', match2, len(datasets) )))
+#                sms = set()
+#                datasethash = {}
+#                for ds in datasets:
+#                    logger.info(str(('DS',ds)))
+#                    for dr in ds.datarecord_set.all():
+#                        sm = dr.smallmolecule
+#                        datasethash.setdefault(sm,[]).append(ds.facility_id)
+#                        sms.add(sm)
+                logger.info(str(('executed query', sms)))        
+                for x in sms:
+                    data.append({ 
+                        'id': x['id'], 
+                        'facility_id': str(x['facility_id'])+'-'+str(x['salt_id']), 
+                        'snippet': x['name'] , #+ ' in datasets: ' + ','.join([y for y in datasethash[x]]), 
+                        'snippet2': 'fooxxx',
+                        'rank': 1, 
+                        'type': 'sm_detail' })
+                
+                return data;
+            else:
+                logger.warn(str(('unknown pre-match', queryString)))
+        else:
+            logger.info(str(('=========no match for ', queryString, 'to', match)))
+            
+            
+            
         queryStringProcessed = format_search(queryString)
         cursor = connection.cursor()
         # Notes: MaxFragments=10 turns on fragment based headlines (context for search matches), with MaxWords=20
@@ -1957,6 +2099,7 @@ class SiteSearchTable(PagedTable):
     type = TypeColumn()
     rank = tables.Column()
     snippet = SnippetColumn()
+    snippet2 = SnippetColumn()
     class Meta:
         orderable = True
         attrs = {'class': 'paleblue'}
