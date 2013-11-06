@@ -1,8 +1,9 @@
 Instructions
 ============
 
-1. Run ``pip install -r requirements.txt`` to install the requirements. Also
-   install ImageMagick and Ghostscript.
+1. Run ``pip install -r requirements.txt`` to install the
+   requirements. Also install ImageMagick, Ghostscript, and pngcrush.
+   (pngcrush is required only to run the fixup_for_zip.sh script.)
 
 2. The environment variable ``RESOURCE_PATH`` must be set to your local path to
    the Dropbox ``Breast Cancer Ligand Response Screen/_LINCS_website``
