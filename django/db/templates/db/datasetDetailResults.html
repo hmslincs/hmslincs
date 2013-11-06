@@ -31,7 +31,10 @@
             {% endfor %}
                 </tr>
             </table>
-            <p><button id="clear_form_button">clear</button><input type="submit" value="search" /></p>
+            <p><button id='submit_button'>Search</button>
+
+                <button id="clear_form_button">Clear Form</button>
+            </p>
         </form>
        <!-- <a href="/form?{{ search_form.as_url_args }}&format=csv">Download As CSV</a> -->
        </div>
@@ -49,6 +52,10 @@ $(function() {
         // $('#search_form').attr('action',clean_form_uri);
         window.location = clean_form_uri;
         // $('#search_form').submit();
+    });
+    $('#submit_button').click(function(evt){
+        evt.preventDefault();
+        $('#search_form').submit();
     });
     if(window.location.search){
         form_toggle();
