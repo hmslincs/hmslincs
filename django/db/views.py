@@ -2060,7 +2060,7 @@ def download_attached_file(request, id):
         logger.error(str(('could not find attached file object for id', id, e)))
         raise e
 
-def send_to_file1(outputType, name, ordered_datacolumns, table_name, cursor, is_authenticated=False):
+def send_to_file1(outputType, name, table_name, ordered_datacolumns, cursor, is_authenticated=False):
     """
     Export the datasetdata cursor to the file type pointed to by outputType
     @param ordered_datacolumns the datacolumns for the datasetdata, in order, so that they can be indexed by column number
