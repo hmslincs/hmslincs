@@ -3,6 +3,7 @@ import os
 import os.path as op
 import re
 import collections as co
+import glob as gl
 
 # Running this script (no arguments required)
 #
@@ -16,14 +17,15 @@ import collections as co
 #
 # E.g.:
 #
-# % python src/onetime/makexgmml.py
+# % EXPORTTYPE=png python src/onetime/makexgmml.py
 # commandtool run file="/Users/berriz/Work/Sites/hmslincs/src/onetime/makepng"
 #
 
 # ---------------------------------------------------------------------------
 import setparams as _sp
 _params = dict(
-    EXPORTTYPE = 'svg'
+    EXPORTTYPE = 'svg',
+    SUBDIR = 'rtk'
 )
 _sp.setparams(_params)
 del _sp, _params
@@ -31,9 +33,16 @@ del _sp, _params
 # ---------------------------------------------------------------------------
 SRCDIR = op.dirname(op.abspath(__file__))
 BASEDIR = op.normpath(op.join(SRCDIR, '..', '..'))
-DATADIR = op.join(BASEDIR, *'data networks data'.split())
+DATADIR = op.join(BASEDIR, *('data networks data'.split() + [SUBDIR]))
 XMLDIR = op.join(BASEDIR, *'data networks xgmml'.split())
-IMGDIR = op.join(BASEDIR, *'django networks static networks img'.split())
+for f in gl.glob(op.join(XMLDIR, '*')):
+    os.remove(f)
+
+IMGDIR = op.join(BASEDIR,
+                 *('django networks static networks img'.split() +
+                   [SUBDIR]))
+print IMGDIR
+SIGNALING = SUBDIR == 'signaling'
 
 NODES = co.OrderedDict((
                         ('center', co.OrderedDict((
@@ -175,7 +184,10 @@ MAXFONT = 19
 BLACK = '#000000'
 WHITE = '#ffffff'
 DARKGRAY = '#666666'
+LIGHTGRAY = '#aaaaaa'
 GRAYCUTOFF = 128
+RED = '#ff0000'
+BLUE = '#0000cc'
 
 # "magic" constants
 SCALEFUDGE = 44
@@ -264,7 +276,7 @@ def edgexml(label, sourceid, targetid, width, arrow, color, linetype):
 
     return ('<edge label="%(label)s" '
             'source="%(sourceid)d" target="%(targetid)d"><graphics '
-            'width="%(width)d" '
+            'width="%(width).2f" '
             '%(fill)s'
             'cy:targetArrow="%(arrow)d" '
             '%(arrowcolor)s'
@@ -279,9 +291,9 @@ if True:
     import sys
 
     NodeParams = co.namedtuple('_nodeparams',
-                               'label diam fontsize fill fontcolor')
-    dummynode = NodeParams('', 1e-4, 0, WHITE, '')
-    # centernode= NodeParams('', 200, 0, '#00ffff', '')
+                               'label diam fontsize fill fontcolor outline')
+    dummynode = NodeParams('', 1e-4, 0, WHITE, '', WHITE)
+    # centernode= NodeParams('', 200, 0, '#00ffff', '', '#00ffff')
     fixednodes = dict(#ce=centernode,
                       ce=dummynode,
                       sw=dummynode,
@@ -292,8 +304,14 @@ if True:
     EdgeParams = co.namedtuple('_edgeparams',
                                'source target width arrow color linetype')
 
-    fixededges = tuple(EdgeParams(src, tgt, 1, 0, '', 'DOT')
-                       for src, tgt in EDGES['outer'])
+    if SIGNALING:
+        fixededges = ()
+    else:
+        # fixededges = tuple(EdgeParams(src, tgt, 1, 0, '', 'DOT')
+        #                    for src, tgt in EDGES['outer'])
+        fixededges = tuple(EdgeParams(src, tgt, 0.25, 0, BLACK, 'SOLID')
+                           for src, tgt in EDGES['outer'])
+
     inneredges = set(EDGES['inner'])
     assert len(inneredges) == len(EDGES['inner'])
 
@@ -303,7 +321,8 @@ if True:
                   _minfont=MINFONT, _maxfont=MAXFONT,
                   _fudgefactor=FONTFUDGE):
         basallevel = float(basallevel)
-        assert 0 <= basallevel <= 1
+        assert basallevel == -1 or (0 <= basallevel <= 1)
+        basallevel = max(basallevel, 0)
         diam = MINDIAM + (basallevel * SCALEFUDGE)
         ll = len(label)
         # fontsize = (0 if ll == 0
@@ -315,13 +334,27 @@ if True:
                              _minfont))
         return diam, fontsize
 
-    def colors(phospholevel=0):
+    def maybe_to_float(x):
+        try:
+            return float(x)
+        except:
+            return x
+
+    def colors(basallevel=0, phospholevel=0):
         phospholevel = float(phospholevel)
-        assert 0 <= phospholevel <= 1
-        r = round((1 - phospholevel) * 256)
-        fill = '#%(n)02x%(n)02x%(n)02x' % {'n': min(r, 255)}
-        fontcolor = BLACK if r > GRAYCUTOFF else WHITE
+        if phospholevel == -1:
+            fill = WHITE
+            if float(basallevel) == -1:
+                fontcolor = LIGHTGRAY
+            else:
+                fontcolor = BLACK
+        else:
+            assert 0 <= phospholevel <= 1
+            r = round((1 - phospholevel) * 256)
+            fill = '#%(n)02x%(n)02x%(n)02x' % {'n': min(r, 255)}
+            fontcolor = BLACK if r > GRAYCUTOFF else WHITE
         return fill, fontcolor
+
 
     def edgesizes(response=None,
                   _minwidth=MINWIDTH,
@@ -332,8 +365,8 @@ if True:
         assert 0 <= response <= 1
         return round(_minwidth + _widthrng * response), 6
         
-    cerk = '#0000cc'
-    cakt = '#ff0000'
+    cerk = BLUE
+    cakt = RED
 
     scriptname = 'make' + EXPORTTYPE
     scriptfile = op.join(SRCDIR, scriptname)
@@ -354,11 +387,22 @@ if True:
                     if allws.match(line):
                         break
 
-                    kinase, basallevel, phospholevel = line[:-1].split('\t')
+                    kinase, basallevel, phospholevel = \
+                        [maybe_to_float(l) for l in
+                         line.rstrip('\r\n').split('\t')]
                     diam, fontsize = nodesizes(kinase, basallevel)
-                    fill, fontcolor = colors(phospholevel)
+                    fill, fontcolor = colors(basallevel, phospholevel)
+
+                    if SIGNALING:
+                        fill = WHITE
+
+                    if basallevel < 0 and phospholevel < 0:
+                        outline = LIGHTGRAY
+                    else:
+                        outline = BLACK
+
                     params = NodeParams(kinase, diam, fontsize, fill,
-                                        fontcolor)
+                                        fontcolor, outline)
                     sym = kinase.upper()
                     assert sym not in nodeparams, sym
                     nodeparams[sym] = params
@@ -369,6 +413,7 @@ if True:
                     if allws.match(line):
                         break
                     rec = line[:-1].split('\t')
+                    eres, ares = [float(r) for r in rec[1:]]
                     srcnode = NORMALIZE.get(rec[0], rec[0])
                     sym = srcnode.upper()
                     assert sym not in nodeparams, sym
@@ -377,15 +422,24 @@ if True:
 
                     diam, fontsize = nodesizes(srcnode)
                     fill, fontcolor = colors()
+                    if not (eres > 0 or ares > 0):
+                        fontcolor = outline = LIGHTGRAY
+                    else:
+                        outline = BLACK
+
                     nodeparams[sym] = NodeParams(srcnode, diam, fontsize,
-                                                 fill, fontcolor)
+                                                 fill, fontcolor, outline)
 
                     werk, aerk = edgesizes(rec[1])
                     edgeparams['erk'].append(EdgeParams(sym, 'ERK', werk, aerk,
-                                                        cerk, 'SOLID'))
+                                                        cerk if eres > 0.0
+                                                        else LIGHTGRAY,
+                                                        'SOLID'))
                     wakt, aakt = edgesizes(rec[2])
                     edgeparams['akt'].append(EdgeParams(sym, 'AKT', wakt, aakt,
-                                                        cakt, 'SOLID'))
+                                                        cakt if ares > 0.0
+                                                        else LIGHTGRAY,
+                                                        'SOLID'))
 
             node2idx = dict()
             idx = 0
@@ -409,6 +463,8 @@ if True:
                 print >> out, prologue(title)
 
                 for grp, v in NODES.items():
+                    if SIGNALING and grp == 'outer':
+                        continue
                     for sym, (x, y) in v.items():
                         node2idx[sym] = idx
                         params = nodeparams[sym]
