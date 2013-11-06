@@ -3,6 +3,7 @@ import os
 import os.path as op
 import re
 import collections as co
+import glob as gl
 
 # Running this script (no arguments required)
 #
@@ -34,6 +35,9 @@ SRCDIR = op.dirname(op.abspath(__file__))
 BASEDIR = op.normpath(op.join(SRCDIR, '..', '..'))
 DATADIR = op.join(BASEDIR, *('data networks data'.split() + [SUBDIR]))
 XMLDIR = op.join(BASEDIR, *'data networks xgmml'.split())
+for f in gl.glob(op.join(XMLDIR, '*')):
+    os.remove(f)
+
 IMGDIR = op.join(BASEDIR,
                  *('django networks static networks img'.split() +
                    [SUBDIR]))
