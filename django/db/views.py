@@ -2214,7 +2214,7 @@ def export_as_xls(name,col_key_name_map, cursor=None, queryset=None, is_authenti
         logger.debug(str(('keys',keys)))
         while obj:  # row in the dataset; a tuple to be indexed numerically
             for i,key in enumerate(keys):
-                sheet.write(row+1,i,str(obj[key]))
+                sheet.write(row+1,i,smart_str(obj[key], 'utf-8', errors='ignore'))
             if(row % debug_interval == 0):
                 logger.info("row: " + str(row))
             row += 1
@@ -2230,7 +2230,7 @@ def export_as_xls(name,col_key_name_map, cursor=None, queryset=None, is_authenti
                 # if the columnn is a method, we are referencing the method wrapper for restricted columns
 #                logger.info(str(('--column:', column, inspect.ismethod(column), type(column))))
                 if(inspect.ismethod(column)):
-                    sheet.write(row+1,i, str(column(is_authenticated=is_authenticated)) )
+                    sheet.write(row+1,i, smart_str(column(is_authenticated=is_authenticated), 'utf-8', errors='ignore') )
                 else:
                     sheet.write(row+1, i, smart_str(column, 'utf-8', errors='ignore') )
             if(row % debug_interval == 0):
