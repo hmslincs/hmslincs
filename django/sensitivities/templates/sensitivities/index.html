@@ -2,7 +2,6 @@
 
 {% block head_extra %}
   <script type="text/javascript" src="http://code.jquery.com/jquery-latest.min.js"></script>
-  <link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
   <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.2/themes/smoothness/jquery-ui.css" />
   <script type="text/javascript" src="http://code.jquery.com/ui/1.10.2/jquery-ui.js"></script>
 
@@ -10,118 +9,128 @@
   <link rel="stylesheet" href="{{ STATIC_URL }}sensitivities/css/sensitivities.css"/>
 {% endblock %}
 
-{% block title %}Parameterizing perturbagen dose-response relationships - {{ block.super }}{% endblock %}
+{% block title %}Metrics other than potency reveal systematic variation in responses to cancer drugs - {{ block.super }}{% endblock %}
 
 {% block contentclass %}fullwidth{% endblock %}
 
 {% block body %}
 
-<div>
+<h1>Quantifying variability in cancer drug response</h1>
 
-<h1>Parametrizing perturbagen dose-response relationships</h1>
-<hr>
+<h2>Metrics other than potency reveal systematic variation in responses to cancer drugs</h2>
 
-<p class="normal"><span>&nbsp;</span></p>
-<!-- <p class="normal"><b><span>Dose-response curves</span></b></p> -->
-
- 
-   <p class="normal"><span>&nbsp;</span></p>
-
-    <div id="graph-container">
-    <div id="graph"></div>
-    </div>
-
-    <script src="{{ STATIC_URL }}sensitivities/js/sensitivities.js"></script>
-
-    <div id="control-panel">
-
-      <div id="controls">
-
-        <div id="presets">
-          <table><tbody>
-            <tr>
-              <!-- <td><button class="preset ui-button ui-widget ui-state-default ui-corner-all" role="button" aria-disabled="false"><span class="ui-button-text">PP242</span></button></td> -->
-              <td><button class="preset">BEZ235</button></td>
-              <td><button class="preset">PP242</button></td>
-              <td><button class="preset">GSK1059615</button></td>
-            </tr>
-          </tbody></table>
-        </div>
-
-        <div id="sliders">
-          <table><tbody>
-            <tr><td><i>EC</i><sub>50</sub></td><td><div class="slider" id="EC50-slider"></div></td><td><div class="slider-value" id="EC50-slider-value">1.0e-7</div></td></tr>
-            <tr><td><i>E</i><sub>&infin;</sub>/<i>E</i><sub>0</sub></td><td><div class="slider" id="Einf-slider"></div></td><td><div class="slider-value" id="Einf-slider-value">0.150</div></td></tr>
-            <tr><td><i>HS</i></td><td><div class="slider" id="HS-slider"></div></td><td><div class="slider-value" id="HS-slider-value">0.500</div></td></tr>
-          </tbody></table>
-        </div>
-      </div>
-    </div>
-
-    <div class="caption">
-      <p class="normal"><span>Typical cell viability dose response curves for HCC1954 breast cancer cells exposed to inhibitors of the PI3K/Akt pathway:
-      <a href="http://pubchem.ncbi.nlm.nih.gov/summary/summary.cgi?sid=26746658">BEZ235</a>,
-      <a href="http://pubchem.ncbi.nlm.nih.gov/summary/summary.cgi?cid=24905147">PP242</a>,
-      and
-      <a href="http://pubchem.ncbi.nlm.nih.gov/summary/summary.cgi?cid=23582824">GSK1059615</a>.
-      </span></p>
-    </div>
-
-
-
-<p class="normal"><span>A dose-response curve is the most fundamental measure of cellular response to perturbing agents and drugs. The curve measures the magnitude of an effect (in this description, cell viability) across a range of drug concentrations and is typically illustrated in a log-linear plot. The most common parameter derived from this relationship is IC<sub>50</sub>, the point at which half-maximal effect is achieved (this is often referred to as the “potency” of a perturbagen). However, variation in maximum effect at the highest doses (<i>E<sub>max</sub></i>) is also common. Capturing these sources of variation requires a multi-parametric description involving variables such as IC<sub>50</sub>, <i>E</i><sub>max</sub> and the slope of the curve. The underlying logistic equation is shown below, as are the relationships of various parameters to a typical dose response curve.</span></p>
-
-<!-- <p class="normal"><span>Dose-response curves are typically fitted to a logistical sigmoidal function characterized by four parameters: <i>E</i><sub>0</sub> and <i>E</i><sub>&infin;</sub> are the top and bottom asymptotes of the response; EC<sub>50</sub> is the concentration at half-maximal effect (hme) of the drug, and <i>HS</i> is a slope parameter mathematically analogous to the Hill coefficient, a conventional measure of cooperative interactions:</span></p> -->
-
-<p class="normal">&nbsp;</p>
-
-<!--
-The image below was generated with LaTeXiT 1.16.1, running on OS X Lion,
-with font size set to 18.00 pt, from
-
-E(D) = E_\infty + \frac{E_0 - E_\infty}{1 + (\frac{D}{\mathrm{EC}_{50}})^{H\!S}}
-
-and exported to PNG.
--->
-
-
-<div class="equation-box" align="right" vertical-align="middle">
-  <div class="equation-img">
-    <img id="Equation 1" src="{{ STATIC_URL }}sensitivities/img/image001.png">
-  </div>
-  <span vertical-align="middle">(1)</span>
-</div>
-
-
-<p class="normal">&nbsp;</p>
-
-<p class="normal"><span>where <i>D</i> is drug concentration, <i>E</i>(<i>D</i>) is a measured response parameter, <i>E</i><sub>0</sub> and <i>E</i><sub>&infin;</sub> are the top and bottom asymptotes of the response curve, EC<sub>50</sub> is the concentration at half-maximal effect (hme), and <i>HS</i> is a slope parameter analogous to a Hill coefficient.</span></p>
-
-<p class="normal">&nbsp;</p>
-
-<p class="normal"><span>Three measures of drug response derived from this equation are in common use: (<i>i</i>) IC<sub>50</sub>, the concentration of drug at which response is half its theoretical maximum (i.e. <i>E</i>(<i>D</i>)/<i>E</i><sub>0</sub> = 0.5); (<i>ii</i>) the value of the effect at the maximum concentration of drug tested (<i>E</i><sub>max</sub> = <i>E</i>(<i>D</i><sub>max</sub>)); and (<i>iii</i>) the area under the dose-response curve (AUC) also known as activity area.</span></p>
-
-<p class="normal">&nbsp;</p>
-
-
-<p class="normal">
-<img id="Figure 1" height="300" alt="Canonical dose-response curve" src="{{ STATIC_URL }}sensitivities/img/image100.png">
+<p>
+ Mohammad Fallahi-Sichani<sup>1</sup>, Saman Honarnejad<sup>1</sup>, Laura M.
+ Heiser<sup>2</sup>, Joe W. Gray<sup>2</sup> and Peter K. Sorger<sup>1</sup>
 </p>
-    <div class="caption">
-      <p class="normal"><span><b>Figure 1.</b>  A canonical dose-response curve with parameters from equation 1 illustrated.</span></p>
-    </div>
+<p>
+  <sup>1</sup>HMS LINCS Center; <sup>2</sup>Department of Biomedical
+  Engineering, Oregon Health and Science University
+</p>
+<p>doi:<a
+href="http://dx.doi.org/10.1038/nchembio.1337">10.1038/nchembio.1337</a></p>
 
-<p class="normal"><span>If we examine variation in the responses of ~50 breast cancer cell lines to the drug <a href="http://pubchem.ncbi.nlm.nih.gov/summary/summary.cgi?cid=73292"><b><i>fascaplysin</i></b></a>, a natural product and selective inhibitor of the <a href="http://www.uniprot.org/uniprot/P11802">cyclin dependent kinase 4</a>, as described by <a href="http://www.ncbi.nlm.nih.gov/pubmed/22003129">Heiser <i>et al.</i> (2012)</a>, we see a classic situation in which IC<sub>50</sub> varies, <i>E</i><sub>max</sub> = 0  (i.e complete killing at the highest dose) and the Hill slope parameter (<i>HS</i>) is approximately 1 (Figure 2; red curves).  However, if we look at the variation in responses to <a href="http://pubchem.ncbi.nlm.nih.gov/summary/summary.cgi?cid=148124"><b><i>docetaxel</i></b></a> we observe variation both in <i>E</i><sub>max</sub> and <i>HS</i> (Figure 2; blue curves).  We have recently performed a systematic analysis of large-scale dose-response data arising from LINCS experiments and published cell line encyclopedias, and a manuscript describing this work is currently in review. All analytical tools, raw data and other supplementary materials will be posted on this site soon. 
+<h2>Synopsis</h2>
+<p>Large-scale analysis of cellular response to anti-cancer drugs typically focuses on variation in potency (IC<sub>50</sub>) assuming that it is the most important difference between effective/ineffective drugs or sensitive/resistant cells. We took a multi-parametric approach involving analysis of the slope of the dose-response curve (HS), the area under the curve (AUC) and the maximum effect (E<sub>max</sub>). We found that some of these parameters vary systematically with cell line and others with drug class. For cell-cycle inhibitors, E<sub>max</sub> often but not always correlated with cell proliferation rate. For drugs targeting the Akt/PI3K/mTOR pathway dose-response curves were unusually shallow. Classical pharmacology has no ready explanation for this phenomenon but single-cell analysis showed that it correlated with significant and heritable cell-to-cell variability in the extent of target inhibition. We conclude that parameters other than potency should be considered in the comparative analysis of drug response, particularly at clinically relevant concentrations near and above IC<sub>50</sub>. </p>
 
-<p class="normal"><span>&nbsp;</span></p>
-<p class="normal" style="text-align:center" align="center"><img id="Figure 2" src="{{ STATIC_URL }}sensitivities/img/image002.png" alt="Comparison of fascaplysin and docetaxel" height="216" width="385"></p>
-    <div class="caption">
-      <p class="normal"><span><b>Figure 2.</b>  Comparison of dose-response curves for fascaplysin and docetaxel.</span></p>
-    </div>
+<h2>A multi-parametric approach to quantifyling variability in cancer drug response</h2>
+<p class="normal">Patient-to-patient variability in drug response is a primary challenge facing development and use of new medicines. A recent approach to understanding such variability involves genotyping coupled with systematic measurement of dose-response across a large and diverse bank (“encyclopedia”) of cell lines. Dose-response data are conventionally analyzed from the perspective of IC<sub>50</sub> (potency) values (or similar parameters) which are descriptive of the shape of the dose-response curve at its mid-point.  However, inspection of dose-response curves reveals that they differ substantially in shape from one drug to the next and from one cell line to the next. Variability in shape can be quantified by performing a multi-parametric analysis using a conventional logistical sigmoidal function. Among these parameters, EC<sub>50</sub>, IC<sub>50</sub> and GI<sub>50</sub> are the classic measures of drug potency and E<sub>max</sub> and E<sub>inf</sub> are measures of drug efficacy. Hill slope (HS) represents the steepness of the curve, and area under the curve (AUC) combines potency and efficacy of a drug into a single parameter. </p>
 
-<h3>HMS LINCS Center White Paper:</h3>
-Fallahi-Sichani&nbsp;M.&nbsp;and&nbsp;Sorger&nbsp;PK.&nbsp;&nbsp;Characterizing cellular dose-response relationships.&nbsp;&nbsp;(pdf <i>coming soon</i>)
+<p class="normal img-wrapper">
+<img id="Figure 1ab" width="80%" alt="none" src="{{ STATIC_URL }}sensitivities/img/Figure1_ab_300.png">
+</p>
+<div class="caption"><p class="normal"><span><b>Figure 1.</b> Multi-parametric description of dose-response. (a) Schematic of key dose-response parameters (EC<sub>50</sub>, IC<sub>50</sub>, E<sub>inf</sub>, E<sub>max</sub> and AUC) calculated following curve fitting to the cell survival data. The pink area represents area under the curve (AUC). The red dash line represents the simple case of E<sub>0</sub> = 1, E<sub>max</sub> = E<sub>inf</sub>  = 0, EC<sub>50</sub> = IC<sub>50</sub> and HS = 1. Effects of variations in EC<sub>50</sub>, slope (HS), and E<sub>inf</sub> on the shape of dose-response curve are shown on the right. (b) Schematic of key dose-response parameters (GI<sub>50</sub>, TGI) that can be calculated by fitting logistic curves to data on relative cell growth comprising a change in cell number after drug treatment normalized to the change in cell number in an untreated control well.</span></p></div>
 
+
+<h2>Interactive exploration of drug response parameters</h2>
+<p>This interactive animation allows one to modify EC<sub>50</sub>,
+E<sub>max</sub> and HS by moving the sliders, recalculating the cell viability
+curve on the fly and reporting several other derived parameters. The three
+"preset" buttons will display curves as measured in HCC1954 cells treated with
+several PI3K/Akt inhibitors.</p>
+<div id="graph-container">
+  <div id="graph"></div>
 </div>
+
+<script src="{{ STATIC_URL }}sensitivities/js/sensitivities.js"></script>
+
+<div id="control-panel">
+  <div id="controls">
+    <div id="presets">
+      <table><tbody>
+	<tr>
+	  <!-- <td><button class="preset ui-button ui-widget ui-state-default ui-corner-all" role="button" aria-disabled="false"><span class="ui-button-text">PP242</span></button></td> -->
+	  <td><button class="preset">BEZ235</button></td>
+	  <td><button class="preset">PP242</button></td>
+	  <td><button class="preset">GSK1059615</button></td>
+	</tr>
+      </tbody></table>
+    </div>
+
+    <div id="sliders">
+      <table><tbody>
+	<tr><td><i>EC</i><sub>50</sub></td><td><div class="slider" id="EC50-slider"></div></td><td><div class="slider-value" id="EC50-slider-value">1.0e-7</div></td></tr>
+	<tr><td><i>E</i><sub>&infin;</sub>/<i>E</i><sub>0</sub></td><td><div class="slider" id="Einf-slider"></div></td><td><div class="slider-value" id="Einf-slider-value">0.150</div></td></tr>
+	<tr><td><i>HS</i></td><td><div class="slider" id="HS-slider"></div></td><td><div class="slider-value" id="HS-slider-value">0.500</div></td></tr>
+      </tbody></table>
+    </div>
+  </div>
+</div>
+
+<div class="caption">
+  <p class="normal"><span>Typical cell viability dose response curves for HCC1954 breast cancer cells exposed to inhibitors of the PI3K/Akt pathway:
+  <a href="http://pubchem.ncbi.nlm.nih.gov/summary/summary.cgi?sid=26746658">BEZ235</a>,
+  <a href="http://pubchem.ncbi.nlm.nih.gov/summary/summary.cgi?cid=24905147">PP242</a>,
+  and
+  <a href="http://pubchem.ncbi.nlm.nih.gov/summary/summary.cgi?cid=23582824">GSK1059615</a>.
+  </span></p>
+</div>
+
+
+<h2>Dose-response parameters vary with compound and cell line</h2>
+<p class="normal">We focused on analysis of dose-response data comprising CellTiter-Glo measurement of per-well ATP levels (a metric of metabolically active cells) for 64 anti-cancer drugs and 53 well-characterized breast cell lines. Multi-parametric analysis yielded values for EC<sub>50</sub>, IC<sub>50</sub>, GI<sub>50</sub>, HS (Hill slope), E<sub>inf</sub>, E<sub>max</sub> and AUC for 2789 drug/cell line combinations (<a href="http://lincs.hms.harvard.edu/db/datasets/20120">data</a>) and revealed substantial differences from one drug and cell line to the next.</p>
+<p class="normal img-wrapper">
+<img id="Figure 1c" width="70%" alt="none" src="{{ STATIC_URL }}sensitivities/img/Figure1_c_300.png">
+</p>
+<div class="caption"><p class="normal"><span><b>Figure 2.</b> The range of dose-response parameters, IC<sub>50</sub> (a measure of potency), E<sub>max</sub> (a measure of efficacy), and Hill slope (HS) estimated for all 64 compounds across all the 53 breast cell lines represented by box and whisker plots drawn and median parameter values and inter-quartile ranges; bars extending to 1.5-times the inter-quartile range are shown for each drug as a measure of variance. Parameter values for outlier cell lines are denoted by stars. Compounds are sorted based on the median IC<sub>50</sub> value. Drug targets are nominal and do not include off-target effects.</span></p></div>
+
+<h2>Different types of variation in dose-response relationships</h2>
+<p class="normal">Across breast cell lines, IC<sub>50</sub> varied ~10<sup>4</sup>-fold and E<sub>max</sub> from 0-0.8 for the microtubule stabilizer docetaxel and HSP90 inhibitor geldanamycin, whereas IC<sub>50</sub> varied little for the CDK4/cyclin D1 kinase inhibitor fascaplysin (ca. 10-fold) and maximum effect was high in all cases (E<sub>max</sub> ~ 0). In the case of the PI3K inhibitor GSK2126458, Hill slope was ~1.0, whereas it varied significantly for the polyamine analogue CGC-11144.</p>
+<p class="normal img-wrapper">
+<img id="Figure 2" width="80%" alt="none" src="{{ STATIC_URL }}sensitivities/img/Figure2_300.png">
+</p>
+<div class="caption"><p class="normal"><span><b>Figure 3.</b> Selected examples of dose-response curves representing different types of variation in dose-response relationships. Patterns of dose-response across the breast cell line panel for (a) docetaxel, a microtubule stabilizer, (b) geldanamycin, an HSP90 inhibitor, (c) fascaplysin, a CDK4 inhibitor, (d) CGC-11144, a polyamine analogue, and (e) GSK2126458, a PI3K inhibitor are shown. These drugs are highlighted in red in Fig. 2. The range of IC<sub>50</sub> and E<sub>max</sub> values is represented by box and whisker plots drawn and median parameter values and inter-quartile ranges shown above and to the right; bars extending to 1.5-times the inter-quartile range are shown for each drug as a measure of variance. Parameter values for outlier cell lines are denoted by stars.</span></p></div>
+
+<h2>Different dose-response parameters do not always correlate with each other</h2>
+<p class="normal">Potency, maximal effect and slope were well-correlated only for a subset of drugs and cell lines. For example, whereas IC<sub>50</sub> and E<sub>max</sub> correlated in the case of geldanamycin they did not for the PI3K inhibitor GSK1059615. IC<sub>50</sub> and E<sub>max</sub> were generally more highly correlated than GI<sub>50</sub> and E<sub>max</sub> (e.g. for the Src/Abl inhibitor bosutinib: <i>P</i> = 10<sup>-11</sup> vs. <i>P</i> = 0.03). Thus, parameters we might assume to be interchangeable (e.g. IC<sub>50</sub> and GI<sub>50</sub>) were not, implying that different dose-response parameters convey different information.</p>
+<p class="normal img-wrapper">
+<img id="Figure 3" width="50%" alt="none" src="{{ STATIC_URL }}sensitivities/img/Figure3_300.png">
+</p>
+<div class="caption"><p class="normal"><span><b>Figure 4.</b> Different dose-response parameters do not always correlate with each other. (a) Pairwise correlation between different key dose-response parameters estimated for each drug across the breast cancer cell line collection. <i>P</i>-values were corrected using the Bonferroni-Holm method. (b, c) Pairwise distribution and correlation of E<sub>max</sub> and IC<sub>50</sub> for geldanamycin (an HSP90 inhibitor) and GSK1059615 (a PI3K inhibitor). (d-f) Pairwise distribution and correlation of E<sub>max</sub>, IC<sub>50</sub> and GI<sub>50</sub> for bosutinib (a Src/Abl inhibitor) across the cell line panel. Each circle represents a cell line. Colors represent different drugs.</span></p></div>
+
+<h2>Association of E<sub>max</sub> with cell type and association of  HS and E<sub>max</sub> with drug class</h2>
+<p class="normal">We used mutual information analysis to quantify the extent to which each of the dose response parameters were associated with either cell or drug type. Our analysis showed that parameters quantifying maximum effect (E<sub>max</sub> and E<sub>inf</sub> ) exhibited strong association with cell type. For example, all but three drugs exhibited an equal or higher value for E<sub>max</sub> in SKBR3 cells than in SUM159PT cells. Prevailing “fractional kill” theory posits that inhibitors of cell-cycle progression (such as paclitaxel) kill only the subset of cells that pass through S or M phases in the presence of drug. Consistent with this, SKBR3 had a substantially longer doubling time than SUM159PT cells (~50 vs. ~20 hr, and thus lower mitotic and S phase fractions) under the growth conditions used in this study. When we calculated the correlation between dose-response parameters and cell doubling time for all 64 drugs, we observed a strong positive correlation between E<sub>max</sub> or IC<sub>50</sub> and doubling time, particularly in the case of DNA damaging agents and microtubule stabilizers. However, when we excluded nominally cell-cycle specific drugs from the analysis, the association between cell line and both E<sub>max</sub> and E<sub>inf</sub> was weaker. </p>
+<p class="normal">We observed a strong association between drug type and potency, efficacy and steepness of the dose-response relationships meaning that virtually all pairs of drugs could be distinguished based on cell-line dependent variation in one or more parameters. For example, the parameters IC<sub>50</sub>, E<sub>max</sub> and HS allowed high confidence (<i>P</i> = 10<sup>-9</sup> to 10<sup>-6</sup>) discrimination between the pairs of drugs (i) oxamflatin and vorinostat (two HDAC inhibitors), (ii) MG-132 (a proteasome inhibitor) and 17-AAG (an HSP90 inhibitor) and (iii) GSK1059615 (a PI3K inhibitor) and trichostatin A (an HDAC inhibitor). When we grouped drugs into classes based on nominal target or mechanism of action (ignoring potential secondary targets and poly-pharmacology), we observed significant differences between the HS and E<sub>max</sub> across different classes of drugs. For example, HDAC inhibitors, proteasome inhibitors and DNA cross-linking drugs had uniformly high maximal effects (E<sub>max</sub> ~ E<sub>inf</sub>  ~ 0) whereas inhibitors of EGFR and HSP90 exhibited large variation in E<sub>max</sub>. In the case of Hill slope, mTOR inhibitors exhibited HS values significantly less than one, whereas HS values of   for HDAC and proteasome inhibitors were significantly greater than one.</p>
+
+
+<p class="normal img-wrapper">
+<img id="Figure 4" width="80%" alt="none" src="{{ STATIC_URL }}sensitivities/img/Figure4_300.png">
+</p>
+<div class="caption"><p class="normal"><span><b>Figure 5.</b> Association of dose-response parameters with cell type, drug type and drug class. (a) An example showing that two cell lines (SUM159PT and SKBR3) are distinguishable by E<sub>max</sub> values with SUM159PT cells having lower values for all but three compounds. Significance of difference between the E<sub>max</sub> values for the two cell lines was evaluated by a <i>P</i>-value based on nonparametric Wilcoxon signed rank test. (b) Correlation between different dose-response parameters estimated for the set of anti-cancer compounds and the doubling times across the breast cell lines. Drugs are grouped in two groups: cell cycle phase-specific and –nonspecific drugs. The percentage of drugs within each group that exhibit significant correlation between doubling time and parameters E<sub>max</sub> and IC<sub>50</sub> is shown. <i>P</i>-values were corrected using the Benjamini-Hochberg method. (c-e) Three examples of anti-cancer drugs that are distinguishable based on dose-response parameter values across the breast cell line panel as discovered by mutual information analysis. The Significance of differences between drugs was evaluated by <i>P</i>-values based on nonparametric Wilcoxon signed rank test. (f) Variation of E<sub>max</sub> and Hill slope for different classes of drugs defined based on target or mechanism of action across the breast cell lines. Significance of differences between drug classes was evaluated by <i>P</i>-values based on nonparametric Mann-Whitney <i>U</i> test and corrected using Bonferroni-Holm method.</span></p></div>
+
+<h2>Cell-to-cell variability and shallow dose-response curves</h2>
+<p class="normal">To investigate how a shallow dose-response curve might arise we focused on drugs inhibiting the PI3K/Akt/mTOR pathway that varied widely in HS and E<sub>max</sub> values independent of proliferation rate. For three compounds with varying HS, we measured target inhibition by immunofluorescence microscopy and cell killing in four breast cell lines (HER2-amplified AU565 and HCC1954 cancer cells, hormone receptor-positive T47D cancer cells, and non-transformed MCF10A cells). We probed the effects of the mTOR inhibitor PP242, PI3K inhibitor GSK1059615, and dual specificity mTOR/PI3K inhibitor dactolisib (BEZ235) 24 hr after drug exposure in 9-point dose-response assays using antibodies specific for p-Akt (Ser473), p-4EBP1 (Thr37/46), and p-S6 (Ser235/236). We also measured levels of phosphorylated Rb (p-Rb at Ser807/811) as a surrogate for commitment to the cell cycle. Immunofluorescence microscopy revealed dose-dependent inhibition of p-Akt, p-4EBP1 and p-S6 and viability assays performed 72 hr after drug exposure confirmed shallow Hill slopes for PP242 and dactolisib and HS ~ 1 for GSK1059615 in all cell lines. However, we also observed substantial cell-to-cell variability in phospho-protein staining intensity for cells exposed to the first two drugs. The presence of a subset of cells in which the Akt/mTOR/PI3K pathway is insensitive to inhibition by PP242 or dactolisib is a likely explanation for fractional cell killing by these drugs (E<sub>max</sub> > 0).
+<p class="normal img-wrapper">
+<img id="Figure 5" width="80%" alt="none" src="{{ STATIC_URL }}sensitivities/img/Figure5_300.png">
+</p>
+<div class="caption"><p class="normal"><span><b>Figure 6.</b> High cell-to-cell variability is associated with shallow dose-response and suboptimal maximum effect for pharmacological inhibition of mTOR. (a) PI3K/Akt/mTOR pathway and its associated downstream effectors. Highly simplified schematic showing how drug response was assessed by measuring levels of phosphorylated Akt, S6 ribosomal protein, 4EBP1 and Rb on a single-cell level by immunofluorescence microscopy. (b) Dose-dependent inhibition of p-4EBP1 with increasing drug concentrations as illustrated by intensity values on a single-cell basis. (c) Selected immunofluorescence images of p-4EBP1 (green), p-Rb (red) and Hoechst (blue) staining of MCF10A cells in the absence of drug and 24 hr after exposure to 10 μM PP242. (d) The effect of PP242, dactolisib and GSK1059615 on coefficient of variation (CV; the standard deviation for single cell measurements divided by the population-average) of single cell p-4EBP1 levels. Data represent mean values ± s.d. calculated from two replicates per dose of drug. (e) Cells with high p-4EBP1 levels (i.e. cells with p-4EBP1 levels above the population average) 24 hr after exposure to 10 μM PP242 exhibit >10 times higher levels of p-Rb than low-p4EBP1 cells (cells with p-4EBP1 levels below the population average). Median p-Rb signal intensities and inter-quartile ranges, and bars extending to 1.5-times the inter-quartile range are shown. (f) Retreating surviving MCF10A cells (exposed to 10 μM PP242 for 72 hr followed by fresh growth media for 24 hr) with 9 doses of PP242 for 72 hr results in a shallow dose-response curve with similar dose-response parameters as observed for parental cells.</span></p></div>
+
+<h2>Variation of cell line responsiveness to each drug class</h2>
+<p class="normal">Finally, we determined the ability of each single parameter to accurately describe a full dose-response relationship. We computed the correlation between the response estimated from a single parameter of a conventional logistic curve and the measured response. We performed the analysis across the range of doses for all drugs and cell lines by scoring the <i>P</i>-values of the correlation coefficient. We observed that E<sub>max</sub> was best correlated with actual response at high doses, IC<sub>50</sub> and AUC were best at intermediate doses (near the median IC<sub>50</sub> for all cell lines) and EC<sub>50</sub> or GI<sub>50</sub> were best at low doses (near the IC<sub>50</sub> for the most sensitive cell line). This is depicted as continuous plots for 17-AAG, carboplatin and doxorubicin and for the full dataset, as a set of optimal parameters for each dose range.  A priori, we are most interested in analyzing drugs at clinically relevant concentration ranges. We can estimate these ranges from the plasma concentration (C<sub>max</sub>) at the maximal tolerated dose (MTD); in general, effective drugs are ones in which C<sub>max</sub>/IC<sub>50</sub> &#8811; 1. Incorporating this information we saw that, in the clinical range, the most informative parameter varied with drug; for example, AUC for 17-AAG, IC<sub>50</sub> for carboplatin and E<sub>max</sub> for doxorubicin.
+<p class="normal img-wrapper">
+<img id="Figure 6" width="70%" alt="none" src="{{ STATIC_URL }}sensitivities/img/Figure6_300.png">
+</p>
+<div class="caption"><p class="normal"><span><b>Figure 7.</b> Different dose-response parameters capture cell line to cell line variation at different dose regimes. (a) Variations of the predictive value (coefficient of Pearson correlation with relative viability) for each of the three key dose-response parameters (IC<sub>50</sub>, E<sub>max</sub> and AUC) with dose for three selected drugs, 17-AAG, carboplatin and doxorubicin. (b) Predictive value of different dose-response parameters for drug sensitivity is a function of the clinical concentration of drug. Dose-response parameters corresponding to the most significant correlation (as evaluated by <i>P</i>-value) with cellular response (i.e. relative viability) at doses spanning a range from the most sensitive cell line’s IC<sub>50</sub> to the highest tested dose for each drug are shown. For example for the mTOR inhibitor PP242, EC<sub>50</sub> (denoted by light blue bar) is the parameter with the highest correlation with relative viability when cell lines are exposed to drug concentrations around 10<sup>-5</sup> times the maximal tested dose (i.e. 10<sup>-5</sup>×10<sup>-4.3</sup> M ≈ 0.5 nM). At a 100-fold higher concentration (i.e. 10<sup>-3</sup>×10<sup>-4.3</sup> M ≈ 50 nM), AUC (denoted by red bar) shows the strongest correlation with relative viability.</span></p></div>
+
 
 {% endblock %}

@@ -139,3 +139,7 @@ path {
 .not-defined {
   color: #ff0000;
 }
+
+.img-wrapper {
+  text-align:center;
+}
