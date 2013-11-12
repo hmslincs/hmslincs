@@ -42,7 +42,7 @@ h2#dataset_h2 {
     float: left;
 }
 
-#search .search {
+.search {
   border-radius: 3px;
   border: solid 1px #E6941E;
   background: #F9E8D1;
@@ -61,11 +61,38 @@ h2#dataset_h2 {
   width: 100%;
   vertical-align: top;
 }
+
 #search input[type="submit"] {
   color: transparent;
   background: url("/_static/images/magnifyingglass.png") no-repeat 1px 1px white;
   height: 20px;
   width: 20px;
+  border: solid 1px #888888;
+  float: right;
+  font-size: 0;
+}
+
+#search th,#search  tr,#search tr:nth-child(even), #search  td{
+  border: none;
+  background-color: transparent;
+}
+
+#form_toggler {
+  color: transparent;
+  background: url("/_static/images/br_down_icon&16.png")  no-repeat 1px 1px white;
+  height: 18px;
+  width: 17px;
+  border: solid 1px #888888;
+  float: right;
+  font-size: 0;
+}
+
+#form_untoggler {
+  display: none;
+  color: transparent;
+  background: url("/_static/images/br_up_icon&16.png")  no-repeat 1px 1px white;
+  height: 18px;
+  width: 17px;
   border: solid 1px #888888;
   float: right;
   font-size: 0;
@@ -86,12 +113,12 @@ span.input-auto-width-wrapper {
 
 th.asc {
 	font-style: italic;
-	background: url("/_static/images/arrow-up_icon.png") no-repeat scroll right bottom transparent;
+	background: url("/_static/images/br_down_icon&16.png") no-repeat scroll right bottom transparent;
 }
 
 th.desc {
 	font-style: italic;
-	background: url("/_static/images/arrow-down_icon.png") no-repeat scroll right bottom transparent;
+	background: url("/_static/images/br_up_icon&16.png") no-repeat scroll right bottom transparent;
 }
 
 

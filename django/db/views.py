@@ -2016,7 +2016,7 @@ class SiteSearchManager(models.Manager):
                 " ts_rank_cd(search_vector, query6, 32) AS rank, 'otherreagent_detail' as type FROM db_otherreagent, to_tsquery(%s) as query6 WHERE search_vector @@ query6 ")
         if(not is_authenticated): 
             sql += " AND (not is_restricted or is_restricted is NULL)"
-        sql += " ORDER by rank DESC;"
+        sql += " ORDER by type, rank DESC;"
         cursor.execute(sql , [queryStringProcessed,queryStringProcessed,queryStringProcessed,queryStringProcessed,queryStringProcessed,queryStringProcessed])
         _data = dictfetchall(cursor)
         
