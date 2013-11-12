@@ -1,5 +1,4 @@
 {% extends "db/base.html" %}
-
 {% block title %}
   {% if search %}
     Search: "{{ search }}" -
@@ -18,8 +17,93 @@
         <br/>
     {% endif %}
 	{% include "db/searchBox.html" %}
-	{% include "db/searchExportBox.html" %}
-	{% if table %}
+    {% if extra_form  %}
+
+    <a href="#" id='form_toggler' onclick="form_toggle();">&gt;&gt;&gt;&gt;</a>
+    <div id="search_div" style='display:none; ' >
+        <a href="#" id='form_untoggler' onclick="form_toggle();">&lt;&lt;&lt;&lt;</a>
+        <div id="search">
+        <span style='font-size: 12px; font-weight: bold;'>Select the entities to show:</span>
+            <form id='extra_form' action="{{ request.get_full_path }}" method="get"> <!-- needed for post: {% csrf_token %}  -->
+              <input type="hidden" id="hidden_search" type="text" name="search" value="{{ search }}" maxlength="100" tabindex="1" />
+              <input type="hidden" id="extra_form_shown" name='extra_form_shown' value="{{ extra_form.shown }}" />
+                <table>
+                    <tr>
+                        <th>Show</th>
+                        <th>Field</th>
+                        <th>Filter</th>
+                    </tr>
+
+                {% for one,two in extra_form.fieldrows %}
+                    <tr>
+                        <td>{{ one }}</td><td>{{ two.label_tag }}</td><td>{{ two.errors }}{{ two }}</td>
+                    </tr>
+                {% endfor %}
+                </table>
+                <p>
+                    <button id='submit_button'>Submit</button>
+                    <button id="clear_form_button">Clear</button>
+                </p>
+            </form>
+        </div>
+    </div>
+<script>
+$(function() {
+    var clean_form_uri = "{{ request.META.PATH_INFO }}"
+    var extra_form_shown = "{{ extra_form.shown }}"
+
+    var form_toggle = window.form_toggle = function(shown){
+        var curval = $('#search_div').css('display') != 'none';
+        console.log('form_toggle: ' + shown + ', currently: ' + $('#search_div').css('display') );
+        if(shown){
+            $('#search_div').show();
+            $('#form_toggler').hide();
+        }else{
+            $('#search_div').toggle();
+            $('#form_toggler').toggle();
+            $('#extra_form_shown').val(!curval);
+        }
+    };
+
+    var clear_form = window.clear_form = function(){
+        window.location = clean_form_uri;
+    };
+
+    console.log('extra_form_shown:' + extra_form_shown );
+    if( extra_form_shown){
+        console.log('toggle');
+        form_toggle(extra_form_shown);
+    }
+    // Prevent form1 from submitting - add the full text search to the extra_form
+    $( "#form1" ).submit(function( event ) {
+      event.preventDefault();
+      $('#hidden_search').val($('#id_search').val());
+      $('#extra_form').submit( );
+    });
+    $('#clear_form_button').click(function(evt){
+        evt.preventDefault();
+        console.log('clear form to ' + clean_form_uri);
+        // $('#extra_form').attr('action',clean_form_uri);
+        window.location = clean_form_uri;
+        // $('#extra_form').submit();
+    });
+    $('#submit_button').click(function(evt){
+        evt.preventDefault();
+        $('#extra_form').submit();
+    });
+    if(window.location.search){
+        console.log('window.location.search: ' + window.location.search);
+        // form_toggle();
+        var new_uri = clean_form_uri + window.location.search;
+        $('#excel_export_link').attr('href', new_uri + '&output_type=.xls');
+        $('#csv_export_link').attr('href', new_uri + '&output_type=.csv');
+    }
+});
+</script>
+
+    {% endif %}
+    {% include "db/searchExportBox.html" %}
+	{% if table.data.length > 0 %}
 		{% load render_table from django_tables2 %}
 		{% render_table table %}
 	{% elif search %}

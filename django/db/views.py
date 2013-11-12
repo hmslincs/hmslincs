@@ -10,6 +10,8 @@ from django.contrib.staticfiles.finders import FileSystemFinder
 from django.core.servers.basehttp import FileWrapper
 from django.core.urlresolvers import reverse
 from django.db import connection, models
+from django.db.models.query_utils import Q
+from django.db.models.query import QuerySet
 from django.forms import ModelForm
 from django.forms.models import model_to_dict
 from django.http import Http404, HttpResponseRedirect, HttpResponse
@@ -274,26 +276,81 @@ def smallMoleculeIndex(request):
     logger.debug(str(("is_authenticated:", request.user.is_authenticated(), 'search: ', search))) #, 'items_per_page', items_per_page)))
     
     search = re.sub(r'[\'"]','',search)
+    queryset = SmallMolecule.objects;
     if(search != ''):
-        queryset = SmallMoleculeSearchManager().search(search, is_authenticated=request.user.is_authenticated())
+        queryset = SmallMoleculeSearchManager().search(queryset, search, is_authenticated=request.user.is_authenticated())
     else:
         where = []
         #if(not request.user.is_authenticated()): 
 #        where.append("(not is_restricted or is_restricted is NULL)")
-        queryset = SmallMolecule.objects.extra(
+        queryset = queryset.extra(
             where=where,
             order_by=('facility_id','salt_id')) 
-    
-    table = SmallMoleculeTable(queryset)
 
+    # PROCESS THE EXTRA FORM    
+    field_hash=FieldInformation.manager.get_field_hash('smallmolecule')
+
+    # 1. Override fields: note do this _before_ grabbing all the (bound) fields for the display matrix below
+    form_field_overrides = {}
+    dataset_types = [(str(x['dataset_type']), str(x['dataset_type'])) for x in DataSet.objects.values('dataset_type').distinct()]
+    dataset_types.insert(0,('',''))
+    form_field_overrides['dataset_types'] = forms.ChoiceField(required=False, choices=dataset_types)
+    
+    form = FieldsMetaForm(field_information_array=field_hash.values(), form_field_overrides=form_field_overrides, data=request.GET)
+    # add a "search" field to make it compatible with the full text search
+    form.fields['search'] = forms.CharField(required=False);
+    form.fields['extra_form_shown'] = forms.BooleanField(required=False);
+    
+    visible_field_overrides = []
+    if form.is_valid():
+        logger.info(str(('processing form', form.cleaned_data)))
+        if form.cleaned_data and form.cleaned_data['extra_form_shown']:
+            logger.info(str(('========cleaned data', form.cleaned_data)))
+            form.shown = True
+        key = 'dataset_types'
+        show_field = form.cleaned_data.get(key +'_shown', False)
+        field_data = form.cleaned_data.get(key)
+        if field_data:
+            logger.info(str(('======get filter ids')))
+            ids = [x.id for x in queryset._clone().filter(datarecord__dataset__dataset_type=str(field_data)).order_by('id').distinct('id')]
+            logger.info(str(('======extra select2', len(ids))))
+            queryset.query.add_q(Q(**{ 'id__in':ids} ))
+            logger.info(str(('======filtered', len(queryset))))
+            
+        if show_field or field_data:
+            queryset = queryset.extra( select=
+                { key:  "(select array_to_string(array_agg(distinct (ds.dataset_type)), ',') as " + key 
+                        + " from db_dataset ds join db_datarecord dr on(ds.id=dr.dataset_id) where dr.smallmolecule_id=db_smallmolecule.id)"})
+            visible_field_overrides.append(key)
+            logger.info(str(('======extra select', len(queryset))))
+    else:
+        logger.info(str(('invalid form', form.errors)))
+
+            
+    # trick to get these colums to sort with NULLS LAST in Postgres:
+    # since a True sorts higher than a False, see above for usage (for Postgres)
+    queryset = queryset.extra(select={'lincs_id_null':'lincs_id is null', 'pubchem_cid_null':'pubchem_cid is null'})
+        
+    
+    table = SmallMoleculeTable(queryset, request=request, visible_field_overrides=visible_field_overrides)
     outputType = request.GET.get('output_type','')
     if outputType:
         return send_to_file(outputType, 'small_molecule', table, queryset, 'smallmolecule', is_authenticated=request.user.is_authenticated() )
     
         if(len(queryset) == 1 ):
             return redirect_to_small_molecule_detail(queryset[0])
-    return render_list_index(request, table,search,'Small molecule','Small molecules') #, **kwargs )    
+    return render_list_index(request, table,search,'Small molecule','Small molecules', **{ 'extra_form': form } ) #, **kwargs )    
+
+def smallMoleculeIndexList(request, facility_ids=''):
+    logger.debug(str(('search for small molecules: ', facility_ids)))
+    temp = facility_ids.split(',')
+    queryset = SmallMolecule.objects.filter(facility_id__in=temp).distinct()
+    if(len(queryset) == 1 ):
+        return redirect_to_small_molecule_detail(queryset[0])
+    table = SmallMoleculeTable(queryset)
+    return render_list_index(request, table, '','Small molecule','Small molecules', structure_search=True)
     
+        
 def smallMoleculeMolfile(request, facility_salt_id):
     try:
         temp = facility_salt_id.split('-') # TODO: let urls.py grep the facility and the salt
@@ -841,16 +898,7 @@ def redirect_to_small_molecule_detail(smallmolecule):
     facility_salt_id = smallmolecule.facility_id + "-" + smallmolecule.salt_id
     return HttpResponseRedirect(reverse('db.views.smallMoleculeDetail',kwargs={'facility_salt_id':facility_salt_id}))
 
-def smallMoleculeIndexList(request, facility_ids=''):
-    logger.debug(str(('search for small molecules: ', facility_ids)))
-    temp = facility_ids.split(',')
-    queryset = SmallMolecule.objects.filter(facility_id__in=temp).distinct()
-    if(len(queryset) == 1 ):
-        return redirect_to_small_molecule_detail(queryset[0])
-    table = SmallMoleculeTable(queryset)
-    return render_list_index(request, table, '','Small molecule','Small molecules', structure_search=True)
-    
-    
+
 def render_list_index(request, table, search, name, name_plural, **requestArgs):
     items_per_page = 25
     form = PaginationForm(request.GET)
@@ -863,16 +911,28 @@ def render_list_index(request, table, search, name, name_plural, **requestArgs):
         requestArgs = dict()
     requestArgs.setdefault('search',search)
     requestArgs.setdefault('heading', name_plural)
-
+    
+    logger.info('process table')
+    requestArgs.setdefault('table',table)
+    table.data.length = len(table.data)
     if(len(table.data)>0):
         RequestConfig(request, paginate={"per_page": items_per_page}).configure(table)
         setattr(table.data,'verbose_name_plural',name_plural)
         setattr(table.data,'verbose_name',name)
-        requestArgs.setdefault('table',table)
         requestArgs.setdefault('items_per_page_form',form )
         logger.debug(str(('requestArgs', requestArgs)))
-    return render(request, 'db/listIndex.html', requestArgs)
+    logger.info('render result')
+    result = render(request, 'db/listIndex.html', requestArgs)
+    logger.info('render result1')
+    return result
 
+class SmallMoleculeReportForm(forms.Form):
+    
+    def __init__(self, dataset_types, *args, **kwargs):
+        super(SmallMoleculeReportForm, self).__init__(*args, **kwargs)
+        self.fields['show dataset types'] = forms.BooleanField(required=False)
+        self.fields['dataset types'] = forms.ChoiceField(required=False, choices=dataset_types)
+    
 class ResultSetDataForm(forms.Form):
     def __init__(self, entity_id_name_map={}, *args, **kwargs):
         super(ResultSetDataForm, self).__init__(*args, **kwargs)
@@ -1662,11 +1722,14 @@ class SmallMoleculeBatchTable(PagedTable):
         set_table_column_info(self, ['smallmolecule','smallmoleculebatch',''],sequence_override)  
 
 
+
+
 class SmallMoleculeTable(PagedTable):
     facility_salt = tables.LinkColumn("sm_detail", args=[A('facility_salt')], order_by=['facility_id','salt_id']) 
     facility_salt.attrs['td'] = {'nowrap': 'nowrap'}
     rank = tables.Column()
     snippet = tables.Column()
+    dataset_types = tables.Column()
 #    smiles = Restricted_Column()
     
     # django-tables2 trick to get these columns to sort with NULLS LAST in Postgres; 
@@ -1674,21 +1737,22 @@ class SmallMoleculeTable(PagedTable):
     lincs_id = tables.Column(order_by=('-lincs_id_null', 'lincs_id'))
     pubchem_cid = tables.Column(order_by=('-pubchem_cid_null', 'pubchem_cid'))
 
-    snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce("+x.field+",'') ", FieldInformation.manager.get_search_fields(SmallMolecule)))) 
+    snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce(db_smallmolecule."+x.field+",'') ", FieldInformation.manager.get_search_fields(SmallMolecule)))) 
 
     class Meta:
         model = SmallMolecule #[SmallMolecule, SmallMoleculeBatch]
         orderable = True
         attrs = {'class': 'paleblue'}
-    def __init__(self, queryset, show_plate_well=False,*args, **kwargs):
-        # trick to get these colums to sort with NULLS LAST in Postgres:
-        # since a True sorts higher than a False, see above for usage (for Postgres)
-        from django.db.models.query import QuerySet
-        if(isinstance(queryset, QuerySet)): # test if we were passed a real queryset (as opposed to a dict)
-            queryset = queryset.extra(select={'lincs_id_null':'lincs_id is null', 'pubchem_cid_null':'pubchem_cid is null'})
+    def __init__(self, queryset, show_plate_well=False,request=None, visible_field_overrides=[], *args, **kwargs):
+        
+            
+        logger.info(str(('======init')))
         super(SmallMoleculeTable, self).__init__(queryset)
+        
         sequence_override = ['facility_salt']
-        set_table_column_info(self, ['smallmolecule','smallmoleculebatch',''],sequence_override)  
+        set_table_column_info(self, ['smallmolecule','smallmoleculebatch',''],sequence_override, visible_field_overrides=visible_field_overrides)  
+        logger.info('init done')
+
 
 class DataColumnTable(PagedTable):
     protein = tables.LinkColumn("protein_detail", args=[A('protein.lincs_id')])
@@ -1945,7 +2009,7 @@ class SiteSearchManager(models.Manager):
             sql += " AND (not is_restricted or is_restricted is NULL)"
         sql +=  (" UNION " +
                 " SELECT id, " + facility_salt_id + " as facility_id , ts_headline(" + SmallMoleculeTable.snippet_def + """, query2, 'MaxFragments=10, MinWords=1, MaxWords=20, FragmentDelimiter=" | "') as snippet, """ +
-                " ts_rank_cd(search_vector, query2, 32) AS rank, 'sm_detail' as type FROM db_smallmolecule sm, to_tsquery(%s) as query2 WHERE search_vector @@ query2 ")
+                " ts_rank_cd(db_smallmolecule.search_vector, query2, 32) AS rank, 'sm_detail' as type FROM db_smallmolecule sm, to_tsquery(%s) as query2 WHERE db_smallmolecule.search_vector @@ query2 ")
         if(not is_authenticated): 
             sql += " AND (not is_restricted or is_restricted is NULL)"
         sql +=  (" UNION " +
@@ -1970,7 +2034,7 @@ class SiteSearchManager(models.Manager):
         cursor.execute(sql , [queryStringProcessed,queryStringProcessed,queryStringProcessed,queryStringProcessed,queryStringProcessed,queryStringProcessed])
         _data = dictfetchall(cursor)
         
-        smqs = SmallMoleculeSearchManager().search(queryString, is_authenticated=is_authenticated);
+        smqs = SmallMoleculeSearchManager().search(SmallMolecule.objects, queryString, is_authenticated=is_authenticated);
         if len(smqs) > 0:
             for obj in smqs:
                 skip = False
@@ -2030,14 +2094,15 @@ class SiteSearchManager(models.Manager):
     
 class SearchManager(models.Manager):
     
-    def search(self, base_query, searchString, id_fields, snippet_def):
+    def search(self, base_query, tablename, searchString, id_fields, snippet_def):
         # format the search string to be compatible with the plain text search
         searchProcessed = format_search(searchString) 
         # because the "ID" fields contain a log of non-words (by english dict),
         # we augment the plain text search with simple contains searches on these fields
-        criteria = 'search_vector @@ to_tsquery(%s)'
+        criteria =   ' ( ' + tablename + '.search_vector @@ to_tsquery(%s)'
         params = [searchProcessed]
         criteria += ' or ' + ' or '.join(['lower('+ x + ') like %s ' for x in id_fields]) 
+        criteria += ' ) '
         for x in id_fields: params.append( '%' + searchString.lower() + '%')
         
         where = [criteria]
@@ -2047,7 +2112,7 @@ class SearchManager(models.Manager):
         queryset = base_query.extra(
             select={
                 'snippet': "ts_headline(" + snippet_def + ", to_tsquery(%s))",
-                'rank': "ts_rank_cd(search_vector, to_tsquery(%s), 32)",
+                'rank': "ts_rank_cd(" + tablename + ".search_vector, to_tsquery(%s), 32)",
                 },
             where=where,
             params=params,
@@ -2056,41 +2121,47 @@ class SearchManager(models.Manager):
             )  
         return queryset     
 
+
 class CellSearchManager(SearchManager):
 
     def search(self, searchString, is_authenticated=False):
 
         id_fields = ['name', 'alternate_name', 'provider_name', 'provider_catalog_id', 'center_name']
-        return super(CellSearchManager, self).search(Cell.objects, searchString, id_fields, CellTable.snippet_def)
+        return super(CellSearchManager, self).search(Cell.objects, 'db_cell', searchString, id_fields, CellTable.snippet_def)
+
 
 class ProteinSearchManager(SearchManager):
 
     def search(self, searchString, is_authenticated=False):
 
         id_fields = ['name', 'uniprot_id', 'alternate_name', 'alternate_name_2', 'provider_catalog_id']
-        return super(ProteinSearchManager, self).search(Protein.objects, searchString, id_fields, ProteinTable.snippet_def)        
+        return super(ProteinSearchManager, self).search(Protein.objects, 'db_protein', searchString, id_fields, ProteinTable.snippet_def)        
     
+
 class SmallMoleculeSearchManager(SearchManager):
 
-    def search(self, searchString, is_authenticated=False):
+    def search(self, queryset, searchString, is_authenticated=False):
         # TODO: temp fix for issue #188 - perm fix is to update all ID's to the "HMSLXXX" form
         searchString = re.sub('HMSL','', searchString)
         id_fields = ['name', 'alternative_names', 'lincs_id']
-        return super(SmallMoleculeSearchManager, self).search(SmallMolecule.objects, searchString, id_fields, SmallMoleculeTable.snippet_def)        
+        return super(SmallMoleculeSearchManager, self).search(queryset, 'db_smallmolecule', searchString, id_fields, SmallMoleculeTable.snippet_def)        
+
 
 class AntibodySearchManager(SearchManager):
     
     def search(self, searchString, is_authenticated=False):
 
         id_fields = ['name', 'alternative_names', 'lincs_id']
-        return super(AntibodySearchManager, self).search(Antibody.objects, searchString, id_fields, AntibodyTable.snippet_def)        
+        return super(AntibodySearchManager, self).search(Antibody.objects, 'db_antibody', searchString, id_fields, AntibodyTable.snippet_def)        
+
 
 class OtherReagentSearchManager(SearchManager):
     
     def search(self, searchString, is_authenticated=False):
 
         id_fields = ['name', 'alternative_names', 'lincs_id']
-        return super(OtherReagentSearchManager, self).search(OtherReagent.objects, searchString, id_fields, OtherReagentTable.snippet_def)        
+        return super(OtherReagentSearchManager, self).search(OtherReagent.objects, 'db_otherreagent', searchString, id_fields, OtherReagentTable.snippet_def)        
+
 
 class SiteSearchTable(PagedTable):
     id = tables.Column(visible=False)
@@ -2118,7 +2189,34 @@ def can_access_image(request, image_filename, is_restricted=False):
 def get_attached_files(facility_id, salt_id=None, batch_id=None):
     return AttachedFile.objects.filter(facility_id_for=facility_id, salt_id_for=salt_id, batch_id_for=batch_id)
 
-def set_table_column_info(table,table_names, sequence_override=None):
+
+
+class FieldsMetaForm(forms.Form):
+    
+    def __init__(self, field_information_array=[], form_field_overrides={}, *args, **kwargs):
+        super(FieldsMetaForm, self).__init__(*args, **kwargs)
+        self.fieldname_array = []
+#        logger.info(str(('field_information_array', field_information_array)))
+        for fi in [ fi for fi in field_information_array if fi.show_as_extra_field]:
+            # Note the fi.field string is unique to each table/report
+            logger.info(str(('create field', fi.field, fi.show_as_extra_field)))
+            self.fields[fi.field + '_shown'] = forms.BooleanField(required=False)
+            if fi.field in form_field_overrides:
+                self.fields[fi.field] = form_field_overrides[fi.field]
+            else:
+                self.fields[fi.field] = forms.CharField(required=False)
+            self.fieldname_array.append([fi.field + '_shown', fi.field])
+
+        # 2. Grab the (bound) fields and put them in the display matrix: have to do this _after_ creating and overriding fields
+        # our form will wrap, as simply as possible; so here we just give an ordering to the fields with our fieldrows array
+        # TODO: encapsulate this
+        self.fieldrows = []
+        for one,two in self.fieldname_array:
+            self.fieldrows.append([self.__getitem__(one), self.__getitem__(two)])
+        logger.info(str(('=============fieldrows', self.fieldrows )))
+
+    
+def set_table_column_info(table,table_names, sequence_override=None,visible_field_overrides=[]):
     # TODO: set_table_column info could pick the columns to include from the fieldinformation as well
     """
     Field information section
@@ -2132,7 +2230,7 @@ def set_table_column_info(table,table_names, sequence_override=None):
     for fieldname,column in table.base_columns.iteritems():
         try:
             fi = FieldInformation.manager.get_column_fieldinformation_by_priority(fieldname,table_names)
-            if(not fi.show_in_list):
+            if not fi.show_in_list and not fi.field in visible_field_overrides:
                 if(fieldname not in exclude_list):
                     exclude_list.append(fieldname)
             else:
@@ -2140,11 +2238,11 @@ def set_table_column_info(table,table_names, sequence_override=None):
                 column.verbose_name = SafeString(fi.get_verbose_name())
                 fields[fieldname] = fi
         except (Exception) as e:
-            logger.debug(str(('no fieldinformation found for field:', fieldname)))
+            logger.info(str(('no fieldinformation found for field:', fieldname)))
             if(fieldname not in exclude_list):
                 exclude_list.append(fieldname)
             #column.attrs['th']={'title': fieldname}  
-        
+    logger.info(str(('====== fields', fields.keys())))
     fields = OrderedDict(sorted(fields.items(), key=lambda x: x[1].order))
     logger.debug(str(('fields',fields)))
     sequence = filter(lambda x: x not in sequence_override, [x for x in fields.keys()])
@@ -2153,6 +2251,7 @@ def set_table_column_info(table,table_names, sequence_override=None):
     table.sequence = sequence_override
     logger.debug(str(('excl',table.exclude)))
     logger.debug(str(('seq',table.sequence)))
+    
         
 def dictfetchall(cursor): 
     "Returns all rows from a cursor as an array of dicts, using cursor columns as keys"
@@ -2367,6 +2466,7 @@ def export_as_xls(name,col_key_name_map, cursor=None, queryset=None, is_authenti
             if isinstance(obj, dict): # a ORM object as a dict
                 vals = [obj[field] for field in col_key_name_map.keys()]
             else: # a ORM object
+                logger.info(str(('modeltodict', model_to_dict(obj))))
                 vals = [getattr(obj, field) for field in col_key_name_map.keys()]
             
             for i,column in enumerate(vals):

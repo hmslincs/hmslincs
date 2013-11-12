@@ -59,6 +59,7 @@ def main(path):
                           'queryset':'queryset',
                           'show in detail':('show_in_detail',True,False,util.bool_converter),
                           'show in list':('show_in_list',True,False,util.bool_converter),
+                          'show_as_extra_field':('show_as_extra_field',False,False,util.bool_converter),
                           'is_lincs_field':('is_lincs_field',True,False,util.bool_converter),
                           'is_unrestricted':('is_unrestricted',False,False,util.bool_converter),
                           'order':('order',True,None,lambda x:util.convertdata(x,int)),

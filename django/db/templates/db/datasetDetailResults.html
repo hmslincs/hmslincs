@@ -9,10 +9,11 @@
         {% endif %}
         {% include "db/searchExportBox.html" %}
 
-    <a href="#" id='form_toggler' onclick="form_toggle();">Search: &gt;&gt;&gt;&gt;</a>
+    <a href="#" id='form_toggler' onclick="form_toggle();">Filter results: &gt;&gt;&gt;&gt;</a>
     <div id="search_div" style='display:none; ' >
         <a href="#" id='form_untoggler' onclick="form_toggle();">&lt;&lt;&lt;&lt;</a>
         <div id="search">
+        <span style='font-size: 12px; font-weight: bold;'>Select the entities to show:</span>
         <form id='search_form' action="{{ request.get_full_path }}" method="get"> <!-- needed for post: {% csrf_token %}  -->
             <table>
                 <tr>
@@ -36,6 +37,9 @@
                 <button id="clear_form_button">Clear Form</button>
             </p>
         </form>
+        <span id='search_status' style='font-size: 12px; font-weight: bold;'>
+        </span>
+
        <!-- <a href="/form?{{ search_form.as_url_args }}&format=csv">Download As CSV</a> -->
        </div>
    </div>

@@ -42,7 +42,7 @@ h2#dataset_h2 {
     float: left;
 }
 
-#search {
+#search .search {
   border-radius: 3px;
   border: solid 1px #E6941E;
   background: #F9E8D1;
