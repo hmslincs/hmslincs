@@ -1722,8 +1722,6 @@ class SmallMoleculeBatchTable(PagedTable):
         set_table_column_info(self, ['smallmolecule','smallmoleculebatch',''],sequence_override)  
 
 
-
-
 class SmallMoleculeTable(PagedTable):
     facility_salt = tables.LinkColumn("sm_detail", args=[A('facility_salt')], order_by=['facility_id','salt_id']) 
     facility_salt.attrs['td'] = {'nowrap': 'nowrap'}
@@ -1737,16 +1735,14 @@ class SmallMoleculeTable(PagedTable):
     lincs_id = tables.Column(order_by=('-lincs_id_null', 'lincs_id'))
     pubchem_cid = tables.Column(order_by=('-pubchem_cid_null', 'pubchem_cid'))
 
-    snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce(db_smallmolecule."+x.field+",'') ", FieldInformation.manager.get_search_fields(SmallMolecule)))) 
-
+    snippet_def =  (" || ' ' || ".join(map( lambda x: "coalesce( " + x.field+",'') ", FieldInformation.manager.get_search_fields(SmallMolecule)))) 
+    snippet_def_localized =  (" || ' ' || ".join(map( lambda x: "coalesce( db_smallmolecule." + x.field+",'') ", FieldInformation.manager.get_search_fields(SmallMolecule)))) 
+        
     class Meta:
         model = SmallMolecule #[SmallMolecule, SmallMoleculeBatch]
         orderable = True
         attrs = {'class': 'paleblue'}
     def __init__(self, queryset, show_plate_well=False,request=None, visible_field_overrides=[], *args, **kwargs):
-        
-            
-        logger.info(str(('======init')))
         super(SmallMoleculeTable, self).__init__(queryset)
         
         sequence_override = ['facility_salt']
@@ -1970,16 +1966,6 @@ class SiteSearchManager(models.Manager):
                 cursor.execute(sql, [match2])
                 sms = dictfetchall(cursor)
                 
-#                datasets = DataSet.objects.filter(dataset_type__icontains=match2)
-#                logger.info(str(('=============_++++++', match2, len(datasets) )))
-#                sms = set()
-#                datasethash = {}
-#                for ds in datasets:
-#                    logger.info(str(('DS',ds)))
-#                    for dr in ds.datarecord_set.all():
-#                        sm = dr.smallmolecule
-#                        datasethash.setdefault(sm,[]).append(ds.facility_id)
-#                        sms.add(sm)
                 logger.info(str(('executed query', sms)))        
                 for x in sms:
                     data.append({ 
@@ -2009,7 +1995,7 @@ class SiteSearchManager(models.Manager):
             sql += " AND (not is_restricted or is_restricted is NULL)"
         sql +=  (" UNION " +
                 " SELECT id, " + facility_salt_id + " as facility_id , ts_headline(" + SmallMoleculeTable.snippet_def + """, query2, 'MaxFragments=10, MinWords=1, MaxWords=20, FragmentDelimiter=" | "') as snippet, """ +
-                " ts_rank_cd(db_smallmolecule.search_vector, query2, 32) AS rank, 'sm_detail' as type FROM db_smallmolecule sm, to_tsquery(%s) as query2 WHERE db_smallmolecule.search_vector @@ query2 ")
+                " ts_rank_cd(search_vector, query2, 32) AS rank, 'sm_detail' as type FROM db_smallmolecule sm, to_tsquery(%s) as query2 WHERE search_vector @@ query2 ")
         if(not is_authenticated): 
             sql += " AND (not is_restricted or is_restricted is NULL)"
         sql +=  (" UNION " +
@@ -2144,7 +2130,7 @@ class SmallMoleculeSearchManager(SearchManager):
         # TODO: temp fix for issue #188 - perm fix is to update all ID's to the "HMSLXXX" form
         searchString = re.sub('HMSL','', searchString)
         id_fields = ['name', 'alternative_names', 'lincs_id']
-        return super(SmallMoleculeSearchManager, self).search(queryset, 'db_smallmolecule', searchString, id_fields, SmallMoleculeTable.snippet_def)        
+        return super(SmallMoleculeSearchManager, self).search(queryset, 'db_smallmolecule', searchString, id_fields, SmallMoleculeTable.snippet_def_localized )        
 
 
 class AntibodySearchManager(SearchManager):

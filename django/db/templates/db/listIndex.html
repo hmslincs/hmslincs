@@ -22,7 +22,7 @@
     <a href="#" id='form_toggler' onclick="form_toggle();">&gt;&gt;&gt;&gt;</a>
     <div id="search_div" style='display:none; ' >
         <a href="#" id='form_untoggler' onclick="form_toggle();">&lt;&lt;&lt;&lt;</a>
-        <div id="search">
+        <div id="search" class='search'>
         <span style='font-size: 12px; font-weight: bold;'>Select the entities to show:</span>
             <form id='extra_form' action="{{ request.get_full_path }}" method="get"> <!-- needed for post: {% csrf_token %}  -->
               <input type="hidden" id="hidden_search" type="text" name="search" value="{{ search }}" maxlength="100" tabindex="1" />
