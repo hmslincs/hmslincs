@@ -2150,6 +2150,11 @@ def get_cols_to_write(cursor, fieldinformation_tables=None, ordered_datacolumns=
          
     return OrderedDict(sorted(header_row.items(),key=lambda x: x[0]))
 
+
+def _write_val_safe(val, is_authenticated=False):
+    # for #185, remove 'None' values
+    return smart_str(val, 'utf-8', errors='ignore') if val else ''
+  
 def export_as_csv(name,col_key_name_map, cursor=None, queryset=None, is_authenticated=False):
     """
     Generic csv export admin action.
@@ -2168,7 +2173,7 @@ def export_as_csv(name,col_key_name_map, cursor=None, queryset=None, is_authenti
         keys = col_key_name_map.keys()
         logger.debug(str(('keys',keys,obj)))
         while obj:
-            writer.writerow([smart_str(obj[int(key)], 'utf-8', errors='ignore') for key in keys])
+            writer.writerow([_write_val_safe(obj[int(key)]) for key in keys])
             if(row % debug_interval == 0):
                 logger.info("row: " + str(row))
             row += 1
@@ -2176,16 +2181,16 @@ def export_as_csv(name,col_key_name_map, cursor=None, queryset=None, is_authenti
     elif queryset:
         for obj in queryset:
             if isinstance(obj, dict):
-                writer.writerow([smart_str(obj[field], 'utf-8', errors='ignore') for field in col_key_name_map.keys()])
+                writer.writerow([_write_val_safe(obj[field]) for field in col_key_name_map.keys()])
             else:# a ORM object
                 vals = [getattr(obj, field) for field in col_key_name_map.keys()]
                 vals_authenticated = []
                 for i,column in enumerate(vals):
                     # if the method is a column, we are referencing the method wrapper for restricted columns
                     if(inspect.ismethod(column)):
-                        vals_authenticated.append(smart_str(column(is_authenticated=is_authenticated),'utf-8', errors='ignore'))
+                        vals_authenticated.append(_write_val_safe(column(is_authenticated=is_authenticated)))
                     else:
-                        vals_authenticated.append(smart_str(column, 'utf-8', errors='ignore'))
+                        vals_authenticated.append(_write_val_safe(column))
                 writer.writerow(vals_authenticated)
             if(row % debug_interval == 0):
                 logger.info("row: " + str(row))
@@ -2214,7 +2219,7 @@ def export_as_xls(name,col_key_name_map, cursor=None, queryset=None, is_authenti
         logger.debug(str(('keys',keys)))
         while obj:  # row in the dataset; a tuple to be indexed numerically
             for i,key in enumerate(keys):
-                sheet.write(row+1,i,smart_str(obj[key], 'utf-8', errors='ignore'))
+                sheet.write(row+1,i,_write_val_safe(obj[key]))
             if(row % debug_interval == 0):
                 logger.info("row: " + str(row))
             row += 1
@@ -2222,7 +2227,7 @@ def export_as_xls(name,col_key_name_map, cursor=None, queryset=None, is_authenti
     elif queryset:
         for obj in queryset:  
             if isinstance(obj, dict): # a ORM object as a dict
-                vals = [obj[field] for field in col_key_name_map.keys()]
+                vals = [_write_val_safe(obj[field]) for field in col_key_name_map.keys()]
             else: # a ORM object
                 vals = [getattr(obj, field) for field in col_key_name_map.keys()]
             
@@ -2230,9 +2235,9 @@ def export_as_xls(name,col_key_name_map, cursor=None, queryset=None, is_authenti
                 # if the columnn is a method, we are referencing the method wrapper for restricted columns
 #                logger.info(str(('--column:', column, inspect.ismethod(column), type(column))))
                 if(inspect.ismethod(column)):
-                    sheet.write(row+1,i, smart_str(column(is_authenticated=is_authenticated), 'utf-8', errors='ignore') )
+                    sheet.write(row+1,i, _write_val_safe(column(is_authenticated=is_authenticated)) )
                 else:
-                    sheet.write(row+1, i, smart_str(column, 'utf-8', errors='ignore') )
+                    sheet.write(row+1, i, _write_val_safe(column) )
             if(row % debug_interval == 0):
                 logger.info("row: " + str(row))
             row += 1    
