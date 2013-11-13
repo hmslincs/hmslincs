@@ -326,11 +326,9 @@ def smallMoleculeIndex(request):
     else:
         logger.info(str(('invalid form', form.errors)))
 
-            
     # trick to get these colums to sort with NULLS LAST in Postgres:
     # since a True sorts higher than a False, see above for usage (for Postgres)
     queryset = queryset.extra(select={'lincs_id_null':'lincs_id is null', 'pubchem_cid_null':'pubchem_cid is null'})
-        
     
     table = SmallMoleculeTable(queryset, request=request, visible_field_overrides=visible_field_overrides)
     outputType = request.GET.get('output_type','')
@@ -1742,6 +1740,7 @@ class SmallMoleculeTable(PagedTable):
         model = SmallMolecule #[SmallMolecule, SmallMoleculeBatch]
         orderable = True
         attrs = {'class': 'paleblue'}
+        
     def __init__(self, queryset, show_plate_well=False,request=None, visible_field_overrides=[], *args, **kwargs):
         super(SmallMoleculeTable, self).__init__(queryset)
         
@@ -2231,7 +2230,8 @@ def set_table_column_info(table,table_names, sequence_override=None,visible_fiel
     logger.info(str(('====== fields', fields.keys())))
     fields = OrderedDict(sorted(fields.items(), key=lambda x: x[1].order))
     logger.debug(str(('fields',fields)))
-    sequence = filter(lambda x: x not in sequence_override, [x for x in fields.keys()])
+    sequence = filter(lambda x: x not in sequence_override and x not in visible_field_overrides, [x for x in fields.keys()])
+    sequence_override.extend(visible_field_overrides)
     sequence_override.extend(sequence)
     table.exclude = tuple(exclude_list)
     table.sequence = sequence_override
