@@ -78,9 +78,13 @@ h2#dataset_h2 {
 }
 
 /** custom column for the dataset types column, so that it will be fixed width.**/
-div.dataset_types {
+div.fixed_width_column {
   white-space: normal;
   width: 200px;
+}
+div.fixed_width_column_300 {
+  white-space: normal;
+  width: 300px;
 }
 
 #form_toggler {

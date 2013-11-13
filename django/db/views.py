@@ -1020,6 +1020,7 @@ class PagedTable(tables.Table):
 class DataSetTable(PagedTable):
     id = tables.Column(visible=False)
     facility_id = tables.LinkColumn("dataset_detail", args=[A('facility_id')])
+    title = DivWrappedColumn(classname='fixed_width_column_300', visible=False)
     protocol = tables.Column(visible=False) 
     references = tables.Column(visible=False)
     rank = tables.Column()
@@ -1155,7 +1156,7 @@ class DataSetResultTable(PagedTable):
             display_name = (SafeString(dc.display_name), dc.name)[dc.display_name == None or len(dc.display_name)==0]
             logger.debug(str(('create column', col, dc.id, dc.data_type, display_name, dc.name)))
             if(dc.data_type.lower() != OMERO_IMAGE_COLUMN_TYPE):
-                self.base_columns[col] = tables.Column(verbose_name=display_name)
+                self.base_columns[col] = DivWrappedColumn(classname='fixed_width_column',verbose_name=display_name)
             else:
                 #logger.debug(str(('omero_image column template', TEMPLATE % ('omero_image_id','omero_image_id'))))
                 self.base_columns[col] = tables.TemplateColumn(OMERO_IMAGE_TEMPLATE % (col,col), verbose_name=display_name)
@@ -1727,9 +1728,10 @@ class SmallMoleculeTable(PagedTable):
     facility_salt = tables.LinkColumn("sm_detail", args=[A('facility_salt')], order_by=['facility_id','salt_id']) 
     facility_salt.attrs['td'] = {'nowrap': 'nowrap'}
     rank = tables.Column()
-    snippet = tables.Column()
-    dataset_types = DivWrappedColumn(classname='dataset_types', visible=False)
+    snippet = DivWrappedColumn(classname='fixed_width_column')
+    dataset_types = DivWrappedColumn(classname='fixed_width_column', visible=False)
 #    smiles = Restricted_Column()
+    alternative_names = DivWrappedColumn(classname='fixed_width_column')
     
     # django-tables2 trick to get these columns to sort with NULLS LAST in Postgres; 
     # note this requires the use of an "extra" clause in the query definition passed to this table (see the _init_ method below)
@@ -1791,6 +1793,7 @@ class CellTable(PagedTable):
     rank = tables.Column()
     snippet = SnippetColumn()
     id = tables.Column(verbose_name='CLO Id')
+    disease = DivWrappedColumn(classname='fixed_width_column')
     
 #    snippet_def = ("coalesce(name,'') || ' ' || coalesce(id,'') || ' ' || coalesce(alternate_name,'') || ' ' || " +  
 #                   "coalesce(alternate_id,'') || ' ' || coalesce(center_name,'') || ' ' || coalesce(center_specific_id,'') || ' ' || " +  
@@ -1816,6 +1819,8 @@ class ProteinTable(PagedTable):
     rank = tables.Column()
     snippet = SnippetColumn()
     snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce("+x.field+",'') ", FieldInformation.manager.get_search_fields(Protein))))
+    alternate_name = DivWrappedColumn(classname='fixed_width_column', visible=False)
+    
     class Meta:
         model = Protein
         orderable = True
