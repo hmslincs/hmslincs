@@ -305,24 +305,19 @@ def smallMoleculeIndex(request):
     if form.is_valid():
         logger.info(str(('processing form', form.cleaned_data)))
         if form.cleaned_data and form.cleaned_data['extra_form_shown']:
-            logger.info(str(('========cleaned data', form.cleaned_data)))
             form.shown = True
         key = 'dataset_types'
         show_field = form.cleaned_data.get(key +'_shown', False)
         field_data = form.cleaned_data.get(key)
         if field_data:
-            logger.info(str(('======get filter ids')))
             ids = [x.id for x in queryset._clone().filter(datarecord__dataset__dataset_type=str(field_data)).order_by('id').distinct('id')]
-            logger.info(str(('======extra select2', len(ids))))
             queryset.query.add_q(Q(**{ 'id__in':ids} ))
-            logger.info(str(('======filtered', len(queryset))))
             
         if show_field or field_data:
             queryset = queryset.extra( select=
                 { key:  "(select array_to_string(array_agg(distinct (ds.dataset_type)), ', ') as " + key 
                         + " from db_dataset ds join db_datarecord dr on(ds.id=dr.dataset_id) where dr.smallmolecule_id=db_smallmolecule.id)"})
             visible_field_overrides.append(key)
-            logger.info(str(('======extra select', len(queryset))))
     else:
         logger.info(str(('invalid form', form.errors)))
 
@@ -1733,7 +1728,7 @@ class SmallMoleculeTable(PagedTable):
     facility_salt.attrs['td'] = {'nowrap': 'nowrap'}
     rank = tables.Column()
     snippet = tables.Column()
-    dataset_types = DivWrappedColumn(classname='dataset_types')
+    dataset_types = DivWrappedColumn(classname='dataset_types', visible=False)
 #    smiles = Restricted_Column()
     
     # django-tables2 trick to get these columns to sort with NULLS LAST in Postgres; 
@@ -2230,6 +2225,7 @@ def set_table_column_info(table,table_names, sequence_override=None,visible_fiel
                 column.attrs['th']={'title':fi.get_column_detail()}
 #                column.attrs['td'] = {'width': '10'}
                 column.verbose_name = SafeString(fi.get_verbose_name())
+                column.visible = True
                 fields[fieldname] = fi
         except (Exception) as e:
             logger.info(str(('no fieldinformation found for field:', fieldname)))
@@ -2329,7 +2325,6 @@ def send_to_file(outputType, name, table, queryset, table_name, extra_columns = 
 
     # TODO: the following two step process looks a the table def, then at fieldinformation, 
     # make this simpler by just looking at the fieldinformation
-    
     # grab the columns from the table definition
     columnsOrdered = []
     for col in table._sequence:
@@ -2461,7 +2456,6 @@ def export_as_xls(name,col_key_name_map, cursor=None, queryset=None, is_authenti
             if isinstance(obj, dict): # a ORM object as a dict
                 vals = [obj[field] for field in col_key_name_map.keys()]
             else: # a ORM object
-                logger.info(str(('modeltodict', model_to_dict(obj))))
                 vals = [getattr(obj, field) for field in col_key_name_map.keys()]
             
             for i,column in enumerate(vals):
