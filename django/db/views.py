@@ -18,7 +18,7 @@ from django.http import Http404, HttpResponseRedirect, HttpResponse
 from django.shortcuts import render
 from django.utils import timezone
 from django.utils.encoding import smart_str
-from django.utils.safestring import mark_safe, SafeString
+from django.utils.safestring import mark_safe, SafeString, SafeData
 from django_tables2 import RequestConfig
 from django_tables2.utils import A # alias for Accessor
 from dump_obj import dumpObj
@@ -319,7 +319,7 @@ def smallMoleculeIndex(request):
             
         if show_field or field_data:
             queryset = queryset.extra( select=
-                { key:  "(select array_to_string(array_agg(distinct (ds.dataset_type)), ',') as " + key 
+                { key:  "(select array_to_string(array_agg(distinct (ds.dataset_type)), ', ') as " + key 
                         + " from db_dataset ds join db_datarecord dr on(ds.id=dr.dataset_id) where dr.smallmolecule_id=db_smallmolecule.id)"})
             visible_field_overrides.append(key)
             logger.info(str(('======extra select', len(queryset))))
@@ -979,6 +979,14 @@ class TypeColumn(tables.Column):
         elif value == "dataset_detail": return "Screen"
         elif value == "protein_detail": return "Protein"
         else: raise Exception("Unknown type: "+value)
+
+class DivWrappedColumn(tables.Column):
+  def __init__(self, classname=None, *args, **kwargs):
+    self.classname=classname
+    super(DivWrappedColumn, self).__init__(*args, **kwargs)
+    
+  def render(self, value):
+    return mark_safe("<div class='" + self.classname + "' >" +value+"</div>")
 
 class PagedTable(tables.Table):
     
@@ -1725,7 +1733,7 @@ class SmallMoleculeTable(PagedTable):
     facility_salt.attrs['td'] = {'nowrap': 'nowrap'}
     rank = tables.Column()
     snippet = tables.Column()
-    dataset_types = tables.Column()
+    dataset_types = DivWrappedColumn(classname='dataset_types')
 #    smiles = Restricted_Column()
     
     # django-tables2 trick to get these columns to sort with NULLS LAST in Postgres; 
@@ -2220,6 +2228,7 @@ def set_table_column_info(table,table_names, sequence_override=None,visible_fiel
                     exclude_list.append(fieldname)
             else:
                 column.attrs['th']={'title':fi.get_column_detail()}
+#                column.attrs['td'] = {'width': '10'}
                 column.verbose_name = SafeString(fi.get_verbose_name())
                 fields[fieldname] = fi
         except (Exception) as e:

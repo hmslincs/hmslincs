@@ -77,6 +77,12 @@ h2#dataset_h2 {
   background-color: transparent;
 }
 
+/** custom column for the dataset types column, so that it will be fixed width.**/
+div.dataset_types {
+  white-space: normal;
+  width: 200px;
+}
+
 #form_toggler {
   color: transparent;
   background: url("/_static/images/br_down_icon&16.png")  no-repeat 1px 1px white;
