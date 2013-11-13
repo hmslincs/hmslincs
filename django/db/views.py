@@ -2060,6 +2060,9 @@ def download_attached_file(request, id):
         logger.error(str(('could not find attached file object for id', id, e)))
         raise e
 
+def _get_raw_time_string():
+  return timezone.now().strftime("%Y%m%d%H%M%S")
+
 def send_to_file1(outputType, name, table_name, ordered_datacolumns, cursor, is_authenticated=False):
     """
     Export the datasetdata cursor to the file type pointed to by outputType
@@ -2073,6 +2076,9 @@ def send_to_file1(outputType, name, table_name, ordered_datacolumns, cursor, is_
     col_key_name_map = get_cols_to_write(cursor, 
                                          [table_name, 'dataset','smallmolecule','datarecord','smallmoleculebatch','protein','antibody', 'otherreagent', 'cell','datacolumn', ''],
                                          ordered_datacolumns)   
+    
+    name = name + '_' + _get_raw_time_string()
+
     if(outputType == '.csv'):
         return export_as_csv(name,col_key_name_map, cursor=cursor, is_authenticated=is_authenticated)
     elif(outputType == '.xls'):
@@ -2119,10 +2125,12 @@ def send_to_file(outputType, name, table, queryset, table_name, extra_columns = 
             if(fi.show_in_detail):
                 columnsOrdered_filtered.append((field,fi.get_verbose_name()))
         except (Exception) as e:
-            logger.warn(str(('no fieldinformation found for field:', field)))        
+            logger.warn(str(('no fieldinformation found for field:', field, e)))        
+
+    name = name + '_' + _get_raw_time_string()
+    
     # The type strings deliberately include a leading "." to make the URLs
     # trigger the analytics js code that tracks download events by extension.
-    logger.info(str(('columnsOrdered_filtered:',columnsOrdered_filtered)))
     if(outputType == '.csv'):
         return export_as_csv(name,OrderedDict(columnsOrdered_filtered) , queryset=queryset, is_authenticated=is_authenticated)
     elif(outputType == '.xls'):
