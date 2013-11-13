@@ -25,6 +25,10 @@ urlpatterns = patterns('',
 
     (r'^explore/sensitivities/$', 'django.views.generic.simple.direct_to_template',
      {'template': 'sensitivities/index.html'}),
+
+    (r'^explore/sensitivities/dose_response_grid.html$',
+     'django.views.generic.simple.direct_to_template',
+     {'template': 'sensitivities/dose_response_grid.html'}),
 )
 
 # For DEBUG mode only (development) serving of static files
