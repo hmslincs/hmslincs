@@ -39,6 +39,7 @@
         var clean_form_uri = "{{ request.META.PATH_INFO }}"
         var extra_form_shown = "{{ extra_form.shown }}"
 
+        console.log('extra form: ' + extra_form_shown );
         var form_toggle = window.form_toggle = function(shown){
             var curval = $('#search_div').css('display') != 'none';
             console.log('form_toggle: ' + shown + ', currently: ' + $('#search_div').css('display') );
@@ -61,6 +62,10 @@
         if( extra_form_shown){
             console.log('toggle');
             form_toggle(extra_form_shown);
+        }else{
+          $('#search_div').hide();
+          $('#form_toggler').show();
+          $('#form_untoggler').hide();
         }
         // Prevent form1 from submitting - add the full text search to the extra_form
         // $( "#form1" ).submit(function( event ) {
