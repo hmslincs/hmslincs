@@ -20,7 +20,7 @@
           </tr>
           {% for one,two in extra_form.fieldrows %}
             <tr>
-              <td>{{ one }}</td><td>{{ two.label_tag }}</td><td>{{ two.errors }}{{ two }}</td>
+              <td>{{ one }}</td><td title="{{two.help_text}}" >{{ two.label_tag }}</td><td>{{ two.errors }}{{ two }}</td>
             </tr>
           {% endfor %}
         </table>

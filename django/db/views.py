@@ -91,8 +91,11 @@ def cellIndex(request):
     
     # 1. Override fields: note do this _before_ grabbing all the (bound) fields for the display matrix below
     form_field_overrides = {}
-    form_field_overrides['dataset_types'] = forms.ChoiceField(required=False, choices=dataset_types)
     field_hash['dataset_types'] = FieldInformation.manager.get_column_fieldinformation_by_priority('dataset_types', '')
+    form_field_overrides['dataset_types'] = forms.ChoiceField(
+        required=False, choices=dataset_types, 
+        label=field_hash['dataset_types'].get_verbose_name(), 
+        help_text=field_hash['dataset_types'].get_column_detail())
 
     form = FieldsMetaForm(field_information_array=field_hash.values(), form_field_overrides=form_field_overrides, data=request.GET)
     # add a "search" field to make it compatible with the full text search
@@ -169,8 +172,12 @@ def proteinIndex(request):
     
     # 1. Override fields: note do this _before_ grabbing all the (bound) fields for the display matrix below
     form_field_overrides = {}
-    form_field_overrides['dataset_types'] = forms.ChoiceField(required=False, choices=dataset_types)
     field_hash['dataset_types'] = FieldInformation.manager.get_column_fieldinformation_by_priority('dataset_types', '')
+    form_field_overrides['dataset_types'] = forms.ChoiceField(
+        required=False, choices=dataset_types, 
+        label=field_hash['dataset_types'].get_verbose_name(), 
+        help_text=field_hash['dataset_types'].get_column_detail())
+
     form = FieldsMetaForm(field_information_array=field_hash.values(), form_field_overrides=form_field_overrides, data=request.GET)
     # add a "search" field to make it compatible with the full text search
     form.fields['search'] = forms.CharField(required=False);
@@ -343,9 +350,13 @@ def smallMoleculeIndex(request):
 
     # 1. Override fields: note do this _before_ grabbing all the (bound) fields for the display matrix below
     form_field_overrides = {}
-    form_field_overrides['dataset_types'] = forms.ChoiceField(required=False, choices=dataset_types)
     field_hash['dataset_types'] = FieldInformation.manager.get_column_fieldinformation_by_priority('dataset_types', '')
+    form_field_overrides['dataset_types'] = forms.ChoiceField(
+        required=False, choices=dataset_types, 
+        label=field_hash['dataset_types'].get_verbose_name(), 
+        help_text=field_hash['dataset_types'].get_column_detail())
     
+    # now bind the form to the request
     form = FieldsMetaForm(field_information_array=field_hash.values(), form_field_overrides=form_field_overrides, data=request.GET)
     # add a "search" field to make it compatible with the full text search
     form.fields['search'] = forms.CharField(required=False);
@@ -559,7 +570,10 @@ def datasetIndex(request): #, type='screen'):
 
     # 1. Override fields: note do this _before_ grabbing all the (bound) fields for the display matrix below
     form_field_overrides = {}
-    form_field_overrides['dataset_type'] = forms.ChoiceField(required=False, choices=dataset_types)
+    form_field_overrides['dataset_type'] = forms.ChoiceField(
+        required=False, choices=dataset_types, 
+        label=field_hash['dataset_type'].get_verbose_name(), 
+        help_text=field_hash['dataset_type'].get_column_detail())
     
     # 2. initialize.  this binds the form fields
     form = FieldsMetaForm(field_information_array=field_hash.values(), form_field_overrides=form_field_overrides, data=request.GET)
@@ -1332,23 +1346,23 @@ class DataSetManager():
         if self.has_cells():
             entity_id_name_map['cells'] = { 
                 'id_field': 'cell_id', 
-                'choices': [ (str(item['id']), '{facility_id}:{name}'.format(**item) ) for item in self.get_cells()] }
+                'choices': [ (str(item['id']), '{name}:{facility_id}'.format(**item) ) for item in self.get_cells()] }
         if self.has_proteins():
             entity_id_name_map['proteins'] = { 
                 'id_field': 'protein_id', 
-                'choices': [ (str(item['id']), '{lincs_id}:{name}'.format(**item) ) for item in self.get_proteins()]}
+                'choices': [ (str(item['id']), '{name}:{lincs_id}'.format(**item) ) for item in self.get_proteins()]}
         if self.has_small_molecules():
             entity_id_name_map['small molecules'] = { 
                 'id_field': 'smallmolecule_id', 
-                'choices': [ (str(item['id']), '{facility_id}:{name}'.format(**item) ) for item in self.get_small_molecules()]}
+                'choices': [ (str(item['id']), '{name}:{facility_id}'.format(**item) ) for item in self.get_small_molecules()]}
         if self.has_antibodies():
             entity_id_name_map['antibodies'] = { 
                 'id_field': 'antibody_id', 
-                'choices': [ (str(item['id']), '{facility_id}:{name}'.format(**item) ) for item in self.get_antibodies()]}
+                'choices': [ (str(item['id']), '{name}:{facility_id}'.format(**item) ) for item in self.get_antibodies()]}
         if self.has_otherreagents():
             entity_id_name_map['other reagents'] = { 
                 'id_field': 'otherreagent_id', 
-                'choices': [ (str(item['id']), '{facility_id}:{name}'.format(**item) ) for item in self.get_otherreagents()]}
+                'choices': [ (str(item['id']), '{name}:{facility_id}'.format(**item) ) for item in self.get_otherreagents()]}
         form = ResultSetDataForm(entity_id_name_map=entity_id_name_map, data=request.GET)
         return form
         
@@ -2202,7 +2216,7 @@ class CellSearchManager(SearchManager):
             # get the set to of primary entity id's that satisfy the join to the dataset type
             # do this as a separate query (filter() returns a clone) and then use the result
             # to add just the id's back in to the parent query
-            ids = [x.id for x in queryset.filter(datarecord__dataset__dataset_type=str(dataset_type)).order_by('id').distinct('id')]
+            ids = [x.id for x in Cell.objects.filter(datarecord__dataset__dataset_type=str(dataset_type)).order_by('id').distinct('id')]
             queryset = queryset.filter(id__in=ids)
             
         datarecord_field = 'cell_id'
@@ -2226,7 +2240,7 @@ class ProteinSearchManager(SearchManager):
             # get the set to of primary entity id's that satisfy the join to the dataset type
             # do this as a separate query (filter() returns a clone) and then use the result
             # to add just the id's back in to the parent query
-            ids = [x.id for x in queryset.filter(datarecord__dataset__dataset_type=str(dataset_type)).order_by('id').distinct('id')]
+            ids = [x.id for x in Protein.objects.filter(datarecord__dataset__dataset_type=str(dataset_type)).order_by('id').distinct('id')]
             queryset = queryset.filter(id__in=ids)
             
         datarecord_field = 'protein_id'
@@ -2250,8 +2264,11 @@ class SmallMoleculeSearchManager(SearchManager):
             # get the set to of primary entity id's that satisfy the join to the dataset type
             # do this as a separate query (filter() returns a clone) and then use the result
             # to add just the id's back in to the parent query
-            ids = [x.id for x in queryset.filter(datarecord__dataset__dataset_type=str(dataset_type)).order_by('id').distinct('id')]
+            logger.info(str(('---- get the ids')))
+            ids = [x.id for x in SmallMolecule.objects.filter(datarecord__dataset__dataset_type=str(dataset_type)).order_by('id').distinct('id')]
+            logger.info(str(('---- got the ids', len(ids))))
             queryset = queryset.filter(id__in=ids)
+            logger.info(str(('---- filtered', len(queryset))))
             
         datarecord_field = 'smallmolecule_id'
         source_table = 'db_smallmolecule'
@@ -2342,7 +2359,7 @@ def set_table_column_info(table,table_names, sequence_override=None,visible_fiel
     exclude_list = [x for x in table.exclude]
     for fieldname,column in table.base_columns.iteritems():
         try:
-            logger.info(str(('trying', fieldname, column)))
+            logger.debug(str(('trying', fieldname, column)))
             fi = FieldInformation.manager.get_column_fieldinformation_by_priority(fieldname,table_names)
             if not fi.show_in_list and not fi.field in visible_field_overrides:
                 if(fieldname not in exclude_list):
