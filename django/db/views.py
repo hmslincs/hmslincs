@@ -54,7 +54,8 @@ def dump(obj):
     dumpObj(obj)
 
 # --------------- View Functions -----------------------------------------------
-dataset_types = [str(x) for x in set([x.dataset_type for x in DataSet.objects.all()])]
+dataset_types = [(str(x['dataset_type']), str(x['dataset_type'])) for x in DataSet.objects.values('dataset_type').distinct()]
+dataset_types.insert(0,('',''))
 
 def main(request):
     search = request.GET.get('search','')
@@ -80,17 +81,44 @@ def cellIndex(request):
         queryset = CellSearchManager().search(search, is_authenticated=request.user.is_authenticated())      
     else:
         where = []
-        if(not request.user.is_authenticated()): where.append("( not is_restricted or is_restricted is NULL)")
+        if(not request.user.is_authenticated()): where.append("( not db_cell.is_restricted or db_cell.is_restricted is NULL)")
         queryset = Cell.objects.extra(
             where=where,
             order_by=('facility_id',))        
  
-    table = CellTable(queryset, template="db/custom_tables2_template.html")
+    # PROCESS THE EXTRA FORM    
+    field_hash=FieldInformation.manager.get_field_hash('cell')
+    
+    # 1. Override fields: note do this _before_ grabbing all the (bound) fields for the display matrix below
+    form_field_overrides = {}
+    form_field_overrides['dataset_types'] = forms.ChoiceField(required=False, choices=dataset_types)
+    field_hash['dataset_types'] = FieldInformation.manager.get_column_fieldinformation_by_priority('dataset_types', '')
+
+    form = FieldsMetaForm(field_information_array=field_hash.values(), form_field_overrides=form_field_overrides, data=request.GET)
+    # add a "search" field to make it compatible with the full text search
+    form.fields['search'] = forms.CharField(required=False);
+    form.fields['extra_form_shown'] = forms.BooleanField(required=False);
+    
+    visible_field_overrides = []
+    if form.is_valid():
+        if form.cleaned_data and form.cleaned_data['extra_form_shown']:
+            form.shown = True
+        key = 'dataset_types'
+        show_field = form.cleaned_data.get(key +'_shown', False)
+        field_data = form.cleaned_data.get(key)
+        if show_field or field_data:
+            queryset = CellSearchManager().join_query_to_dataset_type(queryset, dataset_type=field_data)
+            visible_field_overrides.append(key)
+    else:
+        logger.info(str(('invalid form', form.errors)))
+
+    table = CellTable(queryset, visible_field_overrides=visible_field_overrides)
+
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
     outputType = request.GET.get('output_type','')
     if(outputType != ''):
         return send_to_file(outputType, 'cells', table, queryset, 'cell' )
-    return render_list_index(request, table,search,'Cell','Cells')
+    return render_list_index(request, table,search,'Cell','Cells',**{ 'extra_form': form })
 
 def cellDetail(request, facility_id):
     try:
@@ -131,17 +159,42 @@ def proteinIndex(request):
         queryset = ProteinSearchManager().search(search, is_authenticated = request.user.is_authenticated())
     else:
         where = []
-        if(not request.user.is_authenticated()): where.append("(not is_restricted or is_restricted is NULL)")
+        if(not request.user.is_authenticated()): where.append("(not db_protein.is_restricted or db_protein.is_restricted is NULL)")
         queryset = Protein.objects.extra(
             where=where,
             order_by=('lincs_id',))
+
+    # PROCESS THE EXTRA FORM    
+    field_hash=FieldInformation.manager.get_field_hash('protein')
     
-    table = ProteinTable(queryset)
+    # 1. Override fields: note do this _before_ grabbing all the (bound) fields for the display matrix below
+    form_field_overrides = {}
+    form_field_overrides['dataset_types'] = forms.ChoiceField(required=False, choices=dataset_types)
+    field_hash['dataset_types'] = FieldInformation.manager.get_column_fieldinformation_by_priority('dataset_types', '')
+    form = FieldsMetaForm(field_information_array=field_hash.values(), form_field_overrides=form_field_overrides, data=request.GET)
+    # add a "search" field to make it compatible with the full text search
+    form.fields['search'] = forms.CharField(required=False);
+    form.fields['extra_form_shown'] = forms.BooleanField(required=False);
+    
+    visible_field_overrides = []
+    if form.is_valid():
+        if form.cleaned_data and form.cleaned_data['extra_form_shown']:
+            form.shown = True
+        key = 'dataset_types'
+        show_field = form.cleaned_data.get(key +'_shown', False)
+        field_data = form.cleaned_data.get(key)
+        if show_field or field_data:
+            queryset = ProteinSearchManager().join_query_to_dataset_type(queryset, dataset_type=field_data)
+            visible_field_overrides.append(key)
+    else:
+        logger.info(str(('invalid form', form.errors)))
+
+    table = ProteinTable(queryset, visible_field_overrides=visible_field_overrides)
     outputType = request.GET.get('output_type','')
     if(outputType != ''):
         return send_to_file(outputType, 'proteins', table, queryset, 'protein' )
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
-    return render_list_index(request, table,search,'Protein','Proteins')
+    return render_list_index(request, table,search,'Protein','Proteins',**{ 'extra_form': form })
     
 def proteinDetail(request, lincs_id):
     try:
@@ -273,8 +326,6 @@ def otherReagentDetail(request, facility_id):
 # TODO REFACTOR, DRY... 
 def smallMoleculeIndex(request):
     search = request.GET.get('search','')
-    logger.debug(str(("is_authenticated:", request.user.is_authenticated(), 'search: ', search))) #, 'items_per_page', items_per_page)))
-    
     search = re.sub(r'[\'"]','',search)
     queryset = SmallMolecule.objects;
     if(search != ''):
@@ -282,7 +333,7 @@ def smallMoleculeIndex(request):
     else:
         where = []
         #if(not request.user.is_authenticated()): 
-#        where.append("(not is_restricted or is_restricted is NULL)")
+        #        where.append("(not is_restricted or is_restricted is NULL)")
         queryset = queryset.extra(
             where=where,
             order_by=('facility_id','salt_id')) 
@@ -292,9 +343,8 @@ def smallMoleculeIndex(request):
 
     # 1. Override fields: note do this _before_ grabbing all the (bound) fields for the display matrix below
     form_field_overrides = {}
-    dataset_types = [(str(x['dataset_type']), str(x['dataset_type'])) for x in DataSet.objects.values('dataset_type').distinct()]
-    dataset_types.insert(0,('',''))
     form_field_overrides['dataset_types'] = forms.ChoiceField(required=False, choices=dataset_types)
+    field_hash['dataset_types'] = FieldInformation.manager.get_column_fieldinformation_by_priority('dataset_types', '')
     
     form = FieldsMetaForm(field_information_array=field_hash.values(), form_field_overrides=form_field_overrides, data=request.GET)
     # add a "search" field to make it compatible with the full text search
@@ -303,20 +353,13 @@ def smallMoleculeIndex(request):
     
     visible_field_overrides = []
     if form.is_valid():
-        logger.info(str(('processing form', form.cleaned_data)))
         if form.cleaned_data and form.cleaned_data['extra_form_shown']:
             form.shown = True
         key = 'dataset_types'
         show_field = form.cleaned_data.get(key +'_shown', False)
         field_data = form.cleaned_data.get(key)
-        if field_data:
-            ids = [x.id for x in queryset._clone().filter(datarecord__dataset__dataset_type=str(field_data)).order_by('id').distinct('id')]
-            queryset.query.add_q(Q(**{ 'id__in':ids} ))
-            
         if show_field or field_data:
-            queryset = queryset.extra( select=
-                { key:  "(select array_to_string(array_agg(distinct (ds.dataset_type)), ', ') as " + key 
-                        + " from db_dataset ds join db_datarecord dr on(ds.id=dr.dataset_id) where dr.smallmolecule_id=db_smallmolecule.id)"})
+            queryset = SmallMoleculeSearchManager().join_query_to_dataset_type(queryset, dataset_type=field_data)
             visible_field_overrides.append(key)
     else:
         logger.info(str(('invalid form', form.errors)))
@@ -325,7 +368,7 @@ def smallMoleculeIndex(request):
     # since a True sorts higher than a False, see above for usage (for Postgres)
     queryset = queryset.extra(select={'lincs_id_null':'lincs_id is null', 'pubchem_cid_null':'pubchem_cid is null'})
     
-    table = SmallMoleculeTable(queryset, request=request, visible_field_overrides=visible_field_overrides)
+    table = SmallMoleculeTable(queryset, visible_field_overrides=visible_field_overrides)
     outputType = request.GET.get('output_type','')
     if outputType:
         return send_to_file(outputType, 'small_molecule', table, queryset, 'smallmolecule', is_authenticated=request.user.is_authenticated() )
@@ -508,13 +551,48 @@ def datasetIndex(request): #, type='screen'):
             where.append("(not is_restricted or is_restricted is NULL)")
         queryset = DataSet.objects.extra(
             where=where,
-            order_by=('facility_id',))        
+            order_by=('facility_id',))   
+        
+
+    # PROCESS THE EXTRA FORM    
+    field_hash=FieldInformation.manager.get_field_hash('dataset')
+
+    # 1. Override fields: note do this _before_ grabbing all the (bound) fields for the display matrix below
+    form_field_overrides = {}
+    form_field_overrides['dataset_type'] = forms.ChoiceField(required=False, choices=dataset_types)
+    
+    # 2. initialize.  this binds the form fields
+    form = FieldsMetaForm(field_information_array=field_hash.values(), form_field_overrides=form_field_overrides, data=request.GET)
+    # add a "search" field to make it compatible with the full text search
+    form.fields['search'] = forms.CharField(required=False);
+    form.fields['extra_form_shown'] = forms.BooleanField(required=False);
+    
+    visible_field_overrides = []
+    if form.is_valid():
+        logger.info(str(('processing form', form.cleaned_data)))
+        if form.cleaned_data and form.cleaned_data['extra_form_shown']:
+            form.shown = True
+        key = 'dataset_type'
+        show_field = form.cleaned_data.get(key +'_shown', False)
+        field_data = form.cleaned_data.get(key, None)
+        if field_data:
+            queryset = queryset.filter(dataset_type=str(field_data))
+            
+        if show_field or field_data:
+            visible_field_overrides.append(key)
+    else:
+        logger.info(str(('invalid form', form.errors)))
+        
+             
     table = DataSetTable(queryset)
     
     outputType = request.GET.get('output_type','')
     if(outputType != ''):
         return send_to_file(outputType, 'datasetIndex', table, queryset, 'dataset' )
-    requestArgs = { 'usage_message': 'To find <a href="datasets">datasets</a> from <a href="http://lincs.hms.harvard.edu/about/publications/">LINCS publications</a>, type the relevant PMID in the datasets search box below.'}
+    requestArgs = { 
+      'usage_message': 'To find <a href="datasets">datasets</a> from <a href="http://lincs.hms.harvard.edu/about/publications/">LINCS publications</a>, type the relevant PMID in the datasets search box below.',
+      'extra_form': form
+      }
     return render_list_index(request, table,search,'Dataset','Datasets', **requestArgs)
 
 # Follows is a messy way to differentiate each tab for the dataset detail page (each tab calls it's respective method)
@@ -981,7 +1059,7 @@ class DivWrappedColumn(tables.Column):
     super(DivWrappedColumn, self).__init__(*args, **kwargs)
     
   def render(self, value):
-    return mark_safe("<div class='" + self.classname + "' >" +value+"</div>")
+    return mark_safe("<div class='" + self.classname + "' >" + str(value) + "</div>")
 
 class PagedTable(tables.Table):
     
@@ -1156,7 +1234,7 @@ class DataSetResultTable(PagedTable):
             display_name = (SafeString(dc.display_name), dc.name)[dc.display_name == None or len(dc.display_name)==0]
             logger.debug(str(('create column', col, dc.id, dc.data_type, display_name, dc.name)))
             if(dc.data_type.lower() != OMERO_IMAGE_COLUMN_TYPE):
-                self.base_columns[col] = DivWrappedColumn(classname='fixed_width_column',verbose_name=display_name)
+                self.base_columns[col] = tables.Column(verbose_name=display_name) #DivWrappedColumn(classname='fixed_width_column',verbose_name=display_name)
             else:
                 #logger.debug(str(('omero_image column template', TEMPLATE % ('omero_image_id','omero_image_id'))))
                 self.base_columns[col] = tables.TemplateColumn(OMERO_IMAGE_TEMPLATE % (col,col), verbose_name=display_name)
@@ -1730,7 +1808,6 @@ class SmallMoleculeTable(PagedTable):
     rank = tables.Column()
     snippet = DivWrappedColumn(classname='fixed_width_column')
     dataset_types = DivWrappedColumn(classname='fixed_width_column', visible=False)
-#    smiles = Restricted_Column()
     alternative_names = DivWrappedColumn(classname='fixed_width_column')
     
     # django-tables2 trick to get these columns to sort with NULLS LAST in Postgres; 
@@ -1746,8 +1823,8 @@ class SmallMoleculeTable(PagedTable):
         orderable = True
         attrs = {'class': 'paleblue'}
         
-    def __init__(self, queryset, show_plate_well=False,request=None, visible_field_overrides=[], *args, **kwargs):
-        super(SmallMoleculeTable, self).__init__(queryset)
+    def __init__(self, queryset, show_plate_well=False,visible_field_overrides=[], *args, **kwargs):
+        super(SmallMoleculeTable, self).__init__(queryset, *args, **kwargs)
         
         sequence_override = ['facility_salt']
         set_table_column_info(self, ['smallmolecule','smallmoleculebatch',''],sequence_override, visible_field_overrides=visible_field_overrides)  
@@ -1794,6 +1871,7 @@ class CellTable(PagedTable):
     snippet = SnippetColumn()
     id = tables.Column(verbose_name='CLO Id')
     disease = DivWrappedColumn(classname='fixed_width_column')
+    dataset_types = DivWrappedColumn(classname='fixed_width_column', visible=False)
     
 #    snippet_def = ("coalesce(name,'') || ' ' || coalesce(id,'') || ' ' || coalesce(alternate_name,'') || ' ' || " +  
 #                   "coalesce(alternate_id,'') || ' ' || coalesce(center_name,'') || ' ' || coalesce(center_specific_id,'') || ' ' || " +  
@@ -1809,10 +1887,10 @@ class CellTable(PagedTable):
         attrs = {'class': 'paleblue'}
         #sequence = ('facility_id', '...')
         #exclude = ('id','recommended_culture_conditions', 'verification_reference_profile', 'mutations_explicit', 'mutations_reference')
-    def __init__(self, table,*args,**kwargs):
+    def __init__(self, table,visible_field_overrides=[], *args,**kwargs):
         super(CellTable, self).__init__(table,*args,**kwargs)
         sequence_override = ['facility_id']    
-        set_table_column_info(self, ['cell',''], sequence_override)  
+        set_table_column_info(self, ['cell',''], sequence_override, visible_field_overrides=visible_field_overrides)  
                         
 class ProteinTable(PagedTable):
     lincs_id = tables.LinkColumn("protein_detail", args=[A('lincs_id')])
@@ -1820,7 +1898,8 @@ class ProteinTable(PagedTable):
     snippet = SnippetColumn()
     snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce("+x.field+",'') ", FieldInformation.manager.get_search_fields(Protein))))
     alternate_name = DivWrappedColumn(classname='fixed_width_column', visible=False)
-    
+    dataset_types = DivWrappedColumn(classname='fixed_width_column', visible=False)
+
     class Meta:
         model = Protein
         orderable = True
@@ -1828,10 +1907,10 @@ class ProteinTable(PagedTable):
         #sequence = ('lincs_id', '...')
         #exclude = ('id')
     
-    def __init__(self, table):
-        super(ProteinTable, self).__init__(table)
+    def __init__(self, queryset, visible_field_overrides=[], *args, **kwargs):
+        super(ProteinTable, self).__init__(queryset, *args, **kwargs)
         sequence_override = ['lincs_id']    
-        set_table_column_info(self, ['protein',''],sequence_override)  
+        set_table_column_info(self, ['protein',''],sequence_override, visible_field_overrides=visible_field_overrides)  
                         
 class AntibodyTable(PagedTable):
     facility_id = tables.LinkColumn("antibody_detail", args=[A('facility_id')])
@@ -2122,6 +2201,22 @@ class CellSearchManager(SearchManager):
         id_fields = ['name', 'alternate_name', 'provider_name', 'provider_catalog_id', 'center_name']
         return super(CellSearchManager, self).search(Cell.objects, 'db_cell', searchString, id_fields, CellTable.snippet_def)
 
+    def join_query_to_dataset_type(self, queryset, dataset_type=None ):
+        key = 'dataset_types'
+        if dataset_type:
+            # get the set to of primary entity id's that satisfy the join to the dataset type
+            # do this as a separate query (filter() returns a clone) and then use the result
+            # to add just the id's back in to the parent query
+            ids = [x.id for x in queryset.filter(datarecord__dataset__dataset_type=str(dataset_type)).order_by('id').distinct('id')]
+            queryset = queryset.filter(id__in=ids)
+            
+        datarecord_field = 'cell_id'
+        source_table = 'db_cell'
+        queryset = queryset.extra( select=
+            { key:  "(select array_to_string(array_agg(distinct (ds.dataset_type)), ', ') as " + key 
+                    + " from db_dataset ds join db_datarecord dr on(ds.id=dr.dataset_id) where dr.%s=%s.id)" %(datarecord_field, source_table)})
+        return queryset
+
 
 class ProteinSearchManager(SearchManager):
 
@@ -2130,6 +2225,21 @@ class ProteinSearchManager(SearchManager):
         id_fields = ['name', 'uniprot_id', 'alternate_name', 'alternate_name_2', 'provider_catalog_id']
         return super(ProteinSearchManager, self).search(Protein.objects, 'db_protein', searchString, id_fields, ProteinTable.snippet_def)        
     
+    def join_query_to_dataset_type(self, queryset, dataset_type=None ):
+        key = 'dataset_types'
+        if dataset_type:
+            # get the set to of primary entity id's that satisfy the join to the dataset type
+            # do this as a separate query (filter() returns a clone) and then use the result
+            # to add just the id's back in to the parent query
+            ids = [x.id for x in queryset.filter(datarecord__dataset__dataset_type=str(dataset_type)).order_by('id').distinct('id')]
+            queryset = queryset.filter(id__in=ids)
+            
+        datarecord_field = 'protein_id'
+        source_table = 'db_protein'
+        queryset = queryset.extra( select=
+            { key:  "(select array_to_string(array_agg(distinct (ds.dataset_type)), ', ') as " + key 
+                    + " from db_dataset ds join db_datarecord dr on(ds.id=dr.dataset_id) where dr.%s=%s.id)" %(datarecord_field, source_table)})
+        return queryset
 
 class SmallMoleculeSearchManager(SearchManager):
 
@@ -2139,6 +2249,21 @@ class SmallMoleculeSearchManager(SearchManager):
         id_fields = ['name', 'alternative_names', 'lincs_id']
         return super(SmallMoleculeSearchManager, self).search(queryset, 'db_smallmolecule', searchString, id_fields, SmallMoleculeTable.snippet_def_localized )        
 
+    def join_query_to_dataset_type(self, queryset, dataset_type=None ):
+        key = 'dataset_types'
+        if dataset_type:
+            # get the set to of primary entity id's that satisfy the join to the dataset type
+            # do this as a separate query (filter() returns a clone) and then use the result
+            # to add just the id's back in to the parent query
+            ids = [x.id for x in queryset.filter(datarecord__dataset__dataset_type=str(dataset_type)).order_by('id').distinct('id')]
+            queryset = queryset.filter(id__in=ids)
+            
+        datarecord_field = 'smallmolecule_id'
+        source_table = 'db_smallmolecule'
+        queryset = queryset.extra( select=
+            { key:  "(select array_to_string(array_agg(distinct (ds.dataset_type)), ', ') as " + key 
+                    + " from db_dataset ds join db_datarecord dr on(ds.id=dr.dataset_id) where dr.%s=%s.id)" %(datarecord_field, source_table)})
+        return queryset
 
 class AntibodySearchManager(SearchManager):
     
@@ -2190,7 +2315,7 @@ class FieldsMetaForm(forms.Form):
         super(FieldsMetaForm, self).__init__(*args, **kwargs)
         self.fieldname_array = []
 #        logger.info(str(('field_information_array', field_information_array)))
-        for fi in [ fi for fi in field_information_array if fi.show_as_extra_field]:
+        for fi in [ fi for fi in field_information_array if fi.show_as_extra_field or fi.field in form_field_overrides]:
             # Note the fi.field string is unique to each table/report
             logger.info(str(('create field', fi.field, fi.show_as_extra_field)))
             self.fields[fi.field + '_shown'] = forms.BooleanField(required=False)
@@ -2207,8 +2332,8 @@ class FieldsMetaForm(forms.Form):
         for one,two in self.fieldname_array:
             self.fieldrows.append([self.__getitem__(one), self.__getitem__(two)])
         logger.info(str(('=============fieldrows', self.fieldrows )))
-
-    
+        
+      
 def set_table_column_info(table,table_names, sequence_override=None,visible_field_overrides=[]):
     # TODO: set_table_column info could pick the columns to include from the fieldinformation as well
     """
@@ -2222,6 +2347,7 @@ def set_table_column_info(table,table_names, sequence_override=None,visible_fiel
     exclude_list = [x for x in table.exclude]
     for fieldname,column in table.base_columns.iteritems():
         try:
+            logger.info(str(('trying', fieldname, column)))
             fi = FieldInformation.manager.get_column_fieldinformation_by_priority(fieldname,table_names)
             if not fi.show_in_list and not fi.field in visible_field_overrides:
                 if(fieldname not in exclude_list):
