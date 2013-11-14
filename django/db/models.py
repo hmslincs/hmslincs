@@ -5,6 +5,7 @@ from django.utils import timezone
 import logging
 import re
 import types
+from django.forms.models import model_to_dict
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +45,20 @@ class FieldsManager(models.Manager):
     # this is how you override a Manager's base QuerySet
     def get_query_set(self):
         return super(FieldsManager, self).get_query_set()
+    def get_field_hash(self, table_or_queryset_name ):
+        
+        logger.info(str(('getting', table_or_queryset_name)))
+        fieldmetas = self.get_table_fields(table_or_queryset_name);
+#        logger.info(str(('got', table_or_queryset_name, fieldmetas)))
+        # TODO: note that fi.field is the fieldname and is unique for this scope.  (rework as in iccbl-lims)
+        table_fields = dict(zip([x.field for x in fieldmetas],  fieldmetas ))    
+#        logger.info(str(('got', table_or_queryset_name, table_fields)))
+        
+        fieldmetas = self.get_query_set().filter(queryset=table_or_queryset_name)
+        queryset_fields = dict(zip([x.field for x in fieldmetas],  fieldmetas ))    
+        table_fields.update(queryset_fields)
+        
+        return table_fields
     
     def get_table_fields(self,table):
         """
@@ -161,6 +176,7 @@ class FieldInformation(models.Model):
     queryset                = _CHAR(max_length=35, **_NULLOKSTR)
     show_in_detail          = models.BooleanField(default=False, null=False) # Note: default=False are not set at the db level, only at the Db-api level
     show_in_list            = models.BooleanField(default=False, null=False) # Note: default=False are not set at the db level, only at the Db-api level
+    show_as_extra_field     = models.BooleanField(default=False, null=False) # Note: default=False are not set at the db level, only at the Db-api level
     order                   = _INTEGER(null=False)
     is_lincs_field          = models.BooleanField(default=False, null=False) # Note: default=False are not set at the db level, only at the Db-api level
     use_for_search_index    = models.BooleanField(default=False) # Note: default=False are not set at the db level, only at the Db-api level

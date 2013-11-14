@@ -1,5 +1,4 @@
 {% extends "db/base.html" %}
-
 {% block title %}
   {% if search %}
     Search: "{{ search }}" -
@@ -18,8 +17,8 @@
         <br/>
     {% endif %}
 	{% include "db/searchBox.html" %}
-	{% include "db/searchExportBox.html" %}
-	{% if table %}
+    {% include "db/searchExportBox.html" %}
+	{% if table.data.length > 0 %}
 		{% load render_table from django_tables2 %}
 		{% render_table table %}
 	{% elif search %}
