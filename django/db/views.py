@@ -1041,10 +1041,6 @@ class StructureSearchForm(forms.Form):
                                required=True, label='Search Type',
                                initial='identity')
     
-class SnippetColumn(tables.Column):
-    def render(self, value):
-        return mark_safe(value)
-
 class TypeColumn(tables.Column):
     def render(self, value):
         if value == "cell_detail": return "Cell"
@@ -1059,7 +1055,7 @@ class DivWrappedColumn(tables.Column):
     super(DivWrappedColumn, self).__init__(*args, **kwargs)
     
   def render(self, value):
-    return mark_safe("<div class='" + self.classname + "' >" + str(value) + "</div>")
+    return mark_safe("<div class='" + self.classname + "' >" + smart_str(value, 'utf-8', errors='ignore') + "</div>")
 
 class PagedTable(tables.Table):
     
@@ -1102,10 +1098,10 @@ class DataSetTable(PagedTable):
     protocol = tables.Column(visible=False) 
     references = tables.Column(visible=False)
     rank = tables.Column()
-    snippet = SnippetColumn()
+    snippet = DivWrappedColumn(verbose_name='matched_text', classname='snippet')
 #    snippet_def = ("coalesce(facility_id,'') || ' ' || coalesce(title,'') || ' ' || coalesce(summary,'') || ' ' || coalesce(lead_screener_firstname,'') || ' ' || coalesce(lead_screener_lastname,'')|| ' ' || coalesce(lead_screener_email,'') || ' ' || "  +           
 #                   "coalesce(lab_head_firstname,'') || ' ' || coalesce(lab_head_lastname,'')|| ' ' || coalesce(lab_head_email,'')")
-    snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce("+x.field+",'') ", FieldInformation.manager.get_search_fields(DataSet))))
+    snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce(db_dataset."+x.field+",'') ", FieldInformation.manager.get_search_fields(DataSet))))
     class Meta:
         model = DataSet
         orderable = True
@@ -1735,7 +1731,7 @@ class LibraryMappingTable(PagedTable):
     plate = tables.Column()
     display_concentration = tables.Column(order_by='concentration')
         
-    snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce("+x.field+",'') ", FieldInformation.manager.get_search_fields(SmallMolecule)))) # TODO: specialized search for librarymapping, if needed
+    snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce(db_smallmolecule."+x.field+",'') ", FieldInformation.manager.get_search_fields(SmallMolecule)))) # TODO: specialized search for librarymapping, if needed
     
     class Meta:
         #model = LibraryMapping
@@ -1806,7 +1802,7 @@ class SmallMoleculeTable(PagedTable):
     facility_salt = tables.LinkColumn("sm_detail", args=[A('facility_salt')], order_by=['facility_id','salt_id']) 
     facility_salt.attrs['td'] = {'nowrap': 'nowrap'}
     rank = tables.Column()
-    snippet = DivWrappedColumn(classname='fixed_width_column')
+    snippet = DivWrappedColumn(verbose_name='matched_text', classname='snippet')
     dataset_types = DivWrappedColumn(classname='fixed_width_column', visible=False)
     alternative_names = DivWrappedColumn(classname='fixed_width_column')
     
@@ -1868,7 +1864,7 @@ class SmallMoleculeForm(ModelForm):
 class CellTable(PagedTable):
     facility_id = tables.LinkColumn("cell_detail", args=[A('facility_id')])
     rank = tables.Column()
-    snippet = SnippetColumn()
+    snippet = DivWrappedColumn(verbose_name='matched_text', classname='snippet')
     id = tables.Column(verbose_name='CLO Id')
     disease = DivWrappedColumn(classname='fixed_width_column')
     dataset_types = DivWrappedColumn(classname='fixed_width_column', visible=False)
@@ -1880,7 +1876,7 @@ class CellTable(PagedTable):
 #                   "coalesce(cell_type_detail,'') || ' ' || coalesce(disease,'') || ' ' || coalesce(disease_detail,'') || ' ' ||  " +
 #                   "coalesce(growth_properties,'') || ' ' || coalesce(genetic_modification,'') || ' ' || coalesce(related_projects,'') || ' ' || " + 
 #                   "coalesce(recommended_culture_conditions)")
-    snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce("+x.field+",'') ", FieldInformation.manager.get_search_fields(Cell))))
+    snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce(db_cell."+x.field+",'') ", FieldInformation.manager.get_search_fields(Cell))))
     class Meta:
         model = Cell
         orderable = True
@@ -1895,8 +1891,8 @@ class CellTable(PagedTable):
 class ProteinTable(PagedTable):
     lincs_id = tables.LinkColumn("protein_detail", args=[A('lincs_id')])
     rank = tables.Column()
-    snippet = SnippetColumn()
-    snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce("+x.field+",'') ", FieldInformation.manager.get_search_fields(Protein))))
+    snippet = DivWrappedColumn(verbose_name='matched_text', classname='snippet')
+    snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce(db_protein."+x.field+",'') ", FieldInformation.manager.get_search_fields(Protein))))
     alternate_name = DivWrappedColumn(classname='fixed_width_column', visible=False)
     dataset_types = DivWrappedColumn(classname='fixed_width_column', visible=False)
 
@@ -1915,8 +1911,8 @@ class ProteinTable(PagedTable):
 class AntibodyTable(PagedTable):
     facility_id = tables.LinkColumn("antibody_detail", args=[A('facility_id')])
     rank = tables.Column()
-    snippet = SnippetColumn()
-    snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce("+x.field+",'') ", FieldInformation.manager.get_search_fields(Antibody))))
+    snippet = DivWrappedColumn(verbose_name='matched_text', classname='snippet')
+    snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce(db_antibody."+x.field+",'') ", FieldInformation.manager.get_search_fields(Antibody))))
     class Meta:
         model = Antibody
         orderable = True
@@ -1930,8 +1926,8 @@ class AntibodyTable(PagedTable):
 class OtherReagentTable(PagedTable):
     facility_id = tables.LinkColumn("otherreagent_detail", args=[A('facility_id')])
     rank = tables.Column()
-    snippet = SnippetColumn()
-    snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce("+x.field+",'') ", FieldInformation.manager.get_search_fields(OtherReagent))))
+    snippet = DivWrappedColumn(verbose_name='matched_text', classname='snippet')
+    snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce(db_otherreagent."+x.field+",'') ", FieldInformation.manager.get_search_fields(OtherReagent))))
     class Meta:
         model = OtherReagent
         orderable = True
@@ -1980,9 +1976,9 @@ class LibraryTable(PagedTable):
     plate_count = tables.Column()
     sm_count = tables.Column()
     rank = tables.Column()
-    snippet = SnippetColumn()
+    snippet = DivWrappedColumn(verbose_name='matched_text', classname='snippet')
     
-    snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce("+x.field+",'') ", FieldInformation.manager.get_search_fields(Library))))
+    snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce(db_library."+x.field+",'') ", FieldInformation.manager.get_search_fields(Library))))
     class Meta:
         orderable = True
         model = Library
@@ -2058,7 +2054,6 @@ class SiteSearchManager(models.Manager):
                         'id': x['id'], 
                         'facility_id': str(x['facility_id'])+'-'+str(x['salt_id']), 
                         'snippet': x['name'] , #+ ' in datasets: ' + ','.join([y for y in datasethash[x]]), 
-                        'snippet2': 'fooxxx',
                         'rank': 1, 
                         'type': 'sm_detail' })
                 
@@ -2287,8 +2282,8 @@ class SiteSearchTable(PagedTable):
     facility_id = tables.LinkColumn(A('type'), args=[A('facility_id')])  
     type = TypeColumn()
     rank = tables.Column()
-    snippet = SnippetColumn()
-    snippet2 = SnippetColumn()
+    snippet = DivWrappedColumn(verbose_name='matched_text', classname='snippet')
+    snippet2 = DivWrappedColumn(verbose_name='alternate_matched_text', classname='fixed_width_column', visible=False)
     class Meta:
         orderable = True
         attrs = {'class': 'paleblue'}

@@ -86,6 +86,10 @@ div.fixed_width_column_300 {
   white-space: normal;
   width: 300px;
 }
+div.snippet {
+  white-space: normal;
+  width: 450px;
+}
 
 #form_toggler {
   color: transparent;
