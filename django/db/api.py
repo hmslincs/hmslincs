@@ -34,6 +34,7 @@ import csv
 import json
 import logging
 import re
+import math
         
 logger = logging.getLogger(__name__)
 
@@ -416,12 +417,18 @@ class CursorSerializer(Serializer):
         writer.writerow(cols)
 
         for row in cursor.fetchall():
-            writer.writerow([smart_str(val, 'utf-8', errors='ignore') for val in row])
+            writer.writerow([self._write_val_safe(val) for val in row])
             i += 1
 
         logger.info('done, wrote: %d' % i)
         return raw_data.getvalue()
     
+    
+    def _write_val_safe(self,val):
+        # for #185, remove 'None' values
+        if not val: return ''
+        return smart_str(val, 'utf-8', errors='ignore')
+
     def to_json(self,cursor, options=None):
         
         logger.info(str(('typeof the object sent to_json',type(cursor))))
