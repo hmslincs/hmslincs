@@ -23,12 +23,18 @@ urlpatterns = patterns('',
     (r'^explore/responses/$', 'django.views.generic.simple.direct_to_template',
      {'template': 'responses/index.html'}),
 
-    (r'^explore/sensitivities/$', 'django.views.generic.simple.direct_to_template',
-     {'template': 'sensitivities/index.html'}),
+    (r'^explore/(?:sensitivities|10.1038-nchembio.1337)/(?!fallahi-sichani-2013)(?P<suffix>.*)$',
+     'django.views.generic.simple.redirect_to',
+     {'url': '/explore/10.1038-nchembio.1337/fallahi-sichani-2013/%(suffix)s'}),
 
-    (r'^explore/sensitivities/dose_response_grid.html$',
+    (r'^explore/10.1038-nchembio.1337/fallahi-sichani-2013/$',
      'django.views.generic.simple.direct_to_template',
-     {'template': 'sensitivities/dose_response_grid.html'}),
+     {'template': '10_1038_nchembio_1337__fallahi_sichani_2013/index.html',
+      'extra_context': {'foobar': 'quux-frobozz'}}),
+
+    (r'^explore/10.1038-nchembio.1337/fallahi-sichani-2013/dose_response_grid\.html$',
+     'django.views.generic.simple.direct_to_template',
+     {'template': '10_1038_nchembio_1337__fallahi_sichani_2013/dose_response_grid.html'}),
 )
 
 # For DEBUG mode only (development) serving of static files

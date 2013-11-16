@@ -5,7 +5,7 @@
   // ----------------------------------------------------------------------
   var PLOT_RANGE_PADDING = 0.02,
       STATIC_URL = window.hmslincs.STATIC_URL,
-      INPUT_FILE = STATIC_URL + 'sensitivities/data/dose_response_data.tsv',
+      INPUT_FILE = STATIC_URL + '10_1038_nchembio_1337__fallahi_sichani_2013/data/dose_response_data.tsv',
       XRANGE = [-10.5, -2],
       MK_FN = mk_sigmoids,
       SHAPE = {width: 125, height: 75},
