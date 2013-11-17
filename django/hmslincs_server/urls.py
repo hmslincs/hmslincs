@@ -31,6 +31,14 @@ urlpatterns = patterns('',
      'django.views.generic.simple.direct_to_template',
      {'template': '10_1038_nchembio_1337__fallahi_sichani_2013/index.html'}),
 
+    (r'^explore/10.1038-nchembio.1337/fallahi-sichani-2013/tools_table\.html$',
+     'django.views.generic.simple.direct_to_template',
+     {'template': '10_1038_nchembio_1337__fallahi_sichani_2013/tools_table.html'}),
+
+    (r'^explore/10.1038-nchembio.1337/fallahi-sichani-2013/intro_to_dose_response_curves\.html$',
+     'django.views.generic.simple.direct_to_template',
+     {'template': '10_1038_nchembio_1337__fallahi_sichani_2013/intro_to_dose_response_curves.html'}),
+
     (r'^explore/10.1038-nchembio.1337/fallahi-sichani-2013/dose_response_grid\.html$',
      'django.views.generic.simple.direct_to_template',
      {'template': '10_1038_nchembio_1337__fallahi_sichani_2013/dose_response_grid.html'}),

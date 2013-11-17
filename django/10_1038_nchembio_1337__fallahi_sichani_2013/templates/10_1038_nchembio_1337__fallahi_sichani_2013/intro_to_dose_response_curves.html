@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block head_extra %}
+  <script type="text/javascript" src="http://code.jquery.com/jquery-latest.min.js"></script>
+  <link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+  <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.2/themes/smoothness/jquery-ui.css" />
+  <script type="text/javascript" src="http://code.jquery.com/ui/1.10.2/jquery-ui.js"></script>
+
+  <script src="http://d3js.org/d3.v3.min.js"></script>
+  <link rel="stylesheet" href="{{ STATIC_URL }}10_1038_nchembio_1337__fallahi_sichani_2013/css/sensitivities.css"/>
+{% endblock %}
+
+{% block title %}Parameterizing perturbagen dose-response relationships - {{ block.super }}{% endblock %}
+
+{% block contentclass %}fullwidth{% endblock %}
+
+{% block body %}
+
+<div>
+
+<h1>Parametrizing perturbagen dose-response relationships</h1>
+<hr>
+
+<p class="normal"><span>&nbsp;</span></p>
+<!-- <p class="normal"><b><span>Dose-response curves</span></b></p> -->
+
+ 
+   <p class="normal"><span>&nbsp;</span></p>
+
+    <div id="graph-container">
+    <div id="graph"></div>
+    </div>
+
+    <script src="{{ STATIC_URL }}10_1038_nchembio_1337__fallahi_sichani_2013/js/sensitivities.js"></script>
+
+    <div id="control-panel">
+
+      <div id="controls">
+
+        <div id="presets">
+          <table><tbody>
+            <tr>
+              <!-- <td><button class="preset ui-button ui-widget ui-state-default ui-corner-all" role="button" aria-disabled="false"><span class="ui-button-text">PP242</span></button></td> -->
+              <td><button class="preset">BEZ235</button></td>
+              <td><button class="preset">PP242</button></td>
+              <td><button class="preset">GSK1059615</button></td>
+            </tr>
+          </tbody></table>
+        </div>
+
+        <div id="sliders">
+          <table><tbody>
+            <tr><td><i>EC</i><sub>50</sub></td><td><div class="slider" id="EC50-slider"></div></td><td><div class="slider-value" id="EC50-slider-value">1.0e-7</div></td></tr>
+            <tr><td><i>E</i><sub>&infin;</sub>/<i>E</i><sub>0</sub></td><td><div class="slider" id="Einf-slider"></div></td><td><div class="slider-value" id="Einf-slider-value">0.150</div></td></tr>
+            <tr><td><i>HS</i></td><td><div class="slider" id="HS-slider"></div></td><td><div class="slider-value" id="HS-slider-value">0.500</div></td></tr>
+          </tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <div class="caption">
+      <p class="normal"><span>Typical cell viability dose response curves for HCC1954 breast cancer cells exposed to inhibitors of the PI3K/Akt pathway:
+      <a href="http://pubchem.ncbi.nlm.nih.gov/summary/summary.cgi?sid=26746658">BEZ235</a>,
+      <a href="http://pubchem.ncbi.nlm.nih.gov/summary/summary.cgi?cid=24905147">PP242</a>,
+      and
+      <a href="http://pubchem.ncbi.nlm.nih.gov/summary/summary.cgi?cid=23582824">GSK1059615</a>.
+      </span></p>
+    </div>
+
+
+
+<p class="normal"><span>A dose-response curve is the most fundamental measure of cellular response to perturbing agents and drugs. The curve measures the magnitude of an effect (in this description, cell viability) across a range of drug concentrations and is typically illustrated in a log-linear plot. The most common parameter derived from this relationship is IC<sub>50</sub>, the point at which half-maximal effect is achieved (this is often referred to as the “potency” of a perturbagen). However, variation in maximum effect at the highest doses (<i>E<sub>max</sub></i>) is also common. Capturing these sources of variation requires a multi-parametric description involving variables such as IC<sub>50</sub>, <i>E</i><sub>max</sub> and the slope of the curve. The underlying logistic equation is shown below, as are the relationships of various parameters to a typical dose response curve.</span></p>
+
+<!-- <p class="normal"><span>Dose-response curves are typically fitted to a logistical sigmoidal function characterized by four parameters: <i>E</i><sub>0</sub> and <i>E</i><sub>&infin;</sub> are the top and bottom asymptotes of the response; EC<sub>50</sub> is the concentration at half-maximal effect (hme) of the drug, and <i>HS</i> is a slope parameter mathematically analogous to the Hill coefficient, a conventional measure of cooperative interactions:</span></p> -->
+
+<p class="normal">&nbsp;</p>
+
+<!--
+The image below was generated with LaTeXiT 1.16.1, running on OS X Lion,
+with font size set to 18.00 pt, from
+
+E(D) = E_\infty + \frac{E_0 - E_\infty}{1 + (\frac{D}{\mathrm{EC}_{50}})^{H\!S}}
+
+and exported to PNG.
+-->
+
+
+<div class="equation-box" align="right" vertical-align="middle">
+  <div class="equation-img">
+    <img id="Equation 1" src="{{ STATIC_URL }}10_1038_nchembio_1337__fallahi_sichani_2013/img/image001.png">
+  </div>
+  <span vertical-align="middle">(1)</span>
+</div>
+
+
+<p class="normal">&nbsp;</p>
+
+<p class="normal"><span>where <i>D</i> is drug concentration, <i>E</i>(<i>D</i>) is a measured response parameter, <i>E</i><sub>0</sub> and <i>E</i><sub>&infin;</sub> are the top and bottom asymptotes of the response curve, EC<sub>50</sub> is the concentration at half-maximal effect (hme), and <i>HS</i> is a slope parameter analogous to a Hill coefficient.</span></p>
+
+<p class="normal">&nbsp;</p>
+
+<p class="normal"><span>Three measures of drug response derived from this equation are in common use: (<i>i</i>) IC<sub>50</sub>, the concentration of drug at which response is half its theoretical maximum (i.e. <i>E</i>(<i>D</i>)/<i>E</i><sub>0</sub> = 0.5); (<i>ii</i>) the value of the effect at the maximum concentration of drug tested (<i>E</i><sub>max</sub> = <i>E</i>(<i>D</i><sub>max</sub>)); and (<i>iii</i>) the area under the dose-response curve (AUC) also known as activity area.</span></p>
+
+<p class="normal">&nbsp;</p>
+
+
+<p class="normal">
+<img id="Figure 1" height="300" alt="Canonical dose-response curve" src="{{ STATIC_URL }}10_1038_nchembio_1337__fallahi_sichani_2013/img/image100.png">
+</p>
+    <div class="caption">
+      <p class="normal"><span><b>Figure 1.</b>  A canonical dose-response curve with parameters from equation 1 illustrated.</span></p>
+    </div>
+
+<p class="normal"><span>If we examine variation in the responses of ~50 breast cancer cell lines to the drug <a href="http://pubchem.ncbi.nlm.nih.gov/summary/summary.cgi?cid=73292"><b><i>fascaplysin</i></b></a>, a natural product and selective inhibitor of the <a href="http://www.uniprot.org/uniprot/P11802">cyclin dependent kinase 4</a>, as described by <a href="http://www.ncbi.nlm.nih.gov/pubmed/22003129">Heiser <i>et al.</i> (2012)</a>, we see a classic situation in which IC<sub>50</sub> varies, <i>E</i><sub>max</sub> = 0  (i.e complete killing at the highest dose) and the Hill slope parameter (<i>HS</i>) is approximately 1 (Figure 2; red curves).  However, if we look at the variation in responses to <a href="http://pubchem.ncbi.nlm.nih.gov/summary/summary.cgi?cid=148124"><b><i>docetaxel</i></b></a> we observe variation both in <i>E</i><sub>max</sub> and <i>HS</i> (Figure 2; blue curves).  We have recently performed a systematic analysis of large-scale dose-response data arising from LINCS experiments and published cell line encyclopedias, and a manuscript describing this work is currently in review. All analytical tools, raw data and other supplementary materials will be posted on this site soon. 
+
+<p class="normal"><span>&nbsp;</span></p>
+<p class="normal" style="text-align:center" align="center"><img id="Figure 2" src="{{ STATIC_URL }}10_1038_nchembio_1337__fallahi_sichani_2013/img/image002.png" alt="Comparison of fascaplysin and docetaxel" height="216" width="385"></p>
+    <div class="caption">
+      <p class="normal"><span><b>Figure 2.</b>  Comparison of dose-response curves for fascaplysin and docetaxel.</span></p>
+    </div>
+
+</div>
+
+{% endblock %}
