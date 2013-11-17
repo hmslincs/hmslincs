@@ -1,11 +1,13 @@
 (function ($) {
 
-  $('#scrollable-content').css('padding-top', vpadding($('#top-band')));
+    $('#pagebody-wrap')
+      .append($('<div id="loading"><div>loading...</div></div>'));
 
   // ----------------------------------------------------------------------
   var PLOT_RANGE_PADDING = 0.02,
       STATIC_URL = window.hmslincs.STATIC_URL,
       INPUT_FILE = STATIC_URL + '10_1038_nchembio_1337__fallahi_sichani_2013/data/dose_response_data.tsv',
+      //INPUT_FILE = STATIC_URL + '10_1038_nchembio_1337__fallahi_sichani_2013/data/mf_data_0.tsv',
       XRANGE = [-10.5, -2],
       MK_FN = mk_sigmoids,
       SHAPE = {width: 125, height: 75},
@@ -80,6 +82,12 @@
 
     // ----------------------------------------------------------------------
 
+    $('#dose-response-grid-main')
+      .append($('<div id="off-stage"><div class="list-container">' +
+                '<ul></ul></div></div>'));
+
+    // ----------------------------------------------------------------------
+
     // instrument button
 
     var nfactors = FACTORS.length,
@@ -88,12 +96,13 @@
     $('#toggle')
       .click(function() {
          var factor = FACTORS[pick = (pick + 1) % nfactors],
-             other = FACTORS[(pick + 1) % nfactors],
-             lvls = levels(data, factor),
-             nlevels = lvls.length,
-             classes = lvls.map(function (lvl) { return get_class(factor, lvl) });
+             other = FACTORS[(pick + 1) % nfactors];
 
          set_track(data, other);
+
+         var lvls = levels(data, factor),
+             nlevels = lvls.length,
+             classes = lvls.map(function (lvl) { return get_class(factor, lvl) });
 
          grid.selectAll('g')
              .each(function (_, i) {
@@ -111,10 +120,19 @@
                 d3.select(g).select('text').text(label);
               });
 
+         d3.select('#grid')
+           .selectAll('svg')
+           .each(function () {
+             var $this = d3.select(this),
+                 c = $this.selectAll('path')[0].length;
+             $this.style('display', c === 0 ? 'none' : '');
+            });
+
          $('.current-view').text(factor);
          $('.other-view').text(other);
 
        }).click();
+
     $('#reset').css('display', '');
     $("#caption").css('visibility', 'visible');
 
@@ -123,7 +141,7 @@
                  .css({'background-color': ''})
                  .removeClass('picked');
       current_color_index = 0;
-      d3.selectAll('#grid path')
+      d3.selectAll('#grid :first-child path')
         .each(function () {
            d3.select(this).classed('unhighlit', true)
                           .style('stroke', '');
@@ -131,12 +149,33 @@
       $(this).prop('disabled', true);
     });
 
+    (function () {
+       var w = $(window),
+           sc = $('#sticky-container'),
+           at = $('#sticky-anchor-top'),
+           ab = $('#sticky-anchor-bottom'),
+
+           a = {position: 'absolute', top: '',  bottom: '0'},
+           f = {position: 'fixed',    top: '0', bottom: ''},
+           r = {position: 'relative', top: '',  bottom: ''};
+
+       function scroll_handler () {
+         var st = w.scrollTop();
+         sc.css(st + sc.height() > ab.offset().top ? a :
+                st               > at.offset().top ? f : r);
+       };
+
+       w.scroll(scroll_handler);
+       scroll_handler();
+    })();
+
     $('#loading').fadeOut(800);
 
     // ----------------------------------------------------------------------
 
     function set_track (data, factor) {
-      var sbmargin = 25;
+      // var sbmargin = 25;
+      var borderwidth = 1;
 
       $('#track').css({visibility: 'hidden'});
 
@@ -157,23 +196,26 @@
                        return { text: lvl, 'class': get_class(factor, lvl) };
                      });
 
-      var bbmargin = 20;
-      $('#bottom-band').css({'padding-left': bbmargin + 'px',
-                             'padding-right': bbmargin + 'px'});
-      var width = $('#bottom-band').width() - (2 * bbmargin);
-      populate_list(ul, items, width - sbmargin);
+      // var bbmargin = 20;
+      // $('#track-container').css({'padding-left': bbmargin + 'px',
+      //                            'padding-right': bbmargin + 'px'});
+      // var width = $('#track-container').width() - (2 * bbmargin);
 
-      $('#track').css({width: $('#track > ul').width() + 2,
+      var width = $('#track-container').width();
+      // console.log(width - sbmargin);
+      // populate_list(ul, items, width - sbmargin);
+      populate_list(ul, items, width - 2 * borderwidth);
+      $('#track').css({visibility: 'visible'});
+
+      $('#track').css({width: $('#track > ul').width() + 2 * borderwidth,
                        visibility: 'visible'});
 
-      $('#scrollable-content').css('padding-bottom',
-                                   vpadding($('#bottom-band')));
       return;
     }
 
     function highlight (cls) {
       refresh();
-      d3.select('#grid')
+      d3.select('#grid :first-child')
         .selectAll('.' + cls)
         .classed('unhighlit', false)
         .style('stroke', color(current_color_index))
@@ -197,6 +239,7 @@
     }
 
     function populate_list (list, data, max_width, callback) {
+      console.log(max_width);
       var n = data.length,
           min_rows = 3,
           hpadding = 10,
@@ -208,9 +251,9 @@
           column_order = true;
 
       if (column_order) {
-        _populate_list_0(d3.select('#out-of-sight ul'), data);
+        _populate_list_0(d3.select('#off-stage ul'), data);
 
-        var all_widths = d3.select('#out-of-sight')
+        var all_widths = d3.select('#off-stage')
                            .selectAll('li')
                            .filter(function () {
                               return d3.select(this).style('display') !== 'none';
@@ -357,7 +400,7 @@
     return d3.set(proj(data, factor)).values();
   }
 
-  function build_grid (nvps, shape) {
+  function DISABLE__build_grid (nvps, shape) {
     var voodoo = 20,
         hmargin = 40,
         WIDTH = $('html').width() - hmargin,
@@ -365,13 +408,14 @@
         PADDING = 2;
 
     var row,
-        table = d3.select('#grid'),
+        table = d3.select('#grid').insert('table', ':first-child'),
         i = 0,
         available_width = WIDTH - BORDER_WIDTH,
         width_per_cell = shape.width + 2 * PADDING + BORDER_WIDTH,
         ncols = Math.floor(available_width/width_per_cell),
         label,
         box;
+
 
     while (i < nvps) {
       if (i % ncols == 0) { row = table.append('tr') }
@@ -389,6 +433,26 @@
 
     table.style('visibility', 'visible');
 
+    return table;
+  }
+
+  function build_grid (nvps, shape) {
+    var table = d3.select('#grid').insert('div', ':first-child');
+    table
+        .selectAll('svg')
+        .data(d3.range(nvps))
+        .enter()
+      .append('svg')
+        .attr(shape)
+      .append('g')
+      .append('text')
+        .text('placeholder')
+        .attr('x', 0)
+        .attr('y', function () {
+           return this.getBBox().height;
+         });
+
+    table.style('visibility', 'visible');
     return table;
   }
 
@@ -424,7 +488,8 @@
   }
 
   function vpadding ($e) {
-    return Math.ceil($e.get(0).getBoundingClientRect().height) + 'px';
+    var extra_padding = 20;
+    return Math.ceil($e.get(0).getBoundingClientRect().height + extra_padding) + 'px';
   }
 
   function mk_get_class () {
