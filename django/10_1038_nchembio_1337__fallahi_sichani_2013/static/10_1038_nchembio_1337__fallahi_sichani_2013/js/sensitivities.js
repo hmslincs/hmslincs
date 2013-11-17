@@ -367,7 +367,7 @@ jQuery(document).ready(function ($) {
         'GSK1059615': {'EC50': Math.pow(10, -6.831),
                        'HS': 1.17,
                        'Einf': 0.0039,},
-        'BEZ235': {'EC50': Math.pow(10, -7.674),
+        'Dactolisib': {'EC50': Math.pow(10, -7.674),
                    'HS': 0.54,
                    'Einf': 0.14,},
         '__RESET__': {'EC50': 1e-7,
