@@ -1,8 +1,5 @@
 (function ($) {
 
-    $('#pagebody-wrap')
-      .append($('<div id="loading"><div>loading...</div></div>'));
-
   // ----------------------------------------------------------------------
   var PLOT_RANGE_PADDING = 0.02,
       STATIC_URL = window.hmslincs.STATIC_URL,
