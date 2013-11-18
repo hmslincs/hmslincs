@@ -134,15 +134,7 @@
     $("#caption").css('visibility', 'visible');
 
     $('#reset').click(function () {
-      $('#track').find('li')
-                 .css({'background-color': ''})
-                 .removeClass('picked');
-      current_color_index = 0;
-      d3.selectAll('#grid :first-child path')
-        .each(function () {
-           d3.select(this).classed('unhighlit', true)
-                          .style('stroke', '');
-        });
+      reset();
       $(this).prop('disabled', true);
     });
 
@@ -175,6 +167,8 @@
       var borderwidth = 1;
 
       $('#track').css({visibility: 'hidden'});
+
+      reset();
 
       var ul = d3.select('#track ul');
 
@@ -233,6 +227,18 @@
         .each(function () {
                 this.parentNode.appendChild(this);
               });
+    }
+
+    function reset () {
+      $('#track').find('li')
+                 .css({'background-color':''})
+                 .removeClass('picked');
+      current_color_index = 0;
+      d3.selectAll('#grid :first-child path')
+        .each(function () {
+           d3.select(this).classed('unhighlit', true)
+                          .style('stroke', '');
+        });
     }
 
     function populate_list (list, data, max_width, callback) {
@@ -324,8 +330,7 @@
                   document.selection.empty();
                 }
                 event.stopPropagation();
-              })
-              ;
+              });
       }
 
       function get_width (t) {
