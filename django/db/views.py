@@ -91,18 +91,21 @@ def cellIndex(request):
     
     # 1. Override fields: note do this _before_ grabbing all the (bound) fields for the display matrix below
     form_field_overrides = {}
-    field_hash['dataset_types'] = FieldInformation.manager.get_column_fieldinformation_by_priority('dataset_types', '')
+    fieldinformation  = FieldInformation.manager.get_column_fieldinformation_by_priority('dataset_types', '')
+    field_hash['dataset_types'] = fieldinformation
     form_field_overrides['dataset_types'] = forms.ChoiceField(
         required=False, choices=dataset_types, 
         label=field_hash['dataset_types'].get_verbose_name(), 
         help_text=field_hash['dataset_types'].get_column_detail())
 
-    form = FieldsMetaForm(field_information_array=field_hash.values(), form_field_overrides=form_field_overrides, data=request.GET)
+    # now bind the form to the request, make a copy of the request, so that we can set values back to the client form
+    form = FieldsMetaForm(field_information_array=field_hash.values(), form_field_overrides=form_field_overrides, data=request.GET.copy())
     # add a "search" field to make it compatible with the full text search
     form.fields['search'] = forms.CharField(required=False);
     form.fields['extra_form_shown'] = forms.BooleanField(required=False);
     
     visible_field_overrides = []
+    search_label = ''
     if form.is_valid():
         if form.cleaned_data and form.cleaned_data['extra_form_shown']:
             form.shown = True
@@ -110,8 +113,12 @@ def cellIndex(request):
         show_field = form.cleaned_data.get(key +'_shown', False)
         field_data = form.cleaned_data.get(key)
         if show_field or field_data:
-            queryset = CellSearchManager().join_query_to_dataset_type(queryset, dataset_type=field_data)
+            if field_data:
+              queryset = CellSearchManager().join_query_to_dataset_type(queryset, dataset_type=field_data)
+              search_label += "Filtered for " + fieldinformation.get_verbose_name() + ": " + field_data
             visible_field_overrides.append(key)
+            # set the value for the shown field, can do this because we copied the querydict above
+            form.data[key+'_shown'] = True
     else:
         logger.info(str(('invalid form', form.errors)))
 
@@ -121,7 +128,7 @@ def cellIndex(request):
     outputType = request.GET.get('output_type','')
     if(outputType != ''):
         return send_to_file(outputType, 'cells', table, queryset, 'cell' )
-    return render_list_index(request, table,search,'Cell','Cells',**{ 'extra_form': form })
+    return render_list_index(request, table,search,'Cell','Cells',**{ 'extra_form': form, 'search_label': search_label })
 
 def cellDetail(request, facility_id):
     try:
@@ -172,18 +179,21 @@ def proteinIndex(request):
     
     # 1. Override fields: note do this _before_ grabbing all the (bound) fields for the display matrix below
     form_field_overrides = {}
-    field_hash['dataset_types'] = FieldInformation.manager.get_column_fieldinformation_by_priority('dataset_types', '')
+    fieldinformation  = FieldInformation.manager.get_column_fieldinformation_by_priority('dataset_types', '')
+    field_hash['dataset_types'] = fieldinformation
     form_field_overrides['dataset_types'] = forms.ChoiceField(
         required=False, choices=dataset_types, 
         label=field_hash['dataset_types'].get_verbose_name(), 
         help_text=field_hash['dataset_types'].get_column_detail())
 
-    form = FieldsMetaForm(field_information_array=field_hash.values(), form_field_overrides=form_field_overrides, data=request.GET)
+    # now bind the form to the request, make a copy of the request, so that we can set values back to the client form
+    form = FieldsMetaForm(field_information_array=field_hash.values(), form_field_overrides=form_field_overrides, data=request.GET.copy())
     # add a "search" field to make it compatible with the full text search
     form.fields['search'] = forms.CharField(required=False);
     form.fields['extra_form_shown'] = forms.BooleanField(required=False);
     
     visible_field_overrides = []
+    search_label = ""
     if form.is_valid():
         if form.cleaned_data and form.cleaned_data['extra_form_shown']:
             form.shown = True
@@ -191,8 +201,12 @@ def proteinIndex(request):
         show_field = form.cleaned_data.get(key +'_shown', False)
         field_data = form.cleaned_data.get(key)
         if show_field or field_data:
-            queryset = ProteinSearchManager().join_query_to_dataset_type(queryset, dataset_type=field_data)
+            if field_data:
+              queryset = ProteinSearchManager().join_query_to_dataset_type(queryset, dataset_type=field_data)
+              search_label += "Filtered for " + fieldinformation.get_verbose_name() + ": " + field_data
             visible_field_overrides.append(key)
+            # set the value for the shown field, can do this because we copied the querydict above
+            form.data[key+'_shown'] = True
     else:
         logger.info(str(('invalid form', form.errors)))
 
@@ -201,7 +215,7 @@ def proteinIndex(request):
     if(outputType != ''):
         return send_to_file(outputType, 'proteins', table, queryset, 'protein' )
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
-    return render_list_index(request, table,search,'Protein','Proteins',**{ 'extra_form': form })
+    return render_list_index(request, table,search,'Protein','Proteins',**{ 'extra_form': form, 'search_label': search_label })
     
 def proteinDetail(request, lincs_id):
     try:
@@ -350,19 +364,21 @@ def smallMoleculeIndex(request):
 
     # 1. Override fields: note do this _before_ grabbing all the (bound) fields for the display matrix below
     form_field_overrides = {}
-    field_hash['dataset_types'] = FieldInformation.manager.get_column_fieldinformation_by_priority('dataset_types', '')
+    fieldinformation  = FieldInformation.manager.get_column_fieldinformation_by_priority('dataset_types', '')
+    field_hash['dataset_types'] = fieldinformation
     form_field_overrides['dataset_types'] = forms.ChoiceField(
         required=False, choices=dataset_types, 
         label=field_hash['dataset_types'].get_verbose_name(), 
         help_text=field_hash['dataset_types'].get_column_detail())
     
-    # now bind the form to the request
-    form = FieldsMetaForm(field_information_array=field_hash.values(), form_field_overrides=form_field_overrides, data=request.GET)
+    # now bind the form to the request, make a copy of the request, so that we can set values back to the client form
+    form = FieldsMetaForm(field_information_array=field_hash.values(), form_field_overrides=form_field_overrides, data=request.GET.copy())
     # add a "search" field to make it compatible with the full text search
     form.fields['search'] = forms.CharField(required=False);
     form.fields['extra_form_shown'] = forms.BooleanField(required=False);
     
     visible_field_overrides = []
+    search_label = ""
     if form.is_valid():
         if form.cleaned_data and form.cleaned_data['extra_form_shown']:
             form.shown = True
@@ -370,8 +386,13 @@ def smallMoleculeIndex(request):
         show_field = form.cleaned_data.get(key +'_shown', False)
         field_data = form.cleaned_data.get(key)
         if show_field or field_data:
-            queryset = SmallMoleculeSearchManager().join_query_to_dataset_type(queryset, dataset_type=field_data)
+            if field_data:
+              queryset = SmallMoleculeSearchManager().join_query_to_dataset_type(queryset, dataset_type=field_data)
+              search_label += "Filtered for " + fieldinformation.get_verbose_name() + ": " + field_data
             visible_field_overrides.append(key)
+            # set the value for the shown field, can do this because we copied the querydict above
+            form.data[key+'_shown'] = True
+            form.shown = True
     else:
         logger.info(str(('invalid form', form.errors)))
 
@@ -386,7 +407,7 @@ def smallMoleculeIndex(request):
     
         if(len(queryset) == 1 ):
             return redirect_to_small_molecule_detail(queryset[0])
-    return render_list_index(request, table,search,'Small molecule','Small molecules', **{ 'extra_form': form } ) #, **kwargs )    
+    return render_list_index(request, table,search,'Small molecule','Small molecules', **{ 'extra_form': form, 'search_label': search_label } ) #, **kwargs )    
 
 def smallMoleculeIndexList(request, facility_ids=''):
     logger.debug(str(('search for small molecules: ', facility_ids)))
@@ -576,12 +597,14 @@ def datasetIndex(request): #, type='screen'):
         help_text=field_hash['dataset_type'].get_column_detail())
     
     # 2. initialize.  this binds the form fields
-    form = FieldsMetaForm(field_information_array=field_hash.values(), form_field_overrides=form_field_overrides, data=request.GET)
+    # now bind the form to the request, make a copy of the request, so that we can set values back to the client form
+    form = FieldsMetaForm(field_information_array=field_hash.values(), form_field_overrides=form_field_overrides, data=request.GET.copy())
     # add a "search" field to make it compatible with the full text search
     form.fields['search'] = forms.CharField(required=False);
     form.fields['extra_form_shown'] = forms.BooleanField(required=False);
     
     visible_field_overrides = []
+    search_label = ""
     if form.is_valid():
         logger.info(str(('processing form', form.cleaned_data)))
         if form.cleaned_data and form.cleaned_data['extra_form_shown']:
@@ -590,9 +613,12 @@ def datasetIndex(request): #, type='screen'):
         show_field = form.cleaned_data.get(key +'_shown', False)
         field_data = form.cleaned_data.get(key, None)
         if field_data:
+            search_label += "Filtered for " + field_hash['dataset_type'].get_verbose_name() + ": " + field_data
             queryset = queryset.filter(dataset_type=str(field_data))
             
         if show_field or field_data:
+            # set the value for the shown field, can do this because we copied the querydict above
+            form.data[key+'_shown'] = True
             visible_field_overrides.append(key)
     else:
         logger.info(str(('invalid form', form.errors)))
@@ -605,7 +631,7 @@ def datasetIndex(request): #, type='screen'):
         return send_to_file(outputType, 'datasetIndex', table, queryset, 'dataset' )
     requestArgs = { 
       'usage_message': 'To find <a href="datasets">datasets</a> from <a href="http://lincs.hms.harvard.edu/about/publications/">LINCS publications</a>, type the relevant PMID in the datasets search box below.',
-      'extra_form': form
+      'extra_form': form, 'search_label': search_label
       }
     return render_list_index(request, table,search,'Dataset','Datasets', **requestArgs)
 
