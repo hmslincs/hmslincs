@@ -209,7 +209,7 @@ INSTALLED_APPS = (
     'db',
     'pathway',
     'responses',
-    'sensitivities',
+    '10_1038_nchembio_1337__fallahi_sichani_2013',
     # # 'south', #for schema migrations
     # # 'fts', # for full text search
 )
