@@ -82,6 +82,7 @@
     $('#dose-response-grid-main')
       .append($('<div id="off-stage"><div class="list-container">' +
                 '<ul></ul></div></div>'));
+    $('#off-stage').css('font', $('#track').css('font'));
 
     // ----------------------------------------------------------------------
 
