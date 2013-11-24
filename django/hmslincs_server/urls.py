@@ -42,6 +42,10 @@ urlpatterns = patterns('',
     (r'^explore/10.1038-nchembio.1337/fallahi-sichani-2013/dose_response_grid\.html$',
      'django.views.generic.simple.direct_to_template',
      {'template': '10_1038_nchembio_1337__fallahi_sichani_2013/dose_response_grid.html'}),
+
+    (r'^explore/10.1038-nchembio.1337/fallahi-sichani-2013/scatterplots\.html$',
+     'django.views.generic.simple.direct_to_template',
+     {'template': '10_1038_nchembio_1337__fallahi_sichani_2013/scatterplots.html'}),
 )
 
 # For DEBUG mode only (development) serving of static files

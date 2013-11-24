@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block head_extra %}
+  <link rel="stylesheet" href="{{ STATIC_URL }}10_1038_nchembio_1337__fallahi_sichani_2013/css/scatterplots.css"/>
+
+<style>
+/* div{outline:1px solid red;} */
+
+/* assorted hacks to disable site-wide settings */
+
+/* #right-panel{outline-color:blue;} */
+/* #sticky-container{outline-color:#0a0;} */
+/* #track-container{outline-color:black;} */
+
+/* #content{outline:5px solid black;} */
+/* #pagebody{outline:5px solid green;} */
+/* #pagebody-wrap{outline:5px solid red;} */
+
+#content{min-height:0;}
+#content{margin-top:15px;}
+#content > h1{margin-bottom:10px;}
+#pagebody{border-bottom:#ffefe2 1px solid;}
+#pagebody{margin-bottom:10px;}
+#pagebody{padding-top:65px;padding-bottom:0;}
+#pagebody-wrap{background-color:white;}
+
+.empty-div{display:none;}
+
+</style>
+
+{% endblock %}
+
+{% block title %}Scatterplot browser - {{ block.super }}{% endblock %}
+
+{% block contentclass %}fullwidth{% endblock %}
+
+{% block body %}
+
+      <h1>Scatterplot browser</h1>
+    </div> <!-- close <div id="content"> -->
+    <br style="clear:left">
+  </div> <!-- close <div id="pagebody"> -->
+<!-- </div> --> <!-- close <div id="pagebody-wrap"> -->
+
+
+    <div id="main">
+
+      <div id="usage-wrapper">
+        <div class="closed usage">
+          <div class="close tab">
+            <svg width="26" height="26" viewBox="-13 -13 26 26">
+                  <!-- version="1.1" xmlns="http://www.w3.org/2000/svg"> -->
+              <g class="corner-dingbat">
+                <rect class="outer" x="-13" y="-13" width="26" height="26" rx="4" ry="4"/>
+                <g transform="rotate(45)">
+                  <line x1="-7" y1="0" x2="7" y2="0"/><line x1="0" y1="-7" x2="0" y2="7"/>
+                </g>
+              </g>
+            </svg>
+          </div>
+
+          <div class="open tab">
+            <svg width="26" height="26" viewBox="-13 -13 26 26">
+                  <!-- version="1.1" xmlns="http://www.w3.org/2000/svg"> -->
+              <g class="corner-dingbat">
+                <rect class="outer" x="-13" y="-13" width="26" height="26" rx="4" ry="4"/>
+                <circle class="inner" cx="0" cy="0" r="9"/>
+                <text text-anchor="middle" dy="0.75ex">?</text>
+              </g>
+            </svg>
+          </div>
+
+          <div class="content">
+            USAGE:
+            <ul>
+            <li>first select (in the left-hand-side panel) an identifier for the Y-axis; (hovering the mouse over these identifiers allows quick scanning over possible choices; clicking on an identifier fixes it as the choice; this choice serves as the "anchor" for all the subsequent selections, but it can be changed, as described below);
+            <li>then select one or more identifiers for the X-axis, by clicking on them;
+            <li>the thin crosswise marks along the Y- and X-axes correspond to points for which only the X- or Y-coordinate is specified and available;
+            <li>to choose a different identifier for the Y-axis, click on the previously selected one; (it is possible to choose the Y-axis identifier also for the X-axis, by holding down the shift key while clicking on the Y-axis identifier the second time);
+            <li>changing the metric (through the righ-hand-side button-set) preserves the current selection of identifier-pairs.
+            </ul>
+          </div> <!-- .content -->
+        </div> <!-- .usage -->
+      </div> <!-- #usage-wrapper -->
+
+
+      <table>
+        <tr class="buttons">
+          <td>
+            <label> <input type="radio" name="factor" value="drug">      drug vs drug           </label>
+            <label> <input type="radio" name="factor" value="cell line"> cell line vs cell line </label>
+          </td>
+          <td>
+            <div style="float:right">            
+            <label> <input type="radio" name="metric" value="log10[IC50 (M)]"> IC<sub>50</sub> (log10) </label>
+            <label> <input type="radio" name="metric" value="E_max">           E<sub>max</sub>         </label>
+            <label> <input type="radio" name="metric" value="HillSlope">       Hill slope              </label>
+            </div>
+          </td>
+        </tr>
+
+        <tr>
+          <td rowspan="2">
+            <div id="track-container">
+              <!-- <button id="toggle">Toggle view</button> -->
+              <div id="track" class="list-container">
+                <ul>
+                  <div class="title"></div>
+                </ul>
+
+                <br>
+
+                <!-- <div class="button-bar"> -->
+                <!--   <button id="reset" style="margin:5px;" disabled="">reset</button> -->
+                <!-- </div> -->
+
+              </div> <!-- #track -->
+            </div> <!-- #track-container -->
+
+
+          </td>
+          <td class="stage"></td>
+        </tr>
+
+        <tr>
+          <td>
+          <div id="clear"><button disabled>clear</button></div>
+          <ul id="legend"></ul>
+          </td>
+        </tr>
+
+      </table>
+
+    </div> <!-- #main -->
+
+    <script>
+(function (hmslincs) {
+  hmslincs.STATIC_URL = "{{ STATIC_URL }}";
+})(window.hmslincs = window.hmslincs || {});
+    </script>
+
+    <script src="//code.jquery.com/jquery-1.10.2.min.js"></script>
+    <script src="//d3js.org/d3.v3.min.js"></script>
+    <script src="{{ STATIC_URL }}10_1038_nchembio_1337__fallahi_sichani_2013/js/scatterplots.js"></script>
+
+<!-- <div class="empty-div"> --> <!-- match the </div> for <div id="pagebody-wrap"> -->
+  <div class="empty-div"> <!-- match the </div> for <div id="pagebody"> -->
+    <div class="empty-div"> <!-- match the </div> for <div id="content"> -->
+
+{% endblock %}
