@@ -18,7 +18,6 @@
          voodoo = 0;
 
      $('#main').width(outerwidth + left_panel_width + voodoo);
-     // $('html').css('visibility', 'visible');
 
      // if (borderwidth == 0) {
      //   $('#main td.stage').css('border-top', '1px solid ' + bordercolor);
@@ -136,7 +135,7 @@
         lis.text(function (d) { return d === sentinel ? 'null' : d.text; })
            .style('display', '')
            .style('visibility',
-                  function (d) { return d === sentinel ? 'hidden' : 'visible'; });
+                  function (d) { return d === sentinel ? 'hidden' : ''; });
       }
 
       function acceptable_width (descending_widths, f) {
@@ -201,11 +200,8 @@
       // console.log(width - sbmargin);
       // populate_list(ul, items, width - sbmargin);
       populate_list(ul, items, width - 2 * borderwidth, handlers);
-      $('#track').css({visibility: 'visible'});
-
       $('#track').css({width: $('#track > ul').width() + 2 * borderwidth,
-                       visibility: 'visible'});
-
+                       visibility: ''});
 
       //     labels = d3.selectAll('.stage .label'),
       //     exit = labels.data(FACTORS[pivcol])
@@ -722,7 +718,7 @@
           clear_all();
       });
 
-      $('html').css('visibility', 'visible');
+      $('#main').removeClass('loading');
     })();
 
     // -------------------------------------------------------------------------

@@ -17,6 +17,8 @@ html{background-color:#dedede;}
 html,
 #main{background-color:white;}
 
+#main.loading{visibility:hidden;}
+
 #main{
   font-family: Consolas, Monaco, Courier, monospace;
 }
@@ -186,7 +188,6 @@ svg {
   clear:left;
 }
 
-#track-container{width:375px;}
 #legend > li > span{
   color:black;
 }
@@ -274,9 +275,6 @@ svg {
   margin-bottom:1ex;
 }
 */
-#track {
-  visibility:hidden;
-}
 
 #track .title{
   width:100%;
