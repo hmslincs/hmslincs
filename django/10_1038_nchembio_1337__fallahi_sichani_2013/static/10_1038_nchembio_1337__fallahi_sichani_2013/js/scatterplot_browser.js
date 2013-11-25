@@ -1032,9 +1032,11 @@
   // ---------------------------------------------------------------------------
 
   (function () {
-     var STATIC_URL = window.hmslincs.STATIC_URL;
-     var INPUT = STATIC_URL + '10_1038_nchembio_1337__fallahi_sichani_2013/data/dose_response_data.tsv';
-     //var INPUT = STATIC_URL + '10_1038_nchembio_1337__fallahi_sichani_2013/data/mf_data_0.tsv';
+     var STATIC_URL = window.hmslincs.STATIC_URL,
+         data_dir = STATIC_URL + '10_1038_nchembio_1337__fallahi_sichani_2013/data/';
+
+     var INPUT = data_dir + 'dose_response_data.tsv';
+     // var INPUT = data_dir + 'mf_data_0.tsv';
 
      d3.tsv(INPUT, function (error, data) {
        assert(error === null);
