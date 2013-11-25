@@ -1,3 +1,7 @@
+// BLK
+// (function () {
+// })();
+
 (function ($) {
   (function () {
      var WIDTH = 375,
@@ -30,7 +34,7 @@
                  .attr('class', 'root');
 
      root.append('rect')
-           .attr('class', 'canvas')
+           //.attr('class', 'canvas')
            .attr('width', WIDTH)
            .attr('height', HEIGHT)
            .style({fill: 'white',
@@ -312,82 +316,46 @@
        var points_g = plot_g.append('g')
                               .attr('class', 'points');
 
+       var PLOT_RANGE_PADDING,
+           EDGE_PARAM,
+           CCLE,
+           HBAR,
+           VBAR,
+           CRSS;
 
-       var edge_coord;
+       (function () {
+          assert(width === height);
+          var side = width,
+              margin = 3.5,
+              radius = 3.5,
+              abs_padding = 2 * margin + 3 * radius,
+              rel_padding = abs_padding/(side - 2 * abs_padding);
 
-       function coord (v) {
-         return isFinite(v) ? v : edge_coord;
-       }
+          PLOT_RANGE_PADDING = rel_padding;
+          EDGE_PARAM = (margin + radius)/abs_padding;
 
-       var marker_size = 30;
+          CCLE = d3.svg.symbol().type('circle')
+                   .size(radius*radius*Math.PI)();
 
-       var ccle = d3.svg.symbol().type('circle').size(marker_size);
+          HBAR = 'M' + -radius + ',0H' + radius;
+          VBAR = 'M0' + -radius + ',V' + radius;
+          CRSS = HBAR + VBAR;
+       })();
 
-       function hbar (d, i) {
-         var r = Math.sqrt(marker_size / 5) * 1.5;
-         return 'M' + -r + ',0H' + r;
-       }
-
-       function vbar (d, i) {
-         var r = Math.sqrt(marker_size / 5) * 1.5;
-         return 'M0' + -r + ',V' + r;
-       }
-
-       $$.fix_current =
-         function () {
-           points_g.selectAll('path:not(.fixed)')
-                   .classed('fixed', true);
-           $('#clear button').prop('disabled', false);
-           //current_color.next();
-         };
-
-       $$.have_y_level = function () { return $('.y-level').length > 0; }
-
-       $$.view_data =
-         function (data) {
-           // if (data.length > 0 && !data[0].hasOwnProperty('x')) {
-           //   data = data.map(function (d) { return {x: edge_coord, y: d.y}; });
-           // }
-
-           var color = $$.have_y_level() ?
-                         current_color() :
-                         d3.select('.plot .y.axis line').style('stroke');
-
-           points_g.selectAll('path:not(.fixed)')
-                   .data(data)
-                   .enter()
-                 .append('path');
-
-           points_g.selectAll('path:not(.fixed)').each(function (d) {
-                  var s = {},
-                      a = {transform: translate(x(coord(d.x)), y(coord(d.y)))};
-                  if (isFinite(d.x) && isFinite(d.y)) {
-                    a.d = ccle(d);
-                    a['class'] = 'circle-marker';
-                    s.fill = color;
-                  }
-                  else if (isFinite(d.x)) {
-                    a.d = vbar(d);
-                    a['class'] = 'vbar';
-                    s.stroke = color;
-                  }
-                  else {
-                    a.d = hbar(d);
-                    a['class'] = 'hbar';
-                    s.stroke = color;
-                  }
-                  d3.select(this).attr(a)
-                                 .style(s);
-
-                });
-
-            return $$;
-         };
+       function xcoord (v) {}
+       function ycoord (v) {}
 
        $$.domain = function (domain) {
-           x.domain(domain).nice();
-           y.domain(domain).nice();
-           edge_coord = x.domain()[0];
+           var dmn = pad_interval(domain, PLOT_RANGE_PADDING);
+           x.domain(dmn);//.nice();
+           y.domain(dmn);//.nice();
+
+           var edge_coord = (domain[0] * EDGE_PARAM) +
+                            (dmn[0]    * (1 - EDGE_PARAM));
+
+           xcoord = ycoord = function (v) {       
+             return isFinite(v) ? v : edge_coord;
+           };
 
            var xaxis = d3.svg.axis()
                .scale(x)
@@ -403,6 +371,64 @@
            yaxis_g.call(yaxis);
 
            return $$;
+         };
+
+       $$.fix_current =
+         function () {
+           points_g.selectAll('path:not(.fixed)')
+                   .classed('fixed', true);
+           $('#clear button').prop('disabled', false);
+           //current_color.next();
+         };
+
+       $$.have_y_level = function () { return $('.y-level').length > 0; }
+
+       $$.view_data =
+         function (data) {
+           var have_y_level = $$.have_y_level(),
+               color = have_y_level ? current_color()
+                                    : d3.select('.plot .y.axis line')
+                                         .style('stroke');
+
+           points_g.selectAll('path:not(.fixed)')
+                   .data(data)
+                   .enter()
+                 .append('path')
+                 .append('svg:title')
+                   .text(function (d) { return d.title; });
+
+           points_g.selectAll('path:not(.fixed)').each(function (d) {
+                  var s = {},
+                      a = {transform: translate(x(xcoord(d.x)), y(ycoord(d.y)))};
+
+                  if (isFinite(d.y) &&
+                      (!have_y_level || isFinite(d.x))) {
+                    a.d = CCLE;
+                    a['class'] = 'circle-marker';
+                    s.fill = color;
+                  }
+                  else {
+                    s.stroke = color;
+                    if (isFinite(d.x)) {
+                      assert(!isFinite(d.y));
+                      a.d = VBAR;
+                      a['class'] = 'vbar';
+                    }
+                    else if (!have_y_level || isFinite(d.y)) {
+                      a.d = HBAR;
+                      a['class'] = 'hbar';
+                    }
+                    else {
+                      a.d = CRSS;
+                      a['class'] = 'cross';
+                    }
+                  }
+                  d3.select(this).attr(a)
+                                 .style(s);
+
+                });
+
+            return $$;
          };
 
        $$.clear_all = function () {
@@ -452,44 +478,46 @@
         TRAITS,
         DATA;
 
-    $('#track ul').hover(function () { PLOT.clear_not_fixed(); });
+    $('#track ul').hover(function (e) {
+        if (!e.shiftKey) { PLOT.clear_not_fixed(); }
+    });
 
-    d3.selectAll('.stage .root .cell')
-        .each(function (d) {
-           var cell = d3.select(this);
-           var rect = cell.select('rect');
-           var guides = cell.selectAll('.guide');
-           var ll = d3.selectAll('#label-' + d.i + ',' + '#label-' + d.j);
-           cell
-             .on('mouseover', null)
-             .on('mouseover', function () {
-                d3.event.stopPropagation();
-                // if (!rect.classed('fixed')) {
-                if (!cell.classed('fixed')) {
-                  var clr = current_color();
-                  rect.style('fill', clr);
-                  guides.style({display: '', stroke: clr});
-                }
-                ll.classed('highlit', true);
-                var pair = [TRAITS[d.i], TRAITS[d.j]];
-                PLOT.view_data(xys(pair, DATA, [KEYCOL]));
-              })
-             .on('mouseout', function (e) {
-                // if (!rect.classed('fixed')) {
-                if (!cell.classed('fixed')) {
-                  rect.style('fill', 'none');
-                  guides.style({display: 'none'});
-                }
-                ll.classed('highlit', false);
-              })
-             .on('mouseup', function (e) {
-                PLOT.fix_current();
-                //rect.classed('fixed', true);
-                cell.classed('fixed', true);
-                $('#clear button').prop('disabled', false);
-              })
-             ;
-         });
+    // d3.selectAll('.stage .root .cell')
+    //     .each(function (d) {
+    //        var cell = d3.select(this);
+    //        var rect = cell.select('rect');
+    //        var guides = cell.selectAll('.guide');
+    //        var ll = d3.selectAll('#label-' + d.i + ',' + '#label-' + d.j);
+    //        cell
+    //          .on('mouseover', null)
+    //          .on('mouseover', function () {
+    //             d3.event.stopPropagation();
+    //             // if (!rect.classed('fixed')) {
+    //             if (!cell.classed('fixed')) {
+    //               var clr = current_color();
+    //               rect.style('fill', clr);
+    //               guides.style({display: '', stroke: clr});
+    //             }
+    //             ll.classed('highlit', true);
+    //             var pair = [TRAITS[d.i], TRAITS[d.j]];
+    //             PLOT.view_data(xys(pair, DATA, [KEYCOL]));
+    //           })
+    //          .on('mouseout', function (e) {
+    //             // if (!rect.classed('fixed')) {
+    //             if (!cell.classed('fixed')) {
+    //               rect.style('fill', 'none');
+    //               guides.style({display: 'none'});
+    //             }
+    //             ll.classed('highlit', false);
+    //           })
+    //          .on('mouseup', function (e) {
+    //             PLOT.fix_current();
+    //             //rect.classed('fixed', true);
+    //             cell.classed('fixed', true);
+    //             $('#clear button').prop('disabled', false);
+    //           })
+    //          ;
+    //      });
 
     // $('body')
     //   .append($('<div id="off-stage" ' +
@@ -519,7 +547,7 @@
       if (picked[0].length === 1) {
         levels.push(picked.datum().text);        
       }
-      PLOT.view_data(xys(levels, DATA, [KEYCOL]));
+      PLOT.view_data(toxys(levels));
     }
 
     // #track li:hover:not(.y-level){
@@ -528,35 +556,49 @@
     //   filter:alpha(opacity=75);
     // }
 
+    $('body').keyup(function (e) {
+      //LOG([e.which, e.target]);
+      if (e.which == 16) {
+        update_view();
+      }
+    });
+
+    var $anchor = null;
+
     function handlers () {
       $(this).hover(function (e) {
           e.stopPropagation();
           var $li = $(this);
           if ($('.y-level').length > 0) {
             $li.css({'background-color': current_color(),
-                     color: 'white'});
+                     color: 'white',
+                     opacity: 0.75,
+                     filter: 'alpha(opacity=75)'});
           }
           else {
+            //console.log(d3.select(this).datum());
             $li.css({outline: '1px solid black'});
           }
           view_data(d3.select(this).datum().text);
         },
-        function () {
+        function (e) {
           var $li = $(this);
-          $li.css({'background-color': '', color: ''});
+          $li.css({'background-color': '',
+                   color: '',
+                   opacity: 1,
+                   filter: 'alpha(opacity=100)'});
           if ($li.hasClass('y-level')) return;
           $li.css({outline: 'none'});
         })
              .click(function (e) {
           if (e.which !== 1) { return; }
-
           var $li = $(this);
           var $ylevel = $('.y-level');
           if ($ylevel.length > 0) {
-
             if ($li.hasClass('y-level') && !e.shiftKey) {
               $li.removeClass('y-level');
               $li.css({'background-color': '', color: ''});
+              $li.trigger('mouseenter');
             }
             else {
               clear_text_selection();
@@ -576,21 +618,17 @@
               item.append('span')
                     .text(function (d) { return '\u00A0' + d.join(' vs '); });
 
-              // item.insert('span', ':first-child')
-              //       .text(function (d) { return d.join(' vs '); });
-              //$li.css({'background-color': ''});
-
-              $li.css({'background-color': current_color()});
+              $li.css({color: 'white',
+                       'background-color': current_color(),
+                       opacity: 1,
+                       filter: 'alpha(opacity=100)'});
 
               current_color.next();
             }
           }
           else {
             $li.addClass('y-level');
-            $li.css({'background-color': ''});
-            // $li.css({'background-color': current_color()});
-            // $('#reset').prop('disabled', false);
-            // current_color.next()
+            $li.trigger('mouseenter');
           }
           e.stopPropagation();
 
@@ -608,6 +646,17 @@
       update_data();
     }
 
+    function toxys (levels) {
+      var data = xys(levels, DATA, [KEYCOL]);
+      if (KEYCOL !== 'title') {
+        data.forEach(function (d) {
+          d.title = d[KEYCOL];
+          delete d[KEYCOL];
+        });
+      }
+      return data;
+    }
+
     function update_metric (e) {
       if (!e.currentTarget.checked) { return; }
       update_data();
@@ -618,7 +667,7 @@
       var points_g = d3.select('.points');
       d3.selectAll('#legend li').each(function (d, i) {
          if (i === 0) { $('#clear button').prop('disabled', false); }
-         PLOT.view_data(xys(d, DATA, [KEYCOL]));
+         PLOT.view_data(toxys(d));
          PLOT.fix_current();
          current_color.next();
       })
@@ -895,6 +944,15 @@
   //   return ret;
   // }
 
+  function pad_interval(interval, padding) {
+    return [interpolate(interval, -padding),
+            interpolate(interval, 1 + padding)];
+  }
+
+  function interpolate(interval, t) {
+    return interval[0] * (1 - t) + interval[1] * t;
+  }
+
   function clear_text_selection () {
     if (window.getSelection) {
       window.getSelection().removeAllRanges();
@@ -914,7 +972,65 @@
     $('body').append($('<div id="off-stage"><div class="list-container">' +
                        '<ul><li>foo</li></ul></div></div>'));
     copy_font('#track', '#off-stage');
+
+
+    (function () {
+       var side = 26,
+           stroke_width = 0,//2,
+           radius = 4 - (stroke_width/2),
+           w = side - stroke_width,
+           color = $('#usage-wrapper .content').css('background-color');
+
+
+       d3   .selectAll('#usage-wrapper .tab')
+         .append('svg')
+            .attr({width: side,
+                   height: side,
+                   viewBox: viewbox(-side/2, -side/2, side, side)})
+         .append('g')
+            .attr('class', 'corner-dingbat')
+          .append('rect')
+            .attr({'class': 'outer',
+                   x: -w/2, y: -w/2, width: w, height: w,
+                   rx: radius, ry: radius})
+            .style({stroke: color,
+                    'stroke-width': stroke_width});
+
+       d3   .select('#usage-wrapper .close.tab .corner-dingbat')
+         .append('g')
+            .attr('transform', 'rotate(45)')
+            .each(function () {
+               var $this = d3.select(this),
+                   r = 7;
+               $this.append('line')
+                      .attr({x1: -r, y1: 0, x2: r, y2: 0});
+               $this.append('line')
+                      .attr({y1: -r, x1: 0, y2: r, x2: 0});
+            });
+
+       d3   .select('#usage-wrapper .open.tab .corner-dingbat')
+            .each(function () {
+               var $this = d3.select(this);
+               $this.append('circle')
+                      .attr({'class': 'inner',
+                             cx: 0, cy: 0, r: 9});
+               $this.append('text')
+                      .attr({'text-anchor': 'middle',
+                             dy: '0.75ex'})
+                      .text('?');
+            });
+           
+    })();
+
+    $('#usage-wrapper .tab').click(function (e) {
+      if (e.which !== 1) { return; }
+      var $u = $('#usage-wrapper .usage'),
+          cc = $u.hasClass('opened') ? ['opened', 'closed'] : ['closed', 'opened'];
+      $u.removeClass(cc[0]).addClass(cc[1]);
+    });
+
   })();
+
 
   // hack to prevent horizontal shift when vertical scrollbar appears
   (function () {
@@ -930,19 +1046,6 @@
     }
     $window.resize(on_resize).trigger('resize');
   })();
-
-  $('#usage-wrapper .tab').click(function (e) {
-    if (e.which !== 1) { return; }
-    var $u = $('#usage-wrapper .usage'),
-        cc = $u.hasClass('opened') ? ['opened', 'closed'] : ['closed', 'opened'];
-    $u.removeClass(cc[0]).addClass(cc[1]);
-  });
-
-  $('#usage-wrapper .tab').hover(function (e) {
-    d3.select(this).select('.tab.shy svg').style('display', 'none');
-  }, function (e) {
-    d3.select(this).select('.tab.shy svg').style('display', '');
-  });
 
   // ---------------------------------------------------------------------------
 
