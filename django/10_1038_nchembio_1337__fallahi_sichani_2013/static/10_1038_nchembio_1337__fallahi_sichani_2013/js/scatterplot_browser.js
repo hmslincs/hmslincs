@@ -4,6 +4,10 @@
 
 (function ($) {
   (function () {
+
+     var left_panel_width = 250;
+     $('#track-container').css('width', left_panel_width);
+
      var WIDTH = 375,
          HEIGHT = 375;
 
@@ -11,11 +15,9 @@
      var bordercolor = '#999'
      var outerwidth = WIDTH + borderwidth,
          outerheight = HEIGHT + borderwidth
-         voodoo = 1;
-     $('#main').width(outerwidth +
-                      $('#main table tr:first-child td:first-child')
-                          .get(0).getBoundingClientRect().width +
-                      voodoo);
+         voodoo = 0;
+
+     $('#main').width(outerwidth + left_panel_width + voodoo);
      // $('html').css('visibility', 'visible');
 
      // if (borderwidth == 0) {
