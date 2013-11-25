@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block head_extra %}
-  <link rel="stylesheet" href="{{ STATIC_URL }}10_1038_nchembio_1337__fallahi_sichani_2013/css/scatterplots.css"/>
+  <link rel="stylesheet" href="{{ STATIC_URL }}10_1038_nchembio_1337__fallahi_sichani_2013/css/scatterplot_browser.css"/>
 
 <style>
 /* div{outline:1px solid red;} */
@@ -46,7 +46,7 @@
           <div title="help" class="open tab"></div>
           
           <div class="content">
-            <p>This widget serves to explore the dose-response data reported in <a href="http://dx.doi.org/10.1038/nchembio.1337">Fallahi-Sichani, et al. (2013)</a>, by overlaying multiple "cell line vs. cell line" or "drug vs. drug" scatterplots like those shown in Figure 4(a) and Figure 4(c, d, e), respectively.</p>
+            <p>This browser widget serves to explore the dose-response data reported in <a href="http://dx.doi.org/10.1038/nchembio.1337">Fallahi-Sichani, et al. (2013)</a>, by overlaying multiple "cell line vs. cell line" or "drug vs. drug" scatterplots like those shown in Figure 4(a) and Figure 4(c, d, e), respectively.</p>
 
             <p>Once a metric is chosen, the scatterplots to be displayed are specified by selecting <i>pairs</i> of either cell lines or drugs; each such pair is selected by clicking on its members' names in the Selection Panel (lower-left corner).</p>
 
@@ -131,7 +131,7 @@
 
     <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/d3/3.3.10/d3.min.js"></script>
-    <script src="{{ STATIC_URL }}10_1038_nchembio_1337__fallahi_sichani_2013/js/scatterplots.js"></script>
+    <script src="{{ STATIC_URL }}10_1038_nchembio_1337__fallahi_sichani_2013/js/scatterplot_browser.js"></script>
 
 <!-- <div class="empty-div"> --> <!-- match the </div> for <div id="pagebody-wrap"> -->
   <div class="empty-div"> <!-- match the </div> for <div id="pagebody"> -->
