@@ -35,7 +35,6 @@
                  .attr('class', 'root');
 
      root.append('rect')
-           //.attr('class', 'canvas')
            .attr('width', WIDTH)
            .attr('height', HEIGHT)
            .style({fill: 'white',
@@ -47,12 +46,6 @@
      // parseInt(d3.select('.stage .root > rect').attr('height'))
 
   })();
-
-  // just a stub, in case we want to write a more adaptive/real-time
-  // determination of the width for the labels;
-  function get_label_strip_width (data) {
-    return 85;
-  }
 
   function make_track (FACTORS) {
 
@@ -169,57 +162,26 @@
       var pivcol = $(':radio[name=factor]:checked').attr('value');
 
 
-      // var sbmargin = 25;
       var borderwidth = 1;
 
       $('#track').css({visibility: 'hidden'});
 
       var ul = d3.select('#track ul');
 
-      // ul.style({display: '',
-      //           width: ''});
-
-      // var lis = ul.selectAll('li')
-      //             .style('display', 'none');
-
       var title = ul.select('.title')
                     .text(pivcol)
                     .style('font-weight', 'bold');
 
-      var items = FACTORS[pivcol] //levels(data, factor)
+      var items = FACTORS[pivcol]
                     .map(function (lvl) {
-                       return { text: lvl }//, 'class': get_class(factor, lvl) };
+                       return { text: lvl };
                      });
 
-      // var bbmargin = 20;
-      // $('#track-container').css({'padding-left': bbmargin + 'px',
-      //                            'padding-right': bbmargin + 'px'});
-      // var width = $('#track-container').width() - (2 * bbmargin);
-
       var width = $('#track-container').width();
-      // console.log(width - sbmargin);
-      // populate_list(ul, items, width - sbmargin);
       populate_list(ul, items, width - 2 * borderwidth, handlers);
       $('#track').css({width: $('#track > ul').width() + 2 * borderwidth,
                        visibility: ''});
-
-      //     labels = d3.selectAll('.stage .label'),
-      //     exit = labels.data(FACTORS[pivcol])
-      //                  .exit();
-
-      // labels.text(String)
-      //       .each(function (d, i) {
-      //          d3.selectAll('.row-' + i)
-      //            .style('display', '');
-      //        });
-
-      // exit  .each(function (d, i) {
-      //          d3.selectAll('.row-' + i)
-      //            .style('display', 'none');
-      //        });
     }
-
-    // d3.selectAll('#track-pad,#labels-strip').style({display: 'none'});
 
     return $$;
   } // function make_track (FACTORS) {
@@ -233,15 +195,9 @@
        var WIDTH = parseInt(outerrect.attr('width'));
        var HEIGHT = parseInt(outerrect.attr('height'));
 
-       // var labelwidth = parseInt(d3.select('#labels-strip rect').attr('width'));
-       // var sqrt2 = Math.sqrt(2);
-       // var w = labelwidth/sqrt2;
-
        var borderwidth = 0;//4;
        var rw = WIDTH - borderwidth/2;
-       // var rh = HEIGHT - borderwidth/2;
 
-       // var available_width = Math.max((rw - w)/2, rw - rh);
        var available_width = rw;
        var voodoo = 0;
        var margin = 0;//10;
@@ -259,21 +215,19 @@
                .attr('class', 'canvas')
                .attr('width', side)
                .attr('height', side)
-               .style({fill: 'white',//'beige',
-                       stroke: '#00a',
-                       'stroke-width': borderwidth});
+               .style({'stroke-width': borderwidth});
 
-        var outerbw = parseInt(outerrect.style('stroke-width'));
-        var dh = side + borderwidth - HEIGHT;
-        if (dh > 0) {
-          var svg = d3.select('#main td.stage > svg');
-          var vb = svg.attr('viewBox')
-                      .split(' ')
-                      .map(function (s) { return parseInt(s); });
-          var newh = (vb[3] += dh);
-          svg.attr({height: newh, viewBox: viewbox(vb)});
-          outerrect.attr('height', HEIGHT + dh);
-        }
+       var outerbw = parseInt(outerrect.style('stroke-width'));
+       var dh = side + borderwidth - HEIGHT;
+       if (dh > 0) {
+         var svg = d3.select('#main td.stage > svg');
+         var vb = svg.attr('viewBox')
+                     .split(' ')
+                     .map(function (s) { return parseInt(s); });
+         var newh = (vb[3] += dh);
+         svg.attr({height: newh, viewBox: viewbox(vb)});
+         outerrect.attr('height', HEIGHT + dh);
+       }
     })();
 
     // -------------------------------------------------------------------------
@@ -351,7 +305,7 @@
            var edge_coord = (domain[0] * EDGE_PARAM) +
                             (dmn[0]    * (1 - EDGE_PARAM));
 
-           xcoord = ycoord = function (v) {       
+           xcoord = ycoord = function (v) {
              return isFinite(v) ? v : edge_coord;
            };
 
@@ -376,7 +330,6 @@
            points_g.selectAll('path:not(.fixed)')
                    .classed('fixed', true);
            $('#clear button').prop('disabled', false);
-           //current_color.next();
          };
 
        $$.have_y_level = function () { return $('.y-level').length > 0; }
@@ -480,88 +433,14 @@
         if (!e.shiftKey) { PLOT.clear_not_fixed(); }
     });
 
-    // d3.selectAll('.stage .root .cell')
-    //     .each(function (d) {
-    //        var cell = d3.select(this);
-    //        var rect = cell.select('rect');
-    //        var guides = cell.selectAll('.guide');
-    //        var ll = d3.selectAll('#label-' + d.i + ',' + '#label-' + d.j);
-    //        cell
-    //          .on('mouseover', null)
-    //          .on('mouseover', function () {
-    //             d3.event.stopPropagation();
-    //             // if (!rect.classed('fixed')) {
-    //             if (!cell.classed('fixed')) {
-    //               var clr = current_color();
-    //               rect.style('fill', clr);
-    //               guides.style({display: '', stroke: clr});
-    //             }
-    //             ll.classed('highlit', true);
-    //             var pair = [TRAITS[d.i], TRAITS[d.j]];
-    //             PLOT.view_data(xys(pair, DATA, [KEYCOL]));
-    //           })
-    //          .on('mouseout', function (e) {
-    //             // if (!rect.classed('fixed')) {
-    //             if (!cell.classed('fixed')) {
-    //               rect.style('fill', 'none');
-    //               guides.style({display: 'none'});
-    //             }
-    //             ll.classed('highlit', false);
-    //           })
-    //          .on('mouseup', function (e) {
-    //             PLOT.fix_current();
-    //             //rect.classed('fixed', true);
-    //             cell.classed('fixed', true);
-    //             $('#clear button').prop('disabled', false);
-    //           })
-    //          ;
-    //      });
-
-    // $('body')
-    //   .append($('<div id="off-stage" ' +
-    //             'style="position:absolute;left:-999999px"></div>'));
-
-    // d3.select('#off-stage').append('svg')
-    //                          .attr('width', 100000)
-    //                          .attr('height', 100000)
-    //                          .attr('viewBox', viewbox(-50000, -50000,
-    //                                                   100000, 100000))
-    //                        .append('g')
-    //                        .append('text')
-    //                          .attr('id', 'get-width');
-
-
-    // var lwidth = Math.max.apply(null,
-    //                             FACTORS.map(function (f) {
-    //               return acceptable_width(get_widths(f,
-    //                                                  {'class', '.label'},
-    //                                                  {'font-weight', 'bold'})
-    //                                         .sort(d3.descending), 0.05);
-    //              }));
-
     function view_data (level) {
       var levels = [level];
       var picked = d3.selectAll('.y-level');
       if (picked[0].length === 1) {
-        levels.push(picked.datum().text);        
+        levels.push(picked.datum().text);
       }
       PLOT.view_data(toxys(levels));
     }
-
-    // #track li:hover:not(.y-level){
-    //   color:white;
-    //   opacity:0.75;
-    //   filter:alpha(opacity=75);
-    // }
-
-    $('body').keyup(function (e) {
-      //LOG([e.which, e.target]);
-      if (e.which == 16) {
-        update_view();
-      }
-    });
-
-    var $anchor = null;
 
     function handlers () {
       $(this).hover(function (e) {
@@ -574,7 +453,6 @@
                      filter: 'alpha(opacity=75)'});
           }
           else {
-            //console.log(d3.select(this).datum());
             $li.css({outline: '1px solid black'});
           }
           view_data(d3.select(this).datum().text);
@@ -679,7 +557,6 @@
         return;
       }
       KEYCOL = keycol;
-      //TRAITS = d3.set(proj(STACKED, pivcol)).values().sort();
       TRAITS = FACTORS[pivcol];
 
       var unstacked = unstack(STACKED,
@@ -923,25 +800,6 @@
     return ret;
   }
 
-  // function get_widths (strings, attr, style) {
-  //   var g = d3.  select('#off-stage > svg')
-  //             .append('g');
-
-  //   var ret = [];
-
-  //   g  .selectAll('text')
-  //      .data(strings)
-  //      .enter()
-  //    .append('text')
-  //      .text(String)
-  //      .attr(attr || {})
-  //      .style(style || {})
-  //      .each(function () { ret.push(this.getBBox().width); })
-
-  //   g.remove();
-  //   return ret;
-  // }
-
   function pad_interval(interval, padding) {
     return [interpolate(interval, -padding),
             interpolate(interval, 1 + padding)];
@@ -1029,6 +887,7 @@
 
   })();
 
+
   // ---------------------------------------------------------------------------
 
   (function () {
@@ -1045,4 +904,3 @@
   })();
 
 })(jQuery);
-
