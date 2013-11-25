@@ -1029,22 +1029,6 @@
 
   })();
 
-
-  // hack to prevent horizontal shift when vertical scrollbar appears
-  (function () {
-    var $body = $('body');
-    var sb_div = $('<div>').addClass('sb-measure').get(0);
-    $('body').append(sb_div);
-    var sb_width = sb_div.offsetWidth - sb_div.clientWidth;
-    $(sb_div).remove();
-    var $window = $(window);
-    var delta = $window.width() - $body.width() + sb_width;
-    function on_resize () {
-      $body.width($window.width() - delta);
-    }
-    $window.resize(on_resize).trigger('resize');
-  })();
-
   // ---------------------------------------------------------------------------
 
   (function () {
