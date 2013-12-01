@@ -14,6 +14,10 @@
 #content{min-height:0;}
 #content{margin-top:15px;}
 #content > h1{margin-bottom:10px;}
+
+#pagebody{padding-bottom:0;}
+#sidebar{margin:0;}
+
 /*
 #pagebody{border-bottom:#ffefe2 1px solid;}
 #pagebody{margin-bottom:10px;}
@@ -35,89 +39,93 @@
 
       <h1>Scatterplot browser</h1>
     </div> <!-- close <div id="content"> -->
-    <br style="clear:left">
+    <br class="clear-left"/>
   <!-- </div> <\!-- close <div id="pagebody"> -\-> -->
 <!-- </div> --> <!-- close <div id="pagebody-wrap"> -->
 
 
-    <div id="main" class="loading">
+  <div id="main" class="loading global">
 
-      <div id="usage-wrapper">
-        <div class="closed usage">
-          <div class="close tab"></div>
-          <div title="help" class="open tab"></div>
-          
-          <div class="content">
-            <p>This browser widget serves to explore the dose-response data reported in <a href="http://dx.doi.org/10.1038/nchembio.1337">Fallahi-Sichani, et al. (2013)</a>, by overlaying multiple "cell line vs. cell line" or "drug vs. drug" scatterplots like those shown in Figure 4(a) and Figure 4(c, d, e), respectively.</p>
+    <div class="centered-track">
 
-            <p>Once a metric is chosen, the scatterplots to be displayed are specified by selecting <i>pairs</i> of either cell lines or drugs; each such pair is selected by clicking on its members' names in the Selection Panel (lower-left corner).</p>
+      <div class="tab">
+        <div class="close"></div>
+        <div class="open" title="Help"></div>
+      </div>
 
-            <p>USAGE AND NOTES:</p>
+      <div class="slider">
+        <div id="help" class="flap">
 
+          <div>
+            <p>This browser widget serves to explore the dose-response data reported in <a href="http://dx.doi.org/10.1038/nchembio.1337">Fallahi-Sichani, et al. (2013)</a>, by overlaying multiple "cell line vs. cell line" or "drug vs. drug" scatterplots like those shown in Figure 4(a, c, d, e).  The different scatterplots shown in the right-hand panel correspond to different dose-response metrics.</p>
+
+            <p>The scatterplots to be displayed are specified by selecting <i>pairs</i> of either cell lines or drugs; each such pair is selected by clicking on its members' names in the Selection Panel (to the left of the plots).</p>
+
+            <p>USAGE:</p>
             <ul>
-              <li>first, if necessary, specify the desired plot type and/or metric, with the buttons on the top row;
-              <li>next, choose the entity corresponding to the <i>y</i>-axis by clicking on its name in the Selection Panel (in the widget's lower-left corner); this choice serves as the "anchor" for all subsequent selections, but it can be changed easily, as described below);
-              <li>finally, select one or more entities for the <i>x</i>-axis, by clicking on their names; selecting an entity for the <i>x</i>-axis in this way simultaneously selects a new pair, which gets added to a running list of selected pairs, shown below the plot area; this list of selected pairs persists until the <span class="button-reference">clear</span> button is pressed, or the current plot type is changed; the first member of each pair is always the one corresponding to the <i>y</i>-axis;
-              <li>to select a different "anchor" for the <i>y</i>-axis, click on the previously selected one to deselect it (any previously selected pairs will remain unaffected by this), and then proceed as before; (it is possible to choose the <i>y</i>-axis identifier also for the <i>x</i>-axis, by holding down the shift key while clicking on the <i>y</i>-axis identifier the second time);
-              <li>the thin marks along either axis correspond to points for which only the coordinate for that axis is available; a cross-shaped mark represents points for which neither coordinate is available (such a cross-shaped mark, when present, always appears on the diagonal, near the lower left corner of the plot);
-              <li>changing the metric does not affect the current selection of pairs.
+              <li>first specify the desired plot type (if necessary);</li>
+              <li>next, choose the entity corresponding to the <i>y</i>-axes by clicking on its name in the Selection Panel; this choice serves as the "anchor" for all subsequent selections, but it can be changed easily, as described below);</li>
+              <li>finally, select one or more entities for the <i>x</i>-axes, by clicking on their names; selecting an entity for the <i>x</i>-axis in this way simultaneously selects a new pair, which gets added to a running list of selected pairs, shown below the Selection Panel; this list of selected pairs persists until the <span class="button-reference">clear</span> button is pressed, or the current plot type is changed; the first member of each pair is always the one corresponding to the <i>y</i>-axes;</li>
+              <li>to select a different "anchor" for the <i>y</i>-axes, click on the previously selected one to deselect it (any previously selected pairs will remain unaffected by this), and then proceed as before; (it is possible to choose the <i>y</i>-axis identifier also for the <i>x</i>-axes, by holding down the shift key while clicking on the <i>y</i>-axis identifier the second time).</li>
             </ul>
 
-          </div> <!-- .content -->
-        </div> <!-- .usage -->
-      </div> <!-- #usage-wrapper -->
+            <p>NOTES:</p>
+            <ul>
+              <li>hovering the cursor over the names in the Selection Panel gives a rapid scan over the available data; clicking on a name fixes the choice;</li>
+              <li>the thin marks along either axis correspond to points for which only the coordinate for that axis is available;</li>
+              <li>a cross-shaped mark represents points for which neither coordinate is available (such a cross-shaped mark, when present, always appears on the diagonal, near the lower left corner of the plot);</li>
+              <li>performance and appearance vary across web browsers; in our experience, Chrome is best, followed by Safari, Firefox, Internet Explorer (11+), and Opera, in roughly that order.</li>
+            </ul>
+
+          </div>
+
+        </div> <!-- #help .flap -->
+
+        <div id="widget" class="content">
+
+          <table><tr>
+            <td id="left-panel">
+
+               <div id="clear"><button>clear</button></div><br class="clear-right"/>
+
+               <div class="buttons">
+                 <div class="cell-content radio-button-group" name="factor">
+                   <div class="group-label">plot type:</div>
+                   <div>
+                     <label> <input type="radio" value="cell line"> cell line vs. cell line </label>
+                     <label> <input type="radio" value="drug">      drug vs. drug           </label>
+                   </div>
+                 </div>
+               </div>
+
+               <div id="picker-container">
+                 <div id="picker" class="list-container">
+                   <ul>
+                     <div class="title"></div>
+                   </ul>
+
+                   <br>
+                 </div> <!-- #picker -->
+               </div> <!-- #picker-container -->
+
+               <div id="legend">
+                 <ul></ul>
+               </div>
+
+            </td> <!-- #left-panel -->
+
+            <td id="right-panel">
+              <div class="stage"></div>
+            </td>
+
+          </tr></table>
+
+        </div> <!-- .content -->
 
 
-      <table>
-        <tr class="buttons">
-          <td>
-            <div class="cell-content radio-button-group">
-              <div class="group-label">plot type:</div>
-              <div>
-                <label> <input type="radio" name="factor" value="cell line"> cell line vs. cell line </label>
-                <label> <input type="radio" name="factor" value="drug">      drug vs. drug           </label>
-              </div>
-            </div>
-          </td>
-          <td>
-            <div class="cell-content radio-button-group">
-              <div class="group-label">metric:</div>
-              <div>
-                <label> <input type="radio" name="metric" value="log10[IC50 (M)]"> IC<sub>50</sub> (log10)      </label>
-                <label> <input type="radio" name="metric" value="E_max">           E<sub>max</sub>/E<sub>0</sub></label>
-                <label> <input type="radio" name="metric" value="HillSlope">       Hill slope                   </label>
-              </div>
-            </div>
-          </td>
-        </tr>
-
-        <tr>
-          <td rowspan="2">
-            <div id="track-container">
-              <div id="track" class="list-container">
-                <ul>
-                  <div class="title"></div>
-                </ul>
-
-                <br>
-              </div> <!-- #track -->
-            </div> <!-- #track-container -->
-
-
-          </td>
-          <td class="stage"></td>
-        </tr>
-
-        <tr>
-          <td>
-          <div id="clear"><button disabled>clear</button></div>
-          <ul id="legend"></ul>
-          </td>
-        </tr>
-
-      </table>
-
-    </div> <!-- #main -->
+      </div> <!-- .slider -->
+    </div> <!-- .centered-track -->
+  </div> <!-- #track-wrapper -->
 
     <script>
 (function (hmslincs) {

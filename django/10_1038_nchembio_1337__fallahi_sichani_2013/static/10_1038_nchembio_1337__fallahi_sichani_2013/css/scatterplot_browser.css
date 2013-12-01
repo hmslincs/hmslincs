@@ -1,116 +1,165 @@
-/*
-*{
-  margin:0;
-  padding:0;
-  border:0;
-  outline:0;
-}
-*/
+/******************************************************************************/
+
 /*
 #main *{outline:1px solid red;}
 html{background-color:#dedede;}
 */
-/**/
-html,
-#main{background-color:white;}
 
-#main.loading{visibility:hidden;}
+/******************************************************************************/
 
 #main,#main *{
   -webkit-box-sizing:border-box;
      -moz-box-sizing:border-box;
           box-sizing:border-box;
 }
-
-#main{
-  margin:0 auto;
-  font-family:Consolas, Monaco, Courier, monospace;
-}
-
-/******************************************************************************/
-
 #main table{
   border-spacing:0;
   border-collapse:collapse;
-  font-size:8pt;
 }
-#main .radio-button-group label{
+
+body,.global, .global div,.global img,.global p,.global table,.global td{margin:0;padding:0;border:0;}
+.global{
+  font-family:Consolas, Monaco, Courier, monospace;
+  font-size:13px;
+}
+
+/******************************************************************************/
+
+.loading{
+  visibility:hidden;
+}
+
+/******************************************************************************/
+
+#main .centered-track{
+  width:930px;
+  background-color:white;
+  /*padding:30px;*/
+}
+
+/******************************************************************************/
+
+#main > .open   .tab > .open,
+#main > .closed .tab > .close{display:none;}
+
+#main ul,#main li{list-style:initial;} /* undoes reset.css */
+
+#main p{
+  margin-top:3ex;
+}
+#main .tab text{
+  font-weight:bold;
+  font-size:22px;
+}
+
+#main .closed .tab > .open  svg,
+#main .open   .tab > .close svg{display:block;}
+
+#main .closed .tab > .close svg,
+#main .open   .tab > .open  svg{display:none;}
+
+#main .tab > .open       .outer,
+#main .tab               text,
+#main .tab > .open:hover .inner{fill:white;}
+
+#main .tab               .inner,
+#main .tab > .open:hover .outer,
+#main .tab > .open:hover text,
+#main .tab > .close      .outer{fill:#E6941E;}
+
+#main .centered-track .flap > div{
+  background-color:#E6941E;
+  padding:30px 80px 10px;
+}
+
+#main .centered-track{
+  position:relative;
+  margin:0 auto;
+  overflow:hidden;
+}
+#main .centered-track > .tab{
+  position:absolute;
+  z-index:1;
+  cursor:default;
+}
+
+#main .centered-track > .slider{position:relative;}
+
+#main .centered-track > .slider > .flap{
+  position:absolute;
+  width:100%;
+  bottom:100%;
+}
+
+#main .centered-track > .slider > .content{
+  position:relative;
+  width:100%;
+  display:table;
+}
+
+#main .slider .flap > div{
+  color:white;
+  background-color:#E6941E;
+  -webkit-border-radius:4px;
+  border-radius:4px;
+  -moz-background-clip:padding;
+  -webkit-background-clip:padding-box;
+  background-clip:padding-box;
+}
+
+/******************************************************************************/
+
+#widget{
+  margin:0 auto;
+  font-size:11px;
+  height:717px;
+  /*height:478px;*/
+}
+
+#widget > table td{white-space:normal;} /* undoes hmslincs.css */
+
+#widget > table{margin-top:30px;}
+
+#widget > table .radio-button-group label{
   display:block;
   padding:0 1ex;
 }
-#main .radio-button-group .group-label{
+#widget > table .radio-button-group .group-label{
   font-weight:bold;
 }
 
-#main .radio-button-group input[type='radio'],
-#main .radio-button-group label{
+#widget > table .radio-button-group input[type='radio'],
+#widget > table .radio-button-group label{
   vertical-align:baseline;
 }
 
-#main .buttons > td{
-  vertical-align:bottom;
-  padding:10px;
-  white-space:nowrap;
+#widget #left-panel{
+  vertical-align:top;
+  padding-top:5px;
 }
-#main .buttons td > div > div{
+
+#widget .buttons > div{
+  padding:10px 0;
+}
+
+#widget .buttons > div > div{
   display:inline-block;
   vertical-align:middle;
 }
-#main .buttons td:last-child > div{
-  float:right;
-  margin-right:50px;
-}
 
-#main td.stage{
+#widget .stage{
   padding:0;
 }
 
-#main tr:nth-child(2) > td{
-  vertical-align:top;
-}
-
 /******************************************************************************/
 
-svg{
-  display:block;
-  font:10px sans-serif;
+#picker{
+  width:100%;
 }
 
-.canvas,
-.diagonal,
-.frame,
-.axis path,
-.axis line{
-  shape-rendering:crispEdges;
-  stroke:#aaa;
-  fill:none;
+#picker-container{
+  display:inline-block;
 }
-
-.axis path{
-  display:none;
-}
-
-/******************************************************************************/
-
-.hbar,
-.vbar,
-.cross{
-  shape-rendering:crispEdges
-}
-
-.circle-marker,.hbar,.vbar,.cross{
-  cursor:pointer;
-}
-
-.circle-marker{
-  stroke:none;
-}
-.hbar,.vbar,.cross{
-  fill:none;
-  stroke-width:1;
-}
-
-/******************************************************************************/
 
 .list-container{
   cursor:default;
@@ -137,36 +186,31 @@ svg{
   clear:left;
 }
 
-#track{
-  width:100%;
+#picker ul{
+  padding-left:0;
 }
 
-#track-container{
-  display:inline-block;
-}
-
-/******************************************************************************/
-/* columnation */
+/****** columnation ******/
 
 /* TBD = to be determined (dynamically, that is) */
 
 /*
-#track ul, #track ol{
+#picker ul, #picker ol{
   width:TBD;
 }
-#track li{
+#picker li{
   width:TBD;
 }
 */
 
-#track li{
+#picker li{
   margin:0 5px;
   padding:0 5px;
 }
-#track li{
+#picker li{
   line-height:2.5ex;
 }
-#track{
+#picker{
   background-color:white;
   border:1px solid black;
   -webkit-border-radius:4px;
@@ -176,17 +220,17 @@ svg{
   background-clip:padding-box;
 }
 
-#track li{
+#picker li{
   color:black;
   background-color:white;
   margin-bottom:1px;
 }
-#track .y-level{
+#picker .y-level{
   outline:1px solid black;
   font-weight:bold;
 }
 
-#track .title{
+#picker .title{
   width:100%;
   text-align:center;
   border-bottom:1px solid black;
@@ -195,23 +239,6 @@ svg{
   font-weight:bold;
 }
 
-/******************************************************************************/
-#legend{
-  margin:0;
-  padding:0;
-  list-style:none;
-}
-#legend > li > span{
-  color:black;
-}
-#legend > li > span{
-  font-size:8pt;
-}
-#legend .bullet{
-  font-size:14px !important;
-}
-
-/******************************************************************************/
 #off-stage{
   position:relative;
 }
@@ -222,136 +249,95 @@ svg{
 
 /******************************************************************************/
 
-#track ul{
-  padding-left:0;
-}
 #legend{
-  float:left;
+  margin:0;
+  padding:0;
+  list-style:none;
+  width:100%;
 }
+#legend li{
+  line-height:11px;
+}
+#legend table{
+  width:100%;
+}
+#legend td{
+  vertical-align:top;
+}
+#legend .bullet{
+  font-size:14px;
+  width:14px;
+  line-height:11px;
+}
+#legend .entry{
+  font-size:11px;
+  color:black;
+}
+
+/******************************************************************************/
+
 #clear{
   float:right;
 }
 #clear button{
   padding:1px 6px;
 }
-#legend,#clear{
-  vertical-align:top;
+#clear button:disabled{ 
+  opacity:0.5;
+  filter:alpha(opacity=50);
 }
-
-
-
 
 /******************************************************************************/
-#main,body,#usage-wrapper{margin-top:10px;}
-#main > table{margin-top:20px;}
 
-#usage-wrapper{
-  position:relative;
-  padding:0;
-  padding-bottom:3px;
-  margin:0;
-  font-size:14px;
-}
-
-#usage-wrapper ul{
-  padding-left:20px;
-  padding-bottom:1ex;
-  margin-bottom:0;
-  margin-top:0;
-}
-
-/* the following is needed to countermand reset.css */
-#usage-wrapper ul,
-#usage-wrapper li{
-  list-style:initial;
-}
-
-#usage-wrapper .tab{
-  position:absolute;
-  display:table;
-  margin:0;
-  padding:0;
-  top:0px;
-  right:0px;
-  font-family:Courier;
-  font-size:large;
-}
-
-#usage-wrapper .tab{
-  font-weight:bold;
-}
-
-#usage-wrapper .content{
-  padding:2ex 3em;
-}
-
-#usage-wrapper .content .button-reference{
-  outline:1px solid white;
-  padding:0 3px;
-  font-family:Courier;
-}
-
-#usage-wrapper .content{
-  color:white;
-  background-color:#E6941E;
-  -webkit-border-radius:4px;
-  border-radius:4px;
-  -moz-background-clip:padding;
-  -webkit-background-clip:padding-box;
-  background-clip:padding-box;
-}
-
-#usage-wrapper .content a{
-  color:#0ff;
-}
-#usage-wrapper .content a:hover{
-  color:#dff;
-}
-
-#usage-wrapper > .closed.usage .content{
-  display:none;
-}
-
-#usage-wrapper > .opened.usage .open.tab{
-  display:none;
-}
-
-#usage-wrapper > .closed.usage .close.tab{
-  display:none;
-}
-
-#usage-wrapper > .opened.usage svg text{
-  cursor:default;
-}
-
-#usage-wrapper > .opened.usage svg text,
-#usage-wrapper > .opened.usage .tab{
-  cursor:default;
-}
-
-#usage-wrapper > .closed.usage .tab{
-  cursor:default;
-}
-
-#usage-wrapper .tab line{
+.canvas,
+.diagonal,
+.frame,
+.axis path,
+.axis line{
   shape-rendering:crispEdges;
-  stroke:white;
+  stroke:#aaa;
+  fill:none;
+}
+
+.axis path{
+  display:none;
+}
+
+/******************************************************************************/
+
+.plot-label{ 
+  font-family:Consolas, Monaco, Courier, monospace;
+  font-size:12px;
+}
+.math{font-style:italic;}
+.subscript{font-size:smaller;}
+
+/******************************************************************************/
+
+.hbar,
+.vbar,
+.cross{
+  shape-rendering:crispEdges
+}
+.circle-marker,.hbar,.vbar,.cross{
+  cursor:pointer;
+}
+
+.circle-marker{
+  stroke:none;
+}
+.hbar,.vbar,.cross{
+  fill:none;
   stroke-width:1;
 }
-#usage-wrapper .open.tab text{
-  font-family:Consolas, Monaco, Courier, monospace;
-  font-weight:bold;
-  font-size:22px;
+
+/******************************************************************************/
+
+.clear-right{
+  clear:right;
+}
+.clear-left{
+  clear:left;
 }
 
-#usage-wrapper .closed.usage .close.tab svg,
-#usage-wrapper .opened.usage .open.tab  svg{display:none;}
-
-#usage-wrapper .open.tab       .outer,
-#usage-wrapper .open.tab       text,
-#usage-wrapper .open.tab:hover .inner{fill:white;}
-
-#usage-wrapper .open.tab       .inner,
-#usage-wrapper .open.tab:hover .outer,
-#usage-wrapper .open.tab:hover text,
-#usage-wrapper .close.tab      .outer{fill:#E6941E;}
+/******************************************************************************/
