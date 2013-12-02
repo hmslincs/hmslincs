@@ -945,36 +945,35 @@
 
   (function () {
 
-    var $centered_track = $('.centered-track'),
-        $slider = $centered_track.find('.slider'),
+    var $centered_track = $('#main .centered-track'),
         $tab = $centered_track.find('.tab'),
-        flap = $centered_track.find('.flap').get(0),
-        top_closed = 0,
-        top_open;
-
-    $(flap).css('padding-bottom',
-                $('.centered-track .slider').offset().top -
-                $('.centered-track').offset().top);
-    $tab.css('right',
-             18 +
-             $('.centered-track').get(0).getBoundingClientRect().right -
-             $('.centered-track .slider').get(0).getBoundingClientRect().right);
+        $flap = $centered_track.find('.flap'),
+        top_open = 0,
+        rect = function ($sel) { return $sel.get(0).getBoundingClientRect(); };
 
     function slide (shut, now) {
-      top_open = parseInt(flap.getBoundingClientRect().height, 10);
-      var props = shut ? {top: top_closed} : {top: top_open},
-          cc = shut ? ['closed', 'open'] : ['open', 'closed'];
-      $slider.animate(props, now ? 0 : 200);
+      var props, cc;
+      if (shut) {
+        props = {'margin-top': rect($centered_track).top - rect($flap).bottom };
+        cc = ['closed', 'open'];
+      }
+      else {
+        props = {'margin-top': top_open };
+        cc = ['open', 'closed'];
+      }
+      $flap.animate(props, now ? 0 : 200);
       $centered_track.removeClass(cc[1]).addClass(cc[0]);
     }
 
-    $centered_track.find('.tab').click(function () {
-      slide($centered_track.hasClass('open'));
-    });
+    $tab.css('right', 18 + rect($centered_track).right - rect($flap).right)
+        .click(function () {
+           slide($centered_track.hasClass('open'));
+         });
 
     slide(true, true);
-
   }());
+
+  // ---------------------------------------------------------------------------
 
   (function () {
     $('.radio-button-group').each(function () {

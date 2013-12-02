@@ -83,21 +83,16 @@ body,.global, .global div,.global img,.global p,.global table,.global td{margin:
   cursor:default;
 }
 
-#main .centered-track > .slider{position:relative;}
-
-#main .centered-track > .slider > .flap{
-  position:absolute;
+#main .flap{
   width:100%;
-  bottom:100%;
 }
 
-#main .centered-track > .slider > .content{
-  position:relative;
+#main .content{
   width:100%;
   display:table;
 }
 
-#main .slider .flap > div{
+#main .flap > div{
   color:white;
   background-color:#E6941E;
   -webkit-border-radius:4px;
