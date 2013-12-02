@@ -39,8 +39,8 @@ body,.global, .global div,.global img,.global p,.global table,.global td{margin:
 
 /******************************************************************************/
 
-#main > .open   .tab > .open,
-#main > .closed .tab > .close{display:none;}
+#main .open   .tab > .open,
+#main .closed .tab > .close{display:none;}
 
 #main ul,#main li{list-style:initial;} /* undoes reset.css */
 
@@ -67,7 +67,7 @@ body,.global, .global div,.global img,.global p,.global table,.global td{margin:
 #main .tab > .open:hover text,
 #main .tab > .close      .outer{fill:#E6941E;}
 
-#main .centered-track .flap > div{
+#main .flap > div{
   background-color:#E6941E;
   padding:30px 80px 10px;
 }
@@ -77,7 +77,7 @@ body,.global, .global div,.global img,.global p,.global table,.global td{margin:
   margin:0 auto;
   overflow:hidden;
 }
-#main .centered-track > .tab{
+#main .tab{
   position:absolute;
   z-index:1;
   cursor:default;
