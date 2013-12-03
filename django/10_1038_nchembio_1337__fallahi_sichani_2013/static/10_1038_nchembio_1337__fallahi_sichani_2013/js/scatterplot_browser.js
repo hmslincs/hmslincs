@@ -923,7 +923,8 @@
             $this.append('text')
                    .attr({'text-anchor': 'middle',
                           dy: '0.75ex'})
-                   .text('\u2329');
+                   //.text('\u2329');  // bombs on FF 25 + OS X!
+                   .text('<');
          });
 
     d3   .select('#main .tab > .open .corner-dingbat')
@@ -959,13 +960,16 @@
         props = {'margin-top': top_open };
         cc = ['open', 'closed'];
       }
+debugger;
       $pulldown.animate(props, now ? 0 : 200);
       $centered_track.removeClass(cc[1]).addClass(cc[0]);
     }
 
     $tab.css('right', 18 + rect($centered_track).right - rect($pulldown).right)
         .click(function () {
-           slide($centered_track.hasClass('open'));
+           var tf = $centered_track.hasClass('open');
+           slide(tf);
+           //slide($centered_track.hasClass('open'));
          });
 
     slide(true, true);
