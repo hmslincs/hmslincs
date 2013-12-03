@@ -54,10 +54,8 @@
     return ret;
   }
 
-  // stub to make current_color function visible in scope
   var current_color;
 
-  // redefine current_color as a closure
   (function () {
     var mult = 360,
         start = 2/3,
@@ -174,6 +172,8 @@
   // ---------------------------------------------------------------------------
 
   function make_picker () {
+    var left_panel_width = 250;
+    $('#picker-container').css('width', left_panel_width);
 
     var $$ = {};
 
@@ -326,9 +326,6 @@
 
     function setup (WIDTH, HEIGHT) {
 
-       var left_panel_width = 250;
-       $('#picker-container').css('width', left_panel_width);
-
        var borderwidth = 0;//30;
        var outerwidth = WIDTH + borderwidth,
            outerheight = HEIGHT + borderwidth;
@@ -462,16 +459,14 @@
               halfwidth = 3.5,
               radius = 2.5,
               abs_padding = 2 * margin + 2 * halfwidth + radius,
-              rel_padding = abs_padding/(side - 2 * abs_padding);
-
-          var plot_label = plot_g.append('g')
+              rel_padding = abs_padding/(side - 2 * abs_padding),
+              plot_label = plot_g.append('g')
                                    .attr('transform',
                                          translate(abs_padding, 0))
                                  .append('text')
                                  .append('tspan')
                                    .attr('class', 'plot-label')
                                    .attr('dy', '2ex');
-                                   //.text(__label);
 
           __label.forEach(function (t) { append_tspan(plot_label, t); });
 
@@ -661,12 +656,17 @@
                   })),
         PICKER = make_picker(FACTORS),
         KEYCOL,
-        side = 226,
+        ncols = 3,
+        ww = $('#main .centered-track').width(),
+        lpw = $('#left-panel').width(),
+        pw = $('#picker-container').width(),
+        side = ~~((ww - lpw)/ncols),
+        //zide = function () { return ~~((ww - $('#left-panel').width())/ncols); },
         PLOTS = named_array(METRICS.keys.map(function (k) {
           return [k, make_plot(side, side, METRICS[k])];
         }));
 
-    $('#widget').width($('#main .centered-track').width());
+    $('#widget').width(ww);
 
     $('#picker ul').hover(function (e) {
         if (e.shiftKey) { return; } 

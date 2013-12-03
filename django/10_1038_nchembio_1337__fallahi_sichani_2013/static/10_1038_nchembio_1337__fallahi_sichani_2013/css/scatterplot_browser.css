@@ -7,6 +7,7 @@ html{background-color:#dedede;}
 
 /******************************************************************************/
 
+html,body{height:100%;}
 #main,#main *{
   -webkit-box-sizing:border-box;
      -moz-box-sizing:border-box;
@@ -19,7 +20,7 @@ html{background-color:#dedede;}
 
 body,.global, .global div,.global img,.global p,.global table,.global td{margin:0;padding:0;border:0;}
 .global{
-  font-family:Consolas, Monaco, Courier, monospace;
+  font-family:consolas,monaco,courier,monospace;
   font-size:13px;
 }
 
