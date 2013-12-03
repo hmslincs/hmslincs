@@ -977,7 +977,9 @@
 
   (function () {
     $('.radio-button-group').each(function () {
-      $(this).find(':radio').attr('name', $(this).attr('name'));
+      var id = $(this).attr('id'),
+          name = id.substr(0, id.lastIndexOf('-')) || id;
+      $(this).find(':radio').attr('name', name);
     });
 
   }());
