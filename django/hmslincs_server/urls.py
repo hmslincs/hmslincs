@@ -83,6 +83,10 @@ urlpatterns = patterns('',
 
     # breast_cancer_signaling is currently served by apache directly from
     # STATIC_ROOT, so no url patterns are listed here.
+
+    (r'^explore/sampattavanich_2013/$', 'django.views.static.serve',
+     {'path': 'index.html',
+      'document_root': op.join(_djangopath, 'sampattavanich_2013', 'static', 'sampattavanich_2013')}),
 )
 
 # For DEBUG mode only (development) serving of static files

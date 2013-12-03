@@ -3,10 +3,14 @@ Django>=1.4,<1.5
 Pillow #==1.7.8
 django-tables2 #==0.13.0
 django-tastypie<0.10.0 #==0.9.15
+django-webtemplates #==0.1.2
 flup #==1.0.3.dev-20110405
 ipython #==0.13
-lxml #==3.0.1
+Jinja2 #==2.7.2
+lxml>=3.3.0
 matplotlib #==1.2.0
+openpyxl
+pandas
 psycopg2 #==2.4.5
 requests #==0.14.1
 xlrd #==0.8.0
