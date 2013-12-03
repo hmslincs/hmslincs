@@ -884,7 +884,7 @@
         radius = 4 - (stroke_width/2),
         w = side - stroke_width,
         //color = $('#main .content').css('background-color');
-        color = $('#main .flap > div').css('background-color');
+        color = $('#main .pulldown > div').css('background-color');
 
     d3  .selectAll('#main .tab > div')
       .append('svg')
@@ -944,25 +944,26 @@
 
     var $centered_track = $('#main .centered-track'),
         $tab = $centered_track.find('.tab'),
-        $flap = $centered_track.find('.flap'),
+        $pulldown = $centered_track.find('.pulldown'),
         top_open = 0,
         rect = function ($sel) { return $sel.get(0).getBoundingClientRect(); };
 
     function slide (shut, now) {
       var props, cc;
       if (shut) {
-        props = {'margin-top': rect($centered_track).top - rect($flap).bottom };
+        props = {'margin-top': rect($centered_track).top -
+                               rect($pulldown).bottom };
         cc = ['closed', 'open'];
       }
       else {
         props = {'margin-top': top_open };
         cc = ['open', 'closed'];
       }
-      $flap.animate(props, now ? 0 : 200);
+      $pulldown.animate(props, now ? 0 : 200);
       $centered_track.removeClass(cc[1]).addClass(cc[0]);
     }
 
-    $tab.css('right', 18 + rect($centered_track).right - rect($flap).right)
+    $tab.css('right', 18 + rect($centered_track).right - rect($pulldown).right)
         .click(function () {
            slide($centered_track.hasClass('open'));
          });

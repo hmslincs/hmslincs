@@ -9,6 +9,8 @@ TODO:
 * implement link-outs to db
 * group cell lines and drug by type
 * fix IE hover bug
+* replace table with two side-by-side (absolutely-positioned) divs
+* ditto for mini-tables in legend
 * decruft + optimize
 -->
 
@@ -64,7 +66,7 @@ TODO:
         <div class="open" title="Help"></div>
       </div>
 
-      <div id="help" class="flap">
+      <div id="help" class="pulldown">
 
         <div>
           <p>This browser widget serves to explore the dose-response data reported in <a href="http://dx.doi.org/10.1038/nchembio.1337">Fallahi-Sichani, et al. (2013)</a>, by overlaying multiple "cell line vs. cell line" or "drug vs. drug" scatterplots like those shown in Figure 4(a, c, d, e).  The different scatterplots shown in the right-hand panel correspond to different dose-response metrics.</p>
@@ -89,7 +91,7 @@ TODO:
 
         </div>
 
-      </div> <!-- #help .flap -->
+      </div> <!-- #help .pulldown -->
 
       <div id="widget" class="content">
 
