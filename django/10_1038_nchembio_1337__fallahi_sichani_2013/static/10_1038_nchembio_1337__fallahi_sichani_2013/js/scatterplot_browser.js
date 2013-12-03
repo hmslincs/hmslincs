@@ -172,8 +172,7 @@
   // ---------------------------------------------------------------------------
 
   function make_picker () {
-    var left_panel_width = 250;
-    $('#picker-container').css('width', left_panel_width);
+    $('#picker-container').css('width', $('#left-panel').width());
 
     var $$ = {};
 
@@ -329,8 +328,6 @@
        var borderwidth = 0;//30;
        var outerwidth = WIDTH + borderwidth,
            outerheight = HEIGHT + borderwidth;
-
-       //$('#widget').width(outerwidth + left_panel_width + voodoo);
 
        var svg = d3.select('.stage')
                  .append('svg')

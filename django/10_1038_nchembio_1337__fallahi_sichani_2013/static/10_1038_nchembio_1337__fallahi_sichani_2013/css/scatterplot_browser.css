@@ -118,6 +118,9 @@ body,.global, .global div,.global img,.global p,.global table,.global td,
 
 #widget > table{margin-top:30px;}
 
+#left-panel{
+  width:250px;
+}
 #left-panel > div{
   margin-bottom:15px;
 }
