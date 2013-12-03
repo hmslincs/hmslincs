@@ -110,8 +110,7 @@ body,.global, .global div,.global img,.global p,.global table,.global td,
 #widget{
   margin:0 auto;
   font-size:11px;
-  height:717px;
-  /*height:478px;*/
+  height:660px;
 }
 
 #widget > table td{white-space:normal;} /* undoes hmslincs.css */

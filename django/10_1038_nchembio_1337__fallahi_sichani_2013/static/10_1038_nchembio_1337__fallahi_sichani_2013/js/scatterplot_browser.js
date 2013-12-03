@@ -634,9 +634,9 @@
               {attr: {                      dy: -dy}, text: ')'}]],
             ['HillSlope',
              [{attr: {},                              text: 'Hill Slope'}]],
-            ['E_inf',
-             [{attr: {'class': 'math'},               text: 'E'},
-              {attr: {                      dy: +dy}, text: '\u221E'}]],
+            // ['E_inf',
+            //  [{attr: {'class': 'math'},               text: 'E'},
+            //   {attr: {                      dy: +dy}, text: '\u221E'}]],
               // '\u221E' (aka &infin;) does not get the "subscript"
               // class because it is already tiny;
             ['E_max',
@@ -960,7 +960,7 @@
         props = {'margin-top': top_open };
         cc = ['open', 'closed'];
       }
-debugger;
+
       $pulldown.animate(props, now ? 0 : 200);
       $centered_track.removeClass(cc[1]).addClass(cc[0]);
     }
@@ -988,6 +988,21 @@ debugger;
 
   // ---------------------------------------------------------------------------
 
+  // hack to prevent horizontal shift when vertical scrollbar appears
+  (function () {
+    var $body = $('body');
+    var sb_div = $('<div>').addClass('sb-measure').get(0);
+    $('body').append(sb_div);
+    var sb_width = sb_div.offsetWidth - sb_div.clientWidth;
+    $(sb_div).remove();
+    var $window = $(window);
+    var delta = $window.width() - $body.width() + sb_width;
+    function on_resize () {
+      $body.width($window.width() - delta);
+    }
+    $window.resize(on_resize).trigger('resize');
+  })();
+
   (function () {
      var STATIC_URL = window.hmslincs.STATIC_URL,
          data_dir = STATIC_URL +
@@ -1000,8 +1015,6 @@ debugger;
      d3.tsv(INPUT, function (error, data) {
        assert(error === null);
        app(data);
-
-       $('#widget').css('height', '');
 
        $('.loading').css('visibility', 'visible')
                     .removeClass('loading');
