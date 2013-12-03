@@ -18,7 +18,8 @@ html,body{height:100%;}
   border-collapse:collapse;
 }
 
-body,.global, .global div,.global img,.global p,.global table,.global td{margin:0;padding:0;border:0;}
+body,.global, .global div,.global img,.global p,.global table,.global td,
+  .global ul,.global input,.global label{margin:0;padding:0;border:0;}
 .global{
   font-family:consolas,monaco,courier,monospace;
   font-size:13px;
@@ -117,6 +118,16 @@ body,.global, .global div,.global img,.global p,.global table,.global td{margin:
 
 #widget > table{margin-top:30px;}
 
+#left-panel > div{
+  margin-bottom:15px;
+}
+#left-panel > div:last-child{
+  margin-top:-10px;
+}
+#legend li{
+  margin-bottom:8px;
+}
+
 #widget > table .radio-button-group label{
   display:block;
   padding:0 1ex;
@@ -130,22 +141,35 @@ body,.global, .global div,.global img,.global p,.global table,.global td{margin:
   vertical-align:baseline;
 }
 
-#widget #left-panel{
-  vertical-align:top;
-  padding-top:5px;
-}
+/******************************************************************************/
 
-#widget .buttons > div{
-  padding:10px 0;
-}
+/* #widget .buttons > div{ */
+/*   padding:10px 0; */
+/* } */
 
 #widget .buttons > div > div{
   display:inline-block;
   vertical-align:middle;
 }
 
-#widget .stage{
-  padding:0;
+/******************************************************************************/
+
+#widget #left-panel{
+  vertical-align:top;
+  padding-top:5px;
+}
+
+/******************************************************************************/
+
+#clear{
+  float:right;
+}
+#clear button{
+  padding:1px 6px;
+}
+#clear button:disabled{ 
+  opacity:0.5;
+  filter:alpha(opacity=50);
 }
 
 /******************************************************************************/
@@ -273,15 +297,8 @@ body,.global, .global div,.global img,.global p,.global table,.global td{margin:
 
 /******************************************************************************/
 
-#clear{
-  float:right;
-}
-#clear button{
-  padding:1px 6px;
-}
-#clear button:disabled{ 
-  opacity:0.5;
-  filter:alpha(opacity=50);
+#widget .stage{
+  padding:0;
 }
 
 /******************************************************************************/
