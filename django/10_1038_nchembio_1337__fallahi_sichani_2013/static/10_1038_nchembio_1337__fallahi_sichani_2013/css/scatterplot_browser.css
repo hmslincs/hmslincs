@@ -287,9 +287,11 @@ html,body{height:100%;}
   vertical-align:top;
 }
 #legend .bullet{
-  font-size:14px;
-  width:14px;
-  line-height:11px;
+  font-size:26px;
+  width:26px;
+  line-height:8px;
+  opacity:0.75;
+  filter:alpha(opacity=75);
 }
 #legend .entry{
   font-size:11px;
