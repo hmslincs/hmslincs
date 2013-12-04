@@ -165,9 +165,23 @@
     }
   }
 
-  // function LOG (o) {
-  //   console.log(JSON.stringify(o));
-  // }
+  // ---------------------------------------------------------------------------
+  // debugging utils
+
+  function logjson (o) {
+    console.log(JSON.stringify(o));
+  }
+
+  var time = (function () {
+    var start,
+        ret     = function () { return new Date().valueOf(); };
+    ret.started = function () { return start; };
+    ret.elapsed = function () { return ret() - start; };
+    ret.reset   = function () { start = ret();
+                                return start; };
+    ret.reset();
+    return ret;
+  }());
 
   // ---------------------------------------------------------------------------
 
