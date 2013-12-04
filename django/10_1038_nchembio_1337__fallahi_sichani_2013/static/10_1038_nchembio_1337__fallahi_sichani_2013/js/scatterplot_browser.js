@@ -630,36 +630,27 @@
        METRICS =
          named_array(
            [
-            // ['log10[EC50 (M)]',
-            //  [{attr: {},                              text: 'EC'},
-            //   {attr: {'class': 'subscript', dy: +dy}, text: '50'},
-            //   {attr: {                      dy: -dy}, text: ' (log'},
-            //   {attr: {'class': 'subscript', dy: +dy}, text: '10'},
-            //   {attr: {                      dy: -dy}, text: ')'}]],
             ['log10[IC50 (M)]',
-             [{attr: {},                              text: 'IC'},
-              {attr: {'class': 'subscript', dy: +dy}, text: '50'},
-              {attr: {                      dy: -dy}, text: ' (log'},
+             [
+              {attr: {},                              text: 'log'},
               {attr: {'class': 'subscript', dy: +dy}, text: '10'},
-              {attr: {                      dy: -dy}, text: ')'}]],
+              {attr: {                      dy: -dy}, text: '(IC'},
+              {attr: {'class': 'subscript', dy: +dy}, text: '50'},
+              {attr: {                      dy: -dy}, text: ')'}
+             ]],
             ['log10[GI50 (M)]',
-             [{attr: {},                              text: 'GI'},
-              {attr: {'class': 'subscript', dy: +dy}, text: '50'},
-              {attr: {                      dy: -dy}, text: ' (log'},
+             [
+              {attr: {},                              text: 'log'},
               {attr: {'class': 'subscript', dy: +dy}, text: '10'},
-              {attr: {                      dy: -dy}, text: ')'}]],
+              {attr: {                      dy: -dy}, text: '(GI'},
+              {attr: {'class': 'subscript', dy: +dy}, text: '50'},
+              {attr: {                      dy: -dy}, text: ')'}
+             ]],
             ['HillSlope',
              [{attr: {},                              text: 'Hill Slope'}]],
-            // ['E_inf',
-            //  [{attr: {'class': 'math'},               text: 'E'},
-            //   {attr: {                      dy: +dy}, text: '\u221E'}]],
-              // '\u221E' (aka &infin;) does not get the "subscript"
-              // class because it is already tiny;
             ['E_max',
              [{attr: {'class': 'math'},               text: 'E'},
-              {attr: {'class': 'subscript', dy: +dy}, text: 'max'}]]//,
-            // ['AUC',
-            //  [{attr: {},                              text: 'AUC'}]]
+              {attr: {'class': 'subscript', dy: +dy}, text: 'max'}]]
            ]
          );
     }());
