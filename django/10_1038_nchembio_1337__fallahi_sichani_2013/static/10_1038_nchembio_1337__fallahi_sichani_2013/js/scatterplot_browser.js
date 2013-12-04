@@ -646,8 +646,12 @@
               {attr: {'class': 'subscript', dy: +dy}, text: '50'},
               {attr: {                      dy: -dy}, text: ')'}
              ]],
-            ['HillSlope',
-             [{attr: {},                              text: 'Hill Slope'}]],
+            ['log2[HillSlope]',
+             [
+              {attr: {},                              text: 'log'},
+              {attr: {'class': 'subscript', dy: +dy}, text: '2'},
+              {attr: {                      dy: -dy}, text: '(HillSlope)'}
+             ]],
             ['E_max',
              [{attr: {'class': 'math'},               text: 'E'},
               {attr: {'class': 'subscript', dy: +dy}, text: 'max'}]]
@@ -1016,7 +1020,7 @@
                     '10_1038_nchembio_1337__fallahi_sichani_2013/data/';
      // var data_dir = '';
 
-     var INPUT = data_dir + 'dose_response_data.tsv';
+     var INPUT = data_dir + 'scatterplot_data.tsv';
      // var INPUT = data_dir + 'mf_data_0.tsv';
 
      d3.tsv(INPUT, function (error, data) {
