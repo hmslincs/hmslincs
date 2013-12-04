@@ -458,10 +458,9 @@
 
        var PLOT_RANGE_PADDING,
            EDGE_PARAM,
-           CCLE,
+           CIRC,
            HBAR,
-           VBAR,
-           CRSS;
+           VBAR;
 
        (function () {
           assert(width === height);
@@ -484,12 +483,11 @@
           PLOT_RANGE_PADDING = rel_padding;
           EDGE_PARAM = (margin + halfwidth)/abs_padding;
 
-          CCLE = d3.svg.symbol().type('circle')
+          CIRC = d3.svg.symbol().type('circle')
                    .size(radius*radius*Math.PI)();
 
           HBAR = 'M' + -halfwidth + ',0H' + halfwidth;
           VBAR = 'M0' + -halfwidth + ',V' + halfwidth;
-          CRSS = HBAR + VBAR;
        }());
 
        var xcoord,
@@ -525,7 +523,7 @@
 
        $$.fix_current =
          function () {
-           points_g.selectAll('path:not(.fixed)')
+           points_g.selectAll('g:not(.fixed)')
                    .classed('fixed', true);
            $('#clear button').prop('disabled', false);
            //$('#clear button').css('visibility', 'visible');
@@ -538,50 +536,54 @@
                                     : $SVG.select('.plot .y.axis line')
                                           .style('stroke');
 
-           points_g.selectAll('path:not(.fixed)')
+
+           points_g.selectAll('g:not(.fixed)')
                    .data(data)
                    .enter()
-                 .append('path')
-                 .append('svg:title')
-                   .text(function (d) { return d.title; });
+                 .append('g')
+                   .attr('class', 'scatterplot-marker')
+                   .each(function () {
+                      var $this = d3.select(this);
+                      $this.append('path')
+                             .attr({'class': 'hbar', d: HBAR});
+                      $this.append('path')
+                             .attr({'class': 'vbar', d: VBAR});
+                      $this.append('path')
+                             .attr({'class': 'circ', d: CIRC})
+                           .append('svg:title')
+                             .text(function (d) { return d.title; });
+                    })
 
-           points_g.selectAll('path:not(.fixed)').each(function (d) {
-                  var s = {},
-                      a = {transform: translate(d3.round(x(xcoord(d.x)), 1),
-                                                d3.round(y(ycoord(d.y)), 1))};
 
-                  if (isFinite(d.y) &&
-                      (!have_y_level || isFinite(d.x))) {
-                    a.d = CCLE;
-                    a['class'] = 'circle-marker';
-                    s.fill = color;
+           points_g.selectAll('g:not(.fixed)')
+                   .attr('transform', function (d) {
+                            return translate(d3.round(x(xcoord(d.x)), 1),
+                                            d3.round(y(ycoord(d.y)), 1));
+                         })
+                   .attr({fill: color, stroke: color})
+                   .each(function (d) {
+                  var $this = d3.select(this);
+                  $this.selectAll('path').style('visibility', 'hidden');
+                  // if (isFinite(d.y) && isFinite(d.x)) {
+                  if (isFinite(d.y) && !(have_y_level && !isFinite(d.x))) {
+                    $this.select('.circ').style('visibility', 'visible');
                   }
                   else {
-                    s.stroke = color;
-                    if (isFinite(d.x)) {
-                      assert(!isFinite(d.y));
-                      a.d = VBAR;
-                      a['class'] = 'vbar';
+                    if (!isFinite(d.x)) {
+                      $this.select('.hbar').style('visibility', 'visible');
                     }
-                    else if (!have_y_level || isFinite(d.y)) {
-                      a.d = HBAR;
-                      a['class'] = 'hbar';
-                    }
-                    else {
-                      a.d = CRSS;
-                      a['class'] = 'cross';
+                    // if (have_y_level && !isFinite(d.y)) {
+                    if (!isFinite(d.y)) {
+                      $this.select('.vbar').style('visibility', 'visible');
                     }
                   }
-                  d3.select(this).attr(a)
-                                 .style(s);
-
                 });
 
             return $$;
          };
 
        $$.clear_all = function () {
-           points_g.selectAll('path')
+           points_g.selectAll('g')
                  .data([])
                .exit()
                .remove();
@@ -590,7 +592,7 @@
          };
 
        $$.clear_not_fixed = function () {
-           points_g.selectAll('path:not(.fixed)')
+           points_g.selectAll('g:not(.fixed)')
                  .data([])
                .exit()
                .remove();

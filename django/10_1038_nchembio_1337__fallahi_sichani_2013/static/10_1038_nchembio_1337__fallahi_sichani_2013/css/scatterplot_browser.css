@@ -329,21 +329,17 @@ html,body{height:100%;}
 
 /******************************************************************************/
 
-.hbar,
-.vbar,
-.cross{
-  shape-rendering:crispEdges
+.scatterplot-marker{
+  pointer-events:all;
+  cursor:help;
 }
-.circle-marker,.hbar,.vbar,.cross{
-  cursor:pointer;
+.circ{
+  stroke-width:0;
+  fill-opacity:0.75;
 }
-
-.circle-marker{
-  stroke:none;
-}
-.hbar,.vbar,.cross{
-  fill:none;
+.hbar,.vbar{
   stroke-width:1;
+  shape-rendering:crispEdges;
 }
 
 /******************************************************************************/
