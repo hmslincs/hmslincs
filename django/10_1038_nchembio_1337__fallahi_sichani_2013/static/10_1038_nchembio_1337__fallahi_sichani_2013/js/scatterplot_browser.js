@@ -468,7 +468,7 @@
           var side = width,
               margin = 3.5,
               halfwidth = 3.5,
-              radius = 2.5,
+              radius = 5.5,
               abs_padding = 2 * margin + 2 * halfwidth + radius,
               rel_padding = abs_padding/(side - 2 * abs_padding),
               plot_label = plot_g.append('g')
@@ -510,12 +510,12 @@
            var xaxis = d3.svg.axis()
                .scale(x)
                .orient('bottom')
-               .ticks(3);
+               .ticks(4);
 
            var yaxis = d3.svg.axis()
                .scale(y)
                .orient('left')
-               .ticks(3);
+               .ticks(4);
 
            xaxis_g.call(xaxis);
            yaxis_g.call(yaxis);
@@ -628,12 +628,12 @@
        METRICS =
          named_array(
            [
-            ['log10[EC50 (M)]',
-             [{attr: {},                              text: 'EC'},
-              {attr: {'class': 'subscript', dy: +dy}, text: '50'},
-              {attr: {                      dy: -dy}, text: ' (log'},
-              {attr: {'class': 'subscript', dy: +dy}, text: '10'},
-              {attr: {                      dy: -dy}, text: ')'}]],
+            // ['log10[EC50 (M)]',
+            //  [{attr: {},                              text: 'EC'},
+            //   {attr: {'class': 'subscript', dy: +dy}, text: '50'},
+            //   {attr: {                      dy: -dy}, text: ' (log'},
+            //   {attr: {'class': 'subscript', dy: +dy}, text: '10'},
+            //   {attr: {                      dy: -dy}, text: ')'}]],
             ['log10[IC50 (M)]',
              [{attr: {},                              text: 'IC'},
               {attr: {'class': 'subscript', dy: +dy}, text: '50'},
@@ -655,9 +655,9 @@
               // class because it is already tiny;
             ['E_max',
              [{attr: {'class': 'math'},               text: 'E'},
-              {attr: {'class': 'subscript', dy: +dy}, text: 'max'}]],
-            ['AUC',
-             [{attr: {},                              text: 'AUC'}]]
+              {attr: {'class': 'subscript', dy: +dy}, text: 'max'}]]//,
+            // ['AUC',
+            //  [{attr: {},                              text: 'AUC'}]]
            ]
          );
     }());
@@ -667,7 +667,7 @@
                   })),
         PICKER = make_picker(FACTORS),
         KEYCOL,
-        ncols = 3,
+        ncols = 2,
         ww = $('#main .centered-track').width(),
         lpw = $('#left-panel').width(),
         pw = $('#picker-container').width(),
@@ -1015,7 +1015,7 @@
       $body.width($window.width() - delta);
     }
     $window.resize(on_resize).trigger('resize');
-  })();
+  }());
 
   (function () {
      var STATIC_URL = window.hmslincs.STATIC_URL,
