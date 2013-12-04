@@ -1,28 +1,27 @@
 /******************************************************************************/
 
 /*
-#main *{outline:1px solid red;}
-html{background-color:#dedede;}
+.global,.global *{outline:1px solid red;}
 */
 
 /******************************************************************************/
 
 html,body{height:100%;}
-#main,#main *{
+.global,.global *{
+  margin:0;
+  padding:0;
   -webkit-box-sizing:border-box;
      -moz-box-sizing:border-box;
           box-sizing:border-box;
 }
-#main table{
-  border-spacing:0;
-  border-collapse:collapse;
-}
-
-body,.global, .global div,.global img,.global p,.global table,.global td,
-  .global ul,.global input,.global label{margin:0;padding:0;border:0;}
+.global :not(button){border:0;}
 .global{
   font-family:consolas,monaco,courier,monospace;
   font-size:13px;
+}
+.global table{
+  border-spacing:0;
+  border-collapse:collapse;
 }
 
 /******************************************************************************/
