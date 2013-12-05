@@ -5,7 +5,6 @@
 <!--
 TODO:
 * implement support for non-square SVG elements
-* use imgs/icons (rather than text) for open/close button
 * implement link-outs to db
 * group cell lines and drugs by type
 * fix IE hover bug
@@ -60,12 +59,6 @@ TODO:
   <div id="main" class="loading global">
 
     <div class="centered-track">
-
-      <div class="tab">
-        <div class="close"></div>
-        <div class="open" title="Help"></div>
-      </div>
-
       <div id="help" class="pulldown">
 
         <div>
@@ -93,6 +86,9 @@ TODO:
         </div>
 
       </div> <!-- #help .pulldown -->
+      <div class="tab">
+        <div class="corner-dingbat"><div><div><span>i</span></div></div></div>
+      </div>
 
       <div id="widget" class="content">
 

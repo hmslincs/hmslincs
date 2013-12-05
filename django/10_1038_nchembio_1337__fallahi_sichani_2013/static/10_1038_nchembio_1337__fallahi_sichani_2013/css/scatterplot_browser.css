@@ -40,34 +40,112 @@ html,body{height:100%;}
 
 /******************************************************************************/
 
-#main .open   .tab > .open,
-#main .closed .tab > .close{display:none;}
-
 #main ul,#main li{list-style:initial;} /* undoes reset.css */
 
 #main p{
   margin-top:3ex;
 }
-#main .tab text{
-  font-weight:bold;
-  font-size:20px;
-  font-family:Helvetica,sans-serif;
+
+
+/******************************************************************************/
+
+#main .tab{
+  position:absolute;
+  top:0;
+  margin-top:5px;
+  z-index:1;
+  cursor:default;
 }
 
-#main .closed .tab > .open  svg,
-#main .open   .tab > .close svg{display:block;}
+#main .corner-dingbat{
+  cursor:default;
+  position:relative;
+}
 
-#main .closed .tab > .close svg,
-#main .open   .tab > .open  svg{display:none;}
+#main .closed            .corner-dingbat,
+#main .open   .tab:hover .corner-dingbat{
+  background-color:white;
+}
 
-#main .tab > .open       .outer,
-#main .tab               text,
-#main .tab > .open:hover .inner{fill:white;}
+#main .open              .corner-dingbat,
+#main .closed .tab:hover .corner-dingbat{ 
+  background-color:#E6941E;
+}
 
-#main .tab               .inner,
-#main .tab > .open:hover .outer,
-#main .tab > .open:hover text,
-#main .tab > .close      .outer{fill:#E6941E;}
+#main .closed .tab:hover .corner-dingbat{
+  cursor:help;
+}
+
+#main .corner-dingbat > div{
+  position:relative;
+  background-color:#E6941E;
+  height:100%;
+}
+
+#main .corner-dingbat{
+  width:26px;height:26px;
+  padding:2px;
+  -moz-border-radius: 13px;
+  -webkit-border-radius: 13px;
+  border-radius: 13px;
+}
+
+#main .corner-dingbat > div{
+  -webkit-border-radius: 11px;
+     -moz-border-radius: 11px;
+          border-radius: 11px;
+}
+
+#main .corner-dingbat > div > div{
+  color:white;
+
+  font-size: 20px;
+  font-weight: bold;
+  /*font-family:helvetica,sans-serif;*/
+  /*font-family:courier,monospace;*/
+  font-family:serif;font-style:italic;margin-left:-2px;
+
+  text-align:center;
+  padding-top:12px;
+  line-height:0px;
+}
+
+/* most of the declarations for :before and :after belong to a hack to
+   squeeze a "close" icon out of CSS */
+
+#main .corner-dingbat > div > div:before,
+#main .corner-dingbat > div > div:after{
+  content:"";
+  position:absolute;
+  top:50%;
+  background:transparent;
+}
+
+#main .corner-dingbat > div > div:before,
+#main .corner-dingbat > div > div:after{
+  left:3px;
+  border-left:8px solid transparent;
+  border-right:8px solid transparent;
+  border-bottom:7px solid transparent;
+}
+
+#main .corner-dingbat > div > div:before{
+  border-bottom-color:white;
+  margin-top:-4px;
+}
+
+#main .corner-dingbat > div > div:after{
+  margin-top:-1px;
+  border-bottom-color:#E6941E;
+}
+
+#main .open   .corner-dingbat > div > div > span,
+#main .closed .corner-dingbat > div > div:before,
+#main .closed .corner-dingbat > div > div:after{
+  display:none;
+}
+
+/******************************************************************************/
 
 #main .pulldown{
   width:100%;
@@ -92,11 +170,6 @@ html,body{height:100%;}
   position:relative;
   margin:0 auto;
   overflow:hidden;
-}
-#main .tab{
-  position:absolute;
-  z-index:1;
-  cursor:default;
 }
 
 #main .content{
@@ -354,3 +427,4 @@ html,body{height:100%;}
 }
 
 /******************************************************************************/
+
