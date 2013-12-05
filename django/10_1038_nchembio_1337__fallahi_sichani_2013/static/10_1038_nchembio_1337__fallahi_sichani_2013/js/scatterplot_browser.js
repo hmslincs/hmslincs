@@ -14,6 +14,8 @@
   "use strict";
   /*global window,document,console,debugger,jQuery,d3,Error,Math */
 
+  var FIRST_COORD = 'x';
+
   function assert (bool, info) {
     if (bool) { return; }
     var msg = 'assertion failed';
@@ -140,7 +142,7 @@
 
   function xys (pair, data, keycols) {
     var from = d3.merge([pair, keycols]),
-        keys = pair.length === 1 ? ['y'] : ['x', 'y'],
+        keys = pair.length === 1 ? [FIRST_COORD] : ['x', 'y'],
         to = d3.merge([keys, keycols]),
         aoo = toobjs(projn(data, from), to);
     aoo.forEach( function (a) { keys.map(function (k) { a[k] = +a[k]; }); } );
@@ -309,8 +311,6 @@
           .style('width', column_order ? (colwidth + 'px') : '');
 
     }
-
-    $$.have_y_level = function () { return $('.y-level').length > 0; };
 
     $$.update_factor = function (factor, levels, handlers) {
       $('#picker').css({visibility: 'hidden'});
@@ -531,8 +531,8 @@
 
        $$.view_data =
          function (data) {
-           var have_y_level = $('.y-level').length > 0,
-               color = have_y_level ? current_color()
+           var have_one_coord = $('.first-coord').length > 0,
+               color = have_one_coord ? current_color()
                                     : $SVG.select('.plot .y.axis line')
                                           .style('stroke');
 
@@ -555,6 +555,9 @@
                     })
 
 
+           var c0 = FIRST_COORD,
+               c1 = FIRST_COORD === 'y' ? 'x' : 'y';
+
            points_g.selectAll('g:not(.fixed)')
                    .attr('transform', function (d) {
                             return translate(d3.round(x(xcoord(d.x)), 1),
@@ -564,19 +567,23 @@
                    .each(function (d) {
                   var $this = d3.select(this);
                   $this.selectAll('path').style('visibility', 'hidden');
-                  // if (isFinite(d.y) && isFinite(d.x)) {
-                  if (isFinite(d.y) && !(have_y_level && !isFinite(d.x))) {
+
+                  // if (isFinite(d[c0]) && isFinite(d[c1])) {
+                  if (isFinite(d[c0]) &&
+                      !(have_one_coord && !isFinite(d[c1]))) {
                     $this.select('.circ').style('visibility', 'visible');
                   }
                   else {
+                    // if (have_one_coord && !isFinite(d.x)) {
                     if (!isFinite(d.x)) {
                       $this.select('.hbar').style('visibility', 'visible');
                     }
-                    // if (have_y_level && !isFinite(d.y)) {
+                    // if (have_one_coord && !isFinite(d.y)) {
                     if (!isFinite(d.y)) {
                       $this.select('.vbar').style('visibility', 'visible');
                     }
                   }
+
                 });
 
             return $$;
@@ -694,9 +701,14 @@
 
     function view_data (level) {
       var levels = [level];
-      var picked = d3.selectAll('.y-level');
+      var picked = d3.selectAll('.first-coord');
       if (picked[0].length === 1) {
-        levels.push(picked.datum().text);
+        if (FIRST_COORD === 'y') {
+          levels.push(picked.datum().text);
+        }
+        else {
+          levels.unshift(picked.datum().text);
+        }
       }
       PLOTS.forEach(function (p) {
         p.view_data(toxys(levels, p.__data));
@@ -711,7 +723,7 @@
       $(this).hover(function (e) {
           e.stopPropagation();
           var $li = $(this);
-          if ($('.y-level').length > 0) {
+          if ($('.first-coord').length > 0) {
             $li.css({'background-color': current_color(),
                      color: 'white',
                      opacity: 0.75,
@@ -728,16 +740,16 @@
                    color: '',
                    opacity: 1,
                    filter: 'alpha(opacity=100)'});
-          if ($li.hasClass('y-level')) { return; }
+          if ($li.hasClass('first-coord')) { return; }
           $li.css({outline: 'none'});
         })
              .click(function (e) {
           if (e.which !== 1) { return; }
           var $li = $(this);
-          var $ylevel = $('.y-level');
-          if ($ylevel.length > 0) {
-            if ($li.hasClass('y-level') && !e.shiftKey) {
-              $li.removeClass('y-level');
+          var $first_coord = $('.first-coord');
+          if ($first_coord.length > 0) {
+            if ($li.hasClass('first-coord') && !e.shiftKey) {
+              $li.removeClass('first-coord');
               $li.css({'background-color': '', color: ''});
               $li.trigger('mouseenter');
             }
@@ -746,9 +758,12 @@
 
               fix_current();
 
+              var lis = FIRST_COORD === 'x' ?
+                          [$first_coord, $li] : [$li, $first_coord];
+
               var item = d3.select('#legend ul')
                                .append('li')
-                                 .datum([$ylevel, $li].map(function (jq) {
+                                 .datum(lis.map(function (jq) {
                                           return d3.select(jq.get(0))
                                                    .datum()
                                                    .text;
@@ -763,7 +778,10 @@
 
               mini_table.append('td')                        
                           .attr('class', 'entry')
-                          .text(function (d) { return d.join(' vs '); });
+                          .text(function (d) {
+                              return 'x: ' + d[0] + '; y: ' + d[1];
+                              //return d.join(' vs ');
+                          });
 
               $(item.node()).height(parseInt(mini_table.style('height'), 10));
 
@@ -777,7 +795,7 @@
           }
           else {
             $('#clear button').prop('disabled', false);
-            $li.addClass('y-level');
+            $li.addClass('first-coord');
             $li.trigger('mouseenter');
           }
           e.stopPropagation();
@@ -804,7 +822,7 @@
       PLOTS.forEach(function (p) { p.clear_all(); });
 
       $('#legend li').remove();
-      $('.y-level').removeClass('y-level')
+      $('.first-coord').removeClass('first-coord')
                    .css('outline', 'none');
       $('#clear button').prop('disabled', true);
       //$('#clear button').css('visibility', 'hidden');
