@@ -526,7 +526,6 @@
            points_g.selectAll('g:not(.fixed)')
                    .classed('fixed', true);
            $('#clear button').prop('disabled', false);
-           //$('#clear button').css('visibility', 'visible');
          };
 
        $$.view_data =
@@ -542,18 +541,31 @@
                    .enter()
                  .append('g')
                    .attr('class', 'scatterplot-marker')
-                   .each(function () {
+                   .each(function (d) {
                       var $this = d3.select(this);
                       $this.append('path')
                              .attr({'class': 'hbar', d: HBAR});
                       $this.append('path')
                              .attr({'class': 'vbar', d: VBAR});
-                      $this.append('path')
-                             .attr({'class': 'circ', d: CIRC})
-                           .append('svg:title')
-                             .text(function (d) { return d.title; });
-                    })
+                      var $circ = $this.append('path')
+                                         .attr({'class': 'circ', d: CIRC})
+                      var title = d.title;
+                      $circ.append('svg:title')
+                             .datum(title)
+                             .text(String);
 
+                      function match_title (e) { return e.title === title; }
+
+                      $circ.on('mouseover', function (d) {
+                        d3.selectAll('.points .scatterplot-marker').filter(match_title)
+                                                                   .classed('selected', true);
+                      });
+                      $circ.on('mouseout', function (d) {
+                        d3.selectAll('.points .scatterplot-marker').filter(match_title)
+                                                                   .classed('selected', false);
+                      });
+
+                    });
 
            var c0 = FIRST_COORD,
                c1 = FIRST_COORD === 'y' ? 'x' : 'y';
@@ -566,6 +578,12 @@
                    .attr({fill: color, stroke: color})
                    .each(function (d) {
                   var $this = d3.select(this);
+
+                  // setting the visibility directly is the simplest
+                  // thing to do, but it is also pretty heavy-handed,
+                  // because it can't be easily modulated through CSS;
+                  // it is therefore better to toggle the visibility
+                  // indirectly, by adding/removing classes.
                   $this.selectAll('path').style('visibility', 'hidden');
 
                   // if (isFinite(d[c0]) && isFinite(d[c1])) {
