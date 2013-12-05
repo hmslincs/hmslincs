@@ -72,10 +72,6 @@ html,body{height:100%;}
   background-color:#E6941E;
 }
 
-#main .closed .tab:hover .corner-dingbat{
-  cursor:help;
-}
-
 #main .corner-dingbat > div{
   position:relative;
   background-color:#E6941E;
