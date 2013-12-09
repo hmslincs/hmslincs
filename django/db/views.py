@@ -1138,7 +1138,7 @@ class DataSetTable(PagedTable):
     protocol = tables.Column(visible=False) 
     references = tables.Column(visible=False)
     rank = tables.Column()
-    snippet = DivWrappedColumn(verbose_name='matched_text', classname='snippet')
+    snippet = DivWrappedColumn(verbose_name='matched text', classname='snippet')
 #    snippet_def = ("coalesce(facility_id,'') || ' ' || coalesce(title,'') || ' ' || coalesce(summary,'') || ' ' || coalesce(lead_screener_firstname,'') || ' ' || coalesce(lead_screener_lastname,'')|| ' ' || coalesce(lead_screener_email,'') || ' ' || "  +           
 #                   "coalesce(lab_head_firstname,'') || ' ' || coalesce(lab_head_lastname,'')|| ' ' || coalesce(lab_head_email,'')")
     snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce(db_dataset."+x.field+",'') ", FieldInformation.manager.get_search_fields(DataSet))))
@@ -1445,28 +1445,6 @@ class DataSetManager():
             parameters = []
         if not column_exclusion_overrides:
             column_exclusion_overrides = []
-#        if(search != ''):
-#            #TODO: NOTE: the dataset search does not use the full text search
-#            #TODO: dataset search to search the data fields as well?
-#            searchParam = '%'+search+'%'
-#            searchClause = "facility_salt_batch like %s or lower(sm_name) like lower(%s) or lower(sm_alternative_names) like lower(%s) "
-#            searchParams = [searchParam,searchParam,searchParam]
-#            if(self.has_cells()): 
-#                searchClause += " or cell_facility_id::TEXT like %s or lower(cell_name) like lower(%s) "
-#                searchParams += [searchParam,searchParam]
-#            if(self.has_proteins()): 
-#                searchClause += " or protein_lincs_id::TEXT like %s or lower(protein_name) like lower(%s) "
-#                searchParams += [searchParam,searchParam]
-#            if(self.has_antibodies()): 
-#                searchClause += " or antibody_facility_id::TEXT like %s or lower(antibody_name) like lower(%s) "
-#                searchParams += [searchParam,searchParam]
-#            if(self.has_otherreagents()): 
-#                searchClause += " or otherreagent_facility_id::TEXT like %s or lower(otherreagent_name) like lower(%s) "
-#                searchParams += [searchParam,searchParam]
-                
-#            logger.info(str(('datasetresults.get_table search:', searchClause, searchParams)))
-#            metaWhereClause.append(searchClause)
-#            parameters += searchParams
             
         self.dataset_info = self._get_query_info(whereClause,metaWhereClause, parameters)
         logger.debug(str(('search',search,'metaWhereClause',metaWhereClause,'parameters',self.dataset_info.parameters)))
@@ -1842,7 +1820,7 @@ class SmallMoleculeTable(PagedTable):
     facility_salt = tables.LinkColumn("sm_detail", args=[A('facility_salt')], order_by=['facility_id','salt_id']) 
     facility_salt.attrs['td'] = {'nowrap': 'nowrap'}
     rank = tables.Column()
-    snippet = DivWrappedColumn(verbose_name='matched_text', classname='snippet')
+    snippet = DivWrappedColumn(verbose_name='matched text', classname='snippet')
     dataset_types = DivWrappedColumn(classname='fixed_width_column', visible=False)
     alternative_names = DivWrappedColumn(classname='fixed_width_column')
     
@@ -1904,7 +1882,7 @@ class SmallMoleculeForm(ModelForm):
 class CellTable(PagedTable):
     facility_id = tables.LinkColumn("cell_detail", args=[A('facility_id')])
     rank = tables.Column()
-    snippet = DivWrappedColumn(verbose_name='matched_text', classname='snippet')
+    snippet = DivWrappedColumn(verbose_name='matched text', classname='snippet')
     id = tables.Column(verbose_name='CLO Id')
     disease = DivWrappedColumn(classname='fixed_width_column')
     dataset_types = DivWrappedColumn(classname='fixed_width_column', visible=False)
@@ -1931,7 +1909,7 @@ class CellTable(PagedTable):
 class ProteinTable(PagedTable):
     lincs_id = tables.LinkColumn("protein_detail", args=[A('lincs_id')])
     rank = tables.Column()
-    snippet = DivWrappedColumn(verbose_name='matched_text', classname='snippet')
+    snippet = DivWrappedColumn(verbose_name='matched text', classname='snippet')
     snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce(db_protein."+x.field+",'') ", FieldInformation.manager.get_search_fields(Protein))))
     alternate_name = DivWrappedColumn(classname='fixed_width_column', visible=False)
     dataset_types = DivWrappedColumn(classname='fixed_width_column', visible=False)
@@ -1951,7 +1929,7 @@ class ProteinTable(PagedTable):
 class AntibodyTable(PagedTable):
     facility_id = tables.LinkColumn("antibody_detail", args=[A('facility_id')])
     rank = tables.Column()
-    snippet = DivWrappedColumn(verbose_name='matched_text', classname='snippet')
+    snippet = DivWrappedColumn(verbose_name='matched text', classname='snippet')
     snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce(db_antibody."+x.field+",'') ", FieldInformation.manager.get_search_fields(Antibody))))
     class Meta:
         model = Antibody
@@ -1966,7 +1944,7 @@ class AntibodyTable(PagedTable):
 class OtherReagentTable(PagedTable):
     facility_id = tables.LinkColumn("otherreagent_detail", args=[A('facility_id')])
     rank = tables.Column()
-    snippet = DivWrappedColumn(verbose_name='matched_text', classname='snippet')
+    snippet = DivWrappedColumn(verbose_name='matched text', classname='snippet')
     snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce(db_otherreagent."+x.field+",'') ", FieldInformation.manager.get_search_fields(OtherReagent))))
     class Meta:
         model = OtherReagent
@@ -2016,7 +1994,7 @@ class LibraryTable(PagedTable):
     plate_count = tables.Column()
     sm_count = tables.Column()
     rank = tables.Column()
-    snippet = DivWrappedColumn(verbose_name='matched_text', classname='snippet')
+    snippet = DivWrappedColumn(verbose_name='matched text', classname='snippet')
     
     snippet_def = (" || ' ' || ".join(map( lambda x: "coalesce(db_library."+x.field+",'') ", FieldInformation.manager.get_search_fields(Library))))
     class Meta:
@@ -2325,8 +2303,8 @@ class SiteSearchTable(PagedTable):
     facility_id = tables.LinkColumn(A('type'), args=[A('facility_id')])  
     type = TypeColumn()
     rank = tables.Column()
-    snippet = DivWrappedColumn(verbose_name='matched_text', classname='snippet')
-    snippet2 = DivWrappedColumn(verbose_name='alternate_matched_text', classname='fixed_width_column', visible=False)
+    snippet = DivWrappedColumn(verbose_name='matched text', classname='snippet')
+    snippet2 = DivWrappedColumn(verbose_name='alternate matched text', classname='fixed_width_column', visible=False)
     class Meta:
         orderable = True
         attrs = {'class': 'paleblue'}
@@ -2348,11 +2326,12 @@ def get_attached_files(facility_id, salt_id=None, batch_id=None):
 
 
 class FieldsMetaForm(forms.Form):
-    
+    '''
+    create a field for all of the fields passed in; override the default field creation with anything passed in the overrides
+    '''
     def __init__(self, field_information_array=[], form_field_overrides={}, *args, **kwargs):
         super(FieldsMetaForm, self).__init__(*args, **kwargs)
         self.fieldname_array = []
-#        logger.info(str(('field_information_array', field_information_array)))
         for fi in [ fi for fi in field_information_array if fi.show_as_extra_field or fi.field in form_field_overrides]:
             # Note the fi.field string is unique to each table/report
             logger.info(str(('create field', fi.field, fi.show_as_extra_field)))
@@ -2363,13 +2342,13 @@ class FieldsMetaForm(forms.Form):
                 self.fields[fi.field] = forms.CharField(required=False)
             self.fieldname_array.append([fi.field + '_shown', fi.field])
 
-        # 2. Grab the (bound) fields and put them in the display matrix: have to do this _after_ creating and overriding fields
+        # 2. Grab the (bound) fields and put them in the display matrix (__getitem__ binds the fields):
+        #  have to do this _after_ creating and overriding fields
         # our form will wrap, as simply as possible; so here we just give an ordering to the fields with our fieldrows array
         # TODO: encapsulate this
         self.fieldrows = []
         for one,two in self.fieldname_array:
             self.fieldrows.append([self.__getitem__(one), self.__getitem__(two)])
-        logger.info(str(('=============fieldrows', self.fieldrows )))
         
       
 def set_table_column_info(table,table_names, sequence_override=None,visible_field_overrides=[]):

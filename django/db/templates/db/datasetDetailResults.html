@@ -3,7 +3,7 @@
 	{% if table %}
         {% if object.usage_message.value %}
             <div class='usage_message'>
-            {{ object.usage_message.value }}
+            {{ object.usage_message.value|safe}}
             </div>
             <br/>
         {% endif %}
