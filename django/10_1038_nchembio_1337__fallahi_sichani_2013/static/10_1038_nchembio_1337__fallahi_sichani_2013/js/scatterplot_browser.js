@@ -14,6 +14,8 @@
   "use strict";
   /*global window,document,console,debugger,jQuery,d3,Error,Math */
 
+  var FIRST_COORD = 'x';
+
   function assert (bool, info) {
     if (bool) { return; }
     var msg = 'assertion failed';
@@ -140,7 +142,7 @@
 
   function xys (pair, data, keycols) {
     var from = d3.merge([pair, keycols]),
-        keys = pair.length === 1 ? ['y'] : ['x', 'y'],
+        keys = pair.length === 1 ? [FIRST_COORD] : ['x', 'y'],
         to = d3.merge([keys, keycols]),
         aoo = toobjs(projn(data, from), to);
     aoo.forEach( function (a) { keys.map(function (k) { a[k] = +a[k]; }); } );
@@ -165,9 +167,23 @@
     }
   }
 
-  // function LOG (o) {
-  //   console.log(JSON.stringify(o));
-  // }
+  // ---------------------------------------------------------------------------
+  // debugging utils
+
+  function logjson (o) {
+    console.log(JSON.stringify(o));
+  }
+
+  var time = (function () {
+    var start,
+        ret     = function () { return new Date().valueOf(); };
+    ret.started = function () { return start; };
+    ret.elapsed = function () { return ret() - start; };
+    ret.reset   = function () { start = ret();
+                                return start; };
+    ret.reset();
+    return ret;
+  }());
 
   // ---------------------------------------------------------------------------
 
@@ -295,8 +311,6 @@
           .style('width', column_order ? (colwidth + 'px') : '');
 
     }
-
-    $$.have_y_level = function () { return $('.y-level').length > 0; };
 
     $$.update_factor = function (factor, levels, handlers) {
       $('#picker').css({visibility: 'hidden'});
@@ -444,17 +458,16 @@
 
        var PLOT_RANGE_PADDING,
            EDGE_PARAM,
-           CCLE,
+           CIRC,
            HBAR,
-           VBAR,
-           CRSS;
+           VBAR;
 
        (function () {
           assert(width === height);
           var side = width,
               margin = 3.5,
               halfwidth = 3.5,
-              radius = 2.5,
+              radius = 5.5,
               abs_padding = 2 * margin + 2 * halfwidth + radius,
               rel_padding = abs_padding/(side - 2 * abs_padding),
               plot_label = plot_g.append('g')
@@ -470,12 +483,11 @@
           PLOT_RANGE_PADDING = rel_padding;
           EDGE_PARAM = (margin + halfwidth)/abs_padding;
 
-          CCLE = d3.svg.symbol().type('circle')
+          CIRC = d3.svg.symbol().type('circle')
                    .size(radius*radius*Math.PI)();
 
           HBAR = 'M' + -halfwidth + ',0H' + halfwidth;
           VBAR = 'M0' + -halfwidth + ',V' + halfwidth;
-          CRSS = HBAR + VBAR;
        }());
 
        var xcoord,
@@ -496,12 +508,12 @@
            var xaxis = d3.svg.axis()
                .scale(x)
                .orient('bottom')
-               .ticks(3);
+               .ticks(4);
 
            var yaxis = d3.svg.axis()
                .scale(y)
                .orient('left')
-               .ticks(3);
+               .ticks(4);
 
            xaxis_g.call(xaxis);
            yaxis_g.call(yaxis);
@@ -511,55 +523,84 @@
 
        $$.fix_current =
          function () {
-           points_g.selectAll('path:not(.fixed)')
+           points_g.selectAll('g:not(.fixed)')
                    .classed('fixed', true);
            $('#clear button').prop('disabled', false);
-           //$('#clear button').css('visibility', 'visible');
          };
 
        $$.view_data =
          function (data) {
-           var have_y_level = $('.y-level').length > 0,
-               color = have_y_level ? current_color()
+           var have_one_coord = $('.first-coord').length > 0,
+               color = have_one_coord ? current_color()
                                     : $SVG.select('.plot .y.axis line')
                                           .style('stroke');
 
-           points_g.selectAll('path:not(.fixed)')
+
+           points_g.selectAll('g:not(.fixed)')
                    .data(data)
                    .enter()
-                 .append('path')
-                 .append('svg:title')
-                   .text(function (d) { return d.title; });
+                 .append('g')
+                   .attr('class', 'scatterplot-marker')
+                   .each(function (d) {
+                      var $this = d3.select(this);
+                      $this.append('path')
+                             .attr({'class': 'hbar', d: HBAR});
+                      $this.append('path')
+                             .attr({'class': 'vbar', d: VBAR});
+                      var $circ = $this.append('path')
+                                         .attr({'class': 'circ', d: CIRC})
+                      var title = d.title;
+                      $circ.append('svg:title')
+                             .datum(title)
+                             .text(String);
 
-           points_g.selectAll('path:not(.fixed)').each(function (d) {
-                  var s = {},
-                      a = {transform: translate(d3.round(x(xcoord(d.x)), 1),
-                                                d3.round(y(ycoord(d.y)), 1))};
+                      function match_title (e) { return e.title === title; }
 
-                  if (isFinite(d.y) &&
-                      (!have_y_level || isFinite(d.x))) {
-                    a.d = CCLE;
-                    a['class'] = 'circle-marker';
-                    s.fill = color;
+                      $circ.on('mouseover', function (d) {
+                        d3.selectAll('.points .scatterplot-marker').filter(match_title)
+                                                                   .classed('selected', true);
+                      });
+                      $circ.on('mouseout', function (d) {
+                        d3.selectAll('.points .scatterplot-marker').filter(match_title)
+                                                                   .classed('selected', false);
+                      });
+
+                    });
+
+           var c0 = FIRST_COORD,
+               c1 = FIRST_COORD === 'y' ? 'x' : 'y';
+
+           points_g.selectAll('g:not(.fixed)')
+                   .attr('transform', function (d) {
+                            return translate(d3.round(x(xcoord(d.x)), 1),
+                                            d3.round(y(ycoord(d.y)), 1));
+                         })
+                   .attr({fill: color, stroke: color})
+                   .each(function (d) {
+                  var $this = d3.select(this);
+
+                  // setting the visibility directly is the simplest
+                  // thing to do, but it is also pretty heavy-handed,
+                  // because it can't be easily modulated through CSS;
+                  // it is therefore better to toggle the visibility
+                  // indirectly, by adding/removing classes.
+                  $this.selectAll('path').style('visibility', 'hidden');
+
+                  // if (isFinite(d[c0]) && isFinite(d[c1])) {
+                  if (isFinite(d[c0]) &&
+                      !(have_one_coord && !isFinite(d[c1]))) {
+                    $this.select('.circ').style('visibility', 'visible');
                   }
                   else {
-                    s.stroke = color;
-                    if (isFinite(d.x)) {
-                      assert(!isFinite(d.y));
-                      a.d = VBAR;
-                      a['class'] = 'vbar';
+                    // if (have_one_coord && !isFinite(d.x)) {
+                    if (!isFinite(d.x)) {
+                      $this.select('.hbar').style('visibility', 'visible');
                     }
-                    else if (!have_y_level || isFinite(d.y)) {
-                      a.d = HBAR;
-                      a['class'] = 'hbar';
-                    }
-                    else {
-                      a.d = CRSS;
-                      a['class'] = 'cross';
+                    // if (have_one_coord && !isFinite(d.y)) {
+                    if (!isFinite(d.y)) {
+                      $this.select('.vbar').style('visibility', 'visible');
                     }
                   }
-                  d3.select(this).attr(a)
-                                 .style(s);
 
                 });
 
@@ -567,7 +608,7 @@
          };
 
        $$.clear_all = function () {
-           points_g.selectAll('path')
+           points_g.selectAll('g')
                  .data([])
                .exit()
                .remove();
@@ -576,7 +617,7 @@
          };
 
        $$.clear_not_fixed = function () {
-           points_g.selectAll('path:not(.fixed)')
+           points_g.selectAll('g:not(.fixed)')
                  .data([])
                .exit()
                .remove();
@@ -614,36 +655,31 @@
        METRICS =
          named_array(
            [
-            ['log10[EC50 (M)]',
-             [{attr: {},                              text: 'EC'},
-              {attr: {'class': 'subscript', dy: +dy}, text: '50'},
-              {attr: {                      dy: -dy}, text: ' (log'},
-              {attr: {'class': 'subscript', dy: +dy}, text: '10'},
-              {attr: {                      dy: -dy}, text: ')'}]],
             ['log10[IC50 (M)]',
-             [{attr: {},                              text: 'IC'},
-              {attr: {'class': 'subscript', dy: +dy}, text: '50'},
-              {attr: {                      dy: -dy}, text: ' (log'},
+             [
+              {attr: {},                              text: 'log'},
               {attr: {'class': 'subscript', dy: +dy}, text: '10'},
-              {attr: {                      dy: -dy}, text: ')'}]],
+              {attr: {                      dy: -dy}, text: '(IC'},
+              {attr: {'class': 'subscript', dy: +dy}, text: '50'},
+              {attr: {                      dy: -dy}, text: ')'}
+             ]],
             ['log10[GI50 (M)]',
-             [{attr: {},                              text: 'GI'},
-              {attr: {'class': 'subscript', dy: +dy}, text: '50'},
-              {attr: {                      dy: -dy}, text: ' (log'},
+             [
+              {attr: {},                              text: 'log'},
               {attr: {'class': 'subscript', dy: +dy}, text: '10'},
-              {attr: {                      dy: -dy}, text: ')'}]],
-            ['HillSlope',
-             [{attr: {},                              text: 'Hill Slope'}]],
-            // ['E_inf',
-            //  [{attr: {'class': 'math'},               text: 'E'},
-            //   {attr: {                      dy: +dy}, text: '\u221E'}]],
-              // '\u221E' (aka &infin;) does not get the "subscript"
-              // class because it is already tiny;
+              {attr: {                      dy: -dy}, text: '(GI'},
+              {attr: {'class': 'subscript', dy: +dy}, text: '50'},
+              {attr: {                      dy: -dy}, text: ')'}
+             ]],
+            ['log2[HillSlope]',
+             [
+              {attr: {},                              text: 'log'},
+              {attr: {'class': 'subscript', dy: +dy}, text: '2'},
+              {attr: {                      dy: -dy}, text: '(HillSlope)'}
+             ]],
             ['E_max',
              [{attr: {'class': 'math'},               text: 'E'},
-              {attr: {'class': 'subscript', dy: +dy}, text: 'max'}]],
-            ['AUC',
-             [{attr: {},                              text: 'AUC'}]]
+              {attr: {'class': 'subscript', dy: +dy}, text: 'max'}]]
            ]
          );
     }());
@@ -653,7 +689,7 @@
                   })),
         PICKER = make_picker(FACTORS),
         KEYCOL,
-        ncols = 3,
+        ncols = 2,
         ww = $('#main .centered-track').width(),
         lpw = $('#left-panel').width(),
         pw = $('#picker-container').width(),
@@ -683,9 +719,14 @@
 
     function view_data (level) {
       var levels = [level];
-      var picked = d3.selectAll('.y-level');
+      var picked = d3.selectAll('.first-coord');
       if (picked[0].length === 1) {
-        levels.push(picked.datum().text);
+        if (FIRST_COORD === 'y') {
+          levels.push(picked.datum().text);
+        }
+        else {
+          levels.unshift(picked.datum().text);
+        }
       }
       PLOTS.forEach(function (p) {
         p.view_data(toxys(levels, p.__data));
@@ -700,7 +741,7 @@
       $(this).hover(function (e) {
           e.stopPropagation();
           var $li = $(this);
-          if ($('.y-level').length > 0) {
+          if ($('.first-coord').length > 0) {
             $li.css({'background-color': current_color(),
                      color: 'white',
                      opacity: 0.75,
@@ -717,16 +758,16 @@
                    color: '',
                    opacity: 1,
                    filter: 'alpha(opacity=100)'});
-          if ($li.hasClass('y-level')) { return; }
+          if ($li.hasClass('first-coord')) { return; }
           $li.css({outline: 'none'});
         })
              .click(function (e) {
           if (e.which !== 1) { return; }
           var $li = $(this);
-          var $ylevel = $('.y-level');
-          if ($ylevel.length > 0) {
-            if ($li.hasClass('y-level') && !e.shiftKey) {
-              $li.removeClass('y-level');
+          var $first_coord = $('.first-coord');
+          if ($first_coord.length > 0) {
+            if ($li.hasClass('first-coord') && !e.shiftKey) {
+              $li.removeClass('first-coord');
               $li.css({'background-color': '', color: ''});
               $li.trigger('mouseenter');
             }
@@ -735,9 +776,12 @@
 
               fix_current();
 
+              var lis = FIRST_COORD === 'x' ?
+                          [$first_coord, $li] : [$li, $first_coord];
+
               var item = d3.select('#legend ul')
                                .append('li')
-                                 .datum([$ylevel, $li].map(function (jq) {
+                                 .datum(lis.map(function (jq) {
                                           return d3.select(jq.get(0))
                                                    .datum()
                                                    .text;
@@ -752,7 +796,10 @@
 
               mini_table.append('td')                        
                           .attr('class', 'entry')
-                          .text(function (d) { return d.join(' vs '); });
+                          .text(function (d) {
+                              return 'x: ' + d[0] + '; y: ' + d[1];
+                              //return d.join(' vs ');
+                          });
 
               $(item.node()).height(parseInt(mini_table.style('height'), 10));
 
@@ -766,7 +813,7 @@
           }
           else {
             $('#clear button').prop('disabled', false);
-            $li.addClass('y-level');
+            $li.addClass('first-coord');
             $li.trigger('mouseenter');
           }
           e.stopPropagation();
@@ -793,7 +840,7 @@
       PLOTS.forEach(function (p) { p.clear_all(); });
 
       $('#legend li').remove();
-      $('.y-level').removeClass('y-level')
+      $('.first-coord').removeClass('first-coord')
                    .css('outline', 'none');
       $('#clear button').prop('disabled', true);
       //$('#clear button').css('visibility', 'hidden');
@@ -877,70 +924,6 @@
     props.forEach(function (p) { $to.css(p, $from.css(p)); });
   }());
 
-
-  (function () {
-    var side = 26,
-        stroke_width = 0,//2,
-        radius = 4 - (stroke_width/2),
-        w = side - stroke_width,
-        //color = $('#main .content').css('background-color');
-        color = $('#main .pulldown > div').css('background-color');
-
-    d3  .selectAll('#main .tab > div')
-      .append('svg')
-        .attr({width: side,
-               height: side,
-               viewBox: viewbox(-side/2, -side/2, side, side)})
-      .append('g')
-        .attr('class', 'corner-dingbat')
-      .append('rect')
-        .attr({'class': 'outer',
-               x: -w/2, y: -w/2, width: w, height: w,
-               rx: radius, ry: radius})
-        .style({stroke: color,
-                'stroke-width': stroke_width});
-
-    // d3  .select('#main .tab > .close .corner-dingbat')
-    //   .append('g')
-    //     .attr('transform', 'rotate(45)')
-    //     .each(function () {
-    //        var $this = d3.select(this),
-    //            r = 7;
-    //        $this.append('line')
-    //               .attr({x1: -r, y1: 0, x2: r, y2: 0});
-    //        $this.append('line')
-    //               .attr({y1: -r, x1: 0, y2: r, x2: 0});
-    //     });
-
-    d3   .select('#main .tab > .close .corner-dingbat')
-       .append('g')
-         .attr('transform', 'rotate(90)')
-         .each(function () {
-            var $this = d3.select(this);
-            $this.append('circle')
-                   .attr({'class': 'inner',
-                          cx: 0, cy: 0, r: 9});
-            $this.append('text')
-                   .attr({'text-anchor': 'middle',
-                          dy: '0.75ex'})
-                   //.text('\u2329');  // bombs on FF 25 + OS X!
-                   .text('<');
-         });
-
-    d3   .select('#main .tab > .open .corner-dingbat')
-         .each(function () {
-            var $this = d3.select(this);
-            $this.append('circle')
-                   .attr({'class': 'inner',
-                          cx: 0, cy: 0, r: 9});
-            $this.append('text')
-                   .attr({'text-anchor': 'middle',
-                          dy: '0.75ex'})
-                   .text('?');
-         });
-
-  }());
-
   (function () {
 
     var $centered_track = $('#main .centered-track'),
@@ -1001,7 +984,7 @@
       $body.width($window.width() - delta);
     }
     $window.resize(on_resize).trigger('resize');
-  })();
+  }());
 
   (function () {
      var STATIC_URL = window.hmslincs.STATIC_URL,
@@ -1009,7 +992,7 @@
                     '10_1038_nchembio_1337__fallahi_sichani_2013/data/';
      // var data_dir = '';
 
-     var INPUT = data_dir + 'dose_response_data.tsv';
+     var INPUT = data_dir + 'scatterplot_data.tsv';
      // var INPUT = data_dir + 'mf_data_0.tsv';
 
      d3.tsv(INPUT, function (error, data) {

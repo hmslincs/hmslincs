@@ -1,28 +1,27 @@
 /******************************************************************************/
 
 /*
-#main *{outline:1px solid red;}
-html{background-color:#dedede;}
+.global,.global *{outline:1px solid red;}
 */
 
 /******************************************************************************/
 
 html,body{height:100%;}
-#main,#main *{
+.global,.global *{
+  margin:0;
+  padding:0;
   -webkit-box-sizing:border-box;
      -moz-box-sizing:border-box;
           box-sizing:border-box;
 }
-#main table{
-  border-spacing:0;
-  border-collapse:collapse;
-}
-
-body,.global, .global div,.global img,.global p,.global table,.global td,
-  .global ul,.global input,.global label{margin:0;padding:0;border:0;}
+.global :not(button){border:0;}
 .global{
   font-family:consolas,monaco,courier,monospace;
   font-size:13px;
+}
+.global table{
+  border-spacing:0;
+  border-collapse:collapse;
 }
 
 /******************************************************************************/
@@ -41,34 +40,108 @@ body,.global, .global div,.global img,.global p,.global table,.global td,
 
 /******************************************************************************/
 
-#main .open   .tab > .open,
-#main .closed .tab > .close{display:none;}
-
 #main ul,#main li{list-style:initial;} /* undoes reset.css */
 
 #main p{
   margin-top:3ex;
 }
-#main .tab text{
-  font-weight:bold;
-  font-size:20px;
-  font-family:Helvetica,sans-serif;
+
+
+/******************************************************************************/
+
+#main .tab{
+  position:absolute;
+  top:0;
+  margin-top:5px;
+  z-index:1;
+  cursor:default;
 }
 
-#main .closed .tab > .open  svg,
-#main .open   .tab > .close svg{display:block;}
+#main .corner-dingbat{
+  cursor:default;
+  position:relative;
+}
 
-#main .closed .tab > .close svg,
-#main .open   .tab > .open  svg{display:none;}
+#main .closed            .corner-dingbat,
+#main .open   .tab:hover .corner-dingbat{
+  background-color:white;
+}
 
-#main .tab > .open       .outer,
-#main .tab               text,
-#main .tab > .open:hover .inner{fill:white;}
+#main .open              .corner-dingbat,
+#main .closed .tab:hover .corner-dingbat{ 
+  background-color:#E6941E;
+}
 
-#main .tab               .inner,
-#main .tab > .open:hover .outer,
-#main .tab > .open:hover text,
-#main .tab > .close      .outer{fill:#E6941E;}
+#main .corner-dingbat > div{
+  position:relative;
+  background-color:#E6941E;
+  height:100%;
+}
+
+#main .corner-dingbat{
+  width:26px;height:26px;
+  padding:2px;
+  -moz-border-radius: 13px;
+  -webkit-border-radius: 13px;
+  border-radius: 13px;
+}
+
+#main .corner-dingbat > div{
+  -webkit-border-radius: 11px;
+     -moz-border-radius: 11px;
+          border-radius: 11px;
+}
+
+#main .corner-dingbat > div > div{
+  color:white;
+
+  font-size: 20px;
+  font-weight: bold;
+  /*font-family:helvetica,sans-serif;*/
+  /*font-family:courier,monospace;*/
+  font-family:serif;font-style:italic;margin-left:-2px;
+
+  text-align:center;
+  padding-top:12px;
+  line-height:0px;
+}
+
+/* most of the declarations for :before and :after belong to a hack to
+   squeeze a "close" icon out of CSS */
+
+#main .corner-dingbat > div > div:before,
+#main .corner-dingbat > div > div:after{
+  content:"";
+  position:absolute;
+  top:50%;
+  background:transparent;
+}
+
+#main .corner-dingbat > div > div:before,
+#main .corner-dingbat > div > div:after{
+  left:3px;
+  border-left:8px solid transparent;
+  border-right:8px solid transparent;
+  border-bottom:7px solid transparent;
+}
+
+#main .corner-dingbat > div > div:before{
+  border-bottom-color:white;
+  margin-top:-4px;
+}
+
+#main .corner-dingbat > div > div:after{
+  margin-top:-1px;
+  border-bottom-color:#E6941E;
+}
+
+#main .open   .corner-dingbat > div > div > span,
+#main .closed .corner-dingbat > div > div:before,
+#main .closed .corner-dingbat > div > div:after{
+  display:none;
+}
+
+/******************************************************************************/
 
 #main .pulldown{
   width:100%;
@@ -93,11 +166,6 @@ body,.global, .global div,.global img,.global p,.global table,.global td,
   position:relative;
   margin:0 auto;
   overflow:hidden;
-}
-#main .tab{
-  position:absolute;
-  z-index:1;
-  cursor:default;
 }
 
 #main .content{
@@ -288,9 +356,11 @@ body,.global, .global div,.global img,.global p,.global table,.global td,
   vertical-align:top;
 }
 #legend .bullet{
-  font-size:14px;
-  width:14px;
-  line-height:11px;
+  font-size:26px;
+  width:26px;
+  line-height:8px;
+  opacity:0.75;
+  filter:alpha(opacity=75);
 }
 #legend .entry{
   font-size:11px;
@@ -330,21 +400,27 @@ body,.global, .global div,.global img,.global p,.global table,.global td,
 
 /******************************************************************************/
 
-.hbar,
-.vbar,
-.cross{
-  shape-rendering:crispEdges
+.scatterplot-marker{
+  pointer-events:all;
+  stroke-opacity:1;
 }
-.circle-marker,.hbar,.vbar,.cross{
-  cursor:pointer;
+.circ{
+  stroke:black;
+  stroke-width:0;
+  fill-opacity:0.75;
+}
+.hbar,.vbar{
+  stroke-width:1;
+  shape-rendering:crispEdges;
+}
+.selected.scatterplot-marker .circ{
+  stroke-width:1;
+  fill-opacity:1;
 }
 
-.circle-marker{
-  stroke:none;
-}
-.hbar,.vbar,.cross{
-  fill:none;
-  stroke-width:1;
+.selected.scatterplot-marker .hbar,
+.selected.scatterplot-marker .vbar{
+  stroke-width:3; /* we need something better than this */
 }
 
 /******************************************************************************/
@@ -357,3 +433,4 @@ body,.global, .global div,.global img,.global p,.global table,.global td,
 }
 
 /******************************************************************************/
+
