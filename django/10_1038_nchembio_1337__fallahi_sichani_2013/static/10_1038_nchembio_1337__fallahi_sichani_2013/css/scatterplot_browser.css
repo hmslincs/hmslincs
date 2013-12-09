@@ -409,18 +409,16 @@ html,body{height:100%;}
   stroke-width:0;
   fill-opacity:0.75;
 }
+
 .hbar,.vbar{
-  stroke-width:1;
+  stroke-width:0;
   shape-rendering:crispEdges;
 }
-.selected.scatterplot-marker .circ{
-  stroke-width:1;
-  fill-opacity:1;
-}
 
-.selected.scatterplot-marker .hbar,
-.selected.scatterplot-marker .vbar{
-  stroke-width:3; /* we need something better than this */
+.selected.scatterplot-marker *{
+  stroke:red;
+  stroke-width:2;
+  fill-opacity:1;
 }
 
 /******************************************************************************/

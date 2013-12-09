@@ -11,10 +11,11 @@
 // }());
 
 (function ($) {
-  "use strict";
+  'use strict';
   /*global window,document,console,debugger,jQuery,d3,Error,Math */
 
-  var FIRST_COORD = 'x';
+  var FIRST_COORD = 'x',
+      SENTINEL = String.fromCharCode(29);
 
   function assert (bool, info) {
     if (bool) { return; }
@@ -65,10 +66,11 @@
 
     var index = 0;
     current_color = function () {
-      return d3.hsl(mult * ((start + index * step) % 1), 0.6, 0.6);
+      return d3.hsl(mult * ((start + index * step) % 1), 0.6, 0.6).toString();
     };
     current_color.reset = function () { index = 0; };
     current_color.next = function () { index += 1; };
+    current_color.prev = function () { index -= 1; };
   }());
 
   function translate (xy) {
@@ -194,7 +196,7 @@
 
     function populate_list (list, data, max_width, handlers) {
 
-      var sentinel = String.fromCharCode(29);
+      var sentinel = SENTINEL;
 
       function _populate_list_0 (list, data, handlers) {
         var lis0 = list.selectAll('li'),
@@ -486,8 +488,13 @@
           CIRC = d3.svg.symbol().type('circle')
                    .size(radius*radius*Math.PI)();
 
-          HBAR = 'M' + -halfwidth + ',0H' + halfwidth;
-          VBAR = 'M0' + -halfwidth + ',V' + halfwidth;
+          function rect (hw, hh) {
+            var o = (-hw + ',' + -hh);
+            return 'M' + o + 'H' + hw + 'V' + hh + 'H' + -hw + 'Z';
+          }
+
+          HBAR = rect(halfwidth, 0.5);
+          VBAR = rect(0.5, halfwidth);
        }());
 
        var xcoord,
@@ -528,13 +535,23 @@
            $('#clear button').prop('disabled', false);
          };
 
+
+       $$.release_last =
+         function () {
+           var id = d3.select('#legend li:last-child .entry')
+                      .datum()
+                      .join(SENTINEL);
+           points_g.selectAll('.scatterplot-marker')
+                   .filter(function (d) { return d.__id === id; })
+                   .classed('fixed', false);
+         };
+
        $$.view_data =
          function (data) {
            var have_one_coord = $('.first-coord').length > 0,
                color = have_one_coord ? current_color()
-                                    : $SVG.select('.plot .y.axis line')
-                                          .style('stroke');
-
+                                      : $SVG.select('.plot .y.axis line')
+                                            .style('stroke');
 
            points_g.selectAll('g:not(.fixed)')
                    .data(data)
@@ -557,12 +574,21 @@
                       function match_title (e) { return e.title === title; }
 
                       $circ.on('mouseover', function (d) {
-                        d3.selectAll('.points .scatterplot-marker').filter(match_title)
-                                                                   .classed('selected', true);
+                        d3.selectAll('.points .scatterplot-marker')
+                          .filter(match_title)
+                          .classed('selected', true)
+                          .each(function () {
+                                  var p = this.parentNode;
+                                  p.removeChild(this);
+                                  p.appendChild(this);
+                                });
+
                       });
+
                       $circ.on('mouseout', function (d) {
-                        d3.selectAll('.points .scatterplot-marker').filter(match_title)
-                                                                   .classed('selected', false);
+                        d3.selectAll('.points .scatterplot-marker')
+                          .filter(match_title)
+                          .classed('selected', false);
                       });
 
                     });
@@ -649,7 +675,7 @@
        var dy = 4;  // NB: this should be 1/3 of .plot-label's font-size
 
        // NB: subscripting should really be done with
-       // baseline-shift="sub" rather than mucking around with dy, but
+       // baseline-shift='sub' rather than mucking around with dy, but
        // neither FF nor IE support it yet (131201U).
 
        METRICS =
@@ -691,15 +717,16 @@
         KEYCOL,
         ncols = 2,
         ww = $('#main .centered-track').width(),
-        lpw = $('#left-panel').width(),
-        pw = $('#picker-container').width(),
-        side = ~~((ww - lpw)/ncols),
+        lpw = $('#left-panel').width();
+
+    $('#widget').width(ww);
+    $('.stage').width(ww - lpw);
+
+    var side = ~~((ww - lpw)/ncols),
         //zide = function () { return ~~((ww - $('#left-panel').width())/ncols); },
         PLOTS = named_array(METRICS.keys.map(function (k) {
           return [k, make_plot(side, side, METRICS[k])];
         }));
-
-    $('#widget').width(ww);
 
     $('#picker ul').hover(function (e) {
         if (e.shiftKey) { return; } 
@@ -711,6 +738,8 @@
       if (KEYCOL !== 'title') {
         ret.forEach(function (d) {
           d.title = d[KEYCOL];
+          d.levels = levels;
+          d.__id = levels.join(SENTINEL);
           delete d[KEYCOL];
         });
       }
@@ -735,6 +764,38 @@
 
     function fix_current () {
       PLOTS.forEach(function (p) { p.fix_current(); });
+    }
+
+    function release_last () {
+      PLOTS.forEach(function (p) { p.release_last(); });
+    }
+
+    function legend_label (pair) {
+      return 'x: ' + pair[0] + '; y: ' + pair[1];
+    }
+
+    function add_pair (pair, color) {
+      var item = d3.select('#legend ul')
+                 .append('li')
+                   .datum(pair);
+
+      var mini_table = item.append('table').append('tr');
+
+      mini_table.append('td')
+                  .attr('class', 'bullet')
+                  .style('color', color)
+                  .text('\u25CF');
+
+      mini_table.append('td')
+                  .attr('class', 'entry')
+                  .text(legend_label);
+
+      $(item.node()).height(parseInt(mini_table.style('height'), 10));
+    }
+
+    function already_have (pair) {
+      var label = legend_label(pair);
+      return $('#legend li .entry:contains("' + label + '")');
     }
 
     function handlers () {
@@ -774,41 +835,51 @@
             else {
               clear_text_selection();
 
-              fix_current();
-
-              var lis = FIRST_COORD === 'x' ?
-                          [$first_coord, $li] : [$li, $first_coord];
-
-              var item = d3.select('#legend ul')
-                               .append('li')
-                                 .datum(lis.map(function (jq) {
-                                          return d3.select(jq.get(0))
-                                                   .datum()
-                                                   .text;
-                                        }));
-
-              var mini_table = item.append('table').append('tr');
-
-              mini_table.append('td')                        
-                          .attr('class', 'bullet')
-                          .style('color', current_color())
-                          .text('\u25CF');
-
-              mini_table.append('td')                        
-                          .attr('class', 'entry')
-                          .text(function (d) {
-                              return 'x: ' + d[0] + '; y: ' + d[1];
-                              //return d.join(' vs ');
+              var pair = (FIRST_COORD === 'x' ?
+                          [$first_coord, $li] :
+                          [$li, $first_coord])
+                         .map(function (jq) {
+                           return d3.select(jq.get(0))
+                                    .datum()
+                                    .text;
                           });
 
-              $(item.node()).height(parseInt(mini_table.style('height'), 10));
+              var $already = already_have(pair);
+              if ($already.length > 0) {
+                var last_fixed = d3.select('#legend li:last-child');
+                if (pair.join(SENTINEL) === last_fixed.select('.entry')
+                                                      .datum()
+                                                      .join(SENTINEL)) {
+                  release_last();
+                  last_fixed.remove();
+                  current_color.prev();
+                  $li.trigger('mouseenter');
+                }
+                else {
+                  var times = 2;
+                  // .hide() + .toggle('pulsate') simulates a blinking effect
+                  $already.add($li)
+                          .hide()
+                          .toggle(
+                           {
+                             effect: 'pulsate',
+                             times: times,
+                             duration: times * 80
+                           });
+                }
+              }
+              else {
+                fix_current();
+                var color = current_color();
+                add_pair(pair, color);
 
-              $li.css({color: 'white',
-                       'background-color': current_color(),
-                       opacity: 1,
-                       filter: 'alpha(opacity=100)'});
+                $li.css({color: 'white',
+                         'background-color': color,
+                         opacity: 1,
+                         filter: 'alpha(opacity=100)'});
 
-              current_color.next();
+                current_color.next();
+              }
             }
           }
           else {
