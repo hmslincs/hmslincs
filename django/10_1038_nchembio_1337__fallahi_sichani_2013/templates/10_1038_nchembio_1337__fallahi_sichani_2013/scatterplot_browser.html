@@ -2,18 +2,6 @@
 
 {% block head_extra %}
 
-<!--
-TODO:
-* implement support for non-square SVG elements
-* fork widget into two: with/without overlay feature
-* implement labels for axes
-* implement link-outs to db
-* group cell lines and drugs by type
-* fix IE hover bug
-* replace table with two side-by-side (absolutely-positioned) divs
-* ditto for mini-tables in legend
-* decruft + optimize
--->
 
   <link rel="stylesheet" href="{{ STATIC_URL }}10_1038_nchembio_1337__fallahi_sichani_2013/css/scatterplot_browser.css"/>
 
@@ -144,6 +132,7 @@ TODO:
     </script>
 
     <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/jquery-ui.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/d3/3.3.10/d3.min.js"></script>
     <script src="{{ STATIC_URL }}10_1038_nchembio_1337__fallahi_sichani_2013/js/scatterplot_browser.js"></script>
 
