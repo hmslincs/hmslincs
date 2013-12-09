@@ -1445,28 +1445,6 @@ class DataSetManager():
             parameters = []
         if not column_exclusion_overrides:
             column_exclusion_overrides = []
-#        if(search != ''):
-#            #TODO: NOTE: the dataset search does not use the full text search
-#            #TODO: dataset search to search the data fields as well?
-#            searchParam = '%'+search+'%'
-#            searchClause = "facility_salt_batch like %s or lower(sm_name) like lower(%s) or lower(sm_alternative_names) like lower(%s) "
-#            searchParams = [searchParam,searchParam,searchParam]
-#            if(self.has_cells()): 
-#                searchClause += " or cell_facility_id::TEXT like %s or lower(cell_name) like lower(%s) "
-#                searchParams += [searchParam,searchParam]
-#            if(self.has_proteins()): 
-#                searchClause += " or protein_lincs_id::TEXT like %s or lower(protein_name) like lower(%s) "
-#                searchParams += [searchParam,searchParam]
-#            if(self.has_antibodies()): 
-#                searchClause += " or antibody_facility_id::TEXT like %s or lower(antibody_name) like lower(%s) "
-#                searchParams += [searchParam,searchParam]
-#            if(self.has_otherreagents()): 
-#                searchClause += " or otherreagent_facility_id::TEXT like %s or lower(otherreagent_name) like lower(%s) "
-#                searchParams += [searchParam,searchParam]
-                
-#            logger.info(str(('datasetresults.get_table search:', searchClause, searchParams)))
-#            metaWhereClause.append(searchClause)
-#            parameters += searchParams
             
         self.dataset_info = self._get_query_info(whereClause,metaWhereClause, parameters)
         logger.debug(str(('search',search,'metaWhereClause',metaWhereClause,'parameters',self.dataset_info.parameters)))
