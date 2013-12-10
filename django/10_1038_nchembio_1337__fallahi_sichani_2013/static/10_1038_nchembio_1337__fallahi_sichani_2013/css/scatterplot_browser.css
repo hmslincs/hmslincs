@@ -162,6 +162,12 @@ html,body{height:100%;}
   color:indigo;
 }
 
+#main .pulldown .button-reference{
+  outline:1px solid white;
+  padding:0 3px;
+  font-family:Courier;
+}
+
 #main .centered-track{
   position:relative;
   margin:0 auto;
