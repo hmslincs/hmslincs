@@ -83,7 +83,7 @@ then
   DB=django
   DB_USER=django
   PGHOST=localhost
-  VIRTUALENV=${3:-/home/sde4/workspace/hmslincs/myvirtualenv/bin/activate}
+  VIRTUALENV=${3:-../hmslincs-env/bin/activate}
 elif [[ "$SERVER" == "TEST" ]] || [[ "$SERVER" == "test" ]] 
 then
   # NOT NEEDED FOR TEST DATA : DATADIR=${2:-/home/sde4/workspace/hmslincs/}
