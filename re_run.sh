@@ -176,6 +176,10 @@ else
 	python src/import_smallmolecule.py -f $DATADIR/HMS-LINCS_complete.sdf
 	check_errs $? "import sdf fails"
 
+  echo 'import salt table...'
+  python src/import_smallmolecule.py -f  $DATADIR/HMS-LINCS_salts.sdf
+  check_errs $? "import sdf fails"
+
 	echo 'import small molecule batch tables...'
 	python src/import_smallmolecule_batch.py -f $DATADIR/small_molecule_batch-HMS_LINCS-1.xls
 	check_errs $? "import smallmolecule batch fails"
