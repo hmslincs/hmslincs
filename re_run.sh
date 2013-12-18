@@ -120,9 +120,13 @@ then
 	python src/import_cell.py -f sampledata/LINCS_Cells_forLoading.xls
 	check_errs $? "import cell fails"
 	
-	echo 'import small molecule tables...'
-	python src/import_smallmolecule.py -f  sampledata/HMS-LINCS_complete.sdf
-	check_errs $? "import sdf fails"
+  echo 'import small molecule tables...'
+  python src/import_smallmolecule.py -f  sampledata/HMS-LINCS_complete.sdf
+  check_errs $? "import sdf fails"
+
+  echo 'import salt table...'
+  python src/import_smallmolecule.py -f  sampledata/HMS-LINCS_salts.sdf
+  check_errs $? "import sdf fails"
 
 	echo 'import small molecule batch tables...'
 	python src/import_smallmolecule_batch.py -f sampledata/small_molecule_batch-HMS_LINCS-1.xls
