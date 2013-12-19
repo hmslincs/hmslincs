@@ -116,8 +116,8 @@ def cellIndex(request):
         show_field = form.cleaned_data.get(key +'_shown', False)
         field_data = form.cleaned_data.get(key)
         if show_field or field_data:
+            queryset = CellSearchManager().join_query_to_dataset_type(queryset, dataset_type=field_data)
             if field_data:
-                queryset = CellSearchManager().join_query_to_dataset_type(queryset, dataset_type=field_data)
                 search_label += "Filtered for " + fieldinformation.get_verbose_name() + ": " + field_data
             visible_field_overrides.append(key)
             # set the value for the shown field, can do this because we copied the querydict above
@@ -204,8 +204,8 @@ def proteinIndex(request):
         show_field = form.cleaned_data.get(key +'_shown', False)
         field_data = form.cleaned_data.get(key)
         if show_field or field_data:
+            queryset = ProteinSearchManager().join_query_to_dataset_type(queryset, dataset_type=field_data)
             if field_data:
-              queryset = ProteinSearchManager().join_query_to_dataset_type(queryset, dataset_type=field_data)
               search_label += "Filtered for " + fieldinformation.get_verbose_name() + ": " + field_data
             visible_field_overrides.append(key)
             # set the value for the shown field, can do this because we copied the querydict above
@@ -394,8 +394,8 @@ def smallMoleculeIndex(request, queryset=None, overrides=None):
         show_field = form.cleaned_data.get(key +'_shown', False)
         field_data = form.cleaned_data.get(key)
         if show_field or field_data:
+            queryset = SmallMoleculeSearchManager().join_query_to_dataset_type(queryset, dataset_type=field_data)
             if field_data:
-              queryset = SmallMoleculeSearchManager().join_query_to_dataset_type(queryset, dataset_type=field_data)
               search_label += "Filtered for " + fieldinformation.get_verbose_name() + ": " + field_data
             visible_field_overrides.append(key)
             # set the value for the shown field, can do this because we copied the querydict above
@@ -2291,6 +2291,7 @@ class ProteinSearchManager(SearchManager):
         queryset = queryset.extra( select=
             { key:  "(select array_to_string(array_agg(distinct (ds.dataset_type)), ', ') as " + key 
                     + " from db_dataset ds join db_datarecord dr on(ds.id=dr.dataset_id) where dr.%s=%s.id)" %(datarecord_field, source_table)})
+        logger.warn(str(('join the dataset types...')))
         return queryset
 
 class SmallMoleculeSearchManager(SearchManager):
