@@ -3,31 +3,6 @@
 {% block head_extra %}
   <link rel="stylesheet" href="{{ STATIC_URL }}10_1038_nchembio_1337__fallahi_sichani_2013/css/dose_response_grid.css"/>
 
-<style>
-/* div{outline:1px solid red;} */
-
-/* assorted hacks to disable site-wide settings */
-
-/* #right-panel{outline-color:blue;} */
-/* #sticky-container{outline-color:#0a0;} */
-/* #track-container{outline-color:black;} */
-
-/* #content{outline:5px solid black;} */
-/* #pagebody{outline:5px solid green;} */
-/* #pagebody-wrap{outline:5px solid red;} */
-
-#content{min-height:0;}
-#content{margin-top:15px;}
-#content > h1{margin-bottom:10px;}
-#pagebody{border-bottom:#ffefe2 1px solid;}
-#pagebody{margin-bottom:10px;}
-#pagebody{padding-top:65px;padding-bottom:0;}
-#pagebody-wrap{background-color:white;}
-
-.empty-div{display:none;}
-
-</style>
-
 {% endblock %}
 
 {% block title %}An interactive global view of drug response - {{ block.super }}{% endblock %}
@@ -37,53 +12,55 @@
 {% block body %}
 
       <h1>An interactive global view of drug response</h1>
-    </div> <!-- close <div id="content"> -->
+    </div> <!-- close #content -->
     <br style="clear:left">
-  </div> <!-- close <div id="pagebody"> -->
-<!-- </div> --> <!-- close <div id="pagebody-wrap"> -->
+  </div> <!-- close #pagebody -->
+<!-- </div> --> <!-- close #pagebody-wrap -->
 
-  <div id="dose-response-grid-main">
+  <div class="main global xDEBUG" id="dose-response-grid-main">
 
-    <div id="dose-response-grid-content">
+    <div class="slider" style="visibility:hidden">
 
-      <div id="left-panel">
-        <div id="caption-container" style="margin-bottom:20px;">
-          <div id="caption">
-            <p class="normal">The grid below shows dose-response curves grouped either by cell line or by drug.  (Click on the "Toggle view" button to alternate between these two options).</p>
-            <p class="normal">Hovering the cursor over the identifiers in the panel to the right of the grid simultaneously highlights all the curves corresponding to that identifier for which data is available.  (Note that when no data is available for a particular cell line-drug combination, no curve will be highlighted in the corresponding plot.)  Clicking on an identifier fixes the highlighted state of the associated curves.  Multiple sets of curves may be highlighted this way.</p>
-          </div> <!-- #caption -->
-        </div> <!-- #caption-container -->
-        <div id="grid" class="inline" style="margin-bottom:20px;"></div>
-      </div> <!-- #left-panel -->
+      <div class="pulldown">
+        <div class="pulldown-content">
+          <p>The grid below shows dose-response curves grouped either by cell line or by drug.  (Click on the "Toggle view" button to alternate between these two options).</p>
+          <p>Hovering the cursor over the identifiers in the panel to the left of the grid simultaneously highlights all the curves corresponding to that identifier.  (Note that when no data is available for a particular cell line-drug combination, no curve will be highlighted in the corresponding plot.)  Clicking on an identifier fixes the highlighted state of the associated curves.  Multiple sets of curves may be highlighted this way.</p>
+        </div> <!-- .pulldown-content -->
+      </div> <!-- .pulldown -->
 
-      <div id="right-panel">
-        <div>
-          <div id="sticky-anchor-top"></div>
-          <div id="sticky-container">
-            <div id="track-container">
-              <button id="toggle">Toggle view</button>
-              <div id="track" class="list-container">
-                <ul><div class="title"></div></ul>
-                <br>
-                <div class="button-bar">
-                  <button id="reset" style="margin:5px;" disabled>reset</button>
-                </div>
-              </div> <!-- #track -->
-            </div> <!-- #track-container -->
-          </div> <!-- #sticky-container -->
-          <div id="sticky-anchor-bottom"></div>
-        </div> <!-- (no id) -->
-      </div> <!-- #right-panel -->
-      <br style="clear:both">
+      <div class="show-hide">
+        <div class="corner-dingbat"><div><div><span>i</span></div></div></div>
+      </div>
 
-    </div> <!-- #dose-response-grid-content -->
-  </div> <!-- <div id="dose-response-grid-main" ... > -->
+      <div id="dose-response-grid-content" class="content main-content">
+
+        <div class="vfloat">
+          <div id="track" class="track-container">
+            <div id="toggle" class="button-bar">
+              <button>Toggle view</button>
+            </div>
+
+            <div class="list-container-base list-container">
+              <ul><div class="title"></div></ul>
+              <br>
+              <div class="button-bar"><button id="reset" disabled>reset</button></div>
+            </div>
+          </div> <!-- #track -->
+        </div>
+
+        <div class="right-panel">
+          <div id="grid" class="svg-table"></div>
+        </div>
+
+      </div> <!-- #dose-response-grid-content -->
+    </div> <!-- .slider -->
+  </div> <!-- #dose-response-grid-main > -->
 
   <div id="loading"><div>loading...</div></div>
 
-<!-- <div class="empty-div"> --> <!-- match the </div> for <div id="pagebody-wrap"> -->
-  <div class="empty-div"> <!-- match the </div> for <div id="pagebody"> -->
-    <div class="empty-div"> <!-- match the </div> for <div id="content"> -->
+<!-- <div class="empty-div"> --> <!-- match the </div> for #pagebody-wrap -->
+  <div class="empty-div"> <!-- match the </div> for #pagebody -->
+    <div class="empty-div"> <!-- match the </div> for #content -->
 
     <script>
 (function (hmslincs) {
@@ -93,6 +70,7 @@
 
     <script src="//code.jquery.com/jquery-1.10.2.min.js"></script>
     <script src="//d3js.org/d3.v3.min.js"></script>
+    <script src="{{ STATIC_URL }}10_1038_nchembio_1337__fallahi_sichani_2013/js/jquery-throttle-debounce-master/jquery.ba-throttle-debounce.js"></script>
     <script src="{{ STATIC_URL }}10_1038_nchembio_1337__fallahi_sichani_2013/js/dose_response_grid.js"></script>
 
 {% endblock %}

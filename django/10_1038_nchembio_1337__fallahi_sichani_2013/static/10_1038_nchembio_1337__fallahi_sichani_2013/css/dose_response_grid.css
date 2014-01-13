@@ -1,17 +1,419 @@
-#dose-response-grid-main,#dose-response-grid-main *{
+/* div{outline:1px solid red;} */
+
+/* .right-panel{outline-color:blue;} */
+/* .track-container{outline-color:black;} */
+
+/* #content{outline:5px solid black;} */
+/* #pagebody{outline:5px solid green;} */
+/* #pagebody-wrap{outline:5px solid red;} */
+
+/* ******************************************************* */
+/* assorted hacks to disable site-wide settings */
+
+#content{min-height:0;}
+#content{margin-top:15px;}
+#content > h1{margin-bottom:10px;}
+#pagebody{border-bottom:#ffefe2 1px solid;}
+#pagebody{padding-top:65px;padding-bottom:0;}
+#pagebody-wrap{background-color:white;}
+.empty-div{display:none;}
+
+/* ******************************************************* */
+
+body{ 
+  position:relative;
+}
+.global,.global *{
+  margin:0;
   -webkit-box-sizing:border-box;
      -moz-box-sizing:border-box;
           box-sizing:border-box;
 }
-
-html, body, div, ol, ul, li, br, img, hr, svg{
-  margin:0;
+.global :not(button){
   padding:0;
   border:0;
-  outline:0;
+}
+.global,#loading{
+  font-family:consolas,monaco,courier,monospace;
+}
+.global{
+  font-size:13px;
 }
 
-.fixed-overlay {
+#loading{
+  position:absolute;
+  width:100%;
+  height:100%;
+  top:0;
+  bottom:0;
+  z-index:2000;
+  background-color:#4d4d4d;
+  opacity:0.9;
+  filter:alpha(opacity=90);
+}
+
+#loading > div{
+  position:relative;
+  width:1000px;
+  top:40%;
+  margin:0 auto;
+  padding:2ex 0;
+  color:white;
+  border-radius:7px;
+  background-color:#121212;
+  text-align:center;
+  font-size: 3em;
+}
+
+/* ******************************************************* */
+
+.main{
+  max-width:1200px;
+  position:relative;
+  margin:0 auto;
+}
+.DEBUG.main{
+  background-color:steelblue;
+  padding:50px;
+}
+
+.slider{
+  overflow-y:hidden;
+}
+.global .slider{
+  padding:40px 10px 0px;
+}
+
+.DEBUG .slider{
+  background-color:red;
+  padding:40px;
+}
+
+.pulldown{
+  position:relative;
+  width:100%;
+  margin:0 auto;
+  max-width:941px;
+}
+.NOJS .pulldown{
+  margin-top:-40px;
+  margin-bottom:40px;
+}
+.pulldown-content{
+  position:relative;
+  color:white;
+  background-color:#E6941E;
+  -webkit-border-radius:4px;
+  border-radius:4px;
+  -moz-background-clip:padding;
+  -webkit-background-clip:padding-box;
+  background-clip:padding-box;
+}
+.pulldown .pulldown-content{
+  padding:30px 80px 10px;
+}
+
+
+/* ------------------------------------------------------- */
+/* show-hide button */
+#dose-response-grid-main .show-hide{
+  position:absolute;
+  top:0;
+  margin-top:5px;
+  margin-right:18px;
+  z-index:1;
+  cursor:default;
+}
+#dose-response-grid-main.NOJS .show-hide{
+  right:58.5px;
+}
+#dose-response-grid-main.DEBUG.NOJS .show-hide{
+  right:108.5px;
+}
+#dose-response-grid-main.DEBUG .show-hide{
+  margin-top:55px;
+}
+
+#dose-response-grid-main .corner-dingbat{
+  /* cursor:default; */
+  position:relative;
+}
+
+#dose-response-grid-main.closed                  .corner-dingbat,
+#dose-response-grid-main.open   .show-hide:hover .corner-dingbat{
+  background-color:white;
+}
+
+#dose-response-grid-main.open                    .corner-dingbat,
+#dose-response-grid-main.closed .show-hide:hover .corner-dingbat{
+  background-color:#E6941E;
+}
+
+#dose-response-grid-main .corner-dingbat > div{
+  position:relative;
+  background-color:#E6941E;
+  height:100%;
+}
+
+#dose-response-grid-main .corner-dingbat{
+  width:26px;height:26px;
+  padding:2px;
+  -moz-border-radius: 13px;
+  -webkit-border-radius: 13px;
+  border-radius: 13px;
+}
+
+#dose-response-grid-main .corner-dingbat > div{
+  -webkit-border-radius: 11px;
+     -moz-border-radius: 11px;
+          border-radius: 11px;
+}
+
+#dose-response-grid-main .corner-dingbat > div > div{
+  color:white;
+
+  font-size: 20px;
+  font-weight: bold;
+  /*font-family:helvetica,sans-serif;*/
+  /*font-family:courier,monospace;*/
+  font-family:serif;font-style:italic;margin-left:-2px;
+
+  text-align:center;
+  padding-top:12px;
+  line-height:0px;
+}
+
+
+
+
+/* most of the declarations for :before and :after belong to a hack to
+   squeeze a "close" icon out of CSS */
+
+#dose-response-grid-main .corner-dingbat > div > div:before,
+#dose-response-grid-main .corner-dingbat > div > div:after{
+  content:"";
+  position:absolute;
+  top:50%;
+  background:transparent;
+}
+
+#dose-response-grid-main .corner-dingbat > div > div:before,
+#dose-response-grid-main .corner-dingbat > div > div:after{
+  left:3px;
+  border-left:8px solid transparent;
+  border-right:8px solid transparent;
+  border-bottom:7px solid transparent;
+}
+
+#dose-response-grid-main .corner-dingbat > div > div:before{
+  border-bottom-color:white;
+  margin-top:-4px;
+}
+
+#dose-response-grid-main .corner-dingbat > div > div:after{
+  margin-top:-1px;
+  border-bottom-color:#E6941E;
+}
+
+#dose-response-grid-main.open   .corner-dingbat > div > div > span,
+#dose-response-grid-main.closed .corner-dingbat > div > div:before,
+#dose-response-grid-main.closed .corner-dingbat > div > div:after{
+  display:none;
+}
+
+
+
+/* end of show-hide button */
+/* ------------------------------------------------------- */
+
+/* .pulldown a{ */
+/*   color:indigo; */
+/* } */
+.pulldown-content p{
+  margin-top:3ex;
+}
+
+.main-content{
+  position:relative;
+  width:100%;
+  padding:30px;
+  padding-top:40px;
+  margin-bottom:20px;
+}
+.DEBUG .main-content{
+  background-color:#555;
+}
+
+
+.vfloat{
+  position:absolute;
+  width:250px;
+}
+.right-panel{
+  /* use SASS for this! */
+  margin-left:260px; /* .vfloat width + .slider padding-left */
+}
+
+.NOJS .vfloat{
+  top:0px;
+}
+.DEBUG .vfloat{
+  background-color:#0aa;
+}
+
+.NOJS .right-panel{
+  margin-left:260px;
+}
+
+.svg-table{
+  padding:10px;
+  font-size:8pt;
+  line-height:0;
+}
+.DEBUG .svg-table{
+  background-color:orange;
+  background-color:#888;
+}
+
+.svg-table svg{
+  margin:1px;
+}
+.svg-table rect {
+  stroke:none;
+  fill:white;
+}
+
+.svg-table path{fill:none;}
+.svg-table path{stroke-width:2;}
+/*
+ #d3d3d3 (= lightgray)
+ #e9e9e9 (= (d3d3d3 + ffffff)/2)
+ #ffffff (= white)
+ */
+.svg-table path.unhighlit{
+  stroke-width:1 !important;
+  stroke:#e9e9e9 !important;
+}
+
+/* ------------------------------------------------------- */
+/* track block */
+
+.track-container{
+  font-size:8pt;
+}
+
+.list-container li{
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+
+  line-height:2.5ex;
+  cursor:default;
+}
+
+.list-container-base li{
+  float: left;
+}
+.list-container br{
+  clear: left;
+}
+
+.list-container li{       /**/
+  margin:0 5px;
+  padding:0 5px;
+  border-width:1px;
+}                   /**/
+
+.NOJS .list-container li{
+  width:114px;
+}
+
+.list-container{
+  background-color:white;
+  /* box-shadow voodoo generated by css3please.com */
+     -webkit-border-radius: 2px;
+     border-radius: 2px;
+     -moz-background-clip: padding;
+     -webkit-background-clip: padding-box;
+     background-clip: padding-box;
+  /* --------------------------------------------- */
+}
+.global .list-container{
+  border:1px solid black;
+}
+
+.list-container .title{
+  width:100%;
+  text-align:center;
+  border-bottom:1px solid black;
+  margin-top:0.5ex;
+  margin-bottom:0.5ex;
+  font-weight:bold;
+}
+
+.list-container li:hover,.list-container .picked{
+  color:white;
+  /*font-weight:bold;*/
+}
+.list-container li:hover:not(.picked){
+  opacity:0.75;
+  filter:alpha(opacity=75);
+}
+
+
+.button-bar{
+  text-align:right;
+}
+button{
+  padding:0.5ex 0.5em;
+}
+#toggle{
+  padding-bottom:5px;
+}
+#reset{
+  margin:5px;
+}
+
+/* end of track block */
+/* ------------------------------------------------------- */
+
+#off-stage{
+  top:-1000000px;
+  position:absolute;
+}
+#sb-measure{
+  position:absolute;
+  top:-1000000px;
+  width: 100px;
+  height: 100px;
+  overflow: scroll;
+}
+
+
+/* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
+
+/* NOTE: everything below has been disabled */
+
+@media DEBUGGING_HACK_1 {
+
+.global,.global *{
+  margin:0;
+  -webkit-box-sizing:border-box;
+     -moz-box-sizing:border-box;
+          box-sizing:border-box;
+}
+.global :not(button){
+  padding:0;
+  border:0;
+}
+.global{
+  font-family:consolas,monaco,courier,monospace;
+  font-size:13px;
+}
+
+.fixed-overlay{
   position:fixed;
   width:100%;
   height:100%;
@@ -53,29 +455,203 @@ html, body, div, ol, ul, li, br, img, hr, svg{
   margin:1ex 1em;
 }
 
-#loading {
-  position:absolute;
-  width:100%;
-  height:100%;
-  top:0;
-  z-index:2000;
-  background-color:#4d4d4d;
-  opacity:0.9;
-  filter:alpha(opacity=90);
+/* REVERT AFTER REFACTORING */
+/* #loading{ */
+/*   position:absolute; */
+/*   width:100%; */
+/*   height:100%; */
+/*   top:0; */
+/*   z-index:2000; */
+/*   background-color:#4d4d4d; */
+/*   opacity:0.9; */
+/*   filter:alpha(opacity=90); */
+/* } */
+
+/* #loading > div{ */
+/*   position:relative; */
+/*   width:1000px; */
+/*   top:40%; */
+/*   margin:0 auto; */
+/*   padding:2ex 0; */
+/*   color:white; */
+/*   border-radius:7px; */
+/*   background-color:#121212; */
+/*   text-align:center; */
+/*   font-size: 3em; */
+/* } */
+/* REVERT AFTER REFACTORING */
+
+
+
+
+/******************************************************************************/
+
+#dose-response-grid-main p{
+  margin-top:3ex;
 }
 
-#loading > div {
-  position:relative;
-  width:1000px;
-  top:40%;
-  margin:0 auto;
-  padding:2ex 0;
-  color:white;
-  border-radius:7px;
-  background-color:#121212;
-  text-align:center;
-  font-size: 3em;
+#dose-response-grid-main .show-hide{
+  position:absolute;
+  top:0;
+  margin-top:5px;
+  z-index:1;
+  cursor:default;
 }
+
+#dose-response-grid-main .corner-dingbat{
+  cursor:default;
+  position:relative;
+}
+
+#dose-response-grid-main.closed                  .corner-dingbat,
+#dose-response-grid-main.open   .show-hide:hover .corner-dingbat{
+  background-color:white;
+}
+
+#dose-response-grid-main.open                    .corner-dingbat,
+#dose-response-grid-main.closed .show-hide:hover .corner-dingbat{ 
+  background-color:#E6941E;
+}
+
+#dose-response-grid-main .corner-dingbat > div{
+  position:relative;
+  background-color:#E6941E;
+  height:100%;
+}
+
+#dose-response-grid-main .corner-dingbat{
+  width:26px;height:26px;
+  padding:2px;
+  -moz-border-radius: 13px;
+  -webkit-border-radius: 13px;
+  border-radius: 13px;
+}
+
+#dose-response-grid-main .corner-dingbat > div{
+  -webkit-border-radius: 11px;
+     -moz-border-radius: 11px;
+          border-radius: 11px;
+}
+
+#dose-response-grid-main .corner-dingbat > div > div{
+  color:white;
+
+  font-size: 20px;
+  font-weight: bold;
+  /*font-family:helvetica,sans-serif;*/
+  /*font-family:courier,monospace;*/
+  font-family:serif;font-style:italic;margin-left:-2px;
+
+  text-align:center;
+  padding-top:12px;
+  line-height:0px;
+}
+
+/* most of the declarations for :before and :after belong to a hack to
+   squeeze a "close" icon out of CSS */
+
+#dose-response-grid-main .corner-dingbat > div > div:before,
+#dose-response-grid-main .corner-dingbat > div > div:after{
+  content:"";
+  position:absolute;
+  top:50%;
+  background:transparent;
+}
+
+#dose-response-grid-main .corner-dingbat > div > div:before,
+#dose-response-grid-main .corner-dingbat > div > div:after{
+  left:3px;
+  border-left:8px solid transparent;
+  border-right:8px solid transparent;
+  border-bottom:7px solid transparent;
+}
+
+#dose-response-grid-main .corner-dingbat > div > div:before{
+  border-bottom-color:white;
+  margin-top:-4px;
+}
+
+#dose-response-grid-main .corner-dingbat > div > div:after{
+  margin-top:-1px;
+  border-bottom-color:#E6941E;
+}
+
+#dose-response-grid-main.open   .corner-dingbat > div > div > span,
+#dose-response-grid-main.closed .corner-dingbat > div > div:before,
+#dose-response-grid-main.closed .corner-dingbat > div > div:after{
+  display:none;
+}
+
+/******************************************************************************/
+
+#dose-response-grid-main .pulldown{
+  width:100%;
+  margin:0 auto;
+  /* margin-bottom:20px; */
+  max-width:941px;
+}
+/* EDIT01-0 */
+    .pulldown{
+      position:relative;
+    }
+/* end of EDIT01-0 */
+
+#dose-response-grid-main .pulldown > div{
+  color:white;
+  background-color:#E6941E;
+  padding:30px 80px 10px;
+  -webkit-border-radius:4px;
+  border-radius:4px;
+  -moz-background-clip:padding;
+  -webkit-background-clip:padding-box;
+  background-clip:padding-box;
+}
+
+/* EDIT02-0 */
+    .pulldown-content{
+      position:relative;
+    }
+/* end of EDIT02-0 */
+
+#dose-response-grid-main .pulldown a{
+  color:indigo;
+}
+
+/* EDIT00-0 */
+/* #dose-response-grid-main{ */
+/*   position:relative; */
+/*   display:table; */
+/*   margin:0 auto; */
+/* } */
+/* end of EDIT00-0 */
+
+/* #dose-response-grid-main .centered-track{ */
+/*   position:relative; */
+/*   margin:0 auto; */
+/*   overflow:hidden; */
+/* } */
+
+#dose-response-grid-main .content{
+  width:100%;
+  /* display:table; */
+}
+
+#dose-response-grid-main .content table{
+  margin-top:17px;
+}
+/******************************************************************************/
+
+
+
+
+
+
+
+
+
+
+
+
 
 #grid > table{background:#fff;border-collapse:collapse;}
 /*#grid > table{display:inline-block}*/
@@ -89,36 +665,40 @@ html, body, div, ol, ul, li, br, img, hr, svg{
   -webkit-flex-wrap: wrap;
   flex-wrap: wrap;
 }
-#grid > div{
-  border:1px solid #dedede;
-}
 
-#grid > div svg{
-  margin:5px;
-}
-#grid{
-  margin:0 auto;
-}
+/* .svg-table > div{ */
+/*   border:1px solid #dedede; */
+/* } */
 
-#grid path{fill:none;}
-#grid path{stroke-width:2;}
+/* .svg-table > div svg{ */
+/*   margin:2.5px; */
+/* } */
+/* .svg-table{  */
+/*   margin-bottom:20px; */
+/*   display:table; */
+/* } */
+
+.svg-table path{fill:none;}
+.svg-table path{stroke-width:2;}
 /*
  #d3d3d3 (= lightgray)
  #e9e9e9 (= (d3d3d3 + ffffff)/2)
  #ffffff (= white)
  */
-#grid path.unhighlit{
+.svg-table path.unhighlit{
   stroke-width:1   !important;
   stroke:#e9e9e9 !important;
 }
 
-#grid,#track,#loading{
-  font-family: Consolas, Monaco, "Andale Mono WT", "Andale Mono", "Nimbus Mono L", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Courier New", Courier, monospace;
-}
-#grid,#track{
+.svg-table{
   font-size:8pt;
 }
 
+/* #dose-response-grid-main,#dose-response-grid-main *{ outline:1px solid red; } */
+#toggle{
+  text-align:right;
+  padding-bottom:5px;
+}
 /* -------------------------------------------------------------------------- */
 /* virtual track pad */
 
@@ -141,7 +721,7 @@ html, body, div, ol, ul, li, br, img, hr, svg{
 }
 
 
-#track {
+#track{
   width: 100%;
 }
 /* columnation */
@@ -157,6 +737,9 @@ html, body, div, ol, ul, li, br, img, hr, svg{
 }
 */
 
+/* #track{ */
+/*   font-size:8pt; */
+/* } */
 #track li{       /**/
   margin:0 5px;
   padding:0 5px;
@@ -183,7 +766,7 @@ html, body, div, ol, ul, li, br, img, hr, svg{
   clear: left;
 }
 /*
-.list-container {
+.list-container{
   margin-bottom: 1em;
 }
 */
@@ -208,7 +791,7 @@ html, body, div, ol, ul, li, br, img, hr, svg{
   filter:alpha(opacity=75);
 }
 
-#track {
+#track{
 /*  margin-top:1ex;
   margin-bottom:1ex; */
   visibility:hidden;
@@ -222,44 +805,213 @@ html, body, div, ol, ul, li, br, img, hr, svg{
   margin-bottom:0.5ex;
 }
 
+
+.DEBUG .vfloat .track-container{
+  background-color:yellow;
+}
+
+.DEBUG .list-container{ 
+  width:250px;
+}
+.DEBUG .list-container ul{
+  width:248px;
+}
+.DEBUG .list-container .title{
+  font-weight:bold;
+}
+
+
 /* ------------------------------------------------------------ */
 
-#dose-response-grid-main{
-  position:relative;
-  display:table;
-  margin:0 auto;
-}
-#left-panel{
-  float:left;
-  max-width:947px;
-}
-#right-panel{
-  float:right;
-  margin-left:10px;
-  height:100%;
-}
-#sticky-container{z-index:1000;}
-#track-container{width:250px;}
+/* EDIT00-1 */
+/* #dose-response-grid-main{ */
+/*   position:relative; */
+/*   display:table; */
+/*   margin:0 auto; */
+/* } */
+/* end of EDIT00-1 */
 
-#sticky-anchor-top,#sticky-anchor-bottom{height:0;}
-#sticky-anchor-bottom{
-  position:absolute;
-  bottom:0;
+
+/* #left-panel{ */
+/*   float:left; */
+/* } */
+/* #right-panel{ */
+/*   float:right; */
+/* } */
+/* #left-panel{ */
+/*   max-width:947px; */
+/* } */
+/* #right-panel{ */
+/*   margin-left:10px; */
+/*   height:100%; */
+/* } */
+#right-panel{
+  max-width:947px;
+  min-width:0px;
+  white-space:normal;
+  padding-left:10px;
 }
+
+/*.vfloat .track-container{width:250px;} */
 
 /* ------------------------------------------------------------ */
 
 .button-bar{
   text-align:right;
 }
-button {
+button{
   padding:0.5ex 0.5em;
 }
+#reset{
+  margin:5px;
+}
 
-#off-stage {
+/*
+#off-stage{
   position:relative;
 }
 #off-stage .list-container{
   left:-1000000px;
   position:absolute;
 }
+*/
+
+#off-stage{
+  left:-1000000px;
+  position:absolute;
+}
+
+/* ------------------------------------------------------------ */
+
+
+/* EDIT00-2 */
+    /* .main{ */
+    /*   max-width:1200px; */
+    /* } */
+    .main{
+      max-width:1200px;
+      position:relative;
+      margin:0 auto;
+    }
+/* end of EDIT00-2 */
+
+
+    .slider{
+      /* background-color:red; */
+      /* padding:10px; */
+      overflow-y:hidden;
+    }
+
+/* EDIT03-1 */
+    .main-content{
+      position:relative;
+      width:100%;
+      /* background-color:#555; */
+      padding:30px;
+      padding-top:40px;
+      margin-bottom:20px;
+      /* display:table; */
+    }
+/* end of EDIT03-1 */
+
+/* EDIT04-0 */
+    /* .left-panel{ */
+    /*   position:absolute; */
+    /*   /\* top:40px; *\/ */
+    /*   /\* bottom:0px; *\/ */
+    /*   width:250px; */
+    /*   /\* background-color:pink; *\/ */
+    /* } */
+/* end of EDIT04-0 */
+
+/* EDIT05-0 */
+    .vfloat{
+      position:absolute;
+      /* height:450px; */
+      /* background-color:#0aa; */
+      /* left:0; */
+      /* right:0; */
+      width:250px;
+    }
+
+    /* .right-panel{ */
+    /*   margin-left:250px; */
+    /* } */
+/* end of EDIT05-0 */
+
+    .svg-table{
+      line-height:0;
+/* EDIT07-0 */
+      /* background-color:orange; */
+      /* padding:0; */
+      /* background-color:#888; */
+      padding:10px;
+/* end of EDIT07-0 */
+    }
+
+    svg{
+      margin:1px;
+    }
+    rect {
+      stroke:none;
+      fill:white;
+    }
+    td{
+      vertical-align:top;
+    }
+
+    /* .global, .global *{  */
+    /*   outline:3px solid green; */
+    /* } */
+
+    /* #dose-response-grid-main.main{ */
+    /*   background-color:steelblue; */
+    /*   padding:50px; */
+    /* } */
+
+    /* #dose-response-grid-main .slider{ */
+    /*   padding:40px; */
+    /*   background-color:red; */
+    /*   outline:4px solid pink; */
+    /* } */
+
+    #dose-response-grid-main .slider{
+      padding:40px 10px 0px;
+      /* background-color:red; */
+    }
+
+/* EDIT03-0 */ /*    #dose-response-grid-main .main-content{
+      background-color:#555;
+      padding:30px;
+    } */ /* end of EDIT03-0 */
+
+    /* #dose-response-grid-main .left-panel{ */
+    /*   background-color:#0aa; */
+    /*   padding:20px; */
+    /* } */
+
+    /* #dose-response-grid-main .right-panel{ */
+    /*   background-color:#dc4916; */
+    /*   padding:20px; */
+    /* } */
+
+/* EDIT06-0 */ /* #dose-response-grid-main .svg-table{ */
+    /*   background-color:#888; */
+    /*   padding:10px; */
+    /* } */ /* end of EDIT06-0 */
+
+    #dose-response-grid-main .svg-table > div{
+      /* background-color:beige; */
+      outline:1px solid #dedede;
+      padding:5px;
+    }
+
+    #dose-response-grid-main .show-hide{
+      position:absolute;
+      top:0;
+      margin-top:5px;
+      margin-right:18px;
+      z-index:1;
+      cursor:default;
+    }
+} /* @media DEBUGGING_HACK_1...*/

@@ -1,5 +1,286 @@
 (function ($) {
 
+  // the following line may look like a no-op but it actually replaces
+  // a percentage with a fixed pixel position, in order to eliminate a
+  // visual "bounce" as the viewport height changes during loading.
+
+  (function(){
+     var $loading = $('#loading > div');
+     $loading.css({top: parseInt($loading.css('top'), 10),
+                   'margin-left': $loading.offset().left,
+                   'margin-right': ''});
+   }());
+
+  // // Source of this??
+  // function getSBLive(w) {
+  //   var d = w.document, c = d.compatMode;
+  //   r = c && /CSS/.test(c) ? d.documentElement : d.body;
+  //   if (typeof w.innerWidth == 'number') {
+  //     // incredibly the next two lines serves equally to the scope
+  //     // I prefer the first because it resembles more the feature
+  //     // being detected by its functionality than by assumptions 
+  //     return [ w.innerHeight > r.clientHeight, w.innerWidth > r.clientWidth ];
+  //     return [ w.innerWidth > r.clientWidth, w.innerHeight > r.clientHeight ];
+  //   } else {
+  //     return [ r.scrollWidth > r.clientWidth, r.scrollHeight > r.clientHeight ];
+  //   }
+  // }
+
+  // function have_sb () {
+  //   var w = window,
+  //       d = w.document,
+  //       c = d.compatMode,
+  //       r = c && /CSS/.test(c) ? d.documentElement : d.body;
+  //   if (typeof w.innerWidth === 'number') {
+  //     return [ w.innerHeight > r.clientHeight, w.innerWidth > r.clientWidth ];
+  //   }
+  //   else {
+  //     return [ r.scrollWidth > r.clientWidth, r.scrollHeight > r.clientHeight ];
+  //   }
+  // }
+
+  // // hack to prevent horizontal shift when vertical scrollbar appears
+  // var set_bodywidth = (function () {
+  //   var $window = $(window),
+  //       $body = $('body'),
+  //       sb_div = $('<div id="sb-measure">').get(0),
+  //       sb_width,
+  //       dw,
+  //       fn = function () {
+  //              console.log([$window.width(), $body.width(), $window.width() - $body.width(), dw]);
+  //              if ($body.width() <= $window.width()) {
+  //                $body.width($window.width() - dw);
+  //              }
+  //            };
+
+  //   $body.append(sb_div);
+  //   sb_width = sb_div.offsetWidth - sb_div.clientWidth;
+  //   dw = $window.width() - $body.width() + sb_width;
+  //   $(sb_div).remove();
+  //   //fn();
+  //   return fn;
+  // }());
+
+
+  function update_min_height () {
+    var $main = $('.main-content');
+    $main.css('min-height',
+              $('.vfloat').innerHeight() +
+              parseInt($main.css('padding-top'), 10) +
+              parseInt($main.css('padding-bottom'), 10));
+  }
+
+  function install_handlers () {
+
+    (function(){
+      var $main = $('.main-content'),
+          $slider = $('.slider'),
+          pt = parseInt($main.css('padding-top'), 10),
+          pb = parseInt($main.css('padding-bottom'), 10),
+          $vf = $('.vfloat');
+
+      $('.pulldown').css('margin-bottom', parseInt($slider.css('padding-top'), 10));
+      $vf.css('top', pt);
+    }());
+
+    var update_scroll_handler = function () {};
+
+    var slide_props = (function () {
+
+      var $main = $('.main'),
+          $showhide = $main.find('.show-hide'),
+          $slider = $main.find('.slider'),
+          $pulldown = $slider.find('.pulldown'),
+          $info = $slider.find('.pulldown-content'),
+          $content = $slider.find('.main-content'),
+          rect = function ($sel) { return $sel.get(0).getBoundingClientRect(); },
+          slider_top = rect($slider).top,
+          offset_0 = Math.abs(slider_top - rect($pulldown).top),
+          offset_1 = Math.abs(slider_top - rect($info).top),
+          top_open = -Math.ceil(offset_1),
+          last_mt = NaN;
+
+      function slide_props (open) {
+        var mt = open ? top_open
+                      : -Math.ceil(offset_0 + $pulldown.innerHeight());
+        return {'margin-top': mt};
+      }
+
+      function slide (open, now) {
+        var props = slide_props(open),
+            mt = props['margin-top'],
+            cc = open ? ['open', 'closed'] : ['closed', 'open'];
+        if (mt === last_mt) { return; }
+        last_mt = mt;
+
+        function set_classes () {
+          $main.removeClass(cc[1]).addClass(cc[0]);
+        }
+
+        if (now) {
+          set_classes();
+          $pulldown.css(props);
+          update_scroll_handler();
+        }
+        // else if (open) {
+        //   set_classes();
+        //   $pulldown.animate(props, 200, update_scroll_handler);
+        // }
+        else {
+          $pulldown.animate(props, 200, function () {
+            set_classes();
+            update_scroll_handler();
+          });
+        }
+      }
+
+      // $showhide.css('margin-top',
+      //               parseInt($showhide.css('margin-top')) +
+      //               parseInt($pulldown.css('margin-bottom')))
+      //          .click(function () {
+      //             slide(!$main.hasClass('open'));
+      //           });
+      // $showhide.css('margin-top',
+      //               parseInt($showhide.css('margin-top')) +
+      //               parseInt($pulldown.css('margin-bottom')));
+      $showhide.click(function () {
+                  slide(!$main.hasClass('open'));
+                });
+      slide(false, true);
+      return slide_props;
+    }());
+
+    // exposing this updater function is not necessary for this
+    // demo, but it will be necessary in the general case;
+    update_scroll_handler = (function () {
+        var $w = $(window),
+            $main_content = $('.main-content'),
+            // $fl: floating element
+            $fl = $main_content.find('.vfloat'),
+            // pt: padding-top; pb: padding-bottom
+            pt = parseInt($main_content.css('padding-top'), 10),
+            pb = parseInt($main_content.css('padding-bottom'), 10),
+            // ptvp: top padding relative to viewport (i.e. $fl will
+            // stop at ptvp from the top of the viewport)
+            ptvp = 0,
+            // ah: available height
+            ah,
+            // st0 and st1 are the two critical values (of the value returned by
+            // $w.scrollTop()) that govern the behavior upon scrolling of $fl
+            mt,
+            st0,
+            st1,
+            dy,
+            state,
+            last_i = -2,
+            last_t2 = null,
+            update_critical_values = function () {
+                var t0, t1, t2;
+                ah = $main_content.innerHeight() - (ptvp + pb);
+                mt = $main_content.offset().top;
+                dy = (pt - ptvp);
+                st0 = mt + dy;
+                st1 = mt + (ah - $fl.innerHeight());
+
+                t0 = pt;
+                t1 = t0 - dy;
+                t2 = t0 + st1 - st0;
+
+                state = [{top: t0, position: 'absolute'},
+                         {top: t1, position: 'fixed'},
+                         {top: t2, position: 'absolute'}];
+
+                if (t2 !== last_t2 &&
+                    last_i !== -2 &&
+                    st1 < $w.scrollTop()) {
+                  handle_scrolling();
+                }
+
+                last_t2 = t2;
+                last_i = -1;
+            },
+            handle_scrolling = function () {
+                var st = $w.scrollTop(),
+                    i = st < st0 ? 0 : st <= st1 ? 1 : 2;
+                if (last_i !== i) {
+                    $fl.css(state[i]);
+                    last_i = i;
+                }
+            };
+        update_critical_values();
+        handle_scrolling();
+        $w.scroll(handle_scrolling);
+        return update_critical_values;
+    }());
+
+
+    (function () {
+
+      var $window = $(window),
+          $main = $('.main'),
+          $body = $('body'),
+          $showhide = $main.find('.show-hide'),
+          $slider = $main.find('.slider'),
+          $pulldown = $main.find('.pulldown'),
+          wlim = parseInt($pulldown.css('max-width'), 10) +
+                 parseInt($slider.css('padding-left'), 10) +
+                 parseInt($slider.css('padding-right'), 10) +
+                 parseInt($main.css('padding-left'), 10) +
+                 parseInt($main.css('padding-right'), 10),
+          dx = ($main.get(0).getBoundingClientRect().right -
+                $main.find('.pulldown-content')
+                     .get(0).getBoundingClientRect().right) -
+               (Math.max(0, $slider.innerWidth() - wlim)/2),
+          init = true,
+          resizing = false;
+
+      function resize_start () {
+        if (init || !$main.hasClass('open')) {
+          $pulldown.css('display', 'none');
+        }
+        resizing = true;
+      }
+      function resize_end () {
+        if (init || !$main.hasClass('open')) {
+          $pulldown.css({display: '', top: -999999});
+          $pulldown.css(slide_props(false));
+          $pulldown.css({top: 0});
+        }
+        resizing = false;
+      }
+      function resize_handler () {
+        if (!resizing) { return; }
+        $showhide.css('right',
+                      (Math.max(0, $slider.innerWidth() - wlim))/2 + dx);
+        update_scroll_handler();
+        // set_bodywidth();
+      }
+
+      $window.resize($.debounce(500, true, resize_start));
+      $window.resize(resize_handler);
+      $window.resize($.debounce(500, false, resize_end));
+      $main.removeClass('open').addClass('closed');
+
+      resize_start();
+      resize_handler();
+      resize_end();
+      init = false;
+    }());
+
+    var time = (function () {
+      var start,
+          ret     = function () { return new Date().valueOf(); };
+      ret.started = function () { return start; };
+      ret.elapsed = function () { return ret() - start; };
+      ret.reset   = function () { start = ret();
+                                  return start; };
+      ret.reset();
+      return ret;
+    }());
+  }
+  // eodiff
+
+
   // ----------------------------------------------------------------------
   var PLOT_RANGE_PADDING = 0.02,
       STATIC_URL = window.hmslincs.STATIC_URL,
@@ -22,6 +303,8 @@
                })), SHAPE),
         get_xy = mk_get_xy(),
         current_color_index = 0;
+
+    $('.slider').css('visibility', 'hidden');
 
     // ----------------------------------------------------------------------
 
@@ -80,9 +363,11 @@
     // ----------------------------------------------------------------------
 
     $('#dose-response-grid-main')
-      .append($('<div id="off-stage"><div class="list-container">' +
-                '<ul></ul></div></div>'));
-    $('#off-stage').css('font', $('#track').css('font'));
+      .append($('<div id="off-stage" class="track-container">' +
+                  '<div class="list-container-base">' +
+                    '<ul></ul>' +
+                  '</div>' + 
+                '</div>'));
 
     // ----------------------------------------------------------------------
 
@@ -91,7 +376,7 @@
     var nfactors = FACTORS.length,
         pick = -1;
 
-    $('#toggle')
+    $('#toggle button')
       .click(function() {
          var factor = FACTORS[pick = (pick + 1) % nfactors],
              other = FACTORS[(pick + 1) % nfactors];
@@ -118,13 +403,13 @@
                 d3.select(g).select('text').text(label);
               });
 
-         d3.select('#grid')
-           .selectAll('svg')
-           .each(function () {
-             var $this = d3.select(this),
-                 c = $this.selectAll('path')[0].length;
-             $this.style('display', c === 0 ? 'none' : '');
-            });
+         // d3.select('#grid')
+         //   .selectAll('svg')
+         //   .each(function () {
+         //     var $this = d3.select(this),
+         //         c = $this.selectAll('path')[0].length;
+         //     $this.style('display', c === 0 ? 'none' : '');
+         //    });
 
          $('.current-view').text(factor);
          $('.other-view').text(other);
@@ -132,33 +417,16 @@
        }).click();
 
     $('#reset').css('display', '');
-    $("#caption").css('visibility', 'visible');
 
     $('#reset').click(function () {
       reset();
       $(this).prop('disabled', true);
     });
 
-    (function () {
-       var w = $(window),
-           sc = $('#sticky-container'),
-           at = $('#sticky-anchor-top'),
-           ab = $('#sticky-anchor-bottom'),
+    // ---------------------------------------------------------------------------
 
-           a = {position: 'absolute', top: '',  bottom: '0'},
-           f = {position: 'fixed',    top: '0', bottom: ''},
-           r = {position: 'relative', top: '',  bottom: ''};
-
-       function scroll_handler () {
-         var st = w.scrollTop();
-         sc.css(st + sc.height() > ab.offset().top ? a :
-                st               > at.offset().top ? f : r);
-       };
-
-       w.scroll(scroll_handler);
-       scroll_handler();
-    })();
-
+    install_handlers();
+    $('.slider').css('visibility', 'visible');
     $('#loading').fadeOut(800);
 
     // ----------------------------------------------------------------------
@@ -167,11 +435,11 @@
       // var sbmargin = 25;
       var borderwidth = 1;
 
-      $('#track').css({visibility: 'hidden'});
+      $('#track .list-container').css({visibility: 'hidden'});
 
       reset();
 
-      var ul = d3.select('#track ul');
+      var ul = d3.select('#track .list-container ul');
 
       // ul.style({display: '',
       //           width: ''});
@@ -189,19 +457,21 @@
                      });
 
       // var bbmargin = 20;
-      // $('#track-container').css({'padding-left': bbmargin + 'px',
+      // $('.vfloat .track-container').css({'padding-left': bbmargin + 'px',
       //                            'padding-right': bbmargin + 'px'});
-      // var width = $('#track-container').width() - (2 * bbmargin);
+      // var width = $('.vfloat').innerWidth() - (2 * bbmargin);
 
-      var width = $('#track-container').width();
+      var width = $('.vfloat').innerWidth();
       // console.log(width - sbmargin);
       // populate_list(ul, items, width - sbmargin);
       populate_list(ul, items, width - 2 * borderwidth);
-      $('#track').css({visibility: 'visible'});
+      $('#track .list-container').css({visibility: 'visible'});
 
-      $('#track').css({width: $('#track > ul').width() + 2 * borderwidth,
-                       visibility: 'visible'});
-
+      $('#track .list-container').css({width:
+                                       2 * borderwidth +
+                                       $('#track .list-container > ul').width(),
+                                       visibility: 'visible'});
+      update_min_height();
       return;
     }
 
@@ -231,9 +501,9 @@
     }
 
     function reset () {
-      $('#track').find('li')
-                 .css({'background-color':''})
-                 .removeClass('picked');
+      $('#track .list-container').find('li')
+                                 .css({'background-color':''})
+                                 .removeClass('picked');
       current_color_index = 0;
       d3.selectAll('#grid :first-child path')
         .each(function () {
@@ -243,7 +513,6 @@
     }
 
     function populate_list (list, data, max_width, callback) {
-      console.log(max_width);
       var n = data.length,
           min_rows = 3,
           hpadding = 10,
@@ -266,8 +535,9 @@
                            .sort(d3.descending),
             min_unpadded_colwidth = acceptable_width(all_widths, 1/(min_rows * 2)),
             min_colwidth = min_unpadded_colwidth + (2 * borderwidth) + hpadding,
-            max_ncols = column_order ? 1 + ~~((n - 1)/min_rows)
-                                     : ~~((n - 1)/(min_rows - 1)),
+            // max_ncols = column_order ? 1 + ~~((n - 1)/min_rows)
+            //                          : ~~((n - 1)/(min_rows - 1)),
+            max_ncols = 1 + ~~((n - 1)/min_rows),
             ncols = Math.max(1, Math.min(max_ncols,
                                          //~~Math.sqrt(n),
                                          ~~(max_width/(min_colwidth + hmargin)))),
@@ -381,7 +651,8 @@
                   });
       }
     }
-  });
+
+  });   // closing of d3.tsv(INPUT_FILE, function(error, data) { ...
 
   function color (i) {
     var
@@ -403,42 +674,6 @@
     return d3.set(proj(data, factor)).values();
   }
 
-  function DISABLE__build_grid (nvps, shape) {
-    var voodoo = 20,
-        hmargin = 40,
-        WIDTH = $('html').width() - hmargin,
-        BORDER_WIDTH = 4,
-        PADDING = 2;
-
-    var row,
-        table = d3.select('#grid').insert('table', ':first-child'),
-        i = 0,
-        available_width = WIDTH - BORDER_WIDTH,
-        width_per_cell = shape.width + 2 * PADDING + BORDER_WIDTH,
-        ncols = Math.floor(available_width/width_per_cell),
-        label,
-        box;
-
-
-    while (i < nvps) {
-      if (i % ncols == 0) { row = table.append('tr') }
-      label = row.append('td')
-         .style({'border-width': BORDER_WIDTH + 'px',
-                 padding: PADDING + 'px'})
-       .append('svg')
-         .attr(shape)
-       .append('g')
-       .append('text').text('placeholder');
-      box = label.node().getBBox();
-      label.attr({x: 0, y: box.height});
-      i += 1;
-    }
-
-    table.style('visibility', 'visible');
-
-    return table;
-  }
-
   function build_grid (nvps, shape) {
     var table = d3.select('#grid').insert('div', ':first-child');
     table
@@ -455,7 +690,7 @@
            return this.getBBox().height;
          });
 
-    table.style('visibility', 'visible');
+    // table.style('visibility', 'visible');
     return table;
   }
 
@@ -522,5 +757,60 @@
       return ys.every(isFinite) ? d3.zip(xs, ys) : [];
     }
   }
+
+  function label_dom (node, plabel, i) {
+    if (plabel === undefined) { plabel = ''; }
+    if (i === undefined) { i = 1; }
+    var $node = $(node),
+        title = $node.prop('title'),
+        id = $node.prop('id'),
+        clas = $node.prop('class'),
+        tag = $node.prop('tagName'),
+        sel;
+
+    if (tag === undefined) { return; }
+
+    if (id !== '') {
+      sel = '#' + id;
+    }
+    else {
+      sel = plabel === '' ? '' : plabel + ' > ';
+      sel += tag.toLowerCase();
+      if (clas !== '') {
+        sel += clas.toString()
+                   .split(' ')
+                   .map(function (c) { return '.' + c; })
+                   .join('');
+      }
+      sel += ':nth-child(' + i + ')';
+    }
+
+    if (title === '') {
+      $node.prop('title', sel)
+    }
+
+    node = node.firstChild;
+    var j = 0;
+    while (node) {
+      label_dom(node, sel, j);
+      node = node.nextSibling;
+      j += 1;
+    }
+  }
+
+  // function walk_dom (node, func, i) {
+  //   if (i === undefined) { i = 0; }
+  //   func(node, i);
+  //   node = node.firstChild;
+  //   var j = 0;
+  //   while (node) {
+  //     walk_dom(node, func, j);
+  //     node = node.nextSibling;
+  //     j += 1;
+  //   }
+  // }
+
+  // label_dom($('body').get(0));
+
 
 })(jQuery);
