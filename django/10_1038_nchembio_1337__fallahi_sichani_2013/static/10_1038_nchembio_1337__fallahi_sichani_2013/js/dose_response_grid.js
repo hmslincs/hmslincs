@@ -11,21 +11,9 @@
                    'margin-right': ''});
    }());
 
-  // // Source of this??
-  // function getSBLive(w) {
-  //   var d = w.document, c = d.compatMode;
-  //   r = c && /CSS/.test(c) ? d.documentElement : d.body;
-  //   if (typeof w.innerWidth == 'number') {
-  //     // incredibly the next two lines serves equally to the scope
-  //     // I prefer the first because it resembles more the feature
-  //     // being detected by its functionality than by assumptions 
-  //     return [ w.innerHeight > r.clientHeight, w.innerWidth > r.clientWidth ];
-  //     return [ w.innerWidth > r.clientWidth, w.innerHeight > r.clientHeight ];
-  //   } else {
-  //     return [ r.scrollWidth > r.clientWidth, r.scrollHeight > r.clientHeight ];
-  //   }
-  // }
 
+  // // adapted from the getSBLive function at
+  // // javascript.nwbox.com/Scrollbars/scrollbars.html
   // function have_sb () {
   //   var w = window,
   //       d = w.document,
