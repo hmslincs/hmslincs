@@ -11,3 +11,4 @@ psycopg2 #==2.4.5
 requests #==0.14.1
 xlrd #==0.8.0
 xlwt #==0.7.4
+django-webtemplatesi #==0.1.2

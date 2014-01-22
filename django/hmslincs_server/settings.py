@@ -149,6 +149,7 @@ SECRET_KEY = 'l)&amp;m7^7s_j02pr-rdamd5qn#7sk_6ur8oqmk7zb!jst3$fh(wc'
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
+    'webtemplates.loaders.Loader',
 #     'django.template.loaders.eggs.Loader',
 )
 
@@ -195,6 +196,16 @@ TEMPLATE_DIRS = (
     op.join(_djangopath, 'templates')
 )
 
+# For webtemplates, use the live WP instance if we are running on the live site,
+# otherwise use the dev instance.
+WEBTEMPLATES_HOST = (
+    'lincs.hms.harvard.edu' if _djangopath.startswith('/www/lincs.') else
+    'dev.lincs.hms.harvard.edu')
+WEBTEMPLATES_BASE = 'http://%s/templates/' % WEBTEMPLATES_HOST
+WEBTEMPLATES = [
+    (WEBTEMPLATES_BASE + 'base/', 'base.html'),
+]
+
 INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -206,6 +217,7 @@ INSTALLED_APPS = (
     'django.contrib.admindocs',
     'django_tables2', # for UI tabling
     'tastypie', # manual says this is "not necessary, but useful"
+    'webtemplates',
     'db',
     'pathway',
     'responses',
