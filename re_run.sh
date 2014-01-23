@@ -735,6 +735,10 @@ else
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/Screen20136_Fallahi-Sichani_images.xlsx
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
 	python src/import_dataset.py -f $DATADIR/Screen20137_Niepel-Hafner.xlsx
 	check_errs $? "import dataset fails"
 	
