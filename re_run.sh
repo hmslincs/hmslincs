@@ -83,7 +83,7 @@ then
   DB=django
   DB_USER=django
   PGHOST=localhost
-  VIRTUALENV=${3:-/home/sde4/workspace/hmslincs/myvirtualenv/bin/activate}
+  VIRTUALENV=${3:-../hmslincs-env/bin/activate}
 elif [[ "$SERVER" == "TEST" ]] || [[ "$SERVER" == "test" ]] 
 then
   # NOT NEEDED FOR TEST DATA : DATADIR=${2:-/home/sde4/workspace/hmslincs/}
@@ -120,9 +120,13 @@ then
 	python src/import_cell.py -f sampledata/LINCS_Cells_forLoading.xls
 	check_errs $? "import cell fails"
 	
-	echo 'import small molecule tables...'
-	python src/import_smallmolecule.py -f  sampledata/HMS-LINCS_complete.sdf
-	check_errs $? "import sdf fails"
+  echo 'import small molecule tables...'
+  python src/import_smallmolecule.py -f  sampledata/HMS-LINCS_complete.sdf
+  check_errs $? "import sdf fails"
+
+  echo 'import salt table...'
+  python src/import_smallmolecule.py -f  sampledata/HMS-LINCS_salts.sdf
+  check_errs $? "import sdf fails"
 
 	echo 'import small molecule batch tables...'
 	python src/import_smallmolecule_batch.py -f sampledata/small_molecule_batch-HMS_LINCS-1.xls
@@ -171,6 +175,10 @@ else
 	echo 'import small molecule tables...'
 	python src/import_smallmolecule.py -f $DATADIR/HMS-LINCS_complete.sdf
 	check_errs $? "import sdf fails"
+
+  echo 'import salt table...'
+  python src/import_smallmolecule.py -f  $DATADIR/HMS-LINCS_salts.sdf
+  check_errs $? "import sdf fails"
 
 	echo 'import small molecule batch tables...'
 	python src/import_smallmolecule_batch.py -f $DATADIR/small_molecule_batch-HMS_LINCS-1.xls

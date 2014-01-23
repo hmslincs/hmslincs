@@ -1,0 +1,497 @@
+$$$$
+> <facility_reagent_id>
+HMSL101
+
+> <salt_id>
+101
+
+> <chemical_name>
+No salt
+
+> <date_assigned>
+1/25/2011
+
+> <inchi>
+-
+
+> <inchi_key>
+-
+
+> <molecular_mass>
+0
+
+> <molecular_formula>
+-
+
+> <smiles>
+-
+
+$$$$
+
+  SciTegic12121315112D
+
+  1  0  0  0  0  0            999 V2000
+    0.0000    0.0000    0.0000 Cl  0  0  0  0  0  0  0  0  0  0  0  0
+M  END
+> <smiles>
+Cl
+
+> <facility_reagent_id>
+HMSL102
+
+> <salt_id>
+101
+
+> <chemical_name>
+HCl (hydrochloric acid)
+
+> <date_assigned>
+1/25/2011
+
+> <inchi>
+InChI=1S/ClH/h1H
+
+> <inchi_key>
+VEXZGXHMUGYJMC-UHFFFAOYSA-N
+
+> <molecular_mass>
+35.976677742
+
+> <molecular_formula>
+ClH
+
+$$$$
+
+  SciTegic12121315112D
+
+  5  4  0  0  0  0            999 V2000
+    0.0000    0.0000    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 S   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0
+  1  2  1  0  0  0  0
+  2  3  2  0  0  0  0
+  2  4  2  0  0  0  0
+  2  5  1  0  0  0  0
+M  END
+> <smiles>
+CS(=O)(=O)O
+
+> <facility_reagent_id>
+HMSL103
+
+> <salt_id>
+101
+
+> <chemical_name>
+MsOH (methane sulfonic acid)
+
+> <date_assigned>
+1/25/2011
+
+> <inchi>
+InChI=1S/CH4O3S/c1-5(2,3)4/h1H3,(H,2,3,4)
+
+> <inchi_key>
+AFVFQIVMOAPDHO-UHFFFAOYSA-N
+
+> <molecular_mass>
+95.988114678
+
+> <molecular_formula>
+CH4O3S
+
+$$$$
+
+  SciTegic12121315112D
+
+ 11 11  0  0  0  0            999 V2000
+    0.0000    0.0000    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 S   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0
+  1  2  1  0  0  0  0
+  2  3  2  3  0  0  0
+  3  4  1  0  0  0  0
+  4  5  2  3  0  0  0
+  5  6  1  0  0  0  0
+  6  7  2  3  0  0  0
+  7  2  1  0  0  0  0
+  5  8  1  0  0  0  0
+  8  9  2  0  0  0  0
+  8 10  2  0  0  0  0
+  8 11  1  0  0  0  0
+M  END
+> <smiles>
+CC1=CC=C(C=C1)S(=O)(=O)O
+
+> <facility_reagent_id>
+HMSL104
+
+> <salt_id>
+101
+
+> <chemical_name>
+p-toluenesulfonic acid
+
+> <date_assigned>
+1/25/2011
+
+> <inchi>
+InChI=1S/C7H8O3S/c1-6-2-4-7(5-3-6)11(8,9)10/h2-5H,1H3,(H,8,9,10)
+
+> <inchi_key>
+JOXIMZWYDAKGHI-UHFFFAOYSA-N
+
+> <molecular_mass>
+172.019414806
+
+> <molecular_formula>
+C7H8O3S
+
+$$$$
+
+  SciTegic12121315112D
+
+  5  4  0  0  0  0            999 V2000
+    0.0000    0.0000    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 P   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0
+  1  2  1  0  0  0  0
+  2  3  2  0  0  0  0
+  2  4  1  0  0  0  0
+  2  5  1  0  0  0  0
+M  END
+> <smiles>
+OP(=O)(O)O
+
+> <facility_reagent_id>
+HMSL105
+
+> <salt_id>
+101
+
+> <chemical_name>
+phosphate
+
+> <date_assigned>
+9/27/2011
+
+> <inchi>
+InChI=1S/H3O4P/c1-5(2,3)4/h(H3,1,2,3,4)
+
+> <inchi_key>
+NBIIXXVUZAFLBC-UHFFFAOYSA-N
+
+> <molecular_mass>
+97.976895086
+
+> <molecular_formula>
+H3O4P
+
+$$$$
+
+  SciTegic12121315112D
+
+  9  8  0  0  1  0            999 V2000
+    0.0000    0.0000    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 C   0  0  1  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0
+  1  2  1  0  0  0  0
+  2  3  1  0  0  0  0
+  3  4  2  0  0  0  0
+  3  5  1  0  0  0  0
+  2  6  1  1  0  0  0
+  1  7  1  0  0  0  0
+  7  8  2  0  0  0  0
+  7  9  1  0  0  0  0
+M  END
+> <smiles>
+C([C@@H](C(=O)O)O)C(=O)O
+
+> <facility_reagent_id>
+HMSL106
+
+> <salt_id>
+101
+
+> <chemical_name>
+malate
+
+> <date_assigned>
+9/27/2011
+
+> <inchi>
+InChI=1S/C4H6O5/c5-2(4(8)9)1-3(6)7/h2,5H,1H2,(H,6,7)(H,8,9)/t2-/m0/s1
+
+> <inchi_key>
+BJEPYKJPYRNKOW-REOHCLBHSA-N
+
+> <molecular_mass>
+134.021523292
+
+> <molecular_formula>
+C4H6O5
+
+$$$$
+
+  SciTegic12121315112D
+
+  3  0  0  0  0  0            999 V2000
+    0.0000    0.0000    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 Cl  0  0  0  0  0  0  0  0  0  0  0  0
+M  END
+> <smiles>
+O.O.Cl
+
+> <facility_reagent_id>
+HMSL107
+
+> <salt_id>
+101
+
+> <chemical_name>
+hydrochloride hydrate
+
+> <date_assigned>
+7/27/2012
+
+> <inchi>
+InChI=1S/ClH.2H2O/h1H;2*1H2
+
+> <inchi_key>
+NSNHWTBQMQIDCF-UHFFFAOYSA-N
+
+> <molecular_mass>
+71.99780711
+
+> <molecular_formula>
+ClH5O2
+
+$$$$
+
+  SciTegic12121315112D
+
+ 13 12  0  0  0  0            999 V2000
+    0.0000    0.0000    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0
+  1  2  1  0  0  0  0
+  2  3  2  0  0  0  0
+  2  4  1  0  0  0  0
+  1  5  1  0  0  0  0
+  5  6  1  0  0  0  0
+  6  7  1  0  0  0  0
+  7  8  2  0  0  0  0
+  7  9  1  0  0  0  0
+  5 10  1  0  0  0  0
+ 10 11  2  0  0  0  0
+ 10 12  1  0  0  0  0
+  5 13  1  0  0  0  0
+M  END
+> <smiles>
+C(C(=O)O)C(CC(=O)O)(C(=O)O)O
+
+> <facility_reagent_id>
+HMSL108
+
+> <salt_id>
+101
+
+> <chemical_name>
+citrate
+
+> <date_assigned>
+8/14/2012
+
+> <inchi>
+InChI=1S/C6H8O7/c7-3(8)1-6(13,5(11)12)2-4(9)10/h13H,1-2H2,(H,7,8)(H,9,10)(H,11,12)
+
+> <inchi_key>
+KRKNYBCHXYNGOX-UHFFFAOYSA-N
+
+> <molecular_mass>
+192.027002596
+
+> <molecular_formula>
+C6H8O7
+
+$$$$
+
+  SciTegic12121315112D
+
+  7  6  0  0  0  0            999 V2000
+    0.0000    0.0000    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 F   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 F   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 F   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0
+  1  2  2  0  0  0  0
+  1  3  1  0  0  0  0
+  3  4  1  0  0  0  0
+  3  5  1  0  0  0  0
+  3  6  1  0  0  0  0
+  1  7  1  0  0  0  0
+M  END
+> <smiles>
+C(=O)(C(F)(F)F)O
+
+> <facility_reagent_id>
+HMSL109
+
+> <salt_id>
+101
+
+> <chemical_name>
+trifluoroacetic acid
+
+> <date_assigned>
+2/28/2013
+
+> <inchi>
+InChI=1S/C2HF3O2/c3-2(4,5)1(6)7/h(H,6,7)
+
+> <inchi_key>
+DTQVDTLACAAQTR-UHFFFAOYSA-N
+
+> <molecular_mass>
+113.992863872
+
+> <molecular_formula>
+C2HF3O2
+
+$$$$
+
+  SciTegic12121315112D
+
+  1  0  0  0  0  0            999 V2000
+    0.0000    0.0000    0.0000 Na  0  3  0  0  0  0  0  0  0  0  0  0
+M  CHG  1   1   1
+M  END
+> <smiles>
+[Na+]
+
+> <facility_reagent_id>
+HMSL110
+
+> <salt_id>
+101
+
+> <chemical_name>
+sodium
+
+> <date_assigned>
+4/16/2013
+
+> <inchi>
+InChI=1S/Na/q+1
+
+> <inchi_key>
+FKNQFGJONOIPTF-UHFFFAOYSA-N
+
+> <molecular_mass>
+22.98976967
+
+> <molecular_formula>
+Na
+
+$$$$
+
+  SciTegic12121315112D
+
+  1  0  0  0  0  0            999 V2000
+    0.0000    0.0000    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0
+M  END
+> <smiles>
+O
+
+> <facility_reagent_id>
+HMSL111
+
+> <salt_id>
+101
+
+> <chemical_name>
+hydrate
+
+> <date_assigned>
+5/29/2013
+
+> <inchi>
+InChI=1S/H2O/h1H2
+
+> <inchi_key>
+XLYOFNOQVPJJNP-UHFFFAOYSA-N
+
+> <molecular_mass>
+18.010564684
+
+> <molecular_formula>
+H2O
+
+$$$$
+
+  SciTegic12121315112D
+
+  2  0  0  0  0  0            999 V2000
+    0.0000    0.0000    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0
+    0.0000    0.0000    0.0000 Cl  0  5  0  0  0  0  0  0  0  0  0  0
+M  CHG  1   2  -1
+M  END
+> <smiles>
+O.[Cl-]
+
+> <facility_reagent_id>
+HMSL112
+
+> <salt_id>
+101
+
+> <chemical_name>
+chloride hydrate
+
+> <date_assigned>
+7/24/2013
+
+> <inchi>
+InChI=1S/ClH.H2O/h1H;1H2/p-1
+
+> <inchi_key>
+DKAGJZJALZXOOV-UHFFFAOYSA-M
+
+> <molecular_mass>
+52.979417394
+
+> <molecular_formula>
+ClH2O
+
+$$$$

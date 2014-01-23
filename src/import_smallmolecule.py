@@ -1,9 +1,7 @@
-import sys
+import sys, os
 import argparse
 import sdf2py as s2p
-import re
 import typecheck
-from datetime import date
 import logging
 
 import init_utils as iu
@@ -68,9 +66,11 @@ def main(path):
         data = fh.read().decode(DEFAULT_ENCODING)
 
     records = s2p.parse_sdf(data)
+    logger.info(str(('read rows: ', len(records))))
     
     count = 0
     for record in records:
+        logger.debug(str(('record', record)))
         initializer = {}
         for key,properties in labels.items():
             logger.debug(str(('look for key: ', key, ', properties: ', properties)))
@@ -95,6 +95,9 @@ def main(path):
                 logger.debug(str(('model_field: ' , model_field, ', value: ', value)))
                 initializer[model_field] = value
             except Exception, e:
+                exc_type, exc_obj, exc_tb = sys.exc_info()
+                fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]      
+                logger.error(str((exc_type, fname, exc_tb.tb_lineno)))
                 logger.error(str(('invalid input', e, 'count', count)))
                 raise e
         # follows is a kludge, to split up the entered "chemical_name" field, on ';' - TODO: just have two fields that get entered

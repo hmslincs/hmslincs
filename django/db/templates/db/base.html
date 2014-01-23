@@ -17,7 +17,10 @@
   <ul>
     <li class='{% selectedTag request "^/db/$" %}'><a  href="{% url home %}">HMS LINCS DB home</a></li>
     <li class='{% selectedTag request "^/db/sm/" %}'><a  href="{% url listSmallMolecules %}">Small molecules</a></li>
-    <li class='{% selectedTag request "^/db/structuresearch/" %}'><a  href="{% url structureSearch %}">Structure search</a></li>
+    <ul>
+      <li class='{% selectedTag request "^/db/sm/structuresearch/" %}'><a  href="{% url structureSearch %}">Structure search</a></li>
+      <li class='{% selectedTag request "^/db/sm/salt/" %}'><a  href="{% url salt_listing %}">Salt table</a></li>
+    </ul>
     <li class='{% selectedTag request "^/db/cells/" %}'><a " href="{% url listCells %}">Cells</a></li>
     <li class='{% selectedTag request "^/db/proteins/" %}'><a " href="{% url listProteins %}">Proteins</a></li>
     <li class='{% selectedTag request "^/db/antibodies/" %}'><a " href="{% url listAntibodies %}">Antibodies</a></li>

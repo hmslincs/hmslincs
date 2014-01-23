@@ -1,3 +1,6 @@
+'''
+Main view class for the DB project
+'''
 from PagedRawQuerySet import PagedRawQuerySet
 from collections import OrderedDict
 from datetime import timedelta
@@ -10,15 +13,15 @@ from django.contrib.staticfiles.finders import FileSystemFinder
 from django.core.servers.basehttp import FileWrapper
 from django.core.urlresolvers import reverse
 from django.db import connection, models
-from django.db.models.query_utils import Q
-from django.db.models.query import QuerySet
+# from django.db.models.query_utils import Q
+# from django.db.models.query import QuerySet
 from django.forms import ModelForm
 from django.forms.models import model_to_dict
 from django.http import Http404, HttpResponseRedirect, HttpResponse
 from django.shortcuts import render
 from django.utils import timezone
 from django.utils.encoding import smart_str
-from django.utils.safestring import mark_safe, SafeString, SafeData
+from django.utils.safestring import mark_safe, SafeString
 from django_tables2 import RequestConfig
 from django_tables2.utils import A # alias for Accessor
 from dump_obj import dumpObj
@@ -113,9 +116,9 @@ def cellIndex(request):
         show_field = form.cleaned_data.get(key +'_shown', False)
         field_data = form.cleaned_data.get(key)
         if show_field or field_data:
+            queryset = CellSearchManager().join_query_to_dataset_type(queryset, dataset_type=field_data)
             if field_data:
-              queryset = CellSearchManager().join_query_to_dataset_type(queryset, dataset_type=field_data)
-              search_label += "Filtered for " + fieldinformation.get_verbose_name() + ": " + field_data
+                search_label += "Filtered for " + fieldinformation.get_verbose_name() + ": " + field_data
             visible_field_overrides.append(key)
             # set the value for the shown field, can do this because we copied the querydict above
             form.data[key+'_shown'] = True
@@ -201,8 +204,8 @@ def proteinIndex(request):
         show_field = form.cleaned_data.get(key +'_shown', False)
         field_data = form.cleaned_data.get(key)
         if show_field or field_data:
+            queryset = ProteinSearchManager().join_query_to_dataset_type(queryset, dataset_type=field_data)
             if field_data:
-              queryset = ProteinSearchManager().join_query_to_dataset_type(queryset, dataset_type=field_data)
               search_label += "Filtered for " + fieldinformation.get_verbose_name() + ": " + field_data
             visible_field_overrides.append(key)
             # set the value for the shown field, can do this because we copied the querydict above
@@ -344,11 +347,16 @@ def otherReagentDetail(request, facility_id):
     except OtherReagent.DoesNotExist:
         raise Http404
 
-# TODO REFACTOR, DRY... 
-def smallMoleculeIndex(request):
+def saltIndex(request):
+    queryset = SmallMolecule.objects.extra(where=["facility_id::int < 1000 "]);
+    return smallMoleculeIndex(request, queryset=queryset, 
+        overrides={'title': 'Salt', 'titles':'Salts', 'table': SaltTable })
+
+def smallMoleculeIndex(request, queryset=None, overrides=None):
     search = request.GET.get('search','')
     search = re.sub(r'[\'"]','',search)
-    queryset = SmallMolecule.objects;
+    if not queryset:
+        queryset = SmallMolecule.objects.extra(where=["facility_id::int >= 1000 "]);
     if(search != ''):
         queryset = SmallMoleculeSearchManager().search(queryset, search, is_authenticated=request.user.is_authenticated())
     else:
@@ -359,7 +367,7 @@ def smallMoleculeIndex(request):
             where=where,
             order_by=('facility_id','salt_id')) 
 
-    # PROCESS THE EXTRA FORM    
+    # PROCESS THE EXTRA FORM : for field level filtering    
     field_hash=FieldInformation.manager.get_field_hash('smallmolecule')
 
     # 1. Override fields: note do this _before_ grabbing all the (bound) fields for the display matrix below
@@ -386,8 +394,8 @@ def smallMoleculeIndex(request):
         show_field = form.cleaned_data.get(key +'_shown', False)
         field_data = form.cleaned_data.get(key)
         if show_field or field_data:
+            queryset = SmallMoleculeSearchManager().join_query_to_dataset_type(queryset, dataset_type=field_data)
             if field_data:
-              queryset = SmallMoleculeSearchManager().join_query_to_dataset_type(queryset, dataset_type=field_data)
               search_label += "Filtered for " + fieldinformation.get_verbose_name() + ": " + field_data
             visible_field_overrides.append(key)
             # set the value for the shown field, can do this because we copied the querydict above
@@ -400,14 +408,24 @@ def smallMoleculeIndex(request):
     # since a True sorts higher than a False, see above for usage (for Postgres)
     queryset = queryset.extra(select={'lincs_id_null':'lincs_id is null', 'pubchem_cid_null':'pubchem_cid is null'})
     
-    table = SmallMoleculeTable(queryset, visible_field_overrides=visible_field_overrides)
+    if overrides and 'table' in overrides:
+        table = overrides['table'](queryset, visible_field_overrides=visible_field_overrides)
+    else:
+        table = SmallMoleculeTable(queryset, visible_field_overrides=visible_field_overrides)
+    
     outputType = request.GET.get('output_type','')
     if outputType:
         return send_to_file(outputType, 'small_molecule', table, queryset, 'smallmolecule', is_authenticated=request.user.is_authenticated() )
     
         if(len(queryset) == 1 ):
             return redirect_to_small_molecule_detail(queryset[0])
-    return render_list_index(request, table,search,'Small molecule','Small molecules', **{ 'extra_form': form, 'search_label': search_label } ) #, **kwargs )    
+        
+    title = 'Small molecule'
+    titles = 'Small molecules'
+    if overrides:
+        title = overrides.get('title', title)
+        titles = overrides.get('titles', titles)
+    return render_list_index(request, table,search,title, titles, **{ 'extra_form': form, 'search_label': search_label } ) #, **kwargs )    
 
 def smallMoleculeIndexList(request, facility_ids=''):
     logger.debug(str(('search for small molecules: ', facility_ids)))
@@ -435,12 +453,17 @@ def smallMoleculeMolfile(request, facility_salt_id):
         
     except SmallMolecule.DoesNotExist:
         raise Http404
-    
+ 
+def saltDetail(request, salt_id):
+    logger.info(str(('find the salt', salt_id)))
+    return smallMoleculeDetail(request, "%s-101" % salt_id )   
     
 def smallMoleculeDetail(request, facility_salt_id): # TODO: let urls.py grep the facility and the salt
+    logger.info(str(('find the small molecule', facility_salt_id)))
+
     try:
         temp = facility_salt_id.split('-') # TODO: let urls.py grep the facility and the salt
-        logger.debug(str(('find sm detail for', temp)))
+        logger.info(str(('find sm detail for', temp)))
         facility_id = temp[0]
         salt_id = temp[1]
         sm = SmallMolecule.objects.get(facility_id=facility_id, salt_id=salt_id) 
@@ -1816,6 +1839,22 @@ class SmallMoleculeBatchTable(PagedTable):
         set_table_column_info(self, ['smallmolecule','smallmoleculebatch',''],sequence_override)  
 
 
+class SaltTable(PagedTable):
+    
+    facility_id = tables.LinkColumn("salt_detail", args=[A('facility_id')])
+
+    class Meta:
+        model = SmallMolecule #[SmallMolecule, SmallMoleculeBatch]
+        orderable = True
+        attrs = {'class': 'paleblue'}
+        
+    def __init__(self, queryset, show_plate_well=False,visible_field_overrides=[], *args, **kwargs):
+        super(SaltTable, self).__init__(queryset, *args, **kwargs)
+        
+        sequence_override = ['facility_id']
+        set_table_column_info(self, ['salt',''],sequence_override, visible_field_overrides=visible_field_overrides)  
+        logger.info('init done')
+
 class SmallMoleculeTable(PagedTable):
     facility_salt = tables.LinkColumn("sm_detail", args=[A('facility_salt')], order_by=['facility_id','salt_id']) 
     facility_salt.attrs['td'] = {'nowrap': 'nowrap'}
@@ -2252,6 +2291,7 @@ class ProteinSearchManager(SearchManager):
         queryset = queryset.extra( select=
             { key:  "(select array_to_string(array_agg(distinct (ds.dataset_type)), ', ') as " + key 
                     + " from db_dataset ds join db_datarecord dr on(ds.id=dr.dataset_id) where dr.%s=%s.id)" %(datarecord_field, source_table)})
+        logger.warn(str(('join the dataset types...')))
         return queryset
 
 class SmallMoleculeSearchManager(SearchManager):
