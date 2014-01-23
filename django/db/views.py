@@ -481,6 +481,14 @@ def smallMoleculeDetail(request, facility_salt_id): # TODO: let urls.py grep the
             extra_properties=['_inchi', '_inchi_key', '_smiles', '_molecular_formula', '_molecular_mass']
         details = {'object': get_detail(sm, ['smallmolecule',''],extra_properties=extra_properties )}
         details['facility_salt_id'] = sm.facility_id + '-' + sm.salt_id
+        
+        # change the facility ID if it is a salt
+        logger.info(str(('------------ sm.facility_id', int(sm.facility_id), details['object'] )))
+        if int(sm.facility_id) < 1000:
+            details['object']['facility_salt']['value'] = sm.facility_id
+            del details['object']['salt_id']
+            logger.info(str(('------------ sm.facility_id', int(sm.facility_id), details['object'] )))
+        
         #TODO: set is_restricted if the user is not logged in only
         details['is_restricted'] = sm.is_restricted
         
@@ -1593,8 +1601,8 @@ class DataSetManager():
             # all bets are off if using the metawhereclause, unfortunately, since it can filter on the inner, dynamic cols
             countQueryString = "SELECT count(*) " + fromClause
             #countQueryString = " AND ".join([countQueryString]+metaWhereClause)
-#        if(logger.isEnabledFor(logging.DEBUG)): 
-        logger.info(str(('--querystrings---',queryString, countQueryString, parameters)))
+        if(logger.isEnabledFor(logging.DEBUG)): 
+            logger.debug(str(('--querystrings---',queryString, countQueryString, parameters)))
         dataset_info = self.DatasetInfo()
         dataset_info.query_sql = queryString
         dataset_info.count_query_sql = countQueryString

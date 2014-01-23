@@ -742,7 +742,7 @@ def get_fielddata(model_object, search_tables, field_information_filter=None, ex
     logger.debug(str(('property_dict', property_dict)))
     ui_dict = { }
     for field,value in property_dict.iteritems():
-        logger.info(str(('get_field_info', field)))
+        logger.debug(str(('get_field_info', field)))
         details = {}
         try:
             fi = FieldInformation.manager.get_column_fieldinformation_by_priority(field,search_tables)
