@@ -350,7 +350,7 @@ def otherReagentDetail(request, facility_id):
 def saltIndex(request):
     queryset = SmallMolecule.objects.extra(where=["facility_id::int < 1000 "]);
     return smallMoleculeIndex(request, queryset=queryset, 
-        overrides={'title': 'Salt', 'titles':'Salts', 'table': SaltTable })
+        overrides={'title': 'Salt', 'titles':'Salts', 'table': SaltTable, 'table_name': 'SaltTable' })
 
 def smallMoleculeIndex(request, queryset=None, overrides=None):
     search = request.GET.get('search','')
@@ -409,13 +409,15 @@ def smallMoleculeIndex(request, queryset=None, overrides=None):
     queryset = queryset.extra(select={'lincs_id_null':'lincs_id is null', 'pubchem_cid_null':'pubchem_cid is null'})
     
     if overrides and 'table' in overrides:
+        tablename = overrides['table_name']
         table = overrides['table'](queryset, visible_field_overrides=visible_field_overrides)
     else:
+        tablename = 'smallmolecule'
         table = SmallMoleculeTable(queryset, visible_field_overrides=visible_field_overrides)
     
     outputType = request.GET.get('output_type','')
     if outputType:
-        return send_to_file(outputType, 'small_molecule', table, queryset, 'smallmolecule', is_authenticated=request.user.is_authenticated() )
+        return send_to_file(outputType, 'small_molecule', table, queryset, tablename, is_authenticated=request.user.is_authenticated() )
     
         if(len(queryset) == 1 ):
             return redirect_to_small_molecule_detail(queryset[0])
