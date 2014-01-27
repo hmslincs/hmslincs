@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block head_extra %}
+	<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/basic_tabs.css" />
+        <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/hmslincs.css" />
+{% endblock %}
+
+{% block title %}Server Error - {{ block.super }}{% endblock %}	
+
+{% block body %}
+This request has caused a server error.  Please contact an administrator for further assistance.
+{% endblock %}
