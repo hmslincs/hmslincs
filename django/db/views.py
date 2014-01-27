@@ -1719,7 +1719,18 @@ class DataSetManager():
                 ' WHERE sm.id in (SELECT distinct(smallmolecule_id) FROM db_datarecord dr WHERE dr.dataset_id=%s) '
                 ' order by sm.facility_id' )
         cursor.execute(sql, [dataset_id])
-        return dictfetchall(cursor)
+        
+        sm_dict = dictfetchall(cursor)
+        # post-process the dictionary to remove restricted field information
+        for row_dict in sm_dict:
+            for col,value in row_dict.items():
+                if col in ['inchi','inchi_key','smiles','molecular_mass','molecular_formula']:
+                    del row_dict[col]
+                    if row_dict['is_restricted']:
+                        row_dict['get_'+col] = 'restricted'
+                    else:
+                        row_dict['get_'+col] = value
+        return sm_dict
             
 # Note: this usage of the django ORM is a bit more performant than the cell version above; still, going to stick with the non-ORM version for now    
 #    def small_molecules_for_dataset(self, dataset_id):
