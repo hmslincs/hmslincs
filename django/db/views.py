@@ -666,15 +666,17 @@ def datasetIndex(request): #, type='screen'):
       }
     return render_list_index(request, table,search,'Dataset','Datasets', **requestArgs)
 
-# Follows is a messy way to differentiate each tab for the dataset detail page (each tab calls it's respective method)
-def getDatasetType(facility_id):
-    facility_id = int(facility_id)
-    if(facility_id < 30000 and facility_id >=  10000 ):
-        return 'screen'
-    elif(facility_id < 400000 and facility_id >= 300000 ):
-        return 'study'
-    else:
-        raise Exception('unknown facility id range: ' + str(facility_id))
+# # Follows is a messy way to differentiate each tab for the dataset detail page (each tab calls it's respective method)
+# def getDatasetType(facility_id):
+#     facility_id = int(facility_id)
+#     if(facility_id < 30000 and facility_id >=  10000 ):
+#         return 'dataset'
+#     elif(facility_id < 400000 and facility_id >= 300000 ):
+#         return 'study'
+#     else:
+#         raise Exception('unknown facility id range: ' + str(facility_id))
+
+
 class Http401(Exception):
     pass
 
@@ -858,7 +860,7 @@ def datasetDetail(request, facility_id, sub_page):
     
     details =  {'object': get_detail(manager.dataset, ['dataset','']),
                 'facilityId': facility_id,
-                'type':getDatasetType(facility_id),
+#                 'type':getDatasetType(facility_id), #TODO: remove - this appears to be unused
                 'has_small_molecules':manager.has_small_molecules(),
                 'has_cells':manager.has_cells(),
                 'has_proteins':manager.has_proteins(),
@@ -1116,7 +1118,7 @@ class TypeColumn(tables.Column):
     def render(self, value):
         if value == "cell_detail": return "Cell"
         elif value == "sm_detail": return "Small Molecule"
-        elif value == "dataset_detail": return "Screen"
+        elif value == "dataset_detail": return "Dataset"
         elif value == "protein_detail": return "Protein"
         else: raise Exception("Unknown type: "+value)
 
