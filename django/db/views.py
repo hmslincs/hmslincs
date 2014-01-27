@@ -482,12 +482,10 @@ def smallMoleculeDetail(request, facility_salt_id): # TODO: let urls.py grep the
         details = {'object': get_detail(sm, ['smallmolecule',''],extra_properties=extra_properties )}
         details['facility_salt_id'] = sm.facility_id + '-' + sm.salt_id
         
-        # change the facility ID if it is a salt
-        logger.info(str(('------------ sm.facility_id', int(sm.facility_id), details['object'] )))
+        # change the facility ID if it is a salt, for the purpose of display
         if int(sm.facility_id) < 1000:
             details['object']['facility_salt']['value'] = sm.facility_id
             del details['object']['salt_id']
-            logger.info(str(('------------ sm.facility_id', int(sm.facility_id), details['object'] )))
         
         #TODO: set is_restricted if the user is not logged in only
         details['is_restricted'] = sm.is_restricted
