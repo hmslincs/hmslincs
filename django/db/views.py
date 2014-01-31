@@ -452,7 +452,10 @@ def smallMoleculeIndex(request, queryset=None, overrides=None):
     # trick to get these colums to sort with NULLS LAST in Postgres:
     # since a True sorts higher than a False, see above for usage (for Postgres)
     queryset = queryset.extra(
-        select={'lincs_id_null':'lincs_id is null', 'pubchem_cid_null':'pubchem_cid is null'})
+        select={'lincs_id_null':'lincs_id is null',
+                'pubchem_cid_null':'pubchem_cid is null',
+                'unrestricted_image_facility_salt': 
+                    "case when is_restricted then '' else facility_id || '-' || salt_id end" })
     
     if overrides and 'table' in overrides:
         tablename = overrides['table_name']
@@ -1200,6 +1203,21 @@ class DivWrappedColumn(tables.Column):
     
   def render(self, value):
     return mark_safe("<div class='" + self.classname + "' >" + smart_str(value, 'utf-8', errors='ignore') + "</div>")
+
+class ImageColumn(tables.Column):
+    def __init__(self, loc=None, image_class=None, *args, **kwargs):
+        self.loc=loc
+        self.image_class=image_class
+        super(ImageColumn, self).__init__(*args, **kwargs)
+    
+    def render(self, value):
+        
+        if value:
+            location = static('%s/HMSL%s.png'% (self.loc, smart_str(value)))
+            return mark_safe(
+                '<img class="%s" src="%s" />' % (self.image_class, location)  )
+        else:
+            return ''
 
 class PagedTable(tables.Table):
     
@@ -1959,26 +1977,16 @@ class SaltTable(PagedTable):
         orderable = True
         attrs = {'class': 'paleblue'}
         
-    def __init__(self, queryset, show_plate_well=False,visible_field_overrides=[], *args, **kwargs):
+    def __init__(
+            self, queryset, show_plate_well=False,visible_field_overrides=[], 
+            *args, **kwargs):
         super(SaltTable, self).__init__(queryset, *args, **kwargs)
         
         sequence_override = ['facility_id']
-        set_table_column_info(self, ['salt',''],sequence_override, visible_field_overrides=visible_field_overrides)  
+        set_table_column_info(
+            self, ['salt',''],sequence_override, 
+            visible_field_overrides=visible_field_overrides)  
         logger.info('init done')
-
-class ImageColumn(tables.Column):
-    def __init__(self, loc=None, *args, **kwargs):
-        self.loc=loc
-        super(ImageColumn, self).__init__(*args, **kwargs)
-    
-    def render(self, value):
-        location = '%s/HMSL%s.png'% (self.loc, smart_str(value))
-        
-        # Only allow thumbnails for unrestricted images at this time
-        if can_access_unrestricted_image(location):
-            return mark_safe('<img src="' + static(location) +'" />'  )
-        else:
-            return ''
 
 class SmallMoleculeTable(PagedTable):
     facility_salt = tables.LinkColumn("sm_detail", args=[A('facility_salt')], 
@@ -1990,7 +1998,8 @@ class SmallMoleculeTable(PagedTable):
     alternative_names = DivWrappedColumn(classname='fixed_width_column')
 
     image = ImageColumn(
-        verbose_name='image', accessor=A('facility_salt'), loc=COMPOUND_IMAGE_LOCATION)
+        verbose_name='image', accessor=A('unrestricted_image_facility_salt'), 
+        image_class='compound_image_thumbnail', loc=COMPOUND_IMAGE_LOCATION)
     
     # django-tables2 trick to get these columns to sort with NULLS LAST in Postgres; 
     # note this requires the use of an "extra" clause in the query definition 
@@ -2419,16 +2428,22 @@ class ProteinSearchManager(SearchManager):
 
     def search(self, searchString, is_authenticated=False):
 
-        id_fields = ['name', 'uniprot_id', 'alternate_name', 'alternate_name_2', 'provider_catalog_id']
-        return super(ProteinSearchManager, self).search(Protein.objects, 'db_protein', searchString, id_fields, ProteinTable.snippet_def)        
+        id_fields = ['name', 'uniprot_id', 'alternate_name', 'alternate_name_2',
+             'provider_catalog_id']
+        return super(ProteinSearchManager, self).search(
+            Protein.objects, 'db_protein', searchString, id_fields, 
+            ProteinTable.snippet_def)        
     
     def join_query_to_dataset_type(self, queryset, dataset_type=None ):
         key = 'dataset_types'
         if dataset_type:
-            # get the set to of primary entity id's that satisfy the join to the dataset type
-            # do this as a separate query (filter() returns a clone) and then use the result
+            # get the set to of primary entity id's that satisfy the join to the
+            # dataset type do this as a separate query (filter() returns a clone)
+            # and then use the result
             # to add just the id's back in to the parent query
-            ids = [x.id for x in Protein.objects.filter(datarecord__dataset__dataset_type=str(dataset_type)).order_by('id').distinct('id')]
+            ids = [x.id for x in Protein.objects
+                .filter(datarecord__dataset__dataset_type=str(dataset_type))
+                .order_by('id').distinct('id')]
             queryset = queryset.filter(id__in=ids)
             
         datarecord_field = 'protein_id'
@@ -2473,7 +2488,9 @@ class AntibodySearchManager(SearchManager):
     def search(self, searchString, is_authenticated=False):
 
         id_fields = ['name', 'alternative_names', 'lincs_id']
-        return super(AntibodySearchManager, self).search(Antibody.objects, 'db_antibody', searchString, id_fields, AntibodyTable.snippet_def)        
+        return super(AntibodySearchManager, self).search(
+            Antibody.objects, 'db_antibody', searchString, id_fields, 
+            AntibodyTable.snippet_def)        
 
 
 class OtherReagentSearchManager(SearchManager):
@@ -2481,31 +2498,39 @@ class OtherReagentSearchManager(SearchManager):
     def search(self, searchString, is_authenticated=False):
 
         id_fields = ['name', 'alternative_names', 'lincs_id']
-        return super(OtherReagentSearchManager, self).search(OtherReagent.objects, 'db_otherreagent', searchString, id_fields, OtherReagentTable.snippet_def)        
+        return super(OtherReagentSearchManager, self).search(
+            OtherReagent.objects, 'db_otherreagent', searchString, id_fields, 
+            OtherReagentTable.snippet_def)        
 
 
 class SiteSearchTable(PagedTable):
     id = tables.Column(visible=False)
-    #Note: using the expediency here: the "type" column holds the subdirectory for that to make the link for type, so "sm", "cell", etc., becomes "/db/sm", "/db/cell", etc.
+    # Note: using the expediency here: the "type" column holds the subdirectory 
+    # for that to make the link for type, so "sm", "cell", etc., becomes 
+    # "/db/sm", "/db/cell", etc.
     facility_id = tables.LinkColumn(A('type'), args=[A('facility_id')])  
     type = TypeColumn()
     rank = tables.Column()
     snippet = DivWrappedColumn(verbose_name='matched text', classname='snippet')
-    snippet2 = DivWrappedColumn(verbose_name='alternate matched text', classname='fixed_width_column', visible=False)
+    snippet2 = DivWrappedColumn(
+        verbose_name='alternate matched text', classname='fixed_width_column', 
+        visible=False)
     class Meta:
         orderable = True
         attrs = {'class': 'paleblue'}
         exclude = {'rank'}
 
-def can_access_unrestricted_image(image_filename):
-    '''
-    A note - restricted images are located in the special 
-    "STATIC_AUTHENTICATED_FILE_DIR"
-    since this method will not search there, it will only tell if an 
-    unrestricted image can be located.  (will always fail for restricted images)
-    '''
-    matches = filesystemfinder.find(image_filename)
-    return bool(matches)
+# def can_access_unrestricted_image(image_filename):
+#     '''
+#     A note - restricted images are located in the special 
+#     "STATIC_AUTHENTICATED_FILE_DIR"
+#     since this method will not search there, it will only tell if an 
+#     unrestricted image can be located.  (will always fail for restricted images)
+#     '''
+#     logger.info(str(('try to find unrestricted image', image_filename)) )
+#     matches = filesystemfinder.find(image_filename)
+#     logger.info(str(('result', image_filename, matches)) )
+#     return bool(matches)
 
 def can_access_image(image_filename, is_restricted=False):
     if not is_restricted:
@@ -2518,7 +2543,8 @@ def can_access_image(image_filename, is_restricted=False):
         return v
 
 def get_attached_files(facility_id, salt_id=None, batch_id=None):
-    return AttachedFile.objects.filter(facility_id_for=facility_id, salt_id_for=salt_id, batch_id_for=batch_id)
+    return AttachedFile.objects.filter(
+        facility_id_for=facility_id, salt_id_for=salt_id, batch_id_for=batch_id)
 
 
 

@@ -20,6 +20,10 @@ img {
  right:1em;
  height: 16em;
 }
+.compound_image_thumbnail {
+	height: 78px;
+	width: auto;
+}
 .molfile_link {
  position:absolute;
  right:1em;
