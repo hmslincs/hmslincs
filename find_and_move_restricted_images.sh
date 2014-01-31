@@ -45,7 +45,7 @@ READLINK=${READLINK:-readlink}
 SCRIPTDIR=$( dirname $( $READLINK -f $0 ) )
 BASEDIR=$( $READLINK -f $SCRIPTDIR/.. )
 
-SOURCEDIR=$BASEDIR/images
+SOURCEDIR=$BASEDIR/../docroot/_static
 DESTDIR=$BASEDIR/authenticated_static_files
 
 function _move_from {
@@ -53,7 +53,7 @@ function _move_from {
   filepath=$2
   tgt=$(dirname ${filepath#$origin/})
   mkdir $VERBOSE -p $tgt
-  mv $VERBOSE -t $tgt $filepath
+  mv -f $VERBOSE -t $tgt $filepath
 }
 
 function move_restricted {

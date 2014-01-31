@@ -293,22 +293,20 @@ function makeimg {
 }
 
 function moveimg {
-  if $DEFAULTMODE; then
-    _debug -n 'moving images... '
-    cd "$BASEDIR" || return 1
-    DEBUG=$DEBUG ./find_and_move_restricted_images.sh >>"$LOGFILE" 2>&1 || \
-        error "find_and_move_restricted_images.sh failed: $?"
-    _debug 'done'
-  fi
+  _debug -n 'moving images... '
+  cd "$BASEDIR" || return 1
+  DEBUG=$DEBUG ./find_and_move_restricted_images.sh >>"$LOGFILE" 2>&1 || \
+      error "find_and_move_restricted_images.sh failed: $?"
+  _debug 'done'
 }
 
 function collectstatic {
   if [[ -z $SUPPORTDIR ]]; then return 0; fi
   _debug -n 'collecting statics... '
   cd "$BASEDIR" || return 1
-  _mkdir $SUPPORTDIR/images || return 1
   python django/manage.py collectstatic --noinput >>"$LOGFILE" 2>&1 || \
       error "manage.py collectstatic failed: $?"
+  moveimg
   _debug 'done'
 }
 
@@ -378,7 +376,7 @@ deployed by $USER ($UID) connected from $ssh_client
 EOF
 
   maybe_activate_virtualenv
-  gitpull && runpip && builddb && makeimg && moveimg && collectstatic && killfcgi
+  gitpull && runpip && builddb && makeimg && collectstatic && killfcgi
 
   STATUS=$SUCCESS
   echo done
