@@ -377,8 +377,9 @@ def otherReagentDetail(request, facility_id):
             where = []
             if(not request.user.is_authenticated()): 
                 where.append("(not is_restricted or is_restricted is NULL)")
-            queryset = DataSet.objects.filter(pk__in=list(dataset_ids)).extra(where=where,
-                       order_by=('facility_id',))        
+            queryset = DataSet.objects.filter(
+                    pk__in=list(dataset_ids)).extra(where=where,
+                    order_by=('facility_id',))        
             details['datasets'] = DataSetTable(queryset)
 
         return render(request, 'db/otherReagentDetail.html', details)
@@ -396,7 +397,8 @@ def smallMoleculeIndex(request, queryset=None, overrides=None):
     search = request.GET.get('search','')
     search = re.sub(r'[\'"]','',search) # remove quotes from search string
     if not queryset:
-        queryset = SmallMolecule.objects.extra(where=["facility_id::int >= 1000 "]);
+        queryset = SmallMolecule.objects.extra(
+            where=["facility_id::int >= 1000 "]);
     if(search != ''):
         queryset = SmallMoleculeSearchManager().search(
             queryset, search, is_authenticated=request.user.is_authenticated())
@@ -410,10 +412,10 @@ def smallMoleculeIndex(request, queryset=None, overrides=None):
     field_hash=FieldInformation.manager.get_field_hash('smallmolecule')
 
     # 1. Override fields: 
-    # Note: do this _before_ grabbing all the (bound) fields for the display matrix below
+    # Note: do this _before_ grabbing all the (bound) fields for the display
     form_field_overrides = {}
-    fieldinformation = \
-        FieldInformation.manager.get_column_fieldinformation_by_priority('dataset_types', '')
+    fieldinformation = FieldInformation.manager. \
+        get_column_fieldinformation_by_priority('dataset_types', '')
     field_hash['dataset_types'] = fieldinformation
     form_field_overrides['dataset_types'] = forms.ChoiceField(
         required=False, choices=dataset_types, 
@@ -450,26 +452,36 @@ def smallMoleculeIndex(request, queryset=None, overrides=None):
 
     # trick to get these colums to sort with NULLS LAST in Postgres:
     # since a True sorts higher than a False, see above for usage (for Postgres)
-    queryset = queryset.extra(
-        select={'lincs_id_null':'lincs_id is null',
-                'pubchem_cid_null':'pubchem_cid is null',
-                'unrestricted_image_facility_salt': 
-                    "case when is_restricted then '' else facility_id || '-' || salt_id end" })
+    select={'lincs_id_null':'lincs_id is null',
+            'pubchem_cid_null':'pubchem_cid is null' }
+    # add column for image IDS; if authenticatd, just list them all
+    if request.user.is_authenticated():
+        select['unrestricted_image_facility_salt'] = \
+            "facility_id || '-' || salt_id"
+    else:
+        select['unrestricted_image_facility_salt'] = \
+            "case when is_restricted then '' else facility_id || '-' || salt_id end"
+    queryset = queryset.extra(select=select)
     
     if overrides and 'table' in overrides:
         tablename = overrides['table_name']
-        table = overrides['table'](queryset, visible_field_overrides=visible_field_overrides)
+        table = overrides['table'](
+            queryset, visible_field_overrides=visible_field_overrides)
     else:
         tablename = 'smallmolecule'
-        table = SmallMoleculeTable(queryset, visible_field_overrides=visible_field_overrides)
+        table = SmallMoleculeTable(
+            queryset, visible_field_overrides=visible_field_overrides)
     
     outputType = request.GET.get('output_type','')
     if outputType:
+        if(outputType == ".zip"):
+            return export_sm_images(queryset, request.user.is_authenticated())
+        
         return send_to_file(outputType, 'small_molecule', table, queryset,
-                    tablename, is_authenticated=request.user.is_authenticated() )
+                    tablename, is_authenticated=request.user.is_authenticated())
     
-        if(len(queryset) == 1 ):
-            return redirect_to_small_molecule_detail(queryset[0])
+    if(len(queryset) == 1 ):
+        return redirect_to_small_molecule_detail(queryset[0])
         
     title = 'Small molecule'
     titles = 'Small molecules'
@@ -477,7 +489,8 @@ def smallMoleculeIndex(request, queryset=None, overrides=None):
         title = overrides.get('title', title)
         titles = overrides.get('titles', titles)
     return render_list_index(request, table,search,title, titles,
-                **{ 'extra_form': form, 'search_label': search_label } )
+                **{ 'extra_form': form, 'search_label': search_label,
+                    'smallmolecule_images': True } )
 
 def smallMoleculeIndexList(request, facility_ids=''):
     logger.debug(str(('search for small molecules: ', facility_ids)))
@@ -486,13 +499,14 @@ def smallMoleculeIndexList(request, facility_ids=''):
     if(len(queryset) == 1 ):
         return redirect_to_small_molecule_detail(queryset[0])
     table = SmallMoleculeTable(queryset)
-    return render_list_index(
-        request, table, '','Small molecule','Small molecules', structure_search=True)
+    return render_list_index(request, table, '','Small molecule',
+                             'Small molecules', structure_search=True)
     
         
 def smallMoleculeMolfile(request, facility_salt_id):
     try:
-        temp = facility_salt_id.split('-') # TODO: let urls.py grep the facility and the salt
+        # TODO: let urls.py grep the facility and the salt
+        temp = facility_salt_id.split('-') 
         logger.debug(str(('find sm detail for', temp)))
         facility_id = temp[0]
         salt_id = temp[1]
@@ -500,7 +514,8 @@ def smallMoleculeMolfile(request, facility_salt_id):
         if(sm.is_restricted and not request.user.is_authenticated()): 
             return HttpResponse('Unauthorized', status=401)
         response = HttpResponse(mimetype='text/csv')
-        response['Content-Disposition'] = 'attachment; filename=%s.sdf' % facility_salt_id 
+        response['Content-Disposition'] = \
+            'attachment; filename=%s.sdf' % facility_salt_id 
         response.write(sm.molfile)
         return response
         
@@ -2902,6 +2917,8 @@ def send_to_file(outputType, name, table, queryset, table_name, extra_columns = 
     @param name name of the table - to be used for the output file name
      
     """   
+    # TODO: provisional!!! -sde4
+    
     # ordered list (field,verbose_name)
     columns = map(lambda (x,y): (x, y.verbose_name), 
                   filter(lambda (x,y): x != 'rank' and x!= 'snippet' and y.visible, table.base_columns.items()))
@@ -2972,12 +2989,46 @@ def _write_val_safe(val, is_authenticated=False):
     # for #185, remove 'None' values
     return smart_str(val, 'utf-8', errors='ignore') if val else ''
   
-def export_as_csv(name,col_key_name_map, cursor=None, queryset=None, is_authenticated=False):
+import zipfile
+import StringIO
+  
+def export_sm_images(queryset, is_authenticated=False):
+    s = StringIO.StringIO()        
+    _file = zipfile.ZipFile(s, "w")
+
+    for sm in queryset:
+        location = \
+            '%s/HMSL%s-%s.png' % (
+                COMPOUND_IMAGE_LOCATION, sm.facility_id, sm.salt_id)
+        if not sm.is_restricted:
+            matches = filesystemfinder.find(location)
+            if matches:
+                _file.write(matches, arcname=location,
+                            compress_type=zipfile.ZIP_DEFLATED)
+        if sm.is_restricted and is_authenticated:
+            _path = os.path.join(
+                settings.STATIC_AUTHENTICATED_FILE_DIR,location)
+            if os.path.exists(_path):
+                _file.write(_path, arcname=location,
+                            compress_type=zipfile.ZIP_DEFLATED)
+            else: 
+                logger.error(str(('image file for sm zip file does not exist',
+                                  _path )))
+    _file.close()  
+    # Grab ZIP file from in-memory, make response with correct MIME-type
+    response =HttpResponse(s.getvalue(),mimetype="application/x-zip-compressed")  
+    response['Content-Disposition'] = \
+        'attachment; filename=%s.zip' % "hms_lincs_molecule_images"
+    return response
+
+def export_as_csv(name,col_key_name_map, cursor=None, queryset=None, 
+                  is_authenticated=False):
     """
     Generic csv export admin action.
     """
     response = HttpResponse(mimetype='text/csv')
-    response['Content-Disposition'] = 'attachment; filename=%s.csv' % unicode(name).replace('.', '_')
+    response['Content-Disposition'] = \
+        'attachment; filename=%s.csv' % unicode(name).replace('.', '_')
     writer = csv.writer(response)
     # Write a first row with header information
     writer.writerow(col_key_name_map.values())
