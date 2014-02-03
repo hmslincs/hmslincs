@@ -12,7 +12,10 @@ from math import log, pow
 import os
 import re
 import sys
+import StringIO
 import xlwt
+import zipfile
+  
 
 from django.conf import settings
 from django.contrib.staticfiles.finders import FileSystemFinder
@@ -2624,23 +2627,32 @@ class CellSearchManager(SearchManager):
 
     def search(self, searchString, is_authenticated=False):
 
-        id_fields = ['name', 'alternate_name', 'provider_name', 'provider_catalog_id', 'center_name']
-        return super(CellSearchManager, self).search(Cell.objects, 'db_cell', searchString, id_fields, CellTable.snippet_def)
+        id_fields = ['name', 'alternate_name', 'provider_name', 
+                     'provider_catalog_id', 'center_name']
+        return super(CellSearchManager, self).search(
+            Cell.objects, 'db_cell', searchString, id_fields, 
+            CellTable.snippet_def)
 
     def join_query_to_dataset_type(self, queryset, dataset_type=None ):
         key = 'dataset_types'
         if dataset_type:
-            # get the set to of primary entity id's that satisfy the join to the dataset type
-            # do this as a separate query (filter() returns a clone) and then use the result
-            # to add just the id's back in to the parent query
-            ids = [x.id for x in Cell.objects.filter(datarecord__dataset__dataset_type=str(dataset_type)).order_by('id').distinct('id')]
+            # get the set to of primary entity id's that satisfy the join to the
+            # dataset type - do this as a separate query (filter() returns a 
+            # clone) and then use the result to add just the id's back in to the
+            # parent query
+            ids = [x.id for x in Cell.objects\
+                    .filter(datarecord__dataset__dataset_type=str(dataset_type))
+                    .order_by('id').distinct('id')]
             queryset = queryset.filter(id__in=ids)
             
         datarecord_field = 'cell_id'
         source_table = 'db_cell'
-        queryset = queryset.extra( select=
-            { key:  "(select array_to_string(array_agg(distinct (ds.dataset_type)), ', ') as " + key 
-                    + " from db_dataset ds join db_datarecord dr on(ds.id=dr.dataset_id) where dr.%s=%s.id)" %(datarecord_field, source_table)})
+        queryset = queryset.extra( 
+            select={key:(
+                "(select array_to_string(array_agg(distinct (ds.dataset_type)),', ')"
+                "     as %s from db_dataset ds "
+                " join db_datarecord dr on(ds.id=dr.dataset_id) " 
+                " where dr.%s=%s.id)" ) % (key,datarecord_field, source_table)})
         return queryset
 
 
@@ -2658,26 +2670,29 @@ class ProteinSearchManager(SearchManager):
         key = 'dataset_types'
         if dataset_type:
             # get the set to of primary entity id's that satisfy the join to the
-            # dataset type do this as a separate query (filter() returns a clone)
-            # and then use the result
-            # to add just the id's back in to the parent query
-            ids = [x.id for x in Protein.objects
-                .filter(datarecord__dataset__dataset_type=str(dataset_type))
-                .order_by('id').distinct('id')]
+            # dataset type - do this as a separate query (filter() returns a 
+            # clone) and then use the result to add just the id's back in to the
+            # parent query
+            ids = [x.id for x in Protein.objects\
+                    .filter(datarecord__dataset__dataset_type=str(dataset_type))
+                    .order_by('id').distinct('id')]
             queryset = queryset.filter(id__in=ids)
             
         datarecord_field = 'protein_id'
         source_table = 'db_protein'
-        queryset = queryset.extra( select=
-            { key:  "(select array_to_string(array_agg(distinct (ds.dataset_type)), ', ') as " + key 
-                    + " from db_dataset ds join db_datarecord dr on(ds.id=dr.dataset_id) where dr.%s=%s.id)" %(datarecord_field, source_table)})
-        logger.warn(str(('join the dataset types...')))
+        queryset = queryset.extra( 
+            select={key:(
+                "(select array_to_string(array_agg(distinct (ds.dataset_type)),', ')"
+                "     as %s from db_dataset ds "
+                " join db_datarecord dr on(ds.id=dr.dataset_id) " 
+                " where dr.%s=%s.id)" ) % (key,datarecord_field, source_table)})
         return queryset
 
 class SmallMoleculeSearchManager(SearchManager):
 
     def search(self, queryset, searchString, is_authenticated=False):
-        # TODO: temp fix for issue #188 - perm fix is to update all ID's to the "HMSLXXX" form
+        # TODO: temp fix for issue #188 
+        # - perm fix is to update all ID's to the "HMSLXXX" form
         searchString = re.sub('HMSL','', searchString)
         id_fields = ['name', 'alternative_names', 'lincs_id']
         return super(SmallMoleculeSearchManager, self).search(
@@ -2688,19 +2703,22 @@ class SmallMoleculeSearchManager(SearchManager):
         key = 'dataset_types'
         if dataset_type:
             # get the set to of primary entity id's that satisfy the join to the
-            # dataset type - do this as a separate query (filter() returns a clone)
-            # and then use the result to add just the id's back in to the parent query
-            ids = [x.id for x in SmallMolecule.objects.filter(
-                datarecord__dataset__dataset_type=str(dataset_type))
-                .order_by('id').distinct('id')]
+            # dataset type - do this as a separate query (filter() returns a 
+            # clone) and then use the result to add just the id's back in to the
+            # parent query
+            ids = [x.id for x in SmallMolecule.objects\
+                    .filter(datarecord__dataset__dataset_type=str(dataset_type))
+                    .order_by('id').distinct('id')]
             queryset = queryset.filter(id__in=ids)
             
         datarecord_field = 'smallmolecule_id'
         source_table = 'db_smallmolecule'
-        queryset = queryset.extra( select={ key:  
-            ( "(select array_to_string(array_agg(distinct (ds.dataset_type)), ', ') "
-              " as %s from db_dataset ds join db_datarecord dr on(ds.id=dr.dataset_id) " 
-              " where dr.%s=%s.id)" ) % (key, datarecord_field, source_table) })
+        queryset = queryset.extra( 
+            select={key:(
+                "(select array_to_string(array_agg(distinct (ds.dataset_type)),', ')"
+                "     as %s from db_dataset ds "
+                " join db_datarecord dr on(ds.id=dr.dataset_id) " 
+                " where dr.%s=%s.id)" ) % (key,datarecord_field, source_table)})
         return queryset
 
 class AntibodySearchManager(SearchManager):
@@ -2757,7 +2775,8 @@ def can_access_image(image_filename, is_restricted=False):
         matches = filesystemfinder.find(image_filename)
         return bool(matches)
     else:
-        _path = os.path.join(settings.STATIC_AUTHENTICATED_FILE_DIR,image_filename)
+        _path = os.path.join(settings.STATIC_AUTHENTICATED_FILE_DIR,
+                             image_filename)
         v = os.path.exists(_path)
         if(not v): logger.info(str(('could not find path', _path)))
         return v
@@ -2766,78 +2785,83 @@ def get_attached_files(facility_id, salt_id=None, batch_id=None):
     return AttachedFile.objects.filter(
         facility_id_for=facility_id, salt_id_for=salt_id, batch_id_for=batch_id)
 
-
-
 class FieldsMetaForm(forms.Form):
     '''
     create a field for all of the fields passed in; override the default field 
     creation with anything passed in the overrides
     '''
-    def __init__(self, field_information_array=[], form_field_overrides={}, *args, **kwargs):
+    def __init__(self, field_information_array=[], form_field_overrides={}, 
+                 *args, **kwargs):
         super(FieldsMetaForm, self).__init__(*args, **kwargs)
+
         self.fieldname_array = []
-        for fi in [ fi for fi in field_information_array if fi.show_as_extra_field or fi.field in form_field_overrides]:
+        for fi in [ fi for fi in field_information_array 
+                    if fi.show_as_extra_field or 
+                       fi.field in form_field_overrides]:
             # Note the fi.field string is unique to each table/report
-            logger.info(str(('create field', fi.field, fi.show_as_extra_field)))
-            self.fields[fi.field + '_shown'] = forms.BooleanField(required=False)
+            self.fields[fi.field +'_shown'] = forms.BooleanField(required=False)
             if fi.field in form_field_overrides:
                 self.fields[fi.field] = form_field_overrides[fi.field]
             else:
                 self.fields[fi.field] = forms.CharField(required=False)
             self.fieldname_array.append([fi.field + '_shown', fi.field])
 
-        # 2. Grab the (bound) fields and put them in the display matrix (__getitem__ binds the fields):
-        #  have to do this _after_ creating and overriding fields
-        # our form will wrap, as simply as possible; so here we just give an ordering to the fields with our fieldrows array
+        # 2. Grab the (bound) fields and put them in the display matrix 
+        # (__getitem__ binds the fields):
+        # have to do this _after_ creating and overriding fields
+        # our form will wrap, as simply as possible; so here we just give an 
+        # ordering to the fields with our fieldrows array
         # TODO: encapsulate this
         self.fieldrows = []
         for one,two in self.fieldname_array:
-            self.fieldrows.append([self.__getitem__(one), self.__getitem__(two)])
+            self.fieldrows.append([self.__getitem__(one),self.__getitem__(two)])
         
       
-def set_table_column_info(table,table_names, sequence_override=None,visible_field_overrides=[]):
-    # TODO: set_table_column info could pick the columns to include from the fieldinformation as well
+def set_table_column_info(table,table_names, sequence_override=None,
+                          visible_field_overrides=[]):
     """
     Field information section
-    param: table: a django-tables2 table
-    param: table_names: a list of table names, by order of priority, include '' empty string for a general search.
+    @param: table: a django-tables2 table
+    @param: table_names: a list of table names, by order of priority, 
+            include '' empty string for a general search.
     """ 
+    # TODO: set_table_column info could pick the columns to include from the 
+    # fieldinformation as well
     if not sequence_override: 
         sequence_override = []
     fields = OrderedDict()
     exclude_list = [x for x in table.exclude]
     for fieldname,column in table.base_columns.iteritems():
         try:
-            logger.debug(str(('trying', fieldname, column)))
-            fi = FieldInformation.manager.get_column_fieldinformation_by_priority(fieldname,table_names)
+            fi = FieldInformation.manager.\
+                get_column_fieldinformation_by_priority(fieldname,table_names)
             if not fi.show_in_list and not fi.field in visible_field_overrides:
                 if(fieldname not in exclude_list):
                     exclude_list.append(fieldname)
             else:
                 column.attrs['th']={'title':fi.get_column_detail()}
-#                column.attrs['td'] = {'width': '10'}
                 column.verbose_name = SafeString(fi.get_verbose_name())
                 column.visible = True
                 fields[fieldname] = fi
         except (Exception) as e:
-            logger.info(str(('no fieldinformation found for field:', fieldname)))
+            logger.info(str(('no fieldinformation found for field:',fieldname)))
             if(fieldname not in exclude_list):
                 exclude_list.append(fieldname)
-            #column.attrs['th']={'title': fieldname}  
-    logger.info(str(('====== fields', fields.keys())))
     fields = OrderedDict(sorted(fields.items(), key=lambda x: x[1].order))
-    logger.debug(str(('fields',fields)))
-    sequence = filter(lambda x: x not in sequence_override and x not in visible_field_overrides, [x for x in fields.keys()])
+    sequence = filter(
+        lambda x: x not in sequence_override and x not in visible_field_overrides, 
+        [x for x in fields.keys()])
     sequence_override.extend(visible_field_overrides)
     sequence_override.extend(sequence)
     table.exclude = tuple(exclude_list)
     table.sequence = sequence_override
-    logger.debug(str(('excl',table.exclude)))
-    logger.debug(str(('seq',table.sequence)))
     
         
 def dictfetchall(cursor): 
-    "Returns all rows from a cursor as an array of dicts, using cursor columns as keys"
+    """
+    Returns all rows from a cursor as an array of dicts, using cursor columns 
+    as keys
+    """
     desc = cursor.description
     return [
         dict(zip([col[0] for col in desc], row)) for row in cursor.fetchall()
@@ -2846,15 +2870,18 @@ def dictfetchall(cursor):
 #@login_required
 def restricted_image(request, filepath):
     if(not request.user.is_authenticated()):
-        logger.warn(str(('access to restricted file for user is denied', request.user, filepath)))
+        logger.warn(str(('access to restricted file for user is denied', 
+                         request.user, filepath)))
         return HttpResponse('Log in required.', status=401)
     
-    logger.debug(str(('send requested file:', settings.STATIC_AUTHENTICATED_FILE_DIR, filepath, request.user.is_authenticated())))
+    logger.debug(str(('send requested file:', 
+                      settings.STATIC_AUTHENTICATED_FILE_DIR, filepath, 
+                      request.user.is_authenticated())))
     _path = os.path.join(settings.STATIC_AUTHENTICATED_FILE_DIR,filepath)
     _file = file(_path)
     logger.debug(str(('download image',_path,_file)))
     wrapper = FileWrapper(_file)
-    response = HttpResponse(wrapper,content_type='image/png') # todo: determine the type on the fly. (if ommitted, the browser sometimes doesn't know what to do with the image bytes)
+    response = HttpResponse(wrapper,content_type='image/png') 
     response['Content-Length'] = os.path.getsize(_path)
     return response
 
@@ -2866,19 +2893,24 @@ def download_attached_file(request, id):
     """
     try:
         af = AttachedFile.objects.get(id=id)
-        logger.debug(str(('send the attached file:', af, request.user.is_authenticated())))
+        logger.debug(str((
+            'send the attached file:', af, request.user.is_authenticated())))
         if(af.is_restricted and not request.user.is_authenticated()):
-            logger.warn(str(('access to restricted file for user is denied', request.user, af)))
+            logger.warn(str(('access to restricted file for user is denied',
+                             request.user,af)))
             return HttpResponse('Log in required.', status=401)
 
         _path = os.path.join(settings.STATIC_AUTHENTICATED_FILE_DIR,af.filename)
         if(af.relative_path):
-            _path = os.path.join(settings.STATIC_AUTHENTICATED_FILE_DIR,af.relative_path)
+            _path = os.path.join(settings.STATIC_AUTHENTICATED_FILE_DIR,
+                                 af.relative_path)
         _file = file(_path)
         logger.debug(str(('download_attached_file',_path,_file)))
         wrapper = FileWrapper(_file)
-        response = HttpResponse(wrapper, content_type='text/plain') # use the same type for all files
-        response['Content-Disposition'] = 'attachment; filename=%s' % unicode(af.filename)
+        # use the same type for all files
+        response = HttpResponse(wrapper, content_type='text/plain') 
+        response['Content-Disposition'] = \
+            'attachment; filename=%s' % unicode(af.filename)
         response['Content-Length'] = os.path.getsize(_path)
         return response
     except Exception,e:
@@ -2888,43 +2920,50 @@ def download_attached_file(request, id):
 def _get_raw_time_string():
   return timezone.now().strftime("%Y%m%d%H%M%S")
 
-def send_to_file1(outputType, name, table_name, ordered_datacolumns, cursor, is_authenticated=False):
+def send_to_file1(outputType, name, table_name, ordered_datacolumns, cursor, 
+                  is_authenticated=False):
     """
     Export the datasetdata cursor to the file type pointed to by outputType
-    @param ordered_datacolumns the datacolumns for the datasetdata, in order, so that they can be indexed by column number
+    @param ordered_datacolumns the datacolumns for the datasetdata, in order, 
+           so that they can be indexed by column number
     @param outputType '.csv','.xls'
     @param table a django-tables2 table
     @param name name of the table - to be used for the output file name
      
     """   
     logger.info(str(('send_to_file1', outputType, name, ordered_datacolumns)))
-    col_key_name_map = get_cols_to_write(cursor, 
-                                         [table_name, 'dataset','smallmolecule','datarecord','smallmoleculebatch','protein','antibody', 'otherreagent', 'cell','datacolumn', ''],
-                                         ordered_datacolumns)   
+    col_key_name_map = get_cols_to_write(
+        cursor, [table_name, 'dataset','smallmolecule','datarecord',
+                 'smallmoleculebatch','protein','antibody', 'otherreagent', 
+                 'cell','datacolumn', ''],
+        ordered_datacolumns)   
     
     name = name + '_' + _get_raw_time_string()
 
     if(outputType == '.csv'):
-        return export_as_csv(name,col_key_name_map, cursor=cursor, is_authenticated=is_authenticated)
+        return export_as_csv(name,col_key_name_map, cursor=cursor, 
+                             is_authenticated=is_authenticated)
     elif(outputType == '.xls'):
-        return export_as_xls(name, col_key_name_map, cursor=cursor, is_authenticated=is_authenticated)
+        return export_as_xls(name, col_key_name_map, cursor=cursor, 
+                             is_authenticated=is_authenticated)
 
-def send_to_file(outputType, name, table, queryset, table_name, extra_columns = [], is_authenticated=False): 
+def send_to_file(outputType, name, table, queryset, table_name, 
+                 extra_columns = [], is_authenticated=False): 
     """
-    Export the queryset to the file type pointed to by outputType.  Get the column header information from the django-tables2 table
+    Export the queryset to the file type pointed to by outputType.  
+    Get the column header information from the django-tables2 table
     @param outputType '.csv','.xls'
     @param table a django-tables2 table
     @param name name of the table - to be used for the output file name
      
-    """   
-    # TODO: provisional!!! -sde4
-    
+    """       
     # ordered list (field,verbose_name)
     columns = map(lambda (x,y): (x, y.verbose_name), 
-                  filter(lambda (x,y): x != 'rank' and x!= 'snippet' and y.visible, table.base_columns.items()))
+                  filter(lambda (x,y): x!='rank' and x!='snippet' and y.visible, 
+                         table.base_columns.items()))
 
-    # TODO: the following two step process looks a the table def, then at fieldinformation, 
-    # make this simpler by just looking at the fieldinformation
+    # TODO: the following two step process looks a the table def, then at 
+    # fieldinformation, make this simpler by just looking at the fieldinf
     # grab the columns from the table definition
     columnsOrdered = []
     for col in table._sequence:
@@ -2934,20 +2973,27 @@ def send_to_file(outputType, name, table, queryset, table_name, extra_columns = 
                 break
     columnsOrdered.extend(extra_columns)
     # use field information to clean up and remove unneeded columns
-    fieldinformation_tables = [ table_name, 'dataset','smallmolecule','datarecord','smallmoleculebatch','protein','antibody', 'otherreagent','cell','datacolumn', '']
+    fieldinformation_tables = [ 
+        table_name, 'dataset','smallmolecule','datarecord','smallmoleculebatch',
+        'protein','antibody', 'otherreagent','cell','datacolumn', '']
     columnsOrdered_filtered = []
     for field,verbose_name in columnsOrdered:
         try:
-            # _ is the marker for private fields - only accessible through logic defined on the ORM object
+            # _ is the marker for private fields - only accessible through logic
+            # defined on the ORM object
             # i.e. if authorized
             if(field[0] == '_'):
                 temp = field[1:]
                 field = 'get_' + temp
-                fi = FieldInformation.manager.get_column_fieldinformation_by_priority(field,fieldinformation_tables)
+                fi = FieldInformation.manager.\
+                    get_column_fieldinformation_by_priority(
+                        field,fieldinformation_tables)
                 columnsOrdered_filtered.append((field,fi.get_verbose_name()))
                 logger.info(str(('found', field, fi)))
             else:
-                fi = FieldInformation.manager.get_column_fieldinformation_by_priority(field,fieldinformation_tables)
+                fi = FieldInformation.manager.\
+                    get_column_fieldinformation_by_priority(
+                        field,fieldinformation_tables)
             if(fi.show_in_detail):
                 columnsOrdered_filtered.append((field,fi.get_verbose_name()))
         except (Exception) as e:
@@ -2958,11 +3004,16 @@ def send_to_file(outputType, name, table, queryset, table_name, extra_columns = 
     # The type strings deliberately include a leading "." to make the URLs
     # trigger the analytics js code that tracks download events by extension.
     if(outputType == '.csv'):
-        return export_as_csv(name,OrderedDict(columnsOrdered_filtered) , queryset=queryset, is_authenticated=is_authenticated)
+        return export_as_csv(
+            name,OrderedDict(columnsOrdered_filtered), queryset=queryset, 
+            is_authenticated=is_authenticated)
     elif(outputType == '.xls'):
-        return export_as_xls(name, OrderedDict(columnsOrdered_filtered), queryset=queryset, is_authenticated=is_authenticated)
+        return export_as_xls(
+            name, OrderedDict(columnsOrdered_filtered), queryset=queryset, 
+            is_authenticated=is_authenticated)
 
-def get_cols_to_write(cursor, fieldinformation_tables=None, ordered_datacolumns=None):
+def get_cols_to_write(cursor, fieldinformation_tables=None, 
+                      ordered_datacolumns=None):
     """
     returns a dict of #column_number:verbose_name
     """
@@ -2977,10 +3028,13 @@ def get_cols_to_write(cursor, fieldinformation_tables=None, ordered_datacolumns=
             header_row[i] = dc.name
         else:
             try:
-                fi = FieldInformation.manager.get_column_fieldinformation_by_priority(col.name,fieldinformation_tables)
+                fi = FieldInformation.manager.\
+                    get_column_fieldinformation_by_priority(
+                        col.name,fieldinformation_tables)
                 header_row[i] = fi.get_verbose_name()
             except (Exception) as e:
-                logger.warn(str(('no fieldinformation found for field:', col.name)))
+                logger.warn(
+                    str(('no fieldinformation found for field:', col.name)))
          
     return OrderedDict(sorted(header_row.items(),key=lambda x: x[0]))
 
@@ -2988,9 +3042,6 @@ def get_cols_to_write(cursor, fieldinformation_tables=None, ordered_datacolumns=
 def _write_val_safe(val, is_authenticated=False):
     # for #185, remove 'None' values
     return smart_str(val, 'utf-8', errors='ignore') if val else ''
-  
-import zipfile
-import StringIO
   
 def export_sm_images(queryset, is_authenticated=False):
     s = StringIO.StringIO()        
@@ -3035,7 +3086,8 @@ def export_as_csv(name,col_key_name_map, cursor=None, queryset=None,
 
     debug_interval=1000
     row = 0
-    assert (cursor or queryset) and not (cursor and queryset), 'must define either cursor or queryset'
+    assert (cursor or queryset) \
+        and not (cursor and queryset), 'must define either cursor or queryset'
     if cursor:
         obj=cursor.fetchone()
         keys = col_key_name_map.keys()
@@ -3049,14 +3101,19 @@ def export_as_csv(name,col_key_name_map, cursor=None, queryset=None,
     elif queryset:
         for obj in queryset:
             if isinstance(obj, dict):
-                writer.writerow([_write_val_safe(obj[field]) for field in col_key_name_map.keys()])
+                writer.writerow(
+                    [_write_val_safe(obj[field]) \
+                        for field in col_key_name_map.keys()])
             else:# a ORM object
-                vals = [getattr(obj, field) for field in col_key_name_map.keys()]
+                vals = [getattr(obj,field) for field in col_key_name_map.keys()]
                 vals_authenticated = []
                 for i,column in enumerate(vals):
-                    # if the method is a column, we are referencing the method wrapper for restricted columns
+                    # if the method is a column, we are referencing the method 
+                    # wrapper for restricted columns
                     if(inspect.ismethod(column)):
-                        vals_authenticated.append(_write_val_safe(column(is_authenticated=is_authenticated)))
+                        vals_authenticated.append(
+                            _write_val_safe(
+                                column(is_authenticated=is_authenticated)))
                     else:
                         vals_authenticated.append(_write_val_safe(column))
                 writer.writerow(vals_authenticated)
@@ -3065,22 +3122,25 @@ def export_as_csv(name,col_key_name_map, cursor=None, queryset=None,
             row += 1
     return response
 
-def export_as_xls(name,col_key_name_map, cursor=None, queryset=None, is_authenticated=False):
+def export_as_xls(name,col_key_name_map, cursor=None, queryset=None, 
+                  is_authenticated=False):
     """
     Generic xls export admin action.
     """
     logger.info(str(('------is auth:',is_authenticated)) )
     response = HttpResponse(mimetype='applicatxlwt.Workbookion/Excel')
-    response['Content-Disposition'] = 'attachment; filename=%s.xls' % unicode(name).replace('.', '_')
+    response['Content-Disposition'] = \
+        'attachment; filename=%s.xls' % unicode(name).replace('.', '_')
 
     wbk = xlwt.Workbook(encoding='utf8')
-    sheet = wbk.add_sheet('sheet 1')    # Write a first row with header information
+    sheet = wbk.add_sheet('sheet 1') # Write a first row with header information
     for i,name in enumerate(col_key_name_map.values()):
         sheet.write(0, i, name)   
             
     debug_interval=1000
     row = 0
-    assert (cursor or queryset) and not (cursor and queryset), 'must define either cursor or queryset'
+    assert (cursor or queryset) \
+        and not (cursor and queryset), 'must define either cursor or queryset'
     if cursor:
         obj=cursor.fetchone()
         keys = col_key_name_map.keys()
@@ -3095,15 +3155,18 @@ def export_as_xls(name,col_key_name_map, cursor=None, queryset=None, is_authenti
     elif queryset:
         for obj in queryset:  
             if isinstance(obj, dict): # a ORM object as a dict
-                vals = [_write_val_safe(obj[field]) for field in col_key_name_map.keys()]
+                vals = [_write_val_safe(obj[field]) \
+                            for field in col_key_name_map.keys()]
             else: # a ORM object
-                vals = [getattr(obj, field) for field in col_key_name_map.keys()]
+                vals = [getattr(obj,field) for field in col_key_name_map.keys()]
             
             for i,column in enumerate(vals):
-                # if the columnn is a method, we are referencing the method wrapper for restricted columns
-#                logger.info(str(('--column:', column, inspect.ismethod(column), type(column))))
+                # if the columnn is a method, we are referencing the method 
+                # wrapper for restricted columns
                 if(inspect.ismethod(column)):
-                    sheet.write(row+1,i, _write_val_safe(column(is_authenticated=is_authenticated)) )
+                    sheet.write(
+                        row+1,i, _write_val_safe(
+                            column(is_authenticated=is_authenticated)) )
                 else:
                     sheet.write(row+1, i, _write_val_safe(column) )
             if(row % debug_interval == 0):
