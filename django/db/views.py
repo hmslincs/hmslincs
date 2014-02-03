@@ -454,13 +454,13 @@ def smallMoleculeIndex(request, queryset=None, overrides=None):
     # since a True sorts higher than a False, see above for usage (for Postgres)
     select={'lincs_id_null':'lincs_id is null',
             'pubchem_cid_null':'pubchem_cid is null' }
-    # add column for image IDS; if authenticatd, just list them all
-    if request.user.is_authenticated():
-        select['unrestricted_image_facility_salt'] = \
-            "facility_id || '-' || salt_id"
-    else:
-        select['unrestricted_image_facility_salt'] = \
-            "case when is_restricted then '' else facility_id || '-' || salt_id end"
+    # add column for image IDS; not showing restricted images in the list view
+    #     if request.user.is_authenticated():
+    #         select['unrestricted_image_facility_salt'] = \
+    #             "facility_id || '-' || salt_id"
+    #     else:
+    select['unrestricted_image_facility_salt'] = \
+        "case when is_restricted then '' else facility_id || '-' || salt_id end"
     queryset = queryset.extra(select=select)
     
     if overrides and 'table' in overrides:
