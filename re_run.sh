@@ -90,7 +90,7 @@ then
   DB=django
   DB_USER=django
   PGHOST=localhost
-  VIRTUALENV=${3:-/home/sde4/workspace/hmslincs/myvirtualenv/bin/activate}
+  VIRTUALENV=${3:-../hmslincs-env/bin/activate}
 else
   echo "Unknown option: \"$SERVER\""
   exit 1
