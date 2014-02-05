@@ -354,6 +354,7 @@ class SmallMoleculeBatch(models.Model):
     date_data_received      = models.DateField(null=True,blank=True)
     date_loaded             = models.DateField(null=True,blank=True)
     date_publicly_available = models.DateField(null=True,blank=True)
+    date_updated            = models.DateField(null=True,blank=True)
     ## following fields probably not used with batch, per HMS policy - sde4
     inchi                   = _TEXT(**_NULLOKSTR)
     inchi_key               = _TEXT(**_NULLOKSTR)
@@ -432,6 +433,7 @@ class Cell(models.Model):
     date_data_received      = models.DateField(null=True,blank=True)
     date_loaded             = models.DateField(null=True,blank=True)
     date_publicly_available = models.DateField(null=True,blank=True)
+    date_updated            = models.DateField(null=True,blank=True)
     is_restricted                     = models.BooleanField()
 
     # ----------------------------------------------------------------------------------------------------------------------
@@ -451,7 +453,10 @@ class Protein(models.Model):
     gene_symbol         = _CHAR(max_length=35, **_NULLOKSTR)
     gene_id             = _CHAR(max_length=35, **_NULLOKSTR)
     protein_source      = _CHAR(max_length=65, **_NULLOKSTR)
-    protein_form        = _TEXT(**_NULLOKSTR) #TODO: controlled vocabulary
+    protein_form        = _TEXT(**_NULLOKSTR) 
+    protein_domain        = _TEXT(**_NULLOKSTR) 
+    phosphlorylation    = _TEXT(**_NULLOKSTR) 
+    mutation            = _TEXT(**_NULLOKSTR) 
     protein_purity      = _TEXT(**_NULLOKSTR)
     protein_complex     = _TEXT(**_NULLOKSTR)
     isoform             = _CHAR(max_length=5, **_NULLOKSTR) #TODO: Shall this be boolean?
@@ -461,6 +466,7 @@ class Protein(models.Model):
     date_data_received      = models.DateField(null=True,blank=True)
     date_loaded             = models.DateField(null=True,blank=True)
     date_publicly_available = models.DateField(null=True,blank=True)
+    date_updated            = models.DateField(null=True,blank=True)
     is_restricted       = models.BooleanField()
 
     def __unicode__(self):
@@ -490,6 +496,7 @@ class Antibody(models.Model):
     date_data_received      = models.DateField(null=True,blank=True)
     date_loaded             = models.DateField(null=True,blank=True)
     date_publicly_available = models.DateField(null=True,blank=True)
+    date_updated            = models.DateField(null=True,blank=True)
     is_restricted           = models.BooleanField(default=False) # Note: default=False are not set at the db level, only at the Db-api level
     
 class AntibodyBatch(models.Model):
@@ -509,6 +516,7 @@ class OtherReagent(models.Model):
     date_data_received      = models.DateField(null=True,blank=True)
     date_loaded             = models.DateField(null=True,blank=True)
     date_publicly_available = models.DateField(null=True,blank=True)
+    date_updated            = models.DateField(null=True,blank=True)
     is_restricted           = models.BooleanField(default=False) # Note: default=False are not set at the db level, only at the Db-api level
 
 class OtherReagentBatch(models.Model):
@@ -533,8 +541,10 @@ class DataSet(models.Model):
     date_data_received      = models.DateField(null=True,blank=True)
     date_loaded             = models.DateField(null=True,blank=True)
     date_publicly_available = models.DateField(null=True,blank=True)
+    date_updated            = models.DateField(null=True,blank=True)
     is_restricted           = models.BooleanField()
     dataset_type            = _TEXT(**_NULLOKSTR)
+    bioassay                = _TEXT(**_NULLOKSTR)
     dataset_keywords        = _TEXT(**_NULLOKSTR)
     usage_message           = _TEXT(**_NULLOKSTR)
     
@@ -569,6 +579,7 @@ class Library(models.Model):
     date_data_received      = models.DateField(null=True,blank=True)
     date_loaded             = models.DateField(null=True,blank=True)
     date_publicly_available = models.DateField(null=True,blank=True)
+    date_updated            = models.DateField(null=True,blank=True)
     is_restricted           = models.BooleanField()
 
     def __unicode__(self):

@@ -68,6 +68,7 @@ def main(path):
               'Date Data Received':('date_data_received',False,None,util.date_converter),
               'Date Loaded': ('date_loaded',False,None,util.date_converter),
               'Date Publicly Available': ('date_publicly_available',False,None,util.date_converter),
+              'Most Recent Update': ('date_updated',False,None,util.date_converter),
               'Is Restricted':('is_restricted',False,False,util.bool_converter)}
     # convert the labels to fleshed out dict's, with strategies for optional, default and converter
     column_definitions = util.fill_in_column_definitions(properties,column_definitions)
