@@ -45,11 +45,7 @@ def main(path):
                           'Well':'well',
                           'Library Name':'short_name',
                           'Concentration': 'concentration',
-                          'Concentration Unit':'concentration_unit',
-                          'Date Data Received':('date_data_received',False,None,date_parser),
-                          'Date Loaded': ('date_loaded',False,None,date_parser),
-                          'Date Publicly Available': ('date_publicly_available',False,None,date_parser),
-                          'Most Recent Update': ('date_updated',False,None,util.date_converter),
+                          'Concentration Unit':'concentration_unit'
                           }
     # convert the labels to fleshed out dict's, with strategies for optional, default and converter
     column_definitions = util.fill_in_column_definitions(properties,column_definitions)

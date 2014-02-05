@@ -197,781 +197,781 @@ else
     check_errs $? 'import other reagents fails'
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/Study20000_NominalTargets_forLoading.xlsx 
+	python src/import_dataset.py -f $DATADIR/Study20000_NominalTargets_forLoading.xls 
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/Screen20001_moerke_2color.xlsx 
+	python src/import_dataset.py -f $DATADIR/Screen20001_moerke_2color.xls 
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/Screen20002_moerke_3color.xlsx 
+	python src/import_dataset.py -f $DATADIR/Screen20002_moerke_3color.xls 
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/Screen20003_tang_MitoApop2.xlsx 
+	python src/import_dataset.py -f $DATADIR/Screen20003_tang_MitoApop2.xls 
 	check_errs $? "import dataset fails"
 
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/Screen20004_tang_ProMitosis.xlsx 
+	python src/import_dataset.py -f $DATADIR/Screen20004_tang_ProMitosis.xls 
 	check_errs $? "import dataset fails"
 	
 	#echo 'import screen results...'
-	#python src/import_dataset.py -f $DATADIR/Screen20005_tang_MitoApop2.xlsx 
+	#python src/import_dataset.py -f $DATADIR/Screen20005_tang_MitoApop2.xls 
 	#check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/Screen20006_CMT_GrowthInhibition-3dose.xlsx 
+	python src/import_dataset.py -f $DATADIR/Screen20006_CMT_GrowthInhibition-3dose.xls 
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/Screen20007_CMT_GrowthInhibition-3dose.xlsx 
+	python src/import_dataset.py -f $DATADIR/Screen20007_CMT_GrowthInhibition-3dose.xls 
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/Screen20008_CMT_9dose-1.xlsx 
+	python src/import_dataset.py -f $DATADIR/Screen20008_CMT_9dose-1.xls 
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/Screen20009_CMT_9dose-2.xlsx 
+	python src/import_dataset.py -f $DATADIR/Screen20009_CMT_9dose-2.xls 
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/Screen20010_CMT_9dose-3.xlsx 
+	python src/import_dataset.py -f $DATADIR/Screen20010_CMT_9dose-3.xls 
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/Screen20011_CMT_9dose-4.xlsx 
+	python src/import_dataset.py -f $DATADIR/Screen20011_CMT_9dose-4.xls 
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/Screen20012_CMT_9dose-5.xlsx 
+	python src/import_dataset.py -f $DATADIR/Screen20012_CMT_9dose-5.xls 
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/Screen20013_CMT_9dose-6.xlsx 
+	python src/import_dataset.py -f $DATADIR/Screen20013_CMT_9dose-6.xls 
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/Screen20014_CMT_9dose-7.xlsx 
+	python src/import_dataset.py -f $DATADIR/Screen20014_CMT_9dose-7.xls 
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/Screen20015_CMT_9dose-8.xlsx 
+	python src/import_dataset.py -f $DATADIR/Screen20015_CMT_9dose-8.xls 
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/Screen20016_CMT_9dose-9.xlsx 
+	python src/import_dataset.py -f $DATADIR/Screen20016_CMT_9dose-9.xls 
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/Screen20017_CMT_9dose-10.xlsx 
+	python src/import_dataset.py -f $DATADIR/Screen20017_CMT_9dose-10.xls 
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20020_HMSL10008_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20020_HMSL10008_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20021_HMSL10017_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20021_HMSL10017_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20022_HMSL10029_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20022_HMSL10029_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20023_HMSL10046_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20023_HMSL10046_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20024_HMSL10049_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20024_HMSL10049_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20025_HMSL10050_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20025_HMSL10050_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20026_HMSL10068_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20026_HMSL10068_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20027_HMSL10006_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20027_HMSL10006_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20028_HMSL10009_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20028_HMSL10009_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20029_HMSL10010_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20029_HMSL10010_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20030_HMSL10012_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20030_HMSL10012_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20031_HMSL10013_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20031_HMSL10013_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20032_HMSL10014_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20032_HMSL10014_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20033_HMSL10027_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20033_HMSL10027_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20034_HMSL10028_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20034_HMSL10028_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20035_HMSL10034_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20035_HMSL10034_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20036_HMSL10038_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20036_HMSL10038_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20037_HMSL10055_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20037_HMSL10055_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20038_HMSL10059_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20038_HMSL10059_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20039_HMSL10060_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20039_HMSL10060_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20040_HMSL10061_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20040_HMSL10061_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20041_HMSL10065_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20041_HMSL10065_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20042_HMSL10066_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20042_HMSL10066_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20043_HMSL10067_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20043_HMSL10067_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20044_HMSL10071_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20044_HMSL10071_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20045_HMSL10078_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20045_HMSL10078_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20046_HMSL10092_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20046_HMSL10092_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20047_HMSL10096_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20047_HMSL10096_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20048_HMSL10100_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20048_HMSL10100_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20049_HMSL10002_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20049_HMSL10002_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20050_HMSL10003_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20050_HMSL10003_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20051_HMSL10015_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20051_HMSL10015_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20052_HMSL10016_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20052_HMSL10016_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20053_HMSL10018_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20053_HMSL10018_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20054_HMSL10025_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20054_HMSL10025_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20055_HMSL10026_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20055_HMSL10026_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20056_HMSL10039_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20056_HMSL10039_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20057_HMSL10041_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20057_HMSL10041_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20058_HMSL10043_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20058_HMSL10043_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20059_HMSL10045_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20059_HMSL10045_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20060_HMSL10047_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20060_HMSL10047_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20061_HMSL10070_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20061_HMSL10070_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20062_HMSL10075_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20062_HMSL10075_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20063_HMSL10076_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20063_HMSL10076_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20064_HMSL10079_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20064_HMSL10079_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20065_HMSL10080_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20065_HMSL10080_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20066_HMSL10082_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20066_HMSL10082_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20067_HMSL10083_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20067_HMSL10083_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20068_HMSL10084_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20068_HMSL10084_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20069_HMSL10085_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20069_HMSL10085_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20070_HMSL10086_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20070_HMSL10086_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20071_HMSL10087_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20071_HMSL10087_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20072_HMSL10088_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20072_HMSL10088_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20073_HMSL10089_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20073_HMSL10089_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20074_HMSL10090_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20074_HMSL10090_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20075_HMSL10091_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20075_HMSL10091_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20076_HMSL10093_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20076_HMSL10093_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20077_HMSL10094_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20077_HMSL10094_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20078_HMSL10095_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20078_HMSL10095_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20079_HMSL10064_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20079_HMSL10064_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20080_HMSL10101_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20080_HMSL10101_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20081_HMSL10208_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20081_HMSL10208_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20082_HMSL10140_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20082_HMSL10140_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20083_HMSL10035_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20083_HMSL10035_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20084_HMSL10146_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20084_HMSL10146_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20085_HMSL10172_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20085_HMSL10172_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20086_HMSL10223_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20086_HMSL10223_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinativ/Screen20087_HMSL10008_kinativ.xlsx
+	python src/import_dataset.py -f $DATADIR/kinativ/Screen20087_HMSL10008_kinativ.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinativ/Screen20088_HMSL10029_kinativ.xlsx
+	python src/import_dataset.py -f $DATADIR/kinativ/Screen20088_HMSL10029_kinativ.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinativ/Screen20089_HMSL10046_kinativ.xlsx
+	python src/import_dataset.py -f $DATADIR/kinativ/Screen20089_HMSL10046_kinativ.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinativ/Screen20090_HMSL10049_kinativ.xlsx
+	python src/import_dataset.py -f $DATADIR/kinativ/Screen20090_HMSL10049_kinativ.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinativ/Screen20091_HMSL10050_kinativ.xlsx
+	python src/import_dataset.py -f $DATADIR/kinativ/Screen20091_HMSL10050_kinativ.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinativ/Screen20092_HMSL10068_kinativ.xlsx
+	python src/import_dataset.py -f $DATADIR/kinativ/Screen20092_HMSL10068_kinativ.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinativ/Screen20093_HMSL10017_kinativ.xlsx
+	python src/import_dataset.py -f $DATADIR/kinativ/Screen20093_HMSL10017_kinativ.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinativ/Screen20094_HMSL10079_kinativ.xlsx
+	python src/import_dataset.py -f $DATADIR/kinativ/Screen20094_HMSL10079_kinativ.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinativ/Screen20095_HMSL10080_kinativ.xlsx
+	python src/import_dataset.py -f $DATADIR/kinativ/Screen20095_HMSL10080_kinativ.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20096_HMSL10232_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20096_HMSL10232_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinativ/Screen20097_HMSL10086_kinativ.xlsx
+	python src/import_dataset.py -f $DATADIR/kinativ/Screen20097_HMSL10086_kinativ.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinativ/Screen20098_HMSL10087_kinativ.xlsx
+	python src/import_dataset.py -f $DATADIR/kinativ/Screen20098_HMSL10087_kinativ.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinativ/Screen20099_HMSL10091_kinativ.xlsx
+	python src/import_dataset.py -f $DATADIR/kinativ/Screen20099_HMSL10091_kinativ.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinativ/Screen20100_HMSL10092_kinativ.xlsx
+	python src/import_dataset.py -f $DATADIR/kinativ/Screen20100_HMSL10092_kinativ.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinativ/Screen20101_HMSL10093_kinativ.xlsx
+	python src/import_dataset.py -f $DATADIR/kinativ/Screen20101_HMSL10093_kinativ.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinativ/Screen20102_HMSL10094_kinativ.xlsx
+	python src/import_dataset.py -f $DATADIR/kinativ/Screen20102_HMSL10094_kinativ.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinativ/Screen20103_HMSL10106_kinativ.xlsx
+	python src/import_dataset.py -f $DATADIR/kinativ/Screen20103_HMSL10106_kinativ.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinativ/Screen20104_HMSL10200_kinativ.xlsx
+	python src/import_dataset.py -f $DATADIR/kinativ/Screen20104_HMSL10200_kinativ.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinativ/Screen20105_HMSL10201_kinativ.xlsx
+	python src/import_dataset.py -f $DATADIR/kinativ/Screen20105_HMSL10201_kinativ.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinativ/Screen20106_HMSL10070_kinativ.xlsx
+	python src/import_dataset.py -f $DATADIR/kinativ/Screen20106_HMSL10070_kinativ.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20107_HMSL10051_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20107_HMSL10051_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20108_HMSL10019_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20108_HMSL10019_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20109_HMSL10024_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20109_HMSL10024_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20110_HMSL10040_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20110_HMSL10040_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20111_HMSL10162_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20111_HMSL10162_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20112_HMSL10209_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20112_HMSL10209_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20113_HMSL10213_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20113_HMSL10213_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20114_HMSL10058_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20114_HMSL10058_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20115_HMSL10106_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20115_HMSL10106_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20116_HMSL10189_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20116_HMSL10189_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20117_HMSL10229_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20117_HMSL10229_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20118_HMSL10102_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20118_HMSL10102_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20119_HMSL10214_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20119_HMSL10214_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	# removed, per CES request, 2013-06-07 - sde
 	# reinstated since paper published, 2013-09-09 - djw
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/Screen20120_Fallahi-Sichani.xlsx
+	python src/import_dataset.py -f $DATADIR/Screen20120_Fallahi-Sichani.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/Screen20121_Yale_A549.xlsx
+	python src/import_dataset.py -f $DATADIR/Screen20121_Yale_A549.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/Screen20122_Yale_U87.xlsx
+	python src/import_dataset.py -f $DATADIR/Screen20122_Yale_U87.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/Screen20123_Yale_U937.xlsx
+	python src/import_dataset.py -f $DATADIR/Screen20123_Yale_U937.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20124_HMSL10001_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20124_HMSL10001_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20125_HMSL10073_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20125_HMSL10073_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20126_HMSL10285_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20126_HMSL10285_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20127_HMSL10286_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20127_HMSL10286_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20128_HMSL10287_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20128_HMSL10287_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20129_HMSL10289_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20129_HMSL10289_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20130_HMSL10337_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20130_HMSL10337_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20131_HMSL10284_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20131_HMSL10284_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20132_HMSL10340_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20132_HMSL10340_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20133_HMSL10341_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20133_HMSL10341_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20134_HMSL10342_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20134_HMSL10342_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20135_HMSL10158_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20135_HMSL10158_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/Screen20136_Fallahi-Sichani_images.xlsx
+	python src/import_dataset.py -f $DATADIR/Screen20136_Fallahi-Sichani_images.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/Screen20137_Niepel-Hafner.xlsx
+	python src/import_dataset.py -f $DATADIR/Screen20137_Niepel-Hafner.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/Screen20138_Niepel-Hafner.xlsx
+	python src/import_dataset.py -f $DATADIR/Screen20138_Niepel-Hafner.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/Screen20139_Niepel-Hafner.xlsx
+	python src/import_dataset.py -f $DATADIR/Screen20139_Niepel-Hafner.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/Screen20140_Niepel-Hafner.xlsx
+	python src/import_dataset.py -f $DATADIR/Screen20140_Niepel-Hafner.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20146_HMSL10028_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20146_HMSL10028_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20147_HMSL10037_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20147_HMSL10037_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20148_HMSL10040_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20148_HMSL10040_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20149_HMSL10041_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20149_HMSL10041_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20150_HMSL10042_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20150_HMSL10042_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20151_HMSL10044_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20151_HMSL10044_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20152_HMSL10047_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20152_HMSL10047_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20153_HMSL10048_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20153_HMSL10048_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20154_HMSL10049_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20154_HMSL10049_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20155_HMSL10051_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20155_HMSL10051_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20156_HMSL10056_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20156_HMSL10056_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20157_HMSL10066_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20157_HMSL10066_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20158_HMSL10067_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20158_HMSL10067_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20159_HMSL10069_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20159_HMSL10069_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20160_HMSL10097_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20160_HMSL10097_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20161_HMSL10098_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20161_HMSL10098_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20162_HMSL10099_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20162_HMSL10099_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20163_HMSL10114_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20163_HMSL10114_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20164_HMSL10120_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20164_HMSL10120_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20165_HMSL10123_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20165_HMSL10123_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20166_HMSL10125_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20166_HMSL10125_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20167_HMSL10126_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20167_HMSL10126_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20168_HMSL10127_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20168_HMSL10127_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20169_HMSL10128_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20169_HMSL10128_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20170_HMSL10130_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20170_HMSL10130_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20171_HMSL10132_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20171_HMSL10132_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20172_HMSL10133_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20172_HMSL10133_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20173_HMSL10138_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20173_HMSL10138_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20174_HMSL10141_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20174_HMSL10141_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20175_HMSL10151_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20175_HMSL10151_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20176_HMSL10157_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20176_HMSL10157_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20177_HMSL10167_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20177_HMSL10167_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20178_HMSL10168_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20178_HMSL10168_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20179_HMSL10175_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20179_HMSL10175_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20180_HMSL10177_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20180_HMSL10177_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20181_HMSL10181_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20181_HMSL10181_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20182_HMSL10182_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20182_HMSL10182_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20183_HMSL10187_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20183_HMSL10187_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20184_HMSL10189_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20184_HMSL10189_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20185_HMSL10192_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20185_HMSL10192_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20186_HMSL10198_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20186_HMSL10198_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20187_HMSL10220_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20187_HMSL10220_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20188_HMSL10226_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20188_HMSL10226_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20189_HMSL10230_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20189_HMSL10230_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20190_HMSL10255_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20190_HMSL10255_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20191_HMSL10004_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20191_HMSL10004_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20192_HMSL10008_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20192_HMSL10008_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20193_HMSL10011_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20193_HMSL10011_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20194_HMSL10013_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20194_HMSL10013_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20195_HMSL10018_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20195_HMSL10018_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20196_HMSL10020_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20196_HMSL10020_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20197_HMSL10021_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20197_HMSL10021_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20198_HMSL10023_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20198_HMSL10023_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20199_HMSL10024_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20199_HMSL10024_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20200_HMSL10027_kinomescan.xlsx
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20200_HMSL10027_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import attached file...'      
