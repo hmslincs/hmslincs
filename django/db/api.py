@@ -290,7 +290,9 @@ class DataSetResource(ModelResource):
         dataset_id = bundle.data['id']
         
         datasetDataColumns = DataSetDataResource.get_datasetdata_camel_case_columns(dataset_id)
-        bundle.data = get_detail_bundle(bundle.obj, ['dataset',''])
+        bundle.data = get_detail_bundle(
+            bundle.obj, ['dataset',''],
+            _override_filter=lambda x: x.show_in_detail or x.field=='bioassay' )
         saf_uri = self.absolute_uri.replace('dataset','datasetdata')
         saf_uri = saf_uri.replace('json','csv');
 

@@ -724,12 +724,15 @@ def get_listing(model_object, search_tables):
     """
     return get_fielddata(model_object, search_tables, lambda x: x.show_in_list )
 
-def get_detail(model_object, search_tables, _filter=None, extra_properties=[] ):
+def get_detail(model_object, search_tables, _filter=None, extra_properties=[],
+               _override_filter=None ):
     """
     returns an ordered dict of field_name->{value:value,fieldinformation:}
     to be used to display the item in the UI Detail views
     """
-    if (_filter):
+    if _override_filter:
+        field_information_filter = lambda x: _override_filter(x)
+    elif (_filter):
         field_information_filter = lambda x: x.show_in_detail and _filter(x)
     else:
         field_information_filter = lambda x: x.show_in_detail
@@ -776,12 +779,12 @@ def get_fielddata(model_object, search_tables, field_information_filter=None, ex
     #return self.DatasetForm(data)
  
 
-def get_detail_bundle(obj,tables_to_search, _filter=None):
+def get_detail_bundle(obj,tables_to_search, _filter=None, _override_filter=None):
     """
     returns a bundle (dict of {verbose_name->value}) for the object, using fieldinformation to 
     determine fields to show, and to find the verbose names
     """
-    detail = get_detail(obj, tables_to_search, _filter)
+    detail = get_detail(obj, tables_to_search, _filter, _override_filter=_override_filter)
     data = {}
     for entry in detail.values():
         data[entry['fieldinformation'].get_camel_case_dwg_name()]=entry['value']
