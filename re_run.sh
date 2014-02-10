@@ -12,7 +12,7 @@ check_errs()
 
 DATADIR=
 VIRTUALENV=
-DIR=/groups/pharmacoresponse/
+DIR=/groups/lincs/
 
 if [[ $# -lt 1 ]]
 then 
