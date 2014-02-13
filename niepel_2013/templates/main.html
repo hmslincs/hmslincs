@@ -32,25 +32,19 @@
 
 <h1>Breast Cancer Signaling Responses</h1>
 
-<p>Growth factor signaling is a key determinant of cellular behavior in normal
-and diseased tissue. Here we determine the variance of signaling responses
-across a panel of breast cancer lines and we identify the molecular
-underpinnings of these responses. We combine biochemical data with known
-mutational data for the cell lines and put forth a simple heuristic to
-approximate the responsiveness of cells to individual growth factors.</p>
-
-<h2>Exploring the Data</h2>
-
 <p>The data we collected here is complicated to display, not necessarily due to
 its size, but rather due to its high dimensionality. We prepared ‘signaling
 profiles’ where we tested 15 ligands x 2 doses x 3 exposure times x 2 downstream kinase x
-40 cell lines resulting in 7200 unique data points. In addition we collected
+39 cell lines resulting in ~7000 unique data points. In addition we collected
 ‘basal profiles’ where we measured about 40 different expression or
 phosphorylation levels of key receptor tyrosine kinases of each cell line. To
 investigate these data, we plot different (often simplified) features of the
 data and show how it differs across another dimension. There are two main
 organizing principles of the data: <a href="#data-by-cell-line">data by cell
 line</a> and <a href="#data-by-ligand">data by ligand</a>.</p>
+
+<p>For a more detailed description of how the data is analyzed and plotted, please
+refer to the methods and results section of the publication [LINK].</p>
 
 <!-- <p>Link to the raw data (xls for now; maybe a query page afterwards). -->
 <!-- [[TODO]]</p> -->
@@ -76,7 +70,9 @@ line</a> and <a href="#data-by-ligand">data by ligand</a>.</p>
 </div>
 
 <p>A compact overview of both the basal and signaling profiles of each cell are
-simple network maps displayed as node-edge graphs. The outer and inner circles
+simple network maps displayed as node-edge graphs. This visualization allows the user to
+quickly identify which pathways are highly expressed, strongly phosphorylated, or
+particularly sensitive in a given cell lines. The outer and inner circles
 represent basal measurements with circle size indicating expression levels and
 the shading indicating phosphorylation levels. The data is normalized across all
 cell lines and gray outer circles denote phosphorylation levels below the
@@ -90,35 +86,37 @@ gray lines denote responses that are not significant.</p>
                   250, 235) }}
 
 <p>To put the individual network maps into context we created three maps that
-represent each subtype. To create these maps we displayed the trimmed mean of
-all values of a given subtype to reduce artifacts due to ligand/receptor
-combinations that only sporadically result in significant responses.</p>
+represent each clinical subtype (TNBC, HER2amp, HR+). To create these maps we
+used the trimmed mean of all values of a given subtype, rather than the mean,
+to reduce artifacts that might occur due to ligand/receptor combinations that
+only result in sporadic responses.</p>
 
 {{ titled_figures('cell_line', 'nodeedge', ['TNBC', 'HER2amp', 'HR+'],
                   250, 235, link=false, fname_prefix='NetMap_') }}
 
 <p>We can also plot the distribution of individual signaling features by
 subtype. Here we show the fraction of responses to low doses of ligands by pERK
-and pAkt. TNBCs are particularly sensitive and respond even to low doses of
-ligand when measuring pERK. No such difference is apparent when looking at pAkt.
-Other features that can be similarly compared are mean fold-changes or the
-pERK/pAkt induction bias. We can then show the data of individual cell types
-overlayed on these graphs in context of the overall distribution. </p>
+and pAkt. For example, TNBCs are particularly sensitive and respond even to low
+doses of ligand when measuring pERK. No such difference is apparent when looking at pAkt.
+Other features that can be similarly compared are the mean fold-changes at treatment
+with high doses of ligand or the pERK/pAkt induction bias. We then show the data
+of individual cell types by a star overlayed on the overall distribution of the 
+subtypes. </p>
 
 {{ titled_figures('cell_line', 'subtype', ['MCF7'], 700, 237) }}
 
 <p>Also the basal expression and phosphorylation levels of RTKs have a wide
-distribution across all cell lines. For each cell line we can highlight the five
-most upregulated and the five most downregulated basal measurements and compare
-them to the overall distribution of the same measurement across all lines.</p>
+distribution across all cell lines. For each cell line we can highlight the
+most upregulated and downregulated basal measurements. We indicated the level
+of a given cell line by a star overlayed on the distribution of the same measurement
+across all lines. The distributions by subtype are indicated as colored bars.</p>
 
 {{ titled_figures('cell_line', 'topmeasures', ['MCF7'], 700, 385) }}
 
 <p>The magnitude of response to individual ligands varies significantly from one
-cell line to the next. We can illustrate this range of responses as boxplot for
-each ligand for pERK and pAkt fold-changes. Again, we can overlay data of an
-individual cell line over these distributions to put a single cell line into its
-appropriate context.</p>
+cell line to the next. We can illustrate this range of responses as boxplot for each
+ligand for pERK and pAkt fold-changes. Again, we can indicate the measurement of any
+given cell line as a star, to put a single cell line into its appropriate context.</p>
 
 {{ titled_figures('cell_line', 'foldchange', ['MCF7'], 700, 237) }}
 
@@ -134,42 +132,46 @@ appropriate context.</p>
 
 <p>We can display the full time courses for individual ligand/downstream kinase combination
 across all cell lines to see both the variance in the kinetics and the magnitude
-of the responses.</p>
+of the responses. For a given ligand there are two plots corresponding to a low and
+high dose treatment and the two different downstream targets. We chose six cell lines
+that are highlighted in every plot that can be used a reference they that cover much
+of the variablity observed in the whole data set.</p>
 
 {{ titled_figures('ligand', 'timecourse', ['EGF'], 700, 233) }}
 
 <p>We can then classify these time course into four kinetic response classes
-(sustained, transient, late, none) and plot the distribution of these kinetic
-response classes by ligand-family/target for all cell lines. This shows that
-certain ligands predominantly give responses of certain classes, like the
-ErbB/FGF responses being mainly sustained or the INS/IGF responses being often
-late.</p>
+(sustained, transient, late, none) and plot their distribution by target and 
+ligand-family. This shows that certain ligands predominantly give responses of certain
+classes, like the ErbB/FGF responses being mainly sustained or the INS/IGF responses
+being often late. We can then compare the response to individual ligands to the
+main ligand-families.</p>
 
 {{ titled_figures('ligand', 'responsekinetics', ['EGF'], 700, 245) }}
 
-<p>Even though we collected responses only at two different doses, we can
-use this data to estimate the sensitivity of any cell line to a particular
-ligand. Analogous to the timecourses above, we can plot the response of all cell
+<p>Even though we collected responses only at two doses, we can
+use this data to approximate the sensitivity of any cell line to a particular
+ligand. Analogous to the time courses above, we can plot the response of all cell
 lines to a specific ligand measured by a specific downstream kinase across the two doses.
-We find that there is a significant range in the magnitude of responses both at
-low and high dose. This means we can classify these sensitivities based on
-whether cells respond equally at high and low dose, higher at high than at low
-dose, only at high dose, or not at all.</p>
+</p>
 
 {{ titled_figures('ligand', 'doseresponse', ['EGF'], 700, 233) }}
 
-<p>Once classified this way we can plot the overall distribution of these
-sensitivity classes for all cell lines given a ligand/downstream kinase combination. This
-shows that certain ligands measured by certain targets predominantly fall into
-certain classes, like the ErbB and FGF responses being higher at high dose than
-at low dose meaning they are rarely saturated at low dose.</p>
+<p>We find that there is a significant range in the magnitude of responses both at
+low and high dose. This means we can classify these sensitivities based on
+whether cells respond equally at high and low dose, higher at high than at low
+dose, only at high dose, or not at all. Once classified this way we can plot the overall
+distribution of these sensitivity classes for all cell lines given a ligand/downstream
+kinase combination. This shows that certain ligands measured by certain targets
+predominantly fall into certain classes, like the ErbB and FGF responses being higher
+at high dose than at low dose meaning they are rarely saturated at low dose.</p>
 
 {{ titled_figures('ligand', 'sensitivity', ['EGF'], 700, 292) }}
 
-<p>Comparing the pERK and pAkt response for the same ligand (see above) it is
-apparent that individual ligands have a pathway bias. We can plot this bias as
-the response angle distribution or boxplots to compare individual ligands to the
-remaining ligands.</p>
+<p>When we compare the pERK and pAkt response for the same ligand in a single cell line
+(see above) it is apparent that individual ligands induce a pathway bias. We can plot
+this bias as the response angle distribution or boxplots to compare individual ligands
+to the remaining ligands. When browsing individual ligands we highlight it in black so
+it stands out in contrast to the other ligands.</p>
 
 {{ titled_figures('ligand', 'pathwaybias', ['EGF'], 700, 292) }}
 
