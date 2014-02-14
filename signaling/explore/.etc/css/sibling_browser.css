@@ -31,22 +31,29 @@
   display: none;
   position:absolute          !important;
   margin:0                   !important;
-  padding:8px 0              !important;
-  width:550px                !important;
+  padding:8px                !important;
+  width:450px                !important;
   right:0;
   border:1px solid #e0e0e0;  !important;
   background-color:#fff;     !important;
   box-shadow: -10px 10px 10px rgba(0,0,0,0.7);
+  column-count: 4;
+  -moz-column-count: 4;
+  -webkit-column-count: 4;
 }
 .sibling-browser-list > li{
   margin:0                   !important;
-  padding:0 1em              !important;
+  padding:0 0.25em           !important;
   list-style:none            !important;
   display:inline-block;
   width:8em;
 }
 
-.sibling-browser-list > li:hover{
+.sibling-browser-list > li > a {
+  display: block;
+}
+
+.sibling-browser-list > li > a:hover{
   background-color:#fda      !important;
   font-weight:bold           !important;
 }
