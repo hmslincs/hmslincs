@@ -3,7 +3,15 @@ jQuery(document).ready(
 
         var $sb = $('.sibling-browser');
         $sb.mouseenter(function() {
-            $('.sibling-browser-list', this).show();
+            var $sbl = $('.sibling-browser-list', this);
+            var $sb = $(this);
+            $sbl.show();
+            if (sb_visible($sb)) {
+                $sbl.css('bottom', '');
+            } else {
+                // FIXME: figure out why we need the extra +8
+                $sbl.css('bottom', ($sb.height() + 8) + 'px');
+            }
         });
         $sb.mouseleave(function() {
             $('.sibling-browser-list', this).hide();
@@ -25,5 +33,13 @@ jQuery(document).ready(
             
         });
 
+        function sb_visible($sb) {
+            var $window = $(window);
+            var $sbl = $sb.find('.sibling-browser-list');
+            var sbl_bottom = ($sb.offset().top - $(window).scrollTop() +
+                              $sb.height() + $sbl.height())
+            var offset = $window.height() - sbl_bottom;
+            return offset > 10;
+        }
     }
 );
