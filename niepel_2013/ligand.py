@@ -67,57 +67,60 @@ for row in ligand_info:
     all_ok = all([print_status_accessible(ligand_path, d_in, plot_filename)
                   for d_out, d_in in image_dirs])
 
-    for row_affinity in ligand_affinity:
-        if row_affinity[0] == data['name']:
-            affinity_raw = row_affinity[1:9]
-            affinity_pairs = zip(affinity_raw[0::2], affinity_raw[1::2])
-            affinity_dicts = [{'name': name, 'kd': kd}
-                              for name, kd in affinity_pairs
-                              if name and kd]
-            affinity_reference = row_affinity[9]
-            data['affinity'] = {'receptors': affinity_dicts,
-                                'reference': affinity_reference}
-            break
-    if 'affinity' in data:
-        PASS()
-    else:
-        FAIL()
-        all_ok = False
+    if all_ok:
+        for row_affinity in ligand_affinity:
+            if row_affinity[0] == data['name']:
+                affinity_raw = row_affinity[1:9]
+                affinity_pairs = zip(affinity_raw[0::2], affinity_raw[1::2])
+                affinity_dicts = [{'name': name, 'kd': kd}
+                                  for name, kd in affinity_pairs
+                                  if name and kd]
+                affinity_reference = row_affinity[9]
+                data['affinity'] = {'receptors': affinity_dicts,
+                                    'reference': affinity_reference}
+                break
+        if 'affinity' in data:
+            PASS()
+        else:
+            FAIL()
+            all_ok = False
 
-    db_stash_key = 'hmsl_db/%s' % data['hmsl_id']
-    db_response = stash_get(db_stash_key)
-    if not db_response:
-        db_url = ('http://lincs.hms.harvard.edu/db/api/v1/protein/%s/' %
-                  data['hmsl_id'])
-        db_response = requests.get(db_url)
-        db_response.raw = None  # hack to make it picklable
-        stash_put(db_stash_key, db_response)
-    if db_response.ok:
-        PASS()
-        data['db'] = db_response.json()
-    else:
-        FAIL()
-        all_ok = False
+    if all_ok:
+        db_stash_key = 'hmsl_db/%s' % data['hmsl_id']
+        db_response = stash_get(db_stash_key)
+        if not db_response:
+            db_url = ('http://lincs.hms.harvard.edu/db/api/v1/protein/%s/' %
+                      data['hmsl_id'])
+            db_response = requests.get(db_url)
+            db_response.raw = None  # hack to make it picklable
+            stash_put(db_stash_key, db_response)
+        if db_response.ok:
+            PASS()
+            data['db'] = db_response.json()
+        else:
+            FAIL()
+            all_ok = False
 
-    if 'db' in data:
-        uniprot_stash_key = 'uniprot/%s' % data['db']['ppUniprotID']
-        uniprot_response = stash_get(uniprot_stash_key)
-        if not uniprot_response:
-            uniprot_url = ('http://www.uniprot.org/uniprot/%s.txt' %
-                           data['db']['ppUniprotID'])
-            uniprot_response = requests.get(uniprot_url)
-            uniprot_response.raw = None  # hack to make it picklable
-            stash_put(uniprot_stash_key, uniprot_response)
-    # Avoid nested 'if', otherwise we'd need to duplicate the FAIL/all_ok code.
-    # Ideally we would write a little more library code to support this idiom.
-    if 'db' in data and uniprot_response.ok:
-        PASS()
-        mw_match = re.search('\nSQ .*?(\d+) MW;', uniprot_response.content)
-        molecular_weight = int(mw_match.group(1)) / 1000
-        data['molecular_weight'] = molecular_weight
-    else:
-        FAIL()
-        all_ok = False
+    if all_ok:
+        if 'db' in data:
+            uniprot_stash_key = 'uniprot/%s' % data['db']['ppUniprotID']
+            uniprot_response = stash_get(uniprot_stash_key)
+            if not uniprot_response:
+                uniprot_url = ('http://www.uniprot.org/uniprot/%s.txt' %
+                               data['db']['ppUniprotID'])
+                uniprot_response = requests.get(uniprot_url)
+                uniprot_response.raw = None  # hack to make it picklable
+                stash_put(uniprot_stash_key, uniprot_response)
+        # Avoid nested 'if', otherwise we'd need to duplicate the FAIL/all_ok code.
+        # Ideally we would write a little more library code to support this idiom.
+        if 'db' in data and uniprot_response.ok:
+            PASS()
+            mw_match = re.search('\nSQ .*?(\d+) MW;', uniprot_response.content)
+            molecular_weight = int(mw_match.group(1)) / 1000
+            data['molecular_weight'] = molecular_weight
+        else:
+            FAIL()
+            all_ok = False
 
     if all_ok:
         print(' OK')

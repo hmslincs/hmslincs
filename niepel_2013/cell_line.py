@@ -53,23 +53,24 @@ for row in cellline_info:
     all_ok = all([print_status_accessible(cellline_path, d_in, plot_filename)
                   for d_out, d_in in image_dirs])
 
-    db_stash_key = 'hmsl_db/%s' % data['hmsl_id']
-    db_response = stash_get(db_stash_key)
-    if not db_response:
-        db_url = 'http://lincs.hms.harvard.edu/db/api/v1/cell/%s/' % data['hmsl_id']
-        db_response = requests.get(db_url)
-        db_response.raw = None  # hack to make it picklable
-        stash_put(db_stash_key, db_response)
-    if db_response.ok:
-        PASS()
-        data['db'] = db_response.json()
-        if data['db']['clAlternateID']:
-            cosmic_match = re.search(r'COSMIC:\s*(\d+)', data['db']['clAlternateID'])
-            if cosmic_match:
-                data['db']['_cosmic_id'] = cosmic_match.group(1)
-    else:
-        FAIL()
-        all_ok = False
+    if all_ok:
+        db_stash_key = 'hmsl_db/%s' % data['hmsl_id']
+        db_response = stash_get(db_stash_key)
+        if not db_response:
+            db_url = 'http://lincs.hms.harvard.edu/db/api/v1/cell/%s/' % data['hmsl_id']
+            db_response = requests.get(db_url)
+            db_response.raw = None  # hack to make it picklable
+            stash_put(db_stash_key, db_response)
+        if db_response.ok:
+            PASS()
+            data['db'] = db_response.json()
+            if data['db']['clAlternateID']:
+                cosmic_match = re.search(r'COSMIC:\s*(\d+)', data['db']['clAlternateID'])
+                if cosmic_match:
+                    data['db']['_cosmic_id'] = cosmic_match.group(1)
+        else:
+            FAIL()
+            all_ok = False
 
     if all_ok:
         print(' OK')
