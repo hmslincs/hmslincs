@@ -6,6 +6,7 @@ import errno
 import codecs
 import cPickle as pickle
 import shutil
+from PIL import Image
 
 __all__ = ['resource_path', 'create_output_path', 'print_status_accessible',
            'PASS', 'FAIL', 'render_template', 'copy_images', 'stash_put',
@@ -81,10 +82,14 @@ def render_template(template, data, dirname, basename):
 # is baroque for the single-image use case. Also should probably swap d_out,d_in
 # in image_dirs for a more logical ordering.
 def copy_images(image_dirs, base_filename, source_path, dest_path_elements,
-                permissive=False):
+                permissive=False, new_sizes={}, new_format=None):
     """Copy a set of same-named images in parallel subdirectories.
 
-    permissive: Set this to True if IOErrors should be ignored.
+    permissive: Optional, specify True to ignore IOErrors.
+    new_sizes: Optional, dict mapping from output directory names in image_dirs
+        to 2-tuples with new image dimensions for resizing.
+    new_format: Optional, string such as 'jpg' or 'png' to specify a new
+        image format. Target filename's extension will be changed to match.
 
     """
     for d_out, d_in in image_dirs:
@@ -93,7 +98,19 @@ def copy_images(image_dirs, base_filename, source_path, dest_path_elements,
         source_filename = op.join(source_path, d_in, base_filename)
         dest_filename = op.join(image_path, base_filename)
         try:
-            shutil.copy(source_filename, dest_filename)
+            # In the simplest case, just do a dumb file copy.
+            if d_out not in new_sizes and new_format is None:
+                shutil.copy(source_filename, dest_filename)
+            # Otherwise we need to parse and rewrite the image.
+            else:
+                image = Image.open(source_filename)
+                size = new_sizes.get(d_out)
+                if size is not None:
+                    image = image.resize(size, Image.ANTIALIAS)
+                if new_format is not None:
+                    ext_pos = dest_filename.rindex('.')
+                    dest_filename = dest_filename[:ext_pos+1] + new_format
+                image.save(dest_filename)
         except IOError:
             if permissive:
                 pass

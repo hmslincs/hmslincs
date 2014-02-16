@@ -20,6 +20,13 @@ image_dirs = [
     ('topmeasures', 'BasalTopMeasures'),
     ]
 
+image_sizes = {
+    'foldchange': (700, 237),
+    'nodeedge': (250, 235),
+    'subtype': (700, 237),
+    'topmeasures': (700, 385),
+    }
+
 img_path_elements = ('explore', 'cell_line', 'img')
 html_path = create_output_path(*img_path_elements[:-1])
 
@@ -80,18 +87,25 @@ for row in cellline_info:
 
 stash_put('cell_lines', all_data)
 
+print()
 common = {
           'all_names': [data['name'] for data in all_data],
+          'image_sizes': image_sizes,
           'STATIC_URL_2': '../.etc/',
           'DOCROOT': '../../',
          }
-for data in all_data:
+for i, data in enumerate(all_data):
+    msg = 'rendering page %d/%d %s...' % (i+1, len(all_data), data['name'])
+    # FIXME The string padding (37) should be calculated dynamically.
+    print_partial('\r' + msg.ljust(37))
     data.update(common)
     html_filename = data['name'] + '.html'
     render_template(cellline_template, data, html_path, html_filename)
     image_filename = data['name'] + '.png'
-    copy_images(image_dirs, image_filename, cellline_path, img_path_elements)
-
+    copy_images(image_dirs, image_filename, cellline_path, img_path_elements,
+                new_sizes=image_sizes, new_format='jpg')
+print_partial("done")
+PASS_nl()
 
 print()
 subtypes = set(d['class_consensus'] for d in all_data)
@@ -102,5 +116,4 @@ for subtype in subtypes:
     copy_images([('nodeedge', 'NodeEdgeFigures')], image_filename,
                 cellline_path, img_path_elements)
     print(image_filename, end=' ')
-    PASS()
-    print()
+    PASS_nl()
