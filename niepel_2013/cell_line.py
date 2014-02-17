@@ -115,6 +115,8 @@ for subtype in subtypes:
     # We are only copying one image, but we can reuse copy_images with a little
     # creativity in crafting the first arg.
     copy_images([('nodeedge', 'NodeEdgeFigures')], image_filename,
-                cellline_path, img_path_elements)
+                cellline_path, img_path_elements,
+                new_sizes=image_sizes, new_format='jpg',
+                format_options={'quality': 85, 'optimize': True})
     print(image_filename, end=' ')
     PASS_nl()
