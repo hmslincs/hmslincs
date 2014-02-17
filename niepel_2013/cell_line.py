@@ -103,7 +103,8 @@ for i, data in enumerate(all_data):
     render_template(cellline_template, data, html_path, html_filename)
     image_filename = data['name'] + '.png'
     copy_images(image_dirs, image_filename, cellline_path, img_path_elements,
-                new_sizes=image_sizes, new_format='jpg')
+                new_sizes=image_sizes, new_format='jpg',
+                format_options={'quality': 85, 'optimize': True})
 print_partial("done")
 PASS_nl()
 

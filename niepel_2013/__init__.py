@@ -82,7 +82,8 @@ def render_template(template, data, dirname, basename):
 # is baroque for the single-image use case. Also should probably swap d_out,d_in
 # in image_dirs for a more logical ordering.
 def copy_images(image_dirs, base_filename, source_path, dest_path_elements,
-                permissive=False, new_sizes={}, new_format=None):
+                permissive=False, new_sizes={}, new_format=None,
+                format_options={}):
     """Copy a set of same-named images in parallel subdirectories.
 
     permissive: Optional, specify True to ignore IOErrors.
@@ -90,6 +91,8 @@ def copy_images(image_dirs, base_filename, source_path, dest_path_elements,
         to 2-tuples with new image dimensions for resizing.
     new_format: Optional, string such as 'jpg' or 'png' to specify a new
         image format. Target filename's extension will be changed to match.
+    format_options: Optional, dict with options for the encoder used to write
+        the output file (see PIL.Image.save's **params argument).
 
     """
     for d_out, d_in in image_dirs:
@@ -110,7 +113,7 @@ def copy_images(image_dirs, base_filename, source_path, dest_path_elements,
                 if new_format is not None:
                     ext_pos = dest_filename.rindex('.')
                     dest_filename = dest_filename[:ext_pos+1] + new_format
-                image.save(dest_filename)
+                image.save(dest_filename, **format_options)
         except IOError:
             if permissive:
                 pass
