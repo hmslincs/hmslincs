@@ -26,6 +26,11 @@ image_sizes = {
     'subtype': (700, 237),
     'topmeasures': (700, 385),
     }
+# Set up dimensions for _large images -- 2x for all except nodeedge which is 3x.
+image_sizes_large = dict((name, (width * 2, height * 2))
+                         for (name, (width, height)) in image_sizes.items()
+                         if name != 'nodeedge')
+image_sizes_large['nodeedge'] = [dim * 3 for dim in image_sizes['nodeedge']]
 
 img_path_elements = ('explore', 'cell_line', 'img')
 html_path = create_output_path(*img_path_elements[:-1])
@@ -102,9 +107,16 @@ for i, data in enumerate(all_data):
     html_filename = data['name'] + '.html'
     render_template(cellline_template, data, html_path, html_filename)
     image_filename = data['name'] + '.png'
-    copy_images(image_dirs, image_filename, cellline_path, img_path_elements,
+    copy_images(image_dirs, image_filename,
+                cellline_path, img_path_elements,
                 new_sizes=image_sizes, new_format='jpg',
                 format_options={'quality': 85, 'optimize': True})
+    (if_root, if_ext) = os.path.splitext(image_filename)
+    if_root + '_large' + if_ext
+    copy_images(image_dirs, image_filename, cellline_path, img_path_elements,
+                new_sizes=image_sizes_large, new_format='jpg',
+                new_suffix='_large',
+                format_options={'quality': 75, 'optimize': True})
 print_partial("done")
 PASS_nl()
 
@@ -117,6 +129,11 @@ for subtype in subtypes:
     copy_images([('nodeedge', 'NodeEdgeFigures')], image_filename,
                 cellline_path, img_path_elements,
                 new_sizes=image_sizes, new_format='jpg',
+                format_options={'quality': 85, 'optimize': True})
+    copy_images([('nodeedge', 'NodeEdgeFigures')], image_filename,
+                cellline_path, img_path_elements,
+                new_sizes=image_sizes_large, new_format='jpg',
+                new_suffix='_large',
                 format_options={'quality': 85, 'optimize': True})
     print(image_filename, end=' ')
     PASS_nl()

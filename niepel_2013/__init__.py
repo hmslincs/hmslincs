@@ -83,7 +83,7 @@ def render_template(template, data, dirname, basename):
 # in image_dirs for a more logical ordering.
 def copy_images(image_dirs, base_filename, source_path, dest_path_elements,
                 permissive=False, new_sizes={}, new_format=None,
-                format_options={}):
+                new_suffix=None, format_options={}):
     """Copy a set of same-named images in parallel subdirectories.
 
     permissive: Optional, specify True to ignore IOErrors.
@@ -91,6 +91,8 @@ def copy_images(image_dirs, base_filename, source_path, dest_path_elements,
         to 2-tuples with new image dimensions for resizing.
     new_format: Optional, string such as 'jpg' or 'png' to specify a new
         image format. Target filename's extension will be changed to match.
+    new_suffix: Optional, string to be appended to the output filename between
+        the root and the extension (e.g. "foo.jpg" -> "foo_suffix.jpg").
     format_options: Optional, dict with options for the encoder used to write
         the output file (see PIL.Image.save's **params argument).
 
@@ -100,6 +102,9 @@ def copy_images(image_dirs, base_filename, source_path, dest_path_elements,
         image_path = create_output_path(*dest_path)
         source_filename = op.join(source_path, d_in, base_filename)
         dest_filename = op.join(image_path, base_filename)
+        if new_suffix is not None:
+            dest_root, dest_ext = os.path.splitext(dest_filename)
+            dest_filename = dest_root + new_suffix + dest_ext
         try:
             # In the simplest case, just do a dumb file copy.
             if d_out not in new_sizes and new_format is None:
@@ -112,7 +117,8 @@ def copy_images(image_dirs, base_filename, source_path, dest_path_elements,
                     image = image.resize(size, Image.ANTIALIAS)
                 if new_format is not None:
                     ext_pos = dest_filename.rindex('.')
-                    dest_filename = dest_filename[:ext_pos+1] + new_format
+                    dest_root = os.path.splitext(dest_filename)[0]
+                    dest_filename = dest_root + '.' + new_format
                 image.save(dest_filename, **format_options)
         except IOError:
             if permissive:

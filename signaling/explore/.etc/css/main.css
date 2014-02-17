@@ -16,6 +16,9 @@ h2 {
 td {
   white-space: inherit;
 }
+img {
+  max-width: inherit;
+}
 
 .lookup-table-container{
   padding:20px;
@@ -127,6 +130,11 @@ ul.button-bar > li:first-child{
   margin-left:0;
 }
 
+p.caption {
+  font-size: 90%;
+  margin: 0 30px 10px;
+}
+
 .pseudo-button{
   -webkit-border-radius:4px  !important;
   -moz-border-radius:4px     !important;
@@ -144,6 +152,11 @@ ul.button-bar > li:first-child{
 .pseudo-button:hover{
   background-color:#e70      !important;
 }
+
+a.lightbox-link {
+  cursor: zoom-in;
+}
+
 /* #signaling-matrix-link{ */
 /*   margin-left:10px           !important; */
 /* } */
@@ -155,10 +168,10 @@ ul.button-bar > li:first-child{
 }
 .ui-dialog {
   box-shadow: 10px 10px 10px rgba(0,0,0,0.7)
+  margin-left:auto; margin-right:auto;
 }
 
-
-p.caption {
-  font-size: 90%;
-  margin: 0 30px 10px;
+.ui-widget-overlay {
+  background: #000000;
+  opacity: 0.6;
 }
