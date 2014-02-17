@@ -21,6 +21,14 @@ image_dirs = [
     ('timecourse', 'TimeCoursePlots'),
     ]
 
+image_sizes = {
+    'doseresponse': (700, 233),
+    'pathwaybias': (700, 292),
+    'responsekinetics': (700, 245),
+    'sensitivity': (700, 292),
+    'timecourse': (700, 233),
+}
+
 img_path_elements = ('explore', 'ligand', 'img')
 html_path = create_output_path(*img_path_elements[:-1])
 
@@ -130,14 +138,22 @@ for row in ligand_info:
 
 stash_put('ligands', all_data)
 
+print()
 common = {
           'all_names': [data['name'] for data in all_data],
           'STATIC_URL_2': '../.etc/',
           'DOCROOT': '../../',
          }
-for data in all_data:
+for i, data in enumerate(all_data):
+    msg = 'rendering page %d/%d %s...' % (i+1, len(all_data), data['name'])
+    # FIXME The string padding (37) should be calculated dynamically.
+    print_partial('\r' + msg.ljust(37))
     data.update(common)
     html_filename = data['name'] + '.html'        
     render_template(ligand_template, data, html_path, html_filename)
     image_filename = data['name'] + '.png'
-    copy_images(image_dirs, image_filename, ligand_path, img_path_elements)
+    copy_images(image_dirs, image_filename, ligand_path, img_path_elements,
+                new_sizes=image_sizes, new_format='jpg',
+                format_options={'quality': 85, 'optimize': True})
+print_partial("done")
+PASS_nl()

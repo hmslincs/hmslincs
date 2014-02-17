@@ -6,8 +6,11 @@ import math
 import os
 import re
 
-# 870px wide, 2x resolution
+# Table image - 870px wide, 2x resolution.
 DESIRED_WIDTH_PX = 870 * 2
+
+# Size of individual plots in the popups.
+PLOT_DIMENSIONS = (350, 257)
 
 lookup_path = resource_path('SignalingPage', 'LookupTablesPage')
 
@@ -120,15 +123,25 @@ data = {
             'image': img_erk,
             },
         ],
+    'plot_dimensions': PLOT_DIMENSIONS,
     'STATIC_URL_2': '../.etc/',
     'DOCROOT': '../../',
 }
 
 render_template(table_template, data, html_path, 'index.html')
 
-for cell in cells:
+print()
+image_sizes = {'': PLOT_DIMENSIONS}
+for i, cell in enumerate(cells):
+    msg = 'rendering image %d/%d %s...' % (i+1, len(cells), cell['name'])
+    # FIXME The string padding (50) should be calculated dynamically.
+    print_partial('\r' + msg.ljust(50))
     image_filename = cell['name'] + '.png'
     # We are only copying one image, but we can reuse copy_images with a little
     # creativity in crafting the first arg.
     copy_images([('', 'subfigures')], image_filename,
-                lookup_path, img_path_elements, permissive=True)
+                lookup_path, img_path_elements, permissive=True,
+                new_sizes=image_sizes, new_format='jpg',
+                format_options={'quality': 85, 'optimize': True})
+print_partial("done")
+PASS_nl()
