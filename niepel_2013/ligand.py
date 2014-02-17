@@ -28,6 +28,9 @@ image_sizes = {
     'sensitivity': (700, 292),
     'timecourse': (700, 233),
 }
+# Set up dimensions for _large images -- 2x for all.
+image_sizes_large = dict((name, (width * 2, height * 2))
+                         for (name, (width, height)) in image_sizes.items())
 
 img_path_elements = ('explore', 'ligand', 'img')
 html_path = create_output_path(*img_path_elements[:-1])
@@ -141,6 +144,7 @@ stash_put('ligands', all_data)
 print()
 common = {
           'all_names': [data['name'] for data in all_data],
+          'image_sizes': image_sizes,
           'STATIC_URL_2': '../.etc/',
           'DOCROOT': '../../',
          }
@@ -155,5 +159,11 @@ for i, data in enumerate(all_data):
     copy_images(image_dirs, image_filename, ligand_path, img_path_elements,
                 new_sizes=image_sizes, new_format='jpg',
                 format_options={'quality': 85, 'optimize': True})
+    (if_root, if_ext) = os.path.splitext(image_filename)
+    if_root + '_large' + if_ext
+    copy_images(image_dirs, image_filename, ligand_path, img_path_elements,
+                new_sizes=image_sizes_large, new_format='jpg',
+                new_suffix='_large',
+                format_options={'quality': 75, 'optimize': True})
 print_partial("done")
 PASS_nl()
