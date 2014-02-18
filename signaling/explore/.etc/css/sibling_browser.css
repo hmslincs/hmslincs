@@ -3,17 +3,6 @@
   display:block        !important;
   position:relative    !important;
 }
-.sibling-browser-container h1,
-.sibling-browser-container h2{
-  vertical-align:top   !important;
-  padding:0            !important;
-  margin-bottom:2ex    !important;
-}
-.sibling-browser-container h1,
-.sibling-browser-container h2,
-.sibling-browser{
-  display: inline-block   !important;
-}
 
 .sibling-browser {
   background-color: #fff  !important;
