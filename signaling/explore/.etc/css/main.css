@@ -16,9 +16,6 @@ h2 {
 td {
   white-space: inherit;
 }
-img {
-  max-width: inherit;
-}
 
 .lookup-table-container{
   padding:20px;
@@ -155,6 +152,10 @@ p.caption {
 
 a.lightbox-link {
   cursor: zoom-in;
+}
+img.lightbox {
+  max-width: 97%;
+  height: auto;
 }
 
 /* #signaling-matrix-link{ */

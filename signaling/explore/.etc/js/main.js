@@ -28,7 +28,7 @@ jQuery(document).ready(
                 show: 'blind',
                 width: 'auto',
                 height: 'auto',
-                position:  {my: 'left', at: 'right', of: this},
+                position:  {my: 'left', at: 'right', of: this}
             });
             
         });
@@ -40,49 +40,70 @@ jQuery(document).ready(
           nice fallback behavior since the original markup is just a plain link
           to the file.
          */
-        $lbl = $('a.lightbox-link');
+        var $lbl = $('a.lightbox-link');
         $lbl.click(function () {
             // Typical usage is to wrap a small image with a link to a larger
             // version. This grabs the wrapped image.
             var $orig_img = $(this).children('img');
             // Create the new img element dynamically outside the DOM.
-            var $img = $('<img>');
+            var $img = $('<img class="lightbox">');
             // Copy the href from the original link to the img's src.
             $img.attr('src', $(this).attr('href'));
+            // Set up some code to run after the new image is loaded and its
+            // dimensions known.
             $img.load(function () {
                 // Guard against the possibility the dialog was already closed.
                 if ($.contains(document, this)) {
-                    // Set width/height to auto and reset the position, to take
-                    // into account the now-known image dimensions.
-                    $img.dialog('option', {
+                    var img_width = $(this).prop('naturalWidth');
+                    var img_height = $(this).prop('naturalHeight');
+                    var win_width = $(window).width();
+                    var win_height = $(window).height();
+                    var dialog_width = 'auto', dialog_height = 'auto';
+                    if (img_width !== undefined) {
+                        // Is image aspect ratio wider than window's?
+                        if (img_width / img_height > win_width / win_height) {
+                            // If wider, use image width to set dialog
+                            // width. Limit width to window width minus a margin.
+                            dialog_width = Math.min(img_width, win_width * 0.95);
+                        } else {
+                            // Otherwise use height.
+                            dialog_height = Math.min(img_height, win_height * 0.95);
+                        }
+                    } else {
+                        // If img.naturalWidth is unsupported, just make the
+                        // dialog fill most of the window.
+                        //
+                        // FIXME this ends up stretching the img, a div wrapping
+                        // the img should fix it but that is probably a good
+                        // idea anyway.
+                        dialog_width = win_width * 0.90;
+                        dialog_height = win_height * 0.90;
+                    }
+                    $(this).dialog('option', {
                         position: {my: 'center', at: 'center', of: window},
-                        width: 'auto',
-                        height: 'auto',
+                        width: dialog_width,
+                        height: dialog_height,
                     });
                 }
             });
             $img.dialog({
                 modal: true,
                 draggable: false,
-                // Initialize the dimensions to match the wrapped image. This
-                // will make the image appear smaller than the original due to
-                // the dialog's "chrome" but it's a reasonable starting
-                // point. The img load handler above will reset these anyway.
+                resizable: false,
+                // Initialize the dimensions to match the wrapped image. This is
+                // just a reasonable starting point as the img load handler
+                // above will reset them anyway.
                 width: $orig_img.width(),
                 height: $orig_img.height(),
-                // Leave a 5% margin to make sure the dialog isn't bigger than
-                // the window.
-                maxWidth: $(window).width() * .90,
-                maxHeight: $(window).height() * .90,
                 // Since our content is dynamically created on each link click,
-                // we need to destroy the chrome elements or they will stay
-                // around forever.
-                close: function () { $(this).dialog('destroy') },
+                // we need to destroy the chrome elements on close or they will
+                // stay around forever.
+                close: function () { $(this).dialog('destroy'); }
             });
             // Implement "click outside the dialog to close". This is normally
             // harder, but with modal dialogs we have the overlay element as a
             // convenient place to hang a click handler.
-            $('.ui-widget-overlay').click(function () { $img.dialog('close') });
+            $('.ui-widget-overlay').click(function () { $img.dialog('close'); });
             // Prevent the original link click event from triggering navigation.
             return false;
         });
@@ -91,7 +112,7 @@ jQuery(document).ready(
             var $window = $(window);
             var $sbl = $sb.find('.sibling-browser-list');
             var sbl_bottom = ($sb.offset().top - $(window).scrollTop() +
-                              $sb.height() + $sbl.height())
+                              $sb.height() + $sbl.height());
             var offset = $window.height() - sbl_bottom;
             return offset > 10;
         }
