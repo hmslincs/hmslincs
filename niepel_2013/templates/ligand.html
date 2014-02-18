@@ -12,28 +12,29 @@
 {% set class = 'ligand' %}
 {% include "sibling_browser.html" %}
 
+<div class="breadcrumbs">
+  {% include "breadcrumbs.html" %}
+</div>
+
 <h1>
-  Responses to ligand<br>
-  <a href="http://lincs.hms.harvard.edu/db/proteins/{{ hmsl_id }}/">
-    {{ full_name }} ({{ name }})
-  </a>
+  {{ full_name }} ({{ name }})<br/>
+  <span class="smaller">Responses to ligand</span>
 </h1>
 
 </div>
 
-
 <h2>General information</h2>
-<table style="width: 60em;">
+<table class="general-info">
   <tr>
-    <td style="width: 10em;"><strong>Ligand family</strong></td>
+    <th>Ligand family</th>
     <td>{{ family }} ligand</td>
   </tr>
   <tr>
-    <td><strong>HMS LINCS ID</strong></td>
+    <th>HMS LINCS ID</th>
     <td><a href="http://lincs.hms.harvard.edu/db/proteins/{{ hmsl_id }}/">{{ hmsl_id }}</a></td>
   </tr>
   <tr>
-    <td><strong>UniProt ID</strong></td>
+    <th>UniProt ID</th>
     <td>
       {% if db.ppUniprotID %}
       <a href="http://www.uniprot.org/uniprot/{{ db.ppUniprotID }}">{{ db.ppUniprotID }}</a>
@@ -43,7 +44,7 @@
     </td>
   </tr>
   <tr>
-    <td><strong>Molecular weight</strong></td>
+    <th>Molecular weight</th>
     <td>
       {% if molecular_weight %}
       {{ molecular_weight }} kDa
@@ -53,7 +54,7 @@
     </td>
   </tr>
   <tr>
-    <td><strong>Receptor affinity</strong></td>
+    <th>Receptor affinity</th>
     <td>
       <table>
         <tr>

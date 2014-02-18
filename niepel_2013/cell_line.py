@@ -99,13 +99,19 @@ common = {
           'STATIC_URL_2': '../.etc/',
           'DOCROOT': '../../',
          }
+breadcrumb_base = [
+    {'url': '../../start.html', 'text': 'Start'},
+    {'url': None, 'text': 'Cell lines'},
+]
 for i, data in enumerate(all_data):
     msg = 'rendering page %d/%d %s...' % (i+1, len(all_data), data['name'])
     # FIXME The string padding (37) should be calculated dynamically.
     print_partial('\r' + msg.ljust(37))
     data.update(common)
+    data['breadcrumbs'] = breadcrumb_base + [{'url': '', 'text': data['name']}]
     html_filename = data['name'] + '.html'
     render_template(cellline_template, data, html_path, html_filename)
+    continue # XXX
     image_filename = data['name'] + '.png'
     copy_images(image_dirs, image_filename,
                 cellline_path, img_path_elements,
@@ -119,6 +125,7 @@ for i, data in enumerate(all_data):
                 format_options={'quality': 75, 'optimize': True})
 print_partial("done")
 PASS_nl()
+exit() # XXX
 
 print()
 subtypes = set(d['class_consensus'] for d in all_data)

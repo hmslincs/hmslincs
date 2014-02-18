@@ -148,14 +148,20 @@ common = {
           'STATIC_URL_2': '../.etc/',
           'DOCROOT': '../../',
          }
+breadcrumb_base = [
+    {'url': '../../start.html', 'text': 'Start'},
+    {'url': None, 'text': 'Ligands'},
+]
 for i, data in enumerate(all_data):
     msg = 'rendering page %d/%d %s...' % (i+1, len(all_data), data['name'])
     # FIXME The string padding (37) should be calculated dynamically.
     print_partial('\r' + msg.ljust(37))
     data.update(common)
+    data['breadcrumbs'] = breadcrumb_base + [{'url': '', 'text': data['name']}]
     html_filename = data['name'] + '.html'        
     render_template(ligand_template, data, html_path, html_filename)
     image_filename = data['name'] + '.png'
+    continue # XXX
     copy_images(image_dirs, image_filename, ligand_path, img_path_elements,
                 new_sizes=image_sizes, new_format='jpg',
                 format_options={'quality': 85, 'optimize': True})

@@ -11,24 +11,30 @@
 <div class="sibling-browser-container">
 {% set class = 'cell line' %}
 {% include "sibling_browser.html" %}
+
+<div class="breadcrumbs">
+  {% include "breadcrumbs.html" %}
+</div>
+
 <h1>
-  Cell line response profile for<br>
-  <a href="http://lincs.hms.harvard.edu/db/cells/{{ hmsl_id }}/">{{ name }}</a>
+  {{ name }}<br/>
+  <span class="smaller">Cell line response profile</span>
 </h1>
+
 </div>
 
 <h2>General information</h2>
-<table class="general-info-cell-line">
+<table class="general-info">
   <tr>
-    <td>Subtype</td>
+    <th>Subtype</th>
     <td>{{ class_consensus }}</td>
   </tr>
   <tr>
-    <td>HMS LINCS ID</td>
+    <th>HMS LINCS ID</th>
     <td><a href="http://lincs.hms.harvard.edu/db/cells/{{ hmsl_id }}/">{{ hmsl_id }}</a></td>
   </tr>
   <tr>
-    <td>COSMIC ID</td>
+    <th>COSMIC ID</th>
     <td>
       {% if db._cosmic_id %}
       <a href="http://cancer.sanger.ac.uk/cell_lines/sample/overview?id={{ db._cosmic_id }}">{{ db._cosmic_id }}</a>
@@ -38,7 +44,7 @@
     </td>
   </tr>
   <tr>
-    <td>ATCC ID</td>
+    <th>ATCC ID</th>
     <td>
       {% if db.clProviderName == 'ATCC' %}
       <a href="http://www.atcc.org/products/all/{{ db.clProviderCatalogID }}.aspx">{{ db.clProviderCatalogID }}</a>
@@ -48,13 +54,13 @@
     </td>
   </tr>
   <tr>
-    <td>Growth medium</td>
+    <th>Growth medium</th>
     <td>
       {{ growth_medium }}
     </td>
   </tr>
   <tr>
-    <td>Culture conditions</td>
+    <th>Culture conditions</th>
     <td>
       {{ culture_temperature }} ; {{ culture_atmosphere }}
     </td>
