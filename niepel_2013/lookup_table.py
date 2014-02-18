@@ -134,7 +134,6 @@ data = {
 
 render_template(table_template, data, html_path, 'index.html')
 
-exit() # XXX
 print()
 image_sizes = {'': PLOT_DIMENSIONS}
 for i, cell in enumerate(cells):

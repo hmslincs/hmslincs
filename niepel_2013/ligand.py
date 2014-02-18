@@ -161,7 +161,6 @@ for i, data in enumerate(all_data):
     html_filename = data['name'] + '.html'        
     render_template(ligand_template, data, html_path, html_filename)
     image_filename = data['name'] + '.png'
-    continue # XXX
     copy_images(image_dirs, image_filename, ligand_path, img_path_elements,
                 new_sizes=image_sizes, new_format='jpg',
                 format_options={'quality': 85, 'optimize': True})
