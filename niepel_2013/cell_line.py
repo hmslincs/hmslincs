@@ -21,16 +21,21 @@ image_dirs = [
     ]
 
 image_sizes = {
-    'foldchange': (700, 237),
-    'nodeedge': (250, 235),
-    'subtype': (700, 237),
-    'topmeasures': (700, 385),
+    'foldchange': [700, 237],
+    'nodeedge': [250, 235],
+    'subtype': [700, 237],
+    'topmeasures': [700, 385],
     }
-# Set up dimensions for _large images -- 2x for all except nodeedge which is 3x.
-image_sizes_large = dict((name, (width * 2, height * 2))
-                         for (name, (width, height)) in image_sizes.items()
-                         if name != 'nodeedge')
-image_sizes_large['nodeedge'] = [dim * 3 for dim in image_sizes['nodeedge']]
+# Set up dimensions for _large images - start with x2 for all images.
+image_sizes_large = dict((name, [width * 2, height * 2])
+                         for name, [width, height] in image_sizes.items())
+# Override with x3 for nodeedge.
+image_sizes_large['nodeedge'] = [dim*3 for dim in image_sizes['nodeedge']]
+# Override height for topmeasures, which uses a wholly different image for the
+# large size.
+image_sizes_large['topmeasures'][1] = 1867
+
+topmeasures_large_suffix = '_allRTKs'
 
 img_path_elements = ('explore', 'cell_line', 'img')
 html_path = create_output_path(*img_path_elements[:-1])
@@ -118,9 +123,19 @@ for i, data in enumerate(all_data):
                 format_options={'quality': 85, 'optimize': True})
     (if_root, if_ext) = os.path.splitext(image_filename)
     if_root + '_large' + if_ext
-    copy_images(image_dirs, image_filename, cellline_path, img_path_elements,
+    image_dirs_no_topmeasures = [d for d in image_dirs if d[0] != 'topmeasures']
+    copy_images(image_dirs_no_topmeasures, image_filename,
+                cellline_path, img_path_elements,
                 new_sizes=image_sizes_large, new_format='jpg',
-                new_suffix='_large',
+                dest_suffix='_large',
+                format_options={'quality': 75, 'optimize': True})
+    image_dirs_topmeasures = [d for d in image_dirs if d[0] == 'topmeasures']
+    if_root, if_ext = os.path.splitext(image_filename)
+    image_filename_topmeasures = if_root + topmeasures_large_suffix + if_ext
+    copy_images(image_dirs_topmeasures, image_filename_topmeasures,
+                cellline_path, img_path_elements,
+                new_sizes=image_sizes_large, new_format='jpg',
+                dest_suffix='_large',
                 format_options={'quality': 75, 'optimize': True})
 print_partial("done")
 PASS_nl()
@@ -138,7 +153,7 @@ for subtype in subtypes:
     copy_images([('nodeedge', 'NodeEdgeFigures')], image_filename,
                 cellline_path, img_path_elements,
                 new_sizes=image_sizes_large, new_format='jpg',
-                new_suffix='_large',
+                dest_suffix='_large',
                 format_options={'quality': 85, 'optimize': True})
     print(image_filename, end=' ')
     PASS_nl()

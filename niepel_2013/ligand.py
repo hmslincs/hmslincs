@@ -168,7 +168,7 @@ for i, data in enumerate(all_data):
     if_root + '_large' + if_ext
     copy_images(image_dirs, image_filename, ligand_path, img_path_elements,
                 new_sizes=image_sizes_large, new_format='jpg',
-                new_suffix='_large',
+                dest_suffix='_large',
                 format_options={'quality': 75, 'optimize': True})
 print_partial("done")
 PASS_nl()
