@@ -270,3 +270,9 @@ td.facility_salt_batch {
 }
 
 */
+
+li.nav-menu-separator {
+    width: 60%;
+    border-top: 1px solid #E6941E;
+    border-bottom: 1px solid #F9E8D1;
+}
