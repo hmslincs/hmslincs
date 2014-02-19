@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<html>
+<html dir="ltr" lang="en-US">
 
 <head>
 	<meta charset="utf-8" />
@@ -20,7 +20,7 @@
 
         <!-- Google Analytics Tracking by Google Analyticator 6.2: http://ronaldheft.com/code/analyticator/ -->
         <script type="text/javascript">
-                var analyticsFileTypes = ['zip','xls','csv'];
+                var analyticsFileTypes = ['zip','xls','xlsx','csv'];
                 var analyticsEventTracking = 'enabled';
         </script>
         <script type="text/javascript">
@@ -52,17 +52,11 @@
 
 <div class="menu-mini-container">
   <ul>
-    <li class="button" id="explore-link">&nbsp; {# nbsp is a hack to get Safari to lay the menu out right #}
+    <li class="button" id="explore-link">
       <a title="Explore" href="/explore/">Explore</a>
     </li>
     <li class="button" id="data-link">
       <a title="Data" href="/data/">Data</a>
-    </li>
-    <li>
-      <a title="About" href="/about/">About</a>
-    </li>
-    <li>
-      <a title="Funding" href="/about/funding/">Funding</a>
     </li>
   </ul>
 </div>
@@ -100,50 +94,7 @@
 
 	    <div id="footer-decoration"></div>
 
-	    <div class="menu-topnav-container">
-	    	<ul>
-	    		<li class="page_item page-item-7"><a href="http://lincs.hms.harvard.edu/about/" title="About">About</a>
-	    		<ul class='children'>
-		    		<li class="page_item page-item-34"><a href="http://lincs.hms.harvard.edu/about/approach/" title="Approach">Approach</a></li>
-		    		<li class="page_item page-item-98"><a href="http://lincs.hms.harvard.edu/about/people/" title="People">People</a></li>
-						<li class="page_item page-item-78"><a href="http://lincs.hms.harvard.edu/about/publications/" title="Publications">Publications</a></li>
-						<li class="page_item page-item-100"><a href="http://lincs.hms.harvard.edu/about/outreach/" title="Outreach">Outreach</a></li>
-						<li class="page_item page-item-102"><a href="http://lincs.hms.harvard.edu/about/funding/" title="Funding">Funding</a></li></ul>
-					</li>
-					<li class="page_item page-item-482"><a href="http://lincs.hms.harvard.edu/resources/" title="Resources">Resources</a>
-						<ul class='children'>
-							<li class="page_item page-item-88"><a href="http://lincs.hms.harvard.edu/resources/assays/" title="Assays">Assays</a></li>
-							<li class="page_item page-item-86"><a href="http://lincs.hms.harvard.edu/resources/cell-lines/" title="Cell lines">Cell lines</a></li>
-							<li class="page_item page-item-84"><a href="http://lincs.hms.harvard.edu/resources/perturbagens/" title="Perturbagens">Perturbagens</a></li>
-							<li class="page_item page-item-80"><a href="http://lincs.hms.harvard.edu/resources/software/" title="Software">Software</a></li></ul></li>
-					<li class="page_item page-item-370"><a href="http://lincs.hms.harvard.edu/data-types/" title="Data types">Data types</a>
-						<ul class='children'>
-							<li class="page_item page-item-386"><a href="http://lincs.hms.harvard.edu/data-types/information-perturbagens/" title="Information about perturbagens">Information about perturbagens</a></li>
-							<li class="page_item page-item-375"><a href="http://lincs.hms.harvard.edu/data-types/drug-target-interactions/" title="Drug-target interactions">Drug-target interactions</a></li>
-							<li class="page_item page-item-383"><a href="http://lincs.hms.harvard.edu/data-types/biochemical-responses/" title="Biochemical responses">Biochemical responses</a></li>
-							<li class="page_item page-item-94"><a href="http://lincs.hms.harvard.edu/data-types/mgh-sanger-gi-data/" title="MGH/Sanger Institute growth inhibition data">MGH/Sanger Institute growth inhibition data</a></li>
-							<li class="page_item page-item-70"><a href="http://lincs.hms.harvard.edu/data-types/microscopy-imaging/" title="Microscopy and imaging">Microscopy and imaging</a></li>
-							<li class="page_item page-item-389"><a href="http://lincs.hms.harvard.edu/data-types/transcriptional-responses/" title="Transcriptional responses">Transcriptional responses</a></li></ul></li>
-					<li class="page_item page-item-40"><a href="http://lincs.hms.harvard.edu/data/" title="Data">Data</a>
-						<ul class='children'>
-							<li class="page_item page-item-414"><a href="http://lincs.hms.harvard.edu/data/accessing-data/" title="Accessing data">Accessing data</a></li>
-							<li class="page_item page-item-407"><a href="http://lincs.hms.harvard.edu/data/data-being-collected/" title="Data being collected">Data being collected</a></li>
-							<li class="page_item page-item-831"><a href="http://lincs.hms.harvard.edu/data/repository/" title="Data repository">Data repository</a></li>
-							<li class="page_item page-item-292"><a href="http://lincs.hms.harvard.edu/data/metadata-standards/" title="Metadata and standards">Metadata and standards</a></li>
-							<li class="page_item page-item-784"><a href="http://lincs.hms.harvard.edu/data/isa-tab/" title="ISA-Tab at HMS LINCS">ISA-Tab at HMS LINCS</a></li>
-							{% if user.is_authenticated %}							
-								<li class="page_item page-item-784">Logged in as {{ user }}: <a href="/db/logout" title="Logout">Logout</a></li>
-							{% else %}
-								<li class="page_item page-item-784"><a href="{{ login_url }}" title="Login (HMS LINCS users only)">Login (HMS users only)</a></li>
-							{% endif %}
-							{% if user.is_authenticated and user.is_superuser %}							
-								<li class="page_item page-item-784"><a href="/db/admin" title="Admin">Admin (HMS users only)</a></li>
-							{% endif %}
-							</ul></li>
-					<li class="page_item page-item-36"><a href="http://lincs.hms.harvard.edu/signatures-networks/" title="Signatures and networks">Signatures and networks</a>
-						<ul class='children'>
-							<li class="page_item page-item-74"><a href="http://lincs.hms.harvard.edu/signatures-networks/signatures/" title="Signatures">Signatures</a></li>
-							<li class="page_item page-item-72"><a href="http://lincs.hms.harvard.edu/signatures-networks/networks/" title="Networks">Networks</a></li></ul></li></ul></div>
+	    <div class="menu-topnav-container"><ul><li class="page_item page-item-32 current_page_ancestor current_page_parent"><a href="http://lincs.hms.harvard.edu/" title="Home">Home</a><ul class='children'><li class="page_item page-item-34 current_page_item"><a href="http://lincs.hms.harvard.edu/about/approach/" title="Approach">Approach</a></li><li class="page_item page-item-98"><a href="http://lincs.hms.harvard.edu/about/people/" title="People">People</a></li><li class="page_item page-item-78"><a href="http://lincs.hms.harvard.edu/about/publications/" title="Publications">Publications</a></li></ul></li><li class="page_item page-item-482"><a href="http://lincs.hms.harvard.edu/resources/" title="Resources">Resources</a><ul class='children'><li class="page_item page-item-88"><a href="http://lincs.hms.harvard.edu/resources/assays/" title="Assays">Assays</a></li><li class="page_item page-item-86"><a href="http://lincs.hms.harvard.edu/resources/reagents/" title="Reagents">Reagents</a></li><li class="page_item page-item-80"><a href="http://lincs.hms.harvard.edu/resources/software-tools/" title="Software and Tools">Software and Tools</a></li><li class="page_item page-item-1122"><a href="http://lincs.hms.harvard.edu/resources/tutorials-presentations/" title="Tutorials and Presentations">Tutorials and Presentations</a></li></ul></li><li class="page_item page-item-414"><a href="http://lincs.hms.harvard.edu/data/" title="Data">Data</a><ul class='children'><li class="page_item page-item-292"><a href="http://lincs.hms.harvard.edu/data/metadata-standards/" title="Metadata and standards">Metadata and standards</a></li><li class="page_item page-item-784"><a href="http://lincs.hms.harvard.edu/data/isa-tab/" title="ISA-Tab at HMS LINCS">ISA-Tab at HMS LINCS</a></li></ul></li></ul></div>
 
 	    
 	    <div id="logo-hms"><a href="http://hms.harvard.edu/hms/home.asp">
@@ -155,11 +106,11 @@
 
 	    
 	    <div id="footer-misc">
-	      &copy;2012 HMS LINCS Project 
+	      &copy;2014 HMS LINCS Project 
 	      |
 	      <a href="http://lincs.hms.harvard.edu/feed/">RSS</a>
 	      |
-	      <a href="http://lincs.hms.harvard.edu/wordpress/wp-login.php">Log in</a>	    </div>
+	      <a href="https://lincs.hms.harvard.edu/wordpress/wp-login.php">Log in</a>	    </div>
 	  
 	  </div>
 
