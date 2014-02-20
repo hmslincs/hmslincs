@@ -25,7 +25,6 @@ jQuery(document).ready(
             var $popup = $('.lookup-table-popup.' + cell_class);
             $popup.dialog({
                 resizable: false,
-                show: 'blind',
                 width: 'auto',
                 height: 'auto',
                 position: {my: 'left top', at: 'right top', of: this},
