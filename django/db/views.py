@@ -3119,31 +3119,46 @@ def _write_val_safe(val, is_authenticated=False):
     return smart_str(val, 'utf-8', errors='ignore') if val else ''
   
 def export_sm_images(queryset, is_authenticated=False):
+    '''
+    Export all the small molecule images referenced in the queryset:
+    - skip restricted images if not authenticated
+    - skip and log an error if the image file cannot be found.
+    @param queryset Smallmolecule objects to consider
+    '''
+
     s = StringIO.StringIO()        
-    _file = zipfile.ZipFile(s, "w")
+    filehandle = zipfile.ZipFile(s, "w")
 
     for sm in queryset:
-        location = \
-            '%s/HMSL%s-%s.png' % (
-                COMPOUND_IMAGE_LOCATION, sm.facility_id, sm.salt_id)
+        location = '%s/HMSL%s-%s.png' % (COMPOUND_IMAGE_LOCATION, 
+                                         sm.facility_id, sm.salt_id)
+        image_path = None
         if not sm.is_restricted:
-            # FIXME staticfiles_storage won't work in DEBUG mode
-            ss = dcs.storage.staticfiles_storage
-            if ss.exists(location):
-                _file.write(ss.path(location), arcname=location,
-                            compress_type=zipfile.ZIP_DEFLATED)
+            if settings.DEBUG:
+                image_path = dcs.finders.find(location, all=False)
+            else:
+                ss = dcs.storage.staticfiles_storage
+                if ss.exists(location):
+                    image_path = ss.path(location)
+            if not image_path: 
+                logger.error(str(('image file for sm zip file does not exist',
+                                  location )))
+
         if sm.is_restricted and is_authenticated:
-            _path = os.path.join(
-                settings.STATIC_AUTHENTICATED_FILE_DIR,location)
-            if os.path.exists(_path):
-                _file.write(_path, arcname=location,
-                            compress_type=zipfile.ZIP_DEFLATED)
+            temp = os.path.join(settings.STATIC_AUTHENTICATED_FILE_DIR,location)
+            if os.path.exists(temp):
+                image_path = temp
             else: 
                 logger.error(str(('image file for sm zip file does not exist',
-                                  _path )))
-    _file.close()  
+                                  temp )))
+
+        if image_path:
+            filehandle.write(image_path, arcname=location, 
+                             compress_type=zipfile.ZIP_DEFLATED)
+    filehandle.close()  
     # Grab ZIP file from in-memory, make response with correct MIME-type
-    response =HttpResponse(s.getvalue(),mimetype="application/x-zip-compressed")  
+    response = HttpResponse(s.getvalue(),
+                            mimetype="application/x-zip-compressed")  
     response['Content-Disposition'] = \
         'attachment; filename=%s.zip' % "hms_lincs_molecule_images"
     return response
