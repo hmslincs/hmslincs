@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+
+{% set STATIC_URL = 'http://lincs.hms.harvard.edu/_static/' %}
+<html>
+
+<head>
+	<meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	
+        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.js"></script>
+        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL_2 }}js/main.js"></script>
+        <link rel="stylesheet" type="text/css" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
+        <link rel="stylesheet" type="text/css" href="http://lincs.hms.harvard.edu/wordpress/wp-content/themes/lincs/style.css" />
+        <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/hmslincs.css" />
+        <link rel="stylesheet" type="text/css" href="{{ STATIC_URL_2 }}css/main.css" />
+        <link rel="stylesheet" type="text/css" href="{{ STATIC_URL_2 }}css/sibling_browser.css" />
+        <link rel="stylesheet" type="text/css" href="{{ STATIC_URL_2 }}css/thumbnail_box.css" />
+        
+        {% block head %}
+          <title>HMS LINCS Project</title>
+        {% endblock %}
+</head>
+
+<body>
+
+	<div id="pagebody-wrap">
+	
+		<div id="pagebody">
+		
+			<div id="content" class="{% block contentclass %}{% endblock %}">
+
+                          {% block body %}{% endblock %}
+
+                          {% include "citation_notice.html" %}
+
+			</div><!-- end content -->
+		
+		</div><!-- end pagebody -->
+		
+	</div><!-- end pagebody-wrap -->
+	
+</body>
+
+</html>

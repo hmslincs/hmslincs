@@ -1,0 +1,165 @@
+#content table table {
+  border: 0;
+}
+#content table table td {
+  border-right: 0;
+}
+#content table table td:first-child {
+  padding-left: 0;
+}
+#content table table tr:nth-child(2n) {
+  background-color: inherit;
+}
+td {
+  white-space: inherit;
+}
+#content th {
+  border-bottom: 0;
+}
+
+.lookup-table-container{
+  padding:20px;
+  border:1px solid #aaa;
+  margin-bottom:10px;
+}
+
+.lookup-table-container > h2{
+  margin:0 !important;
+  padding:0 !important;
+}
+
+.lookup-table-container > div{
+  position: relative;
+  margin: 0 auto;
+  width: 870px;
+}
+.lookup-table-container > div > .level-label > div{
+  width:100%;
+  height:100%;
+}
+.lookup-table-hotspot,.lookup-table-container > div > .level-label > div{
+  position: absolute;
+  cursor: pointer;
+  background: #f7ab53;
+  opacity: 0.0;
+  filter: alpha(opacity = 0);
+}
+.lookup-table-hotspot:hover,.lookup-table-container > div > .level-label > div:hover {
+  opacity: 0.35;
+  filter: alpha(opacity = 35);
+}
+.lookup-table-popup {
+  display: none;
+  background: white;
+}
+.lookup-table-container > div > .level-label {
+  display: block;
+  position: absolute;
+  font-size: 0;
+}
+
+#citation-notice { 
+  border-top:1px solid #aaa  !important;
+  padding-top:1ex            !important;
+  padding-left:1em           !important;
+  margin-top:10ex            !important;
+  margin-bottom:0            !important;
+}
+
+#citation-notice p {
+  margin:0                   !important;
+}
+
+#legend-smallbox-lookuptables {
+  width:200px                !important;
+  float:right                !important;
+  margin:0                   !important;
+  margin-left:20px           !important;
+  padding:10px               !important;
+  border:1px solid #aaa      !important;
+}
+
+table.general-info {
+  table-layout: fixed        !important;
+  min-width: 40em            !important;
+  max-width: 60em            !important;
+}
+
+table.general-info td {
+  vertical-align:top         !important;
+}
+
+table.general-info th {
+  width:10em                 !important;
+  white-space:nowrap         !important;
+}
+
+table.general-info td.culture-conditions {
+  white-space:normal         !important;
+}
+
+.titled-figure {
+  text-align: center;
+  float: left;
+}
+.titled-figure-clear {
+  clear: left;
+}
+
+p.caption {
+  font-size: 90%;
+  margin: 0 30px 10px;
+}
+
+.pseudo-button {
+  -webkit-border-radius:4px  !important;
+  -moz-border-radius:4px     !important;
+  border-radius:4px          !important;
+  color:#fff                 !important;
+  font-size:17px             !important;
+  font-weight:bold           !important;
+  padding:6px 11px           !important;
+  text-align:center          !important;
+  margin:0                   !important;
+  border:0                   !important;
+  background-color:#e91      !important;
+  cursor:default             !important;
+}
+.pseudo-button:hover{
+  background-color:#e70      !important;
+}
+
+.breadcrumbs {
+  margin-bottom: 0.5em;
+}
+
+.smaller {
+  font-size: 70%;
+}
+
+a.lightbox-link {
+  cursor: zoom-in;
+}
+img.lightbox {
+  max-width: 97%;
+  height: auto;
+}
+
+/* #signaling-matrix-link{ */
+/*   margin-left:10px           !important; */
+/* } */
+
+/* Override some jquery theme items. */
+
+.ui-dialog .ui-dialog-titlebar {
+  padding: 0 0.4em;
+}
+.ui-dialog {
+  box-shadow: 10px 10px 10px rgba(0,0,0,0.7)
+  margin-left:auto; margin-right:auto;
+}
+
+.ui-widget-overlay {
+  background: #000000;
+  opacity: 0.6;
+}

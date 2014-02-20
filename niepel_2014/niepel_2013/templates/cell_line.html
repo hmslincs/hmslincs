@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block head %}
+<title>Cell line {{ name }}</title>
+{% endblock %}
+
+{% block contentclass %}fullwidth{% endblock %}
+
+{% block body %}
+
+<div class="sibling-browser-container">
+{% set class = 'cell line' %}
+{% include "sibling_browser.html" %}
+
+<div class="breadcrumbs">
+  {% include "breadcrumbs.html" %}
+</div>
+
+<h1>
+  {{ name }}<br/>
+  <span class="smaller">Cell line response profile</span>
+</h1>
+
+</div>
+
+<h2>General information</h2>
+<table class="general-info">
+  <tr>
+    <th>Subtype</th>
+    <td>{{ class_consensus }}</td>
+  </tr>
+  <tr>
+    <th>HMS LINCS ID</th>
+    <td><a href="http://lincs.hms.harvard.edu/db/cells/{{ hmsl_id }}/">{{ hmsl_id }}</a></td>
+  </tr>
+  <tr>
+    <th>COSMIC ID</th>
+    <td>
+      {% if db._cosmic_id %}
+      <a href="http://cancer.sanger.ac.uk/cell_lines/sample/overview?id={{ db._cosmic_id }}">{{ db._cosmic_id }}</a>
+      {% else %}
+      N/A
+      {% endif %}
+    </td>
+  </tr>
+  <tr>
+    <th>ATCC ID</th>
+    <td>
+      {% if db.clProviderName == 'ATCC' %}
+      <a href="http://www.atcc.org/products/all/{{ db.clProviderCatalogID }}.aspx">{{ db.clProviderCatalogID }}</a>
+      {% else %}
+      N/A
+      {% endif %}
+    </td>
+  </tr>
+  <tr>
+    <th>Growth medium</th>
+    <td>
+      {{ growth_medium }}
+    </td>
+  </tr>
+  <tr>
+    <th>Culture conditions</th>
+    <td>
+      {{ culture_temperature }} ; {{ culture_atmosphere }}
+    </td>
+  </tr>
+</table>
+
+<h2>Node-edge graph</h2>
+<p style="text-align: center; float: left;">
+  {{ name }}
+  <br />
+  <a href="img/nodeedge/{{ name }}_large.jpg" class="lightbox-link"><img
+    src="img/nodeedge/{{ name }}.jpg"
+    width="{{ image_sizes.nodeedge.0 }}" height="{{ image_sizes.nodeedge.1 }}" /></a>
+</p>
+<p style="text-align: center; float: left;">
+  {{ class_consensus }} average
+  <br />
+  <a href="img/nodeedge/NetMap_{{ class_consensus }}_large.jpg" class="lightbox-link"><img
+    src="img/nodeedge/NetMap_{{ class_consensus }}.jpg"
+    width="{{ image_sizes.nodeedge.0 }}" height="{{ image_sizes.nodeedge.1 }}" /></a>
+</p>
+<p class="caption" style="clear: left;">Network map of {{ name }} (left) and its corresponding subtype (right) with data normalized across all cell lines.  Outer and inner circles represent basal measurements: circle diameter is proportional to the logarithm of the expression levels (with an offset) and its shading to the logarithm of the phosphorylation levels (each measure is independently normalized across all cell lines). Levels of pFGFR1-4 were not measured. Gray outer circles denote cases in which the expression level was below the detection threshold. Lines between outer and middle circles depict simplified ligand/receptor binding (Supplemental Table S2). The thickness of the arrows between outer and middle circles denotes the strength of pERK or pAKT induction by ligand with maximal response normalized by downstream target across all cell lines and ligands. Gray lines denote responses that were not statistically significant (below 2 standard deviations of the control).</p>
+
+<h2>Characteristic response to major ligands</h2>
+<a href="img/subtype/{{ name }}_large.jpg" class="lightbox-link"><img
+  src="img/subtype/{{ name }}.jpg"
+  width="{{ image_sizes.subtype.0 }}" height="{{ image_sizes.subtype.1 }}" /></a>
+<p class="caption">Key response characteristics for {{ name }} are shown by diamonds in context of the responses across all cell lines from each subtype (colored box plots) following ErbB, FGF, IGF/Ins, and HGF stimulation. Shown are the fraction of significant responses at 1ng/ml stimulation (left), the mean fold change at 100ng/ml (middle), and the pathway bias at 100ng/ml (right).</p>
+
+<h2>Most up- and down-regulated (phospho-) kinases</h2>
+<a href="img/topmeasures/{{ name }}_allRTKs_large.jpg" class="lightbox-link"><img
+  src="img/topmeasures/{{ name }}.jpg"
+  width="{{ image_sizes.topmeasures.0 }}" height="{{ image_sizes.topmeasures.1 }}" /></a>
+<p class="caption">List of the most up-regulated (left) and down-regulated (right) variables in {{ name }}. The diamond denotes the measured value for {{ name }}, the black line shows the distribution of the variable across all cell lines, and the colored bars show the interquartile within the different subtypes.</p>
+
+<h2>Fold change pERK and pAKT response to ligands</h2>
+<a href="img/foldchange/{{ name }}_large.jpg" class="lightbox-link"><img
+  src="img/foldchange/{{ name }}.jpg"
+  width="{{ image_sizes.foldchange.0 }}" height="{{ image_sizes.foldchange.1 }}" /></a>
+<p class="caption">The magnitude of the fold-change response at 100ng/ml ligand stimulation for {{ name }} measured by pERK (left) and pAKT (right) denoted by diamonds. The box plot shows the distribution of the fold-change response for all cell lines, clustered by strength of the pERK or pAKT response. Black lines represent the median, shaded zones the interquartile range, dashed lines the 5% and 95% quantiles, and dots the outliers.</p>
+
+{% endblock %}

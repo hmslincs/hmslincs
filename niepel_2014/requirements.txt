@@ -1,0 +1,5 @@
+-e hg+https://bitbucket.org/ericgazoni/openpyxl@f8659a372af5092a273385a5c791c53b989db18f#egg=openpyxl
+Jinja2
+requests
+Wand
+Pillow

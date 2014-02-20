@@ -1,0 +1,35 @@
+
+<div class="lookup-table-container">
+
+  <h2>p{{ table.name|capitalize }} responses</h2>
+
+  <div>
+
+  {% for link in ligand_links %}
+  <a class="level-label" href="../ligand/{{ link.name }}.html"
+            style="left: {{ link.left }}px; top: {{ link.top }}px;
+       width: {{ link.width }}px; height: {{ link.height }}px;">
+    <div>ligand {{ link.name }}</div>
+  </a>
+  {% endfor %}
+
+  {% for link in cell_line_links %}
+  <a class="level-label" href="../cell_line/{{ link.name }}.html"
+            style="left: {{ link.left }}px; top: {{ link.top }}px;
+       width: {{ link.width }}px; height: {{ link.height }}px;">
+    <div>cell line {{ link.name }}</div>
+  </a>
+  {% endfor %}
+
+  {% for cell in cells %}
+  <div class="lookup-table-hotspot cell-{{ cell.name }}"
+       style="left: {{ cell.left }}px; top: {{ cell.top }}px;
+       width: {{ cell.width }}px; height: {{ cell.height }}px;">
+  </div>
+  {% endfor %}
+
+  <img src="{{ table.image_path }}" id="" border="0" 
+       width="{{ table.image.width / 2}}" height="{{ table.image.height / 2}}" />
+
+</div>
+</div>
