@@ -18,7 +18,7 @@ import zipfile
   
 
 from django.conf import settings
-from django.contrib.staticfiles.finders import FileSystemFinder
+import django.contrib.staticfiles as dcs
 from django.contrib.staticfiles.templatetags.staticfiles import static
 from django.core.servers.basehttp import FileWrapper
 from django.core.urlresolvers import reverse
@@ -62,8 +62,6 @@ facility_salt_batch_id = facility_salt_id + " || '-' || smb.facility_batch_id "
 facility_salt_batch_id_2 = ( 
     " trim( both '-' from ( %s || '-' || coalesce(smb.facility_batch_id::TEXT,'')))" 
     % facility_salt_id ) 
-
-filesystemfinder = FileSystemFinder()
 
 def dump(obj):
     dumpObj(obj)
@@ -2835,28 +2833,28 @@ class SiteSearchTable(PagedTable):
         attrs = {'class': 'paleblue'}
         exclude = {'rank'}
 
-# def can_access_unrestricted_image(image_filename):
-#     '''
-#     A note - restricted images are located in the special 
-#     "STATIC_AUTHENTICATED_FILE_DIR"
-#     since this method will not search there, it will only tell if an 
-#     unrestricted image can be located.  (will always fail for restricted images)
-#     '''
-#     logger.info(str(('try to find unrestricted image', image_filename)) )
-#     matches = filesystemfinder.find(image_filename)
-#     logger.info(str(('result', image_filename, matches)) )
-#     return bool(matches)
-
 def can_access_image(image_filename, is_restricted=False):
     if not is_restricted:
-        matches = filesystemfinder.find(image_filename)
-        return bool(matches)
+        if settings.DEBUG:
+            # In local development mode the staticfiles finders will work, since
+            # django itself uses them to serve the static files. In this mode
+            # collectstatic will probably never be run so we can't use the
+            # storage manager approach used below.
+            exists = bool(dcs.finders.find(image_filename))
+        else:
+            # In the production environment we are running under the web server
+            # and may not have access to the static files source directories, so
+            # we look the file up through the storage manager (i.e. check the
+            # location that collectstatic writes to).
+            exists = dcs.storage.staticfiles_storage.exists(image_filename)
     else:
-        _path = os.path.join(settings.STATIC_AUTHENTICATED_FILE_DIR,
-                             image_filename)
-        v = os.path.exists(_path)
-        if(not v): logger.info(str(('could not find path', _path)))
-        return v
+        path = os.path.join(settings.STATIC_AUTHENTICATED_FILE_DIR,
+                            image_filename)
+        exists = os.access(path, os.R_OK)
+    if not exists:
+        logger.info(str(('could not find path', image_filename,
+                         'restricted=%s' % is_restricted)))
+    return exists
 
 def get_attached_files(facility_id, salt_id=None, batch_id=None):
     return AttachedFile.objects.filter(
@@ -3129,9 +3127,10 @@ def export_sm_images(queryset, is_authenticated=False):
             '%s/HMSL%s-%s.png' % (
                 COMPOUND_IMAGE_LOCATION, sm.facility_id, sm.salt_id)
         if not sm.is_restricted:
-            matches = filesystemfinder.find(location)
-            if matches:
-                _file.write(matches, arcname=location,
+            # FIXME staticfiles_storage won't work in DEBUG mode
+            ss = dcs.storage.staticfiles_storage
+            if ss.exists(location):
+                _file.write(ss.path(location), arcname=location,
                             compress_type=zipfile.ZIP_DEFLATED)
         if sm.is_restricted and is_authenticated:
             _path = os.path.join(
