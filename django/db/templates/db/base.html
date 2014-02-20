@@ -27,6 +27,16 @@
     <li class='{% selectedTag request "^/db/otherreagents/" %}'><a " href="{% url listOtherReagents %}">Other Reagents</a></li>
     <li class='{% selectedTag request "^/db/datasets/" %}'><a " href="{% url listDatasets %}">Datasets</a></li>
     <li class='{% selectedTag request "^/db/libraries/" %}'><a " href="{% url listLibraries %}">Libraries</a></li>
+    <li class="nav-menu-separator"></li>
+    {% if user.is_authenticated %}
+      <li><a href="/db/logout" title="Logout">Logout</a></li>
+      {% if user.is_superuser %}
+        <li><a href="/db/admin" title="Admin">Admin</a></li>
+      {% endif %}
+      <li><em>Logged in as <strong>{{ user }}</strong></em></li>
+    {% else %}
+      <li><a href="{{ login_url }}" title="Login">Login</a></li>
+    {% endif %}
   </ul>
 
 {% endblock %}
