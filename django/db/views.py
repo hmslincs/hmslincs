@@ -3127,9 +3127,10 @@ def export_sm_images(queryset, is_authenticated=False):
             '%s/HMSL%s-%s.png' % (
                 COMPOUND_IMAGE_LOCATION, sm.facility_id, sm.salt_id)
         if not sm.is_restricted:
-            matches = filesystemfinder.find(location)
-            if matches:
-                _file.write(matches, arcname=location,
+            # FIXME staticfiles_storage won't work in DEBUG mode
+            ss = dcs.storage.staticfiles_storage
+            if ss.exists(location):
+                _file.write(ss.path(location), arcname=location,
                             compress_type=zipfile.ZIP_DEFLATED)
         if sm.is_restricted and is_authenticated:
             _path = os.path.join(
