@@ -2033,7 +2033,6 @@ class DataSetManager():
                 ' WHERE sm.id in '
                 '    (SELECT distinct(smallmolecule_id) FROM db_datarecord dr WHERE dr.dataset_id=%s) '
                 ' order by sm.facility_id' )
-        logger.info(sql);
         cursor.execute(sql, [dataset_id])
         
         sm_dict = dictfetchall(cursor)
