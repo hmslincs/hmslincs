@@ -865,15 +865,23 @@ def datasetDetailSmallMolecules(request, facility_id):
             if(dataset.is_restricted and not request.user.is_authenticated()):
                 raise Http401
             manager = DataSetManager(dataset)
-            return send_to_file(
-                outputType, 'small_molecules_for_'+ str(facility_id), 
-                SmallMoleculeTable(manager.small_molecule_queryset), 
-                manager.small_molecule_queryset, 'smallmolecule' )
+            
+            if outputType == '.zip':
+                filename = 'sm_images_for_dataset_' + str(dataset.facility_id)
+                return export_sm_images(manager.small_molecule_queryset, 
+                                        request.user.is_authenticated(),
+                                        output_filename=filename)
+            else:
+                return send_to_file(
+                    outputType, 'small_molecules_for_'+ str(facility_id), 
+                    SmallMoleculeTable(manager.small_molecule_queryset), 
+                    manager.small_molecule_queryset, 'smallmolecule' )
         except DataSet.DoesNotExist:
             raise Http404
     try:
         details = datasetDetail(request,facility_id,'small_molecules')
         details.setdefault('heading', 'Small Molecules Studied')
+        details['smallmolecule_images'] = True
         return render(request,'db/datasetDetailRelated.html', details)
     except Http401, e:
         return HttpResponse('Unauthorized', status=401)
@@ -2018,11 +2026,14 @@ class DataSetManager():
     def small_molecules_for_dataset(self,dataset_id):
         cursor = connection.cursor()
         sql = ( ' SELECT *,' + facility_salt_id + ' as facility_salt, '
-                ' (lincs_id is null) as lincs_id_null, pubchem_cid is null as pubchem_cid_null '
+                ' (lincs_id is null) as lincs_id_null, pubchem_cid is null as pubchem_cid_null, '
+                " (case when sm.is_restricted then '' else sm.facility_id || '-' || sm.salt_id end) "
+                "    as unrestricted_image_facility_salt "
                 ' FROM db_smallmolecule sm '
                 ' WHERE sm.id in '
                 '    (SELECT distinct(smallmolecule_id) FROM db_datarecord dr WHERE dr.dataset_id=%s) '
                 ' order by sm.facility_id' )
+        logger.info(sql);
         cursor.execute(sql, [dataset_id])
         
         sm_dict = dictfetchall(cursor)
@@ -3118,7 +3129,7 @@ def _write_val_safe(val, is_authenticated=False):
     # for #185, remove 'None' values
     return smart_str(val, 'utf-8', errors='ignore') if val else ''
   
-def export_sm_images(queryset, is_authenticated=False):
+def export_sm_images(queryset, is_authenticated=False, output_filename=None):
     '''
     Export all the small molecule images referenced in the queryset:
     - skip restricted images if not authenticated
@@ -3129,7 +3140,15 @@ def export_sm_images(queryset, is_authenticated=False):
     s = StringIO.StringIO()        
     filehandle = zipfile.ZipFile(s, "w")
 
-    for sm in queryset:
+    # wrapper to use dicts as objects
+    class AttributeDict(dict): 
+        __getattr__ = dict.__getitem__
+
+    for smobj in queryset:
+        if isinstance(smobj,dict):
+            sm = AttributeDict(smobj)
+        else:
+            sm = smobj
         location = '%s/HMSL%s-%s.png' % (COMPOUND_IMAGE_LOCATION, 
                                          sm.facility_id, sm.salt_id)
         image_path = None
@@ -3159,8 +3178,10 @@ def export_sm_images(queryset, is_authenticated=False):
     # Grab ZIP file from in-memory, make response with correct MIME-type
     response = HttpResponse(s.getvalue(),
                             mimetype="application/x-zip-compressed")  
+    
+    output_filename = output_filename or 'hms_lincs_molecule_images'
     response['Content-Disposition'] = \
-        'attachment; filename=%s.zip' % "hms_lincs_molecule_images"
+        'attachment; filename=%s.zip' % output_filename
     return response
 
 def export_as_csv(name,col_key_name_map, cursor=None, queryset=None, 
