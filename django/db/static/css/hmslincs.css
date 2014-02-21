@@ -6,8 +6,7 @@
   float: right;
   width:200px;
 }
-
-img.detail_table, img.datasetcontent {
+img:not(.compound_image_thumbnail .compound_image){
 	max-width: 100%;
 	height: auto;
 }
@@ -22,7 +21,8 @@ img.detail_table, img.datasetcontent {
  right:1em;
  height: 16em;
 }
-.compound_image_thumbnail {
+
+img.compound_image_thumbnail {
 	height: 78px;
 	width: 78px;
 }
