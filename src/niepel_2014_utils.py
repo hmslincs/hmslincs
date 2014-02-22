@@ -6,16 +6,20 @@ import errno
 import codecs
 import cPickle as pickle
 import shutil
+import shell_utils as su
 from PIL import Image
+from django.template.loader import render_to_string
 
 __all__ = ['resource_path', 'create_output_path', 'print_status_accessible',
            'PASS', 'FAIL', 'render_template', 'copy_images', 'stash_put',
-           'stash_get', 'makedirs_exist_ok', 'print_partial', 'PASS_nl']
+           'stash_get', 'print_partial', 'PASS_nl', 'BASE_URL']
 
 # Environment variable which points to the resource library.
 _ENV_RESOURCE_PATH = 'RESOURCE_PATH'
 
-DOCROOT = op.abspath(op.join(op.dirname(__file__), os.pardir, 'signaling'))
+DOCROOT = op.abspath(op.join(op.dirname(__file__), os.pardir,
+                             'temp', 'breast_cancer_signaling_output'))
+BASE_URL = '/explore/breast_cancer_signaling/'
 
 def resource_path(*elements):
     "Canonicalize a path relative to the resource library."
@@ -31,7 +35,7 @@ def resource_path(*elements):
 def create_output_path(*elements):
     "Create and canonicalize a path relative to the output directory."
     path = op.join(DOCROOT, *elements)
-    makedirs_exist_ok(path)
+    su.mkdirp(path)
     return path
 
 def print_status_accessible(*elements):
@@ -63,17 +67,10 @@ def FAIL():
     _print_status_inline(u'\u2715')
 
 
-import jinja2
-@jinja2.contextfunction
-def get_context(c):
-    return c
-
-def render_template(template, data, dirname, basename):
+def render_template(template_name, data, dirname, basename):
     "Render a template with data to a file specified by dirname and basename."
     out_filename = op.join(dirname, basename)
-    template.globals['context'] = get_context
-    template.globals['callable'] = callable
-    content = template.render(data)
+    content = render_to_string(template_name, data)
     with codecs.open(out_filename, 'w', 'utf-8') as out_file:
         out_file.write(content)
 
@@ -126,28 +123,23 @@ def copy_images(image_dirs, base_filename, source_path, dest_path_elements,
             else:
                 raise
 
+def _stash_path(name):
+    src_path = op.dirname(__file__)
+    return op.abspath(op.join(src_path, op.pardir,
+                              'temp', 'stash', name + '.pck'))
+
 def stash_put(name, obj):
     "Stash an object by name (to disk) for later retrieval."
-    src_path = op.dirname(__file__)
-    path = op.join(src_path, op.pardir, 'stash', name + '.pck')
-    path = op.abspath(path)
-    makedirs_exist_ok(op.dirname(path))
+    path = _stash_path(name)
+    su.mkdirp(op.dirname(path))
     pickle_file = open(path, 'w');
     pickle.dump(obj, pickle_file)
 
 def stash_get(name):
     "Retrieve an object from the stash by name."
-    src_path = op.dirname(__file__)
-    path = op.join(src_path, op.pardir, 'stash', name + '.pck')
+    path = _stash_path(name)
     try:
         pickle_file = open(path)
         return pickle.load(pickle_file)
     except (IOError, EOFError, pickle.UnpicklingError, ValueError):
         return None
-
-def makedirs_exist_ok(name):
-    try:
-        os.makedirs(name)
-    except OSError as e:
-        if e.errno != errno.EEXIST:
-            raise

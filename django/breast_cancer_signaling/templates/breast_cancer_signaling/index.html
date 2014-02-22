@@ -1,34 +1,6 @@
-{% extends "base.html" %}
+{% extends "breast_cancer_signaling/base.html" %}
 
-{% block head %}
-<title>Breast Cancer Signaling Responses</title>
-{% endblock %}
-
-{% block contentclass %}fullwidth{% endblock %}
-
-
-{% macro titled_figure(class, img_type, name, width, height,
-                       link=true, fname_prefix='') %}
-  <p class="titled-figure">
-    {% if link %}<a href="explore/{{ class }}/{{ name }}.html">{% endif %}
-    {{ name }}<br />
-    <img src="explore/{{ class }}/img/{{ img_type }}/{{ fname_prefix }}{{ name }}.jpg"
-         width="{{ width }}" height="{{ height }}" />
-    {% if link %}</a>{% endif %}
-  </p>
-{% endmacro %}
-
-
-{% macro titled_figures(class, img_type, names, width, height,
-                        link=true, fname_prefix='') %}
-  {% for name in names %}
-    {{ titled_figure(class, img_type, name, width, height, link, fname_prefix) }}
-  {% endfor %}
-  <p class="titled-figure-clear"></p>
-{% endmacro %}
-
-
-{% block body %}
+{% block content %}
 
 <h1>Breast Cancer Signaling Responses</h1>
 
@@ -51,11 +23,11 @@ refer to the methods and results section of the publication [LINK].</p>
 
 <div class="thumbnail-box">
   <p>
-  <a href="explore/signaling_response_matrix/index.html"
-     title="Click for a summary of response data and feature classifications">
-    <img src="{{ STATIC_URL_2 }}img/table_akt_10.gif"/>
-    <img src="{{ STATIC_URL_2 }}img/table_erk_10.gif"/>
-  </a></p>
+    <a href="{{ BASE_URL }}matrix/"
+       title="Click for a summary of response data and feature classifications">
+      <img src="{{ STATIC_URL }}breast_cancer_signaling/img/table_akt_10.gif"/>
+      <img src="{{ STATIC_URL }}breast_cancer_signaling/img/table_erk_10.gif"/>
+    </a></p>
   <p class="thumbnail-caption">Click for a summary of response data and feature classifications</p>
 </div>
 
@@ -63,9 +35,7 @@ refer to the methods and results section of the publication [LINK].</p>
 
 <h2 id="data-by-cell-line">Data by Cell Line</h2>
 
-{% set class = 'cell line' %}
-{% set all_names = cell_line_names %}
-{% include "sibling_browser.html" %}
+{% include "breast_cancer_signaling/sibling_browser.html" with class="cell line" all_names=cell_line_names %}
 
 </div>
 
@@ -82,8 +52,7 @@ middle circles denote the strength of pERK (blue) or pAkt (red) induction by
 ligand. The maximal response by ligand was normalized across all responses and
 gray lines denote responses that are not significant.</p>
 
-{{ titled_figures('cell_line', 'nodeedge', ['MCF7', 'BT-20', 'MDA-MB-453'],
-                  250, 235) }}
+{% include "breast_cancer_signaling/titled_figures.html" with a=fig_args.cell_line_nodeedge %}
 
 <p>To put the individual network maps into context we created three maps that
 represent each clinical subtype (TNBC, HER2amp, HR+). To create these maps we
@@ -91,8 +60,7 @@ used the trimmed mean of all values of a given subtype, rather than the mean,
 to reduce artifacts that might occur due to ligand/receptor combinations that
 only result in sporadic responses.</p>
 
-{{ titled_figures('cell_line', 'nodeedge', ['TNBC', 'HER2amp', 'HR+'],
-                  250, 235, link=false, fname_prefix='NetMap_') }}
+{% include "breast_cancer_signaling/titled_figures.html" with a=fig_args.subtype_nodeedge %}
 
 <p>We can also plot the distribution of individual signaling features by
 subtype. Here we show the fraction of responses to low doses of ligands by pERK
@@ -103,7 +71,7 @@ with high doses of ligand or the pERK/pAkt induction bias. We then show the data
 of individual cell types by a diamond overlayed on the overall distribution of the
 subtypes. </p>
 
-{{ titled_figures('cell_line', 'subtype', ['MCF7'], 700, 237) }}
+{% include "breast_cancer_signaling/titled_figures.html" with a=fig_args.cell_line_subtype %}
 
 <p>Also the basal expression and phosphorylation levels of RTKs have a wide
 distribution across all cell lines. For each cell line we can highlight the
@@ -111,24 +79,22 @@ most upregulated and downregulated basal measurements. We indicated the level
 of a given cell line by a diamond overlayed on the distribution of the same measurement
 across all lines. The distributions by subtype are indicated as colored bars.</p>
 
-{{ titled_figures('cell_line', 'topmeasures', ['MCF7'], 700, 385) }}
+{% include "breast_cancer_signaling/titled_figures.html" with a=fig_args.cell_line_topmeasures %}
 
 <p>The magnitude of response to individual ligands varies significantly from one
 cell line to the next. We can illustrate this range of responses as boxplot for each
 ligand for pERK and pAkt fold-changes. Again, we can indicate the measurement of any
 given cell line as a diamond, to put a single cell line into its appropriate context.</p>
 
-{{ titled_figures('cell_line', 'foldchange', ['MCF7'], 700, 237) }}
+{% include "breast_cancer_signaling/titled_figures.html" with a=fig_args.cell_line_foldchange %}
 
 <div class="sibling-browser-container">
 
 <h2 id="data-by-ligand">Data by Ligand</h2>
 
-{% set class = 'ligand' %}
-{% set all_names = ligand_names %}
-{% include "sibling_browser.html" %}
+{% include "breast_cancer_signaling/sibling_browser.html" with class="ligand" all_names=ligand_names %}
 
-</div> <!-- <div class="sibling-browser-container"> -->
+</div>
 
 <p>We can display the full time courses for individual ligand/downstream kinase combination
 across all cell lines to see both the variance in the kinetics and the magnitude
@@ -137,7 +103,7 @@ high dose treatment and the two different downstream targets. We chose six cell 
 that are highlighted in every plot that can be used a reference they that cover much
 of the variablity observed in the whole data set.</p>
 
-{{ titled_figures('ligand', 'timecourse', ['EGF'], 700, 233) }}
+{% include "breast_cancer_signaling/titled_figures.html" with a=fig_args.ligand_timecourse %}
 
 <p>We can then classify these time course into four kinetic response classes
 (sustained, transient, late, none) and plot their distribution by target and 
@@ -146,7 +112,7 @@ classes, like the ErbB/FGF responses being mainly sustained or the INS/IGF respo
 being often late. We can then compare the response to individual ligands to the
 main ligand-families.</p>
 
-{{ titled_figures('ligand', 'responsekinetics', ['EGF'], 700, 245) }}
+{% include "breast_cancer_signaling/titled_figures.html" with a=fig_args.ligand_responsekinetics %}
 
 <p>Even though we collected responses only at two doses, we can
 use this data to approximate the sensitivity of any cell line to a particular
@@ -154,7 +120,7 @@ ligand. Analogous to the time courses above, we can plot the response of all cel
 lines to a specific ligand measured by a specific downstream kinase across the two doses.
 </p>
 
-{{ titled_figures('ligand', 'doseresponse', ['EGF'], 700, 233) }}
+{% include "breast_cancer_signaling/titled_figures.html" with a=fig_args.ligand_doseresponse %}
 
 <p>We find that there is a significant range in the magnitude of responses both at
 low and high dose. This means we can classify these sensitivities based on
@@ -165,7 +131,7 @@ kinase combination. This shows that certain ligands measured by certain targets
 predominantly fall into certain classes, like the ErbB and FGF responses being higher
 at high dose than at low dose meaning they are rarely saturated at low dose.</p>
 
-{{ titled_figures('ligand', 'sensitivity', ['EGF'], 700, 292) }}
+{% include "breast_cancer_signaling/titled_figures.html" with a=fig_args.ligand_sensitivity %}
 
 <p>When we compare the pERK and pAkt response for the same ligand in a single cell line
 (see above) it is apparent that individual ligands induce a pathway bias. We can plot
@@ -173,6 +139,6 @@ this bias as the response angle distribution or boxplots to compare individual l
 to the remaining ligands. When browsing individual ligands we highlight it in black so
 it stands out in contrast to the other ligands.</p>
 
-{{ titled_figures('ligand', 'pathwaybias', ['EGF'], 700, 292) }}
+{% include "breast_cancer_signaling/titled_figures.html" with a=fig_args.ligand_pathwaybias %}
 
 {% endblock %}

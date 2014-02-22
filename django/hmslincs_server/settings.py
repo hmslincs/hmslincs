@@ -222,6 +222,7 @@ INSTALLED_APPS = (
     'pathway',
     'responses',
     '10_1038_nchembio_1337__fallahi_sichani_2013',
+    'breast_cancer_signaling',
     # # 'south', #for schema migrations
     # # 'fts', # for full text search
 )

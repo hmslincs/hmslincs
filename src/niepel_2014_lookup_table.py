@@ -1,10 +1,10 @@
 from __future__ import print_function, division
-from niepel_2013 import *
-import jinja2
+from niepel_2014_utils import *
 import wand.image, wand.color
 import math
 import os
 import re
+from django.conf import settings
 
 # Table image - 870px wide, 2x resolution.
 DESIRED_WIDTH_PX = 870 * 2
@@ -14,13 +14,9 @@ PLOT_DIMENSIONS = (350, 257)
 
 lookup_path = resource_path('SignalingPage', 'LookupTablesPage')
 
-template_env = jinja2.Environment(
-    loader=jinja2.PackageLoader('niepel_2013', 'templates'))
-table_template = template_env.get_template('lookup_table.html')
-
 panel_path = os.path.join(lookup_path, 'subfigures')
 
-img_path_elements = ('explore', 'signaling_response_matrix', 'img')
+img_path_elements = ('matrix', 'img')
 html_path = os.path.dirname(create_output_path(*img_path_elements))
 
 akt_pdf_filename = os.path.join(lookup_path, 'lookup table pAKT.pdf')
@@ -109,7 +105,7 @@ for column, cell_line in enumerate(cell_line_names):
 
 data = {
     'breadcrumbs': [
-        {'url': '../../start.html', 'text': 'Start'},
+        {'url': BASE_URL, 'text': 'Start'},
         {'url': '', 'text': 'Response matrix'},
     ],
     'ligand_links': ligand_links,
@@ -120,19 +116,24 @@ data = {
             'name': 'akt',
             'image_path': 'img/table_akt.png',
             'image': img_akt,
+            'image_width': img_akt.width / 2,
+            'image_height': img_akt.height / 2,
             },
         {
             'name': 'erk',
             'image_path': 'img/table_erk.png',
             'image': img_erk,
+            'image_width': img_erk.width / 2,
+            'image_height': img_erk.height / 2,
             },
         ],
     'plot_dimensions': PLOT_DIMENSIONS,
-    'STATIC_URL_2': '../.etc/',
-    'DOCROOT': '../../',
+    'STATIC_URL': settings.STATIC_URL,
+    'BASE_URL': BASE_URL,
 }
 
-render_template(table_template, data, html_path, 'index.html')
+render_template('breast_cancer_signaling/lookup_table.html', data,
+                html_path, 'index.html')
 
 print()
 image_sizes = {'': PLOT_DIMENSIONS}

@@ -1,17 +1,13 @@
 from __future__ import print_function
-from niepel_2013 import *
+from niepel_2014_utils import *
 import openpyxl
-import jinja2
 import requests
 import os
 import re
+from django.conf import settings
 
 
 ligand_path = resource_path('SignalingPage', 'LigandPage')
-
-template_env = jinja2.Environment(
-    loader=jinja2.PackageLoader('niepel_2013', 'templates'))
-ligand_template = template_env.get_template('ligand.html')
 
 image_dirs = [
     ('doseresponse', 'DoseResponsePlots'),
@@ -32,7 +28,7 @@ image_sizes = {
 image_sizes_large = dict((name, (width * 2, height * 2))
                          for (name, (width, height)) in image_sizes.items())
 
-img_path_elements = ('explore', 'ligand', 'img')
+img_path_elements = ('ligand', 'img')
 html_path = create_output_path(*img_path_elements[:-1])
 
 print_partial('ligand info')
@@ -143,13 +139,13 @@ stash_put('ligands', all_data)
 
 print()
 common = {
-          'all_names': [data['name'] for data in all_data],
-          'image_sizes': image_sizes,
-          'STATIC_URL_2': '../.etc/',
-          'DOCROOT': '../../',
-         }
+    'all_names': [data['name'] for data in all_data],
+    'image_sizes': image_sizes,
+    'STATIC_URL': settings.STATIC_URL,
+    'BASE_URL': BASE_URL,
+}
 breadcrumb_base = [
-    {'url': '../../start.html', 'text': 'Start'},
+    {'url': BASE_URL, 'text': 'Start'},
     {'url': None, 'text': 'Ligands'},
 ]
 for i, data in enumerate(all_data):
@@ -159,7 +155,8 @@ for i, data in enumerate(all_data):
     data.update(common)
     data['breadcrumbs'] = breadcrumb_base + [{'url': '', 'text': data['name']}]
     html_filename = data['name'] + '.html'        
-    render_template(ligand_template, data, html_path, html_filename)
+    render_template('breast_cancer_signaling/ligand.html', data,
+                    html_path, html_filename)
     image_filename = data['name'] + '.png'
     copy_images(image_dirs, image_filename, ligand_path, img_path_elements,
                 new_sizes=image_sizes, new_format='jpg',

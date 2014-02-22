@@ -1,17 +1,13 @@
 from __future__ import print_function
-from niepel_2013 import *
+from niepel_2014_utils import *
 import openpyxl
-import jinja2
 import requests
 import os
 import re
+from django.conf import settings
 
 
 cellline_path = resource_path('SignalingPage', 'CellLinePage')
-
-template_env = jinja2.Environment(
-    loader=jinja2.PackageLoader('niepel_2013', 'templates'))
-cellline_template = template_env.get_template('cell_line.html')
 
 image_dirs = [
     ('foldchange', 'FoldChangeBoxPlot'),
@@ -37,7 +33,7 @@ image_sizes_large['topmeasures'][1] = 1867
 
 topmeasures_large_suffix = '_allRTKs'
 
-img_path_elements = ('explore', 'cell_line', 'img')
+img_path_elements = ('cell_line', 'img')
 html_path = create_output_path(*img_path_elements[:-1])
 
 print_partial('cell line info')
@@ -84,7 +80,7 @@ for row in cellline_info:
             if data['db']['clAlternateID']:
                 cosmic_match = re.search(r'COSMIC:\s*(\d+)', data['db']['clAlternateID'])
                 if cosmic_match:
-                    data['db']['_cosmic_id'] = cosmic_match.group(1)
+                    data['db']['cosmic_id'] = cosmic_match.group(1)
         else:
             FAIL()
             all_ok = False
@@ -99,13 +95,13 @@ stash_put('cell_lines', all_data)
 
 print()
 common = {
-          'all_names': [data['name'] for data in all_data],
-          'image_sizes': image_sizes,
-          'STATIC_URL_2': '../.etc/',
-          'DOCROOT': '../../',
-         }
+    'all_names': [data['name'] for data in all_data],
+    'image_sizes': image_sizes,
+    'STATIC_URL': settings.STATIC_URL,
+    'BASE_URL': BASE_URL,
+}
 breadcrumb_base = [
-    {'url': '../../start.html', 'text': 'Start'},
+    {'url': BASE_URL, 'text': 'Start'},
     {'url': None, 'text': 'Cell lines'},
 ]
 for i, data in enumerate(all_data):
@@ -115,7 +111,8 @@ for i, data in enumerate(all_data):
     data.update(common)
     data['breadcrumbs'] = breadcrumb_base + [{'url': '', 'text': data['name']}]
     html_filename = data['name'] + '.html'
-    render_template(cellline_template, data, html_path, html_filename)
+    render_template('breast_cancer_signaling/cell_line.html', data,
+                    html_path, html_filename)
     image_filename = data['name'] + '.png'
     copy_images(image_dirs, image_filename,
                 cellline_path, img_path_elements,

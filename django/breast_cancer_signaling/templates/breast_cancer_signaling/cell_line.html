@@ -1,19 +1,16 @@
-{% extends "base.html" %}
+{% extends "breast_cancer_signaling/base.html" %}
 
-{% block head %}
-<title>Cell line {{ name }}</title>
+{% block title %}
+  Cell line {{ name }} - {{ block.super }}
 {% endblock %}
 
-{% block contentclass %}fullwidth{% endblock %}
-
-{% block body %}
+{% block content %}
 
 <div class="sibling-browser-container">
-{% set class = 'cell line' %}
-{% include "sibling_browser.html" %}
+{% include "breast_cancer_signaling/sibling_browser.html" with class='cell line' %}
 
 <div class="breadcrumbs">
-  {% include "breadcrumbs.html" %}
+  {% include "breast_cancer_signaling/breadcrumbs.html" %}
 </div>
 
 <h1>
@@ -36,8 +33,8 @@
   <tr>
     <th>COSMIC ID</th>
     <td>
-      {% if db._cosmic_id %}
-      <a href="http://cancer.sanger.ac.uk/cell_lines/sample/overview?id={{ db._cosmic_id }}">{{ db._cosmic_id }}</a>
+      {% if db.cosmic_id %}
+      <a href="http://cancer.sanger.ac.uk/cell_lines/sample/overview?id={{ db.cosmic_id }}">{{ db.cosmic_id }}</a>
       {% else %}
       N/A
       {% endif %}

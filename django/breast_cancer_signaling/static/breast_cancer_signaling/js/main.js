@@ -10,7 +10,7 @@ jQuery(document).ready(
                 $sbl.css('bottom', '');
             } else {
                 // FIXME: figure out why we need the extra +8
-                $sbl.css('bottom', ($sb.height() + 8) + 'px');
+                $sbl.css('bottom', '-6px');
             }
         });
         $sb.mouseleave(function() {

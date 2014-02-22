@@ -1,19 +1,16 @@
-{% extends "base.html" %}
+{% extends "breast_cancer_signaling/base.html" %}
 
-{% block head %}
-<title>Responses to ligand {{ name }}</title>
+{% block title %}
+  Ligand {{ name }} - {{ block.super }}
 {% endblock %}
 
-{% block contentclass %}fullwidth{% endblock %}
-
-{% block body %}
+{% block content %}
 
 <div class="sibling-browser-container">
-{% set class = 'ligand' %}
-{% include "sibling_browser.html" %}
+{% include "breast_cancer_signaling/sibling_browser.html" with class='ligand' %}
 
 <div class="breadcrumbs">
-  {% include "breadcrumbs.html" %}
+  {% include "breast_cancer_signaling/breadcrumbs.html" %}
 </div>
 
 <h1>
