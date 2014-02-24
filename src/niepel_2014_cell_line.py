@@ -4,6 +4,7 @@ import openpyxl
 import requests
 import os
 import re
+import shutil
 from django.conf import settings
 
 
@@ -33,14 +34,19 @@ image_sizes_large['topmeasures'][1] = 1867
 
 topmeasures_large_suffix = '_allRTKs'
 
-img_path_elements = ('cell_line', 'img')
-html_path = create_output_path(*img_path_elements[:-1])
+html_path_elements = ['cell_line']
+img_path_elements = html_path_elements + ['img']
+data_path_elements = html_path_elements + ['data']
+html_path = create_output_path(*html_path_elements)
+data_path = create_output_path(*data_path_elements)
 
 print_partial('cell line info')
+cellline_filename = os.path.join(cellline_path, 'CellLine_info.xlsx')
+dest_filename = os.path.join(data_path, 'cell_line_info.xlsx')
+shutil.copy(cellline_filename, dest_filename)
 cellline_info = stash_get('cellline_info')
 if not cellline_info:
-    filename = os.path.join(cellline_path, 'CellLine_info.xlsx')
-    workbook = openpyxl.load_workbook(filename, use_iterators=True)
+    workbook = openpyxl.load_workbook(cellline_filename, use_iterators=True)
     sheet = workbook.worksheets[0]
     sheet_iter = sheet.iter_rows()
     sheet_iter.next() # skip header row (iter_rows API for offsets is buggy)
