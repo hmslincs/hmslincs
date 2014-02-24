@@ -4,10 +4,12 @@ import wand.image, wand.color
 import math
 import os
 import re
+import argparse
 from django.conf import settings
 
 # Table image - 870px wide, 2x resolution.
-DESIRED_WIDTH_PX = 870 * 2
+TABLE_WIDTH = 870
+DESIRED_WIDTH_PX = TABLE_WIDTH * 2
 
 # Size of individual plots in the popups.
 PLOT_DIMENSIONS = (350, 257)
@@ -22,6 +24,12 @@ html_path = os.path.dirname(create_output_path(*img_path_elements))
 akt_pdf_filename = os.path.join(lookup_path, 'lookup table pAKT.pdf')
 erk_pdf_filename = os.path.join(lookup_path, 'lookup table pERK.pdf')
 
+parser = argparse.ArgumentParser(
+    description='Build niepel_2014 cell line page resources')
+parser.add_argument('-n', '--no-images', action='store_true', default=False,
+                    help='Skip building images')
+args = parser.parse_args()
+
 print_partial('determine PDF resolution')
 img_tmp = wand.image.Image(filename=akt_pdf_filename)
 # Use img_tmp height because the source image is rotated 90 degrees.
@@ -33,19 +41,21 @@ PASS_nl()
 print_partial(os.path.basename(akt_pdf_filename))
 img_akt = wand.image.Image(filename=akt_pdf_filename, resolution=resolution)
 img_akt.rotate(-90)
-with wand.image.Image(width=img_akt.width, height=img_akt.height,
-                      background=wand.color.Color('white')) as img_out:
-    img_out.composite(image=img_akt, left=0, top=0)
-    img_out.save(filename=os.path.join(html_path, 'img', 'table_akt.png'))
+if not args.no_images:
+    with wand.image.Image(width=img_akt.width, height=img_akt.height,
+                          background=wand.color.Color('white')) as img_out:
+        img_out.composite(image=img_akt, left=0, top=0)
+        img_out.save(filename=os.path.join(html_path, 'img', 'table_akt.png'))
 PASS_nl()
 
 print_partial(os.path.basename(erk_pdf_filename))
 img_erk = wand.image.Image(filename=erk_pdf_filename, resolution=resolution)
 img_erk.rotate(-90)
-with wand.image.Image(width=img_erk.width, height=img_erk.height,
-                      background=wand.color.Color('white')) as img_out:
-    img_out.composite(image=img_erk, left=0, top=0)
-    img_out.save(filename=os.path.join(html_path, 'img', 'table_erk.png'))
+if not args.no_images:
+    with wand.image.Image(width=img_erk.width, height=img_erk.height,
+                          background=wand.color.Color('white')) as img_out:
+        img_out.composite(image=img_erk, left=0, top=0)
+        img_out.save(filename=os.path.join(html_path, 'img', 'table_erk.png'))
 PASS_nl()
 
 # Constants determined empirically by inspecting the output images (and tweaking
@@ -115,14 +125,12 @@ data = {
         {
             'name': 'akt',
             'image_path': 'img/table_akt.png',
-            'image': img_akt,
             'image_width': img_akt.width / 2,
             'image_height': img_akt.height / 2,
             },
         {
             'name': 'erk',
             'image_path': 'img/table_erk.png',
-            'image': img_erk,
             'image_width': img_erk.width / 2,
             'image_height': img_erk.height / 2,
             },
@@ -135,18 +143,19 @@ data = {
 render_template('breast_cancer_signaling/lookup_table.html', data,
                 html_path, 'index.html')
 
-print()
-image_sizes = {'': PLOT_DIMENSIONS}
-for i, cell in enumerate(cells):
-    msg = 'rendering image %d/%d %s...' % (i+1, len(cells), cell['name'])
-    # FIXME The string padding (50) should be calculated dynamically.
-    print_partial('\r' + msg.ljust(50))
-    image_filename = cell['name'] + '.png'
-    # We are only copying one image, but we can reuse copy_images with a little
-    # creativity in crafting the first arg.
-    copy_images([('', 'subfigures')], image_filename,
-                lookup_path, img_path_elements, permissive=True,
-                new_sizes=image_sizes, new_format='jpg',
-                format_options={'quality': 85, 'optimize': True})
-print_partial("done")
-PASS_nl()
+if not args.no_images:
+    print()
+    image_sizes = {'': PLOT_DIMENSIONS}
+    for i, cell in enumerate(cells):
+        msg = 'rendering image %d/%d %s...' % (i+1, len(cells), cell['name'])
+        # FIXME The string padding (50) should be calculated dynamically.
+        print_partial('\r' + msg.ljust(50))
+        image_filename = cell['name'] + '.png'
+        # We are only copying one image, but we can reuse copy_images with a
+        # little creativity in crafting the first arg.
+        copy_images([('', 'subfigures')], image_filename,
+                    lookup_path, img_path_elements, permissive=True,
+                    new_sizes=image_sizes, new_format='jpg',
+                    format_options={'quality': 85, 'optimize': True})
+    print_partial("done")
+    PASS_nl()

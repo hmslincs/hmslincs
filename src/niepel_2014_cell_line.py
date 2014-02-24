@@ -5,6 +5,7 @@ import requests
 import os
 import re
 import shutil
+import argparse
 from django.conf import settings
 
 
@@ -39,6 +40,12 @@ img_path_elements = html_path_elements + ['img']
 data_path_elements = html_path_elements + ['data']
 html_path = create_output_path(*html_path_elements)
 data_path = create_output_path(*data_path_elements)
+
+parser = argparse.ArgumentParser(
+    description='Build niepel_2014 cell line page resources')
+parser.add_argument('-n', '--no-images', action='store_true', default=False,
+                    help='Skip building images')
+args = parser.parse_args()
 
 print_partial('cell line info')
 cellline_filename = os.path.join(cellline_path, 'CellLine_info.xlsx')
@@ -110,7 +117,9 @@ breadcrumb_base = [
     {'url': BASE_URL, 'text': 'Start'},
     {'url': None, 'text': 'Cell lines'},
 ]
+
 for i, data in enumerate(all_data):
+
     msg = 'rendering page %d/%d %s...' % (i+1, len(all_data), data['name'])
     # FIXME The string padding (37) should be calculated dynamically.
     print_partial('\r' + msg.ljust(37))
@@ -119,6 +128,9 @@ for i, data in enumerate(all_data):
     html_filename = data['name'] + '.html'
     render_template('breast_cancer_signaling/cell_line.html', data,
                     html_path, html_filename)
+
+    if args.no_images:
+        continue
     image_filename = data['name'] + '.png'
     copy_images(image_dirs, image_filename,
                 cellline_path, img_path_elements,
@@ -140,23 +152,25 @@ for i, data in enumerate(all_data):
                 new_sizes=image_sizes_large, new_format='jpg',
                 dest_suffix='_large',
                 format_options={'quality': 75, 'optimize': True})
+
 print_partial("done")
 PASS_nl()
 
-print()
-subtypes = set(d['class_consensus'] for d in all_data)
-for subtype in subtypes:
-    image_filename = 'NetMap_%s.png' % subtype
-    # We are only copying one image, but we can reuse copy_images with a little
-    # creativity in crafting the first arg.
-    copy_images([('nodeedge', 'NodeEdgeFigures')], image_filename,
-                cellline_path, img_path_elements,
-                new_sizes=image_sizes, new_format='jpg',
-                format_options={'quality': 85, 'optimize': True})
-    copy_images([('nodeedge', 'NodeEdgeFigures')], image_filename,
-                cellline_path, img_path_elements,
-                new_sizes=image_sizes_large, new_format='jpg',
-                dest_suffix='_large',
-                format_options={'quality': 85, 'optimize': True})
-    print(image_filename, end=' ')
-    PASS_nl()
+if not args.no_images:
+    print()
+    subtypes = set(d['class_consensus'] for d in all_data)
+    for subtype in subtypes:
+        image_filename = 'NetMap_%s.png' % subtype
+        # We are only copying one image, but we can reuse copy_images with a
+        # little creativity in crafting the first arg.
+        copy_images([('nodeedge', 'NodeEdgeFigures')], image_filename,
+                    cellline_path, img_path_elements,
+                    new_sizes=image_sizes, new_format='jpg',
+                    format_options={'quality': 85, 'optimize': True})
+        copy_images([('nodeedge', 'NodeEdgeFigures')], image_filename,
+                    cellline_path, img_path_elements,
+                    new_sizes=image_sizes_large, new_format='jpg',
+                    dest_suffix='_large',
+                    format_options={'quality': 85, 'optimize': True})
+        print(image_filename, end=' ')
+        PASS_nl()

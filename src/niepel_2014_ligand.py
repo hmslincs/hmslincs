@@ -4,6 +4,7 @@ import openpyxl
 import requests
 import os
 import re
+import argparse
 from django.conf import settings
 
 
@@ -30,6 +31,12 @@ image_sizes_large = dict((name, (width * 2, height * 2))
 
 img_path_elements = ('ligand', 'img')
 html_path = create_output_path(*img_path_elements[:-1])
+
+parser = argparse.ArgumentParser(
+    description='Build niepel_2014 cell line page resources')
+parser.add_argument('-n', '--no-images', action='store_true', default=False,
+                    help='Skip building images')
+args = parser.parse_args()
 
 print_partial('ligand info')
 ligand_info = stash_get('ligand_info')
@@ -148,7 +155,9 @@ breadcrumb_base = [
     {'url': BASE_URL, 'text': 'Start'},
     {'url': None, 'text': 'Ligands'},
 ]
+
 for i, data in enumerate(all_data):
+
     msg = 'rendering page %d/%d %s...' % (i+1, len(all_data), data['name'])
     # FIXME The string padding (37) should be calculated dynamically.
     print_partial('\r' + msg.ljust(37))
@@ -157,6 +166,9 @@ for i, data in enumerate(all_data):
     html_filename = data['name'] + '.html'        
     render_template('breast_cancer_signaling/ligand.html', data,
                     html_path, html_filename)
+
+    if args.no_images:
+        continue
     image_filename = data['name'] + '.png'
     copy_images(image_dirs, image_filename, ligand_path, img_path_elements,
                 new_sizes=image_sizes, new_format='jpg',
@@ -167,5 +179,6 @@ for i, data in enumerate(all_data):
                 new_sizes=image_sizes_large, new_format='jpg',
                 dest_suffix='_large',
                 format_options={'quality': 75, 'optimize': True})
+
 print_partial("done")
 PASS_nl()
