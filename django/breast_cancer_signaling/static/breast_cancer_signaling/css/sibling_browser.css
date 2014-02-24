@@ -1,20 +1,9 @@
-.sibling-browser-container {
-  width:100%           !important;
-  display:block        !important;
-  position:relative    !important;
-}
-
 .sibling-browser {
   background-color: #fff  !important;
   padding:0               !important;
   float:right !important;
   vertical-align:top-text !important;
-}
-.sibling-browser-fixed {
-  float: right;
-  position: absolute;
-  right: 0;
-  top: 0;
+  position: relative;
 }
 .sibling-browser-list {
   display: none;

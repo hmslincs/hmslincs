@@ -30,14 +30,11 @@ refer to the methods and results section of the publication [LINK].</p>
     </a></p>
   <p class="thumbnail-caption">Click for a summary of response data and feature classifications</p>
 </div>
-
-<div class="sibling-browser-container">
-
-<h2 id="data-by-cell-line">Data by Cell Line</h2>
+<div style="clear: right;"></div>
 
 {% include "breast_cancer_signaling/sibling_browser.html" with class="cell line" all_names=cell_line_names %}
 
-</div>
+<h2 id="data-by-cell-line">Data by Cell Line</h2>
 
 <p>A compact overview of both the basal and signaling profiles of each cell are
 simple network maps displayed as node-edge graphs. This visualization allows the user to
@@ -88,13 +85,9 @@ given cell line as a diamond, to put a single cell line into its appropriate con
 
 {% include "breast_cancer_signaling/titled_figures.html" with a=fig_args.cell_line_foldchange %}
 
-<div class="sibling-browser-container">
-
-<h2 id="data-by-ligand">Data by Ligand</h2>
-
 {% include "breast_cancer_signaling/sibling_browser.html" with class="ligand" all_names=ligand_names %}
 
-</div>
+<h2 id="data-by-ligand">Data by Ligand</h2>
 
 <p>We can display the full time courses for individual ligand/downstream kinase combination
 across all cell lines to see both the variance in the kinetics and the magnitude

@@ -6,15 +6,17 @@ jQuery(document).ready(
             var $sbl = $('.sibling-browser-list', this);
             var $sb = $(this);
             $sbl.show();
-            if (sb_visible($sb)) {
-                $sbl.css('bottom', '');
-            } else {
-                // FIXME: figure out why we need the extra +8
-                $sbl.css('bottom', '-6px');
+            if (!sb_visible_downward($sb)) {
+		// If there's no room to display the list downward, display
+		// upward from the pseudo-button instead by setting the bottom
+		// coordinate to the height of the button.
+		var offset = $sb.find('.pseudo-button').outerHeight();
+                $sbl.css('bottom', offset + 'px');
             }
         });
         $sb.mouseleave(function() {
-            $('.sibling-browser-list', this).hide();
+	    // Hide list and reset the upward display override.
+            $('.sibling-browser-list', this).hide().css('bottom', '');
         });
 
         var $hotspots = $('.lookup-table-hotspot');
@@ -107,13 +109,17 @@ jQuery(document).ready(
             return false;
         });
 
-        function sb_visible($sb) {
+        function sb_visible_downward($sb) {
+	    /*
+	      Determine if sibling-browser-list would be fully visible if it
+	      were to display downward.
+	    */
             var $window = $(window);
             var $sbl = $sb.find('.sibling-browser-list');
-            var sbl_bottom = ($sb.offset().top - $(window).scrollTop() +
-                              $sb.height() + $sbl.height());
+            var sbl_bottom = ($sbl.offset().top + $sbl.outerHeight() -
+			      $(window).scrollTop());
             var offset = $window.height() - sbl_bottom;
-            return offset > 10;
+            return offset > 0;
         }
 
         function media_ondemand_load(target) {
