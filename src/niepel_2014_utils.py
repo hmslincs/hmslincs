@@ -19,8 +19,8 @@ _ENV_RESOURCE_PATH = 'RESOURCE_PATH'
 
 DOCROOT = op.abspath(op.join(
         op.dirname(__file__), os.pardir,
-        'temp', 'docroot', 'explore', 'breast_cancer_signaling'))
-BASE_URL = '/explore/breast_cancer_signaling/'
+        'temp', 'docroot', 'explore', 'breast-cancer-signaling'))
+BASE_URL = '/explore/breast-cancer-signaling/'
 
 def resource_path(*elements):
     "Canonicalize a path relative to the resource library."

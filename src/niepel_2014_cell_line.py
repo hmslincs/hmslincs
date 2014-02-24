@@ -34,7 +34,7 @@ image_sizes_large['topmeasures'][1] = 1867
 
 topmeasures_large_suffix = '_allRTKs'
 
-html_path_elements = ['cell_line']
+html_path_elements = ['cell-line']
 img_path_elements = html_path_elements + ['img']
 data_path_elements = html_path_elements + ['data']
 html_path = create_output_path(*html_path_elements)
