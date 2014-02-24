@@ -17,8 +17,9 @@ __all__ = ['resource_path', 'create_output_path', 'print_status_accessible',
 # Environment variable which points to the resource library.
 _ENV_RESOURCE_PATH = 'RESOURCE_PATH'
 
-DOCROOT = op.abspath(op.join(op.dirname(__file__), os.pardir,
-                             'temp', 'breast_cancer_signaling_output'))
+DOCROOT = op.abspath(op.join(
+        op.dirname(__file__), os.pardir,
+        'temp', 'docroot', 'explore', 'breast_cancer_signaling'))
 BASE_URL = '/explore/breast_cancer_signaling/'
 
 def resource_path(*elements):
