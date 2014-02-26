@@ -2,28 +2,46 @@
 
 {% block content %}
 
-<h1>Breast Cancer Signaling Responses</h1>
+<h1>Responses of genetically diverse cell lines to biological ligands</h1>
 
-<p>The data we collected here is complicated to display, not necessarily due to
-its size, but rather due to its high dimensionality. We prepared ‘signaling
-profiles’ where we tested 15 ligands × 2 doses × 3 exposure times × 2 downstream kinase ×
-39 cell lines resulting in ~7000 unique data points. In addition we collected
-‘basal profiles’ where we measured about 40 different expression or
-phosphorylation levels of key receptor tyrosine kinases of each cell line. To
-investigate these data, we plot different (often simplified) features of the
-data and show how it differs across another dimension. There are two main
-organizing principles of the data: <a href="#data-by-cell-line">data by cell
-line</a> and <a href="#data-by-ligand">data by ligand</a>.</p>
+<h2>Introduction: Ligands as perturbagens</h2>
+
+<p>Peptidyl ligands (cytokines, chemokines and growth factors) are among the
+  most important naturally occurring perturbagens. They play a role in
+  regulating cell motility, differentiation, adhesion, proliferation and cell
+  survival.  Growth factors are one class of biological ligands that function by
+  binding to one or more of the 58 known human receptor tyrosine kinases (RTKs)
+  and activating “immediate early” signaling by MAPK, PI3K/AKT, and other kinase
+  cascades.</p>
+
+<h2>Description of the dataset</h2>
+
+<p>This dataset describes the responsiveness of a canonical collection of 39
+  breast cancer cell lines of the <a href="cell-line/data/cell_line_info.xlsx">NCI-ICBP43
+  set</a>, whose genotypes span many of the mutations observed in primary
+  disease <a href="#ref_neve_2006">[1]</a>. The data comprises the
+  phosphorylation levels of ERK (MAPK1/3) and AKT (AKT/1/2/3) kinases following
+  exposure to 15 growth factors and cytokines, at two doses and three time
+  points, as well as the abundance and phosphorylation levels of 20 RTKs and
+  several additional intracellular proteins [TODO: DOWNLOAD TABLE].</p>
+
+<h2>Goals</h2>
+
+<p>The goals for this dataset were to: (i) characterize the diversity of growth
+  factor response and determine how it mapped to clinical subtypes, (ii)
+  identify factors that control the magnitude and duration of ligand response
+  and (iii) generate a simple means to look up and compare ligand-response data
+  that have hitherto been unavailable or scatted across the literature. There
+  are two main organizing principles of the data: <a href="#data-by-cell-line">data
+  by cell line</a> and <a href="#data-by-ligand">data by ligand</a>.</p>
 
 <p>For a more detailed description of how the data is analyzed and plotted,
-refer to the methods and results section of the publication [TODO: LINK]. Please
-cite this paper when reusing any data or analysis found here. For more
-information, contact
-<a href="mailto:mario_niepel@hms.harvard.edu?subject=HMS%20LINCS%20breast%20cancer%20signaling%20page">
-Mario Niepel (mario_niepel@hms.harvard.edu)</a>.</p>
+  refer to the methods and results section of the publication [TODO:
+  LINK]. Please cite this paper when reusing any data or analysis found
+  here. For more information, contact
+  <a href="mailto:mario_niepel@hms.harvard.edu?subject=HMS%20LINCS%20breast%20cancer%20signaling%20page">
+    Mario Niepel (mario_niepel@hms.harvard.edu)</a>.</p>
 
-<!-- <p>Link to the raw data (xls for now; maybe a query page afterwards). -->
-<!-- [[TODO]]</p> -->
 
 <div class="thumbnail-box">
   <p>
@@ -148,5 +166,15 @@ to the remaining ligands. When browsing individual ligands we highlight it in bl
 it stands out in contrast to the other ligands.</p>
 
 {% include "breast_cancer_signaling/titled_figures.html" with a=fig_args.ligand_pathwaybias %}
+
+<h2>References</h2>
+<ol>
+  <li id="ref_neve_2006">
+    Neve RM, Chin K, Fridlyand J, Yeh J, Baehner FL, Fevr T, Clark L, Bayani N,
+    Coppe JP, Tong F et al. A collection of breast cancer cell lines for the
+    study of functionally distinct cancer subtypes. Cancer Cell 2006,
+    10(6):515-527.
+  </li>
+</ol>
 
 {% endblock %}
