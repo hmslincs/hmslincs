@@ -128,6 +128,10 @@ for i, data in enumerate(all_data):
     html_filename = data['name'] + '.html'
     render_template('breast_cancer_signaling/cell_line.html', data,
                     html_path, html_filename)
+    data_filename = '%s_data.csv' % data['name']
+    data_src_path = os.path.join(cellline_path, 'CellLine_data', data_filename)
+    data_dest_path = os.path.join(data_path, data_filename)
+    shutil.copy(data_src_path, data_dest_path)
 
     if args.no_images:
         continue

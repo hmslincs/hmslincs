@@ -2,6 +2,7 @@ from niepel_2014_utils import *
 import os
 from collections import namedtuple
 from django.conf import settings
+import shutil
 
 # Pattern to create a namedtuple-based class with optional args.
 class FigArgs(namedtuple('FigArgs',
@@ -10,6 +11,8 @@ class FigArgs(namedtuple('FigArgs',
                 dimensions, link=True, fname_prefix=''):
         return super(FigArgs, cls).__new__(cls, category, img_type, names,
                                            dimensions, link, fname_prefix)    
+
+source_path = resource_path('SignalingPage')
 
 html_path = create_output_path()
 
@@ -58,3 +61,7 @@ data = {
 
 render_template('breast_cancer_signaling/index.html', data,
                 html_path, 'index.html')
+data_filename = 'all_data.csv'
+data_src_path = os.path.join(source_path, data_filename)
+data_dest_path = os.path.join(html_path, data_filename)
+shutil.copy(data_src_path, data_dest_path)

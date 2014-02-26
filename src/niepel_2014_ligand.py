@@ -4,6 +4,7 @@ import openpyxl
 import requests
 import os
 import re
+import shutil
 import argparse
 from django.conf import settings
 
@@ -29,8 +30,11 @@ image_sizes = {
 image_sizes_large = dict((name, (width * 2, height * 2))
                          for (name, (width, height)) in image_sizes.items())
 
-img_path_elements = ('ligand', 'img')
-html_path = create_output_path(*img_path_elements[:-1])
+html_path_elements = ['ligand']
+img_path_elements = html_path_elements + ['img']
+data_path_elements = html_path_elements + ['data']
+html_path = create_output_path(*html_path_elements)
+data_path = create_output_path(*data_path_elements)
 
 parser = argparse.ArgumentParser(
     description='Build niepel_2014 cell line page resources')
@@ -166,6 +170,10 @@ for i, data in enumerate(all_data):
     html_filename = data['name'] + '.html'        
     render_template('breast_cancer_signaling/ligand.html', data,
                     html_path, html_filename)
+    data_filename = '%s_data.csv' % data['name']
+    data_src_path = os.path.join(ligand_path, 'Ligand_data', data_filename)
+    data_dest_path = os.path.join(data_path, data_filename)
+    shutil.copy(data_src_path, data_dest_path)
 
     if args.no_images:
         continue
