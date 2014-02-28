@@ -20,12 +20,19 @@
 <h2>General information</h2>
 <table class="general-info">
   <tr>
-    <th>Clinical subtype<sup>1</sup></th>
-    <td>{{ class_niepel }}</td>
+    <th>Clinical subtype</th>
+    <td>
+      {{ class_niepel }}
+      <a class="ref" href="#ref-1-neve">1</a>
+      <a class="ref" href="#ref-2-kao">2</a>
+    </td>
   </tr>
   <tr>
-    <th>Transcriptional subtype<sup>2</sup></th>
-    <td>{{ class_heiser }}</td>
+    <th>Transcriptional subtype</th>
+    <td>
+      {{ class_heiser }}
+      <a class="ref" href="#ref-3-heiser">3</a>
+    </td>
   </tr>
   <tr>
     <th>HMS LINCS ID</th>
@@ -64,13 +71,6 @@
     </td>
   </tr>
 </table>
-
-<p>
-  <em>
-    1: Neve et al., Cancer Cell 2006 vol. 10(6)515-527; Kao et al., PLoS One 2009, vol. 4(7)e6146<br>
-    2: Heiser et al., PNAS 2012, vol. 109(8)2724-2729
-  </em>
-</p>
 
 <h2>Data downloads</h2>
 <ul>
@@ -121,5 +121,13 @@
     width="{{ image_sizes.foldchange.0 }}" height="{{ image_sizes.foldchange.1 }}" /></a>
 </div>
 <p>The magnitude of the fold-change response at 100ng/ml ligand stimulation for {{ name }} measured by pERK (left) and pAKT (right) denoted by diamonds. The box plot shows the distribution of the fold-change response for all cell lines, clustered by strength of the pERK or pAKT response. Black lines represent the median, shaded zones the interquartile range, dashed lines the 5% and 95% quantiles, and dots the outliers.</p>
+
+<h2>References</h2>
+<ol>
+  <li id="ref-1-neve">Neve et al., Cancer Cell 2006 vol. 10(6)515-527</li>
+  <li id="ref-2-kao">Kao et al., PLoS One 2009, vol. 4(7)e6146</li>
+  <li id="ref-3-heiser">Heiser et al., PNAS 2012, vol. 109(8)2724-2729</li>
+</ol>
+
 
 {% endblock %}

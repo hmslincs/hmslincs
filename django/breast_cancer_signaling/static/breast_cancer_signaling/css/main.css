@@ -176,6 +176,12 @@ img.lightbox {
   margin-top: 10px;
 }
 
+a.ref {
+  vertical-align: super;
+  font-size: smaller;
+  line-height: 0;
+}
+
 hr {
   margin-bottom: 1em;
 }
