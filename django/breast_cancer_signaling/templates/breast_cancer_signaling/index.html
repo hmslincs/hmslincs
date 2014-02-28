@@ -2,7 +2,14 @@
 
 {% block content %}
 
-<h1>Responses of genetically diverse cell lines to biological ligands</h1>
+<h1>Responses of genetically diverse cell lines<br/>to biological ligands</h1>
+
+<div class="home-nav-sidebar">
+  <h3>Jump to:</h3>
+  <div class="pseudo-button"><a href="{{ BASE_URL }}matrix/">View response matrix</a></div>
+  {% include "breast_cancer_signaling/sibling_browser.html" with class="cell line" all_names=cell_line_names %}
+  {% include "breast_cancer_signaling/sibling_browser.html" with class="ligand" all_names=ligand_names %}
+</div>
 
 <h2>Introduction: Ligands as perturbagens</h2>
 
@@ -11,7 +18,7 @@
   regulating cell motility, differentiation, adhesion, proliferation and cell
   survival.  Growth factors are one class of biological ligands that function by
   binding to one or more of the 58 known human receptor tyrosine kinases (RTKs)
-  and activating “immediate early” signaling by MAPK, PI3K/AKT, and other kinase
+  and activating “immediate early” signaling by MAPK, PI3K/Akt, and other kinase
   cascades.</p>
 
 <h2>Description of the dataset</h2>
@@ -20,10 +27,19 @@
   breast cancer cell lines of the <a href="cell-line/data/cell_line_info.xlsx">NCI-ICBP43
   set</a>, whose genotypes span many of the mutations observed in primary
   disease <a href="#ref_neve_2006">[1]</a>. The data comprises the
-  phosphorylation levels of ERK (MAPK1/3) and AKT (AKT/1/2/3) kinases following
+  phosphorylation levels of ERK (MAPK1/3) and Akt (Akt/1/2/3) kinases following
   exposure to 15 growth factors and cytokines, at two doses and three time
   points, as well as the abundance and phosphorylation levels of 20 RTKs and
-  several additional intracellular proteins [TODO: DOWNLOAD TABLE].</p>
+  several additional intracellular proteins.</p>
+
+<ul>
+  <li>
+    <a href="all_data.csv">Download raw data and signaling profiles; ~7000 data points (.csv)</a>
+  </li>
+  <li>
+    <a href="cell-line/data/cell_line_info.xlsx">Download cell line details (.xlsx)</a>
+  </li>
+</ul>
 
 <h2>Goals</h2>
 
@@ -31,39 +47,53 @@
   factor response and determine how it mapped to clinical subtypes, (ii)
   identify factors that control the magnitude and duration of ligand response
   and (iii) generate a simple means to look up and compare ligand-response data
-  that have hitherto been unavailable or scatted across the literature. There
-  are two main organizing principles of the data: <a href="#data-by-cell-line">data
-  by cell line</a> and <a href="#data-by-ligand">data by ligand</a>.</p>
+  that have hitherto been unavailable or scatted across the literature. To this
+  end, we have produced several "views" of the dataset:</p>
 
-<p>For a more detailed description of how the data is analyzed and plotted,
+<ul>
+  <li>
+    <a href="#data-response-matrix">Response matrix</a>: Graphical lookup tables
+    summarizing the signaling responses across all experimental conditions.</li>
+  <li>
+    <a href="#data-by-cell-line">By cell line</a>: Analysis and visualization of
+    dataset slices corresponding to data from individual cell lines.
+  </li>
+  <li>
+    <a href="#data-by-ligand">By ligand</a>: Analysis and visualization of
+    dataset slices corresponding to data from individual ligand treatments.
+  </li>
+</ul>
+
+<p>For a more detailed description of how we analyzed and plotted the data,
   refer to the methods and results section of the publication [TODO:
   LINK]. Please cite this paper when reusing any data or analysis found
   here. For more information, contact
   <a href="mailto:mario_niepel@hms.harvard.edu?subject=HMS%20LINCS%20breast%20cancer%20signaling%20page">
     Mario Niepel (mario_niepel@hms.harvard.edu)</a>.</p>
 
+<hr/>
 
-<div class="thumbnail-box">
-  <p>
-    <a href="{{ BASE_URL }}matrix/"
-       title="Click for a summary of response data and feature classifications">
-      <img src="{{ STATIC_URL }}breast_cancer_signaling/img/table_akt_10.gif"/>
-      <img src="{{ STATIC_URL }}breast_cancer_signaling/img/table_erk_10.gif"/>
-    </a></p>
-  <p class="thumbnail-caption">Click for a summary of response data and feature classifications</p>
+<h2 id="data-response-matrix">Response matrix</h2>
+
+<p>The response matrix graphically summarizes the pERK and pAkt signaling
+responses for each of the ~600 cell line / ligand combinations in a tabular
+format. For each combination, the actual raw time course data can also be
+displayed.</p>
+
+<div class="titled-figure-wrapper">
+  <p class="titled-figure">
+    <a href="{{ BASE_URL }}matrix/">
+      View full response matrix<br/>
+      <img
+      src="{{ STATIC_URL }}breast_cancer_signaling/img/table_akt_10.gif"
+      width="173" height="100"
+      /><img
+      src="{{ STATIC_URL }}breast_cancer_signaling/img/table_erk_10.gif"
+      width="173" height="100"
+      />
+    </a>
+  </p>
 </div>
-<div style="clear: right;"></div>
-
-<h2>Data downloads</h2>
-
-<ul>
-  <li>
-    <a href="all_data.csv">Raw data and signaling profiles; ~7000 data points (.csv)</a>
-  </li>
-  <li>
-    <a href="cell-line/data/cell_line_info.xlsx">General information sheet for all cell lines (.xlsx)</a>
-  </li>
-</ul>
 
 {% include "breast_cancer_signaling/sibling_browser.html" with class="cell line" all_names=cell_line_names %}
 

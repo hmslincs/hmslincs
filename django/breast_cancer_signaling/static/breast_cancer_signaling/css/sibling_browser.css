@@ -15,6 +15,7 @@
   border:1px solid #e0e0e0;  !important;
   background-color:#fff;     !important;
   box-shadow: -10px 10px 10px rgba(0,0,0,0.7);
+  z-index: 1;
   column-count: 4;
   -moz-column-count: 4;
   -webkit-column-count: 4;
