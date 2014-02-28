@@ -49,10 +49,12 @@ parser.add_argument('-n', '--no-images', action='store_true', default=False,
 args = parser.parse_args()
 
 print_partial('cell line info')
-cellline_filename = os.path.join(
-    facts_path, 'CellLine_sutypes_subset_BMCpaper.xlsx')
-dest_filename = os.path.join(data_path, 'cell_line_info.xlsx')
-shutil.copy(cellline_filename, dest_filename)
+cellline_filename = os.path.join(facts_path, 'CellLine_subset_BMCpaper.xlsx')
+mutation_filename = os.path.join(facts_path, 'CellLine_PTEN_PI3K_mutations.xlsx')
+dest_cellline_filename = os.path.join(data_path, 'cell_line_info.xlsx')
+dest_mutation_filename = os.path.join(data_path, 'cell_line_pten_pi3k_mutations.xlsx')
+shutil.copy(cellline_filename, dest_cellline_filename)
+shutil.copy(mutation_filename, dest_mutation_filename)
 cellline_info = stash_get('cellline_info')
 if not cellline_info:
     workbook = openpyxl.load_workbook(cellline_filename, use_iterators=True)
