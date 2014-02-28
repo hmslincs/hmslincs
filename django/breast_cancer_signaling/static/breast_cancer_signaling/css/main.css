@@ -106,11 +106,6 @@ table.general-info td.culture-conditions {
   display: inline-block;
 }
 
-p.caption {
-  font-size: 90%;
-  margin: 0 30px 10px;
-}
-
 .pseudo-button {
   -webkit-border-radius:4px  !important;
   -moz-border-radius:4px     !important;
