@@ -10,6 +10,7 @@ from django.conf import settings
 
 
 cellline_path = resource_path('SignalingPage', 'CellLinePage')
+facts_path = resource_path('basic facts_cell lines')
 
 image_dirs = [
     ('foldchange', 'FoldChangeBoxPlot'),
@@ -48,7 +49,8 @@ parser.add_argument('-n', '--no-images', action='store_true', default=False,
 args = parser.parse_args()
 
 print_partial('cell line info')
-cellline_filename = os.path.join(cellline_path, 'CellLine_info.xlsx')
+cellline_filename = os.path.join(
+    facts_path, 'CellLine_sutypes_subset_BMCpaper.xlsx')
 dest_filename = os.path.join(data_path, 'cell_line_info.xlsx')
 shutil.copy(cellline_filename, dest_filename)
 cellline_info = stash_get('cellline_info')
@@ -61,9 +63,10 @@ if not cellline_info:
     stash_put('cellline_info', cellline_info)
 PASS_nl()
 
-column_names = ('hmsl_id', 'name', 'short_name', 'atcc_id_ignored',
-                'vendor', 'class_neve', 'class_heiser', 'class_kao', 'notes',
-                'class_consensus', 'growth_medium', 'culture_temperature',
+column_names = ('hmsl_id', 'name', 'short_name', 'is_icbp43', 'atcc_id_ignored',
+                'vendor', 'class_gagdar', 'class_neve_oe', 'class_neve_gc',
+                'class_kao_rs', 'class_kao_tr', 'class_heiser', 'notes',
+                'class_niepel', 'growth_medium', 'culture_temperature',
                 'culture_atmosphere')
 
 all_data = []
@@ -162,7 +165,7 @@ PASS_nl()
 
 if not args.no_images:
     print()
-    subtypes = set(d['class_consensus'] for d in all_data)
+    subtypes = set(d['class_niepel'] for d in all_data)
     for subtype in subtypes:
         image_filename = 'NetMap_%s.png' % subtype
         # We are only copying one image, but we can reuse copy_images with a

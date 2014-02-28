@@ -10,6 +10,7 @@ from django.conf import settings
 
 
 ligand_path = resource_path('SignalingPage', 'LigandPage')
+facts_path = resource_path('basic facts_ligands')
 
 image_dirs = [
     ('doseresponse', 'DoseResponsePlots'),
@@ -45,7 +46,7 @@ args = parser.parse_args()
 print_partial('ligand info')
 ligand_info = stash_get('ligand_info')
 if not ligand_info:
-    filename = os.path.join(ligand_path, 'Ligand_info.xlsx')
+    filename = os.path.join(facts_path, 'Ligand_info.xlsx')
     workbook = openpyxl.load_workbook(filename, use_iterators=True)
     sheet = workbook.worksheets[0]
     sheet_iter = sheet.iter_rows()
@@ -57,7 +58,7 @@ PASS_nl()
 print_partial('ligand affinity')
 ligand_affinity = stash_get('ligand_affinity')
 if not ligand_affinity:
-    filename_affinities = os.path.join(ligand_path,
+    filename_affinities = os.path.join(facts_path,
                                        'ligand receptor affinities summary.xlsx')
     workbook = openpyxl.load_workbook(filename_affinities, use_iterators=True)
     sheet = workbook.worksheets[0]

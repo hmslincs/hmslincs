@@ -74,7 +74,7 @@ cell_lines = stash_get('cell_lines')
 assert cell_lines, "'cell_lines' not found in stash -- please run cell_line.py"
 subtype_order_list = ['TNBC', 'HER2amp', 'HR+']
 subtype_order = dict(zip(subtype_order_list, range(len(subtype_order_list))))
-cell_lines.sort(key=lambda c: (subtype_order[c['class_consensus']], c['name']))
+cell_lines.sort(key=lambda c: (subtype_order[c['class_niepel']], c['name']))
 cell_line_names = [c['name'] for c in cell_lines]
 
 cells = []
