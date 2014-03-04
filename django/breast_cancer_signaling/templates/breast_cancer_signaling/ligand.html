@@ -1,0 +1,120 @@
+{% extends "breast_cancer_signaling/base.html" %}
+
+{% block title %}
+  Ligand {{ name }} - {{ block.super }}
+{% endblock %}
+
+{% block content %}
+
+{% include "breast_cancer_signaling/sibling_browser.html" with class='ligand' %}
+
+<div class="breadcrumbs">
+  {% include "breast_cancer_signaling/breadcrumbs.html" %}
+</div>
+
+<h1>
+  {{ full_name }} ({{ name }})<br/>
+  <span class="smaller">Responses to ligand</span>
+</h1>
+
+<h2>General information</h2>
+<table class="general-info">
+  <tr>
+    <th>Ligand family</th>
+    <td>{{ family }} ligand</td>
+  </tr>
+  <tr>
+    <th>HMS LINCS ID</th>
+    <td><a href="http://lincs.hms.harvard.edu/db/proteins/{{ hmsl_id }}/">{{ hmsl_id }}</a></td>
+  </tr>
+  <tr>
+    <th>UniProt ID</th>
+    <td>
+      {% if db.ppUniprotID %}
+      <a href="http://www.uniprot.org/uniprot/{{ db.ppUniprotID }}">{{ db.ppUniprotID }}</a>
+      {% else %}
+      N/A
+      {% endif %}
+    </td>
+  </tr>
+  <tr>
+    <th>Molecular weight</th>
+    <td>
+      {% if molecular_weight %}
+      {{ molecular_weight }} kDa
+      {% else %}
+      unknown
+      {% endif %}
+    </td>
+  </tr>
+  <tr>
+    <th>Receptor affinity</th>
+    <td>
+      <table>
+        <tr>
+          <td><strong>Receptor</strong></td>
+          <td><strong>KD</strong></td>
+        </tr>
+        {% for receptor in affinity.receptors %}
+        <tr>
+          <td>{{ receptor.name }}</td>
+          <td>{{ receptor.kd }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+      <em>Affinity references: {{ affinity.reference }}</em>
+    </td>
+  </tr>
+</table>
+
+<h2>Data downloads</h2>
+<ul>
+  <li>
+    <a href="data/{{ name }}_data.csv">Raw data and signaling profile subset for {{ name }} treatment (.csv)</a>
+  </li>
+</ul>
+
+<h2>Time course response</h2>
+<div class="titled-figure-wrapper">
+  <a href="img/timecourse/{{ name }}_large.jpg" class="lightbox-link"><img
+    src="img/timecourse/{{ name }}.jpg"
+    width="{{ image_sizes.timecourse.0 }}" height="{{ image_sizes.timecourse.1 }}" /></a>
+</div>
+<p>Fold-change response of pERK and pAKT following 10, 30 or 90 minutes treatment with {{ name }} at 1ng/ml (left) or 100ng/ml (right). Colored trajectories represent the indicated cell lines and all remaining cell lines are gray. Non-significant responses (below ~1.2-fold) are set to 1.</p>
+
+<h2>Pathway bias</h2>
+<div class="titled-figure-wrapper">
+  <a href="img/pathwaybias/{{ name }}_large.jpg" class="lightbox-link"><img
+    src="img/pathwaybias/{{ name }}.jpg"
+    width="{{ image_sizes.pathwaybias.0 }}" height="{{ image_sizes.pathwaybias.1 }}" /></a>
+</div>
+<p>(Left) Distribution of the pathway bias across cell lines for {{ name }} (in black) and {% if name == "FGF-1" %}2 reference ligands (IGF-1, yellow; and EGF, red)
+   {% else %}{% if name == "EGF" %}2 reference ligands (FGF-1, blue; and IGF-1, yellow)
+   {% else %}{% if name == "IGF-1" %}2 reference ligands (FGF-1, blue; and EGF, red)
+   {% else %}3 reference ligands (FGF-1, blue; IGF-1, yellow; and EGF, red){% endif %}{% endif %}{% endif %} where the bias is defined as the arctangent of the ratio of the pAKT to pERK fold change responses (maximum across the three time points at 100ng/ml). (Right) Distribution of the pathway bias for all ligands that exhibited a least 50% significant responses across all cell lines when stimulated at 100ng/ml. Ligands are sorted according the median of the pathway bias and colored as in the left panel.</p>
+
+<h2>Dose response</h2>
+<div class="titled-figure-wrapper">
+  <a href="img/doseresponse/{{ name }}_large.jpg" class="lightbox-link"><img
+    src="img/doseresponse/{{ name }}.jpg"
+    width="{{ image_sizes.doseresponse.0 }}" height="{{ image_sizes.doseresponse.1 }}" /></a>
+</div>
+<p>Fold change pERK (left) and pAKT (right) responses following treatment with {{ name }} at 1ng/ml and 100ng/ml (maximum response across 10, 30 and 90 minutes). Colored trajectories represent the indicated cell lines and all remaining cell lines are gray. Non-significant responses (below ~1.2-fold) are set to 1.</p>
+
+<h2>Sensitivity class</h2>
+<div class="titled-figure-wrapper">
+  <a href="img/sensitivity/{{ name }}_large.jpg" class="lightbox-link"><img
+    src="img/sensitivity/{{ name }}.jpg"
+    width="{{ image_sizes.sensitivity.0 }}" height="{{ image_sizes.sensitivity.1 }}" /></a>
+</div>
+<p>Distribution of sensitivity classes by ligands for pERK (left) and pAKT (right): ‘Equal’ (red) means that the fold change response at low dose is at least 75% of the high dose response; ‘100ng>1ng’ (blue) means that low dose response is statistically significant but less than 75% of the high dose response; ‘only 100ng’ (yellow) means that only the high dose response is significant.</p>
+
+<h2>Kinetic cluster</h2>
+<div class="titled-figure-wrapper">
+  <a href="img/responsekinetics/{{ name }}_large.jpg" class="lightbox-link"><img
+    src="img/responsekinetics/{{ name }}.jpg"
+    width="{{ image_sizes.responsekinetics.0 }}" height="{{ image_sizes.responsekinetics.1 }}" /></a>
+</div>
+<p>Distribution of the kinetics of the responses at 100mg/ml for {{ name }} (left) and the different ligand families (ErbB ligands, Ins/IGF ligands, FGF-1/2, and all remaining ligands) for pAKT (top) and pERK (bottom). Kinetics classes are determined by an unsupervised k-means clustering of the time-series data that identified trajectories that correspond to sustained, transient, late, or no response.</p>
+
+{% endblock %}

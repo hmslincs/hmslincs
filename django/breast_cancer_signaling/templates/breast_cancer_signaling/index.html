@@ -1,0 +1,224 @@
+{% extends "breast_cancer_signaling/base.html" %}
+
+{% block content %}
+
+<h1>Responses of genetically diverse cell lines<br/>to biological ligands</h1>
+
+<div class="home-nav-sidebar">
+  <h3>Jump to:</h3>
+  <div class="pseudo-button"><a href="{{ BASE_URL }}matrix/">View response matrix</a></div>
+  {% include "breast_cancer_signaling/sibling_browser.html" with class="cell line" all_names=cell_line_names %}
+  {% include "breast_cancer_signaling/sibling_browser.html" with class="ligand" all_names=ligand_names %}
+</div>
+
+<h2>Introduction: Ligands as perturbagens</h2>
+
+<p>Peptidyl ligands (cytokines, chemokines and growth factors) are among the
+  most important naturally occurring perturbagens. They play a role in
+  regulating cell motility, differentiation, adhesion, proliferation and cell
+  survival.  Growth factors are one class of biological ligands that function by
+  binding to one or more of the 58 known human receptor tyrosine kinases (RTKs)
+  and activating “immediate early” signaling by MAPK, PI3K/Akt, and other kinase
+  cascades.</p>
+
+<h2>Description of the dataset and downloads</h2>
+
+<p>This dataset describes the responsiveness of a canonical collection of 39
+  breast cancer cell lines of the <a href="cell-line/data/cell_line_info.xlsx">NCI-ICBP43
+  set</a>, whose genotypes span many of the mutations observed in primary
+  disease <a class="ref" href="#ref-1-neve">1</a>. The data comprises the
+  phosphorylation levels of ERK (MAPK1/3) and Akt (Akt/1/2/3) kinases following
+  exposure to 15 growth factors and cytokines, at two doses and three time
+  points, as well as the abundance and phosphorylation levels of 20 RTKs and
+  several additional intracellular proteins. We previously used this dataset to
+  predict the sensitivity of the cell lines to 43 therapeutic inhibitors by
+  statistical modeling <a class="ref" href="#ref-2-niepel">2</a>. Here we
+  explore in more detail how the the signaling responses vary across the cell
+  lines and how the responses relate to the basal expression and activity levels
+  of RTKs <a class="ref" href="#ref-3-niepel">3</a>.</p>
+
+<ul>
+  <li>
+    <a href="all_data.csv">Download raw data and signaling profiles (.csv)</a>
+  </li>
+  <li>
+    <a href="cell-line/data/cell_line_info.xlsx">Download cell line details (.xlsx)</a>
+  </li>
+  <li>
+    <a href="cell-line/data/cell_line_pten_pi3k_mutations.xlsx">Download cell line mutation data (.xlsx)</a>
+  </li>
+</ul>
+
+<h2>Goals</h2>
+
+<p>The goals for this dataset were to: (i) characterize the diversity of growth
+  factor response and determine how it mapped to clinical subtypes, (ii)
+  identify factors that control the magnitude and duration of ligand response
+  and (iii) generate a simple means to look up and compare ligand-response data
+  that have hitherto been unavailable or scatted across the literature. To this
+  end, we have produced several "views" of the dataset:</p>
+
+<ul>
+  <li>
+    <a href="#data-response-matrix">Response matrix</a>: Graphical lookup tables
+    summarizing the signaling responses across all experimental conditions.</li>
+  <li>
+    <a href="#data-by-cell-line">By cell line</a>: Analysis and visualization of
+    dataset slices corresponding to data from individual cell lines.
+  </li>
+  <li>
+    <a href="#data-by-ligand">By ligand</a>: Analysis and visualization of
+    dataset slices corresponding to data from individual ligand treatments.
+  </li>
+</ul>
+
+<p>For a more detailed description of how we analyzed and plotted the data,
+  refer to the methods and results section of the publication <a class="ref" href="#ref-3-niepel">3</a>.
+  Please cite this paper when reusing any data or analysis found here. For more
+  information, contact<a href="mailto:mario_niepel@hms.harvard.edu?subject=HMS%20LINCS%20breast%20cancer%20signaling%20page">
+    Mario Niepel (mario_niepel@hms.harvard.edu)</a>.</p>
+
+<hr/>
+
+<div class="sibling-browser">
+  <div class="pseudo-button"><a href="{{ BASE_URL }}matrix/">View response matrix</a></div>
+</div>
+
+<h2 id="data-response-matrix">Response matrix</h2>
+
+<p>The response matrix graphically summarizes the pERK and pAkt signaling
+responses for each of the ~600 cell line / ligand combinations in a tabular
+format. For each combination, the actual raw time course data can also be
+displayed.</p>
+
+<div class="titled-figure-wrapper">
+  <p class="titled-figure">
+    <a href="{{ BASE_URL }}matrix/">
+      View full response matrix<br/>
+      <img
+      src="{{ STATIC_URL }}breast_cancer_signaling/img/table_akt_10.gif"
+      width="173" height="100"
+      /><img
+      src="{{ STATIC_URL }}breast_cancer_signaling/img/table_erk_10.gif"
+      width="173" height="100"
+      />
+    </a>
+  </p>
+</div>
+
+{% include "breast_cancer_signaling/sibling_browser.html" with class="cell line" all_names=cell_line_names %}
+
+<h2 id="data-by-cell-line">Data by Cell Line</h2>
+
+<p>A compact overview of both the basal and signaling profiles of each cell are
+simple network maps displayed as node-edge graphs. This visualization allows the user to
+quickly identify which pathways are highly expressed, strongly phosphorylated, or
+particularly sensitive in a given cell lines. The outer and inner circles
+represent basal measurements with circle size indicating expression levels and
+the shading indicating phosphorylation levels. The data is normalized across all
+cell lines and gray outer circles denote phosphorylation levels below the
+threshold of detection. The lines between the outer and middle circles denote
+simplified ligand/receptor binding. The colored arrows between the outer and
+middle circles denote the strength of pERK (blue) or pAkt (red) induction by
+ligand. The maximal response by ligand was normalized across all responses and
+gray lines denote responses that are not significant.</p>
+
+{% include "breast_cancer_signaling/titled_figures.html" with a=fig_args.cell_line_nodeedge %}
+
+<p>To put the individual network maps into context we created three maps that
+represent each clinical subtype (TNBC, HER2amp, HR+). To create these maps we
+used the trimmed mean of all values of a given subtype, rather than the mean,
+to reduce artifacts that might occur due to ligand/receptor combinations that
+only result in sporadic responses.</p>
+
+{% include "breast_cancer_signaling/titled_figures.html" with a=fig_args.subtype_nodeedge %}
+
+<p>We can also plot the distribution of individual signaling features by
+subtype. Here we show the fraction of responses to low doses of ligands by pERK
+and pAkt. For example, TNBCs are particularly sensitive and respond even to low
+doses of ligand when measuring pERK. No such difference is apparent when looking at pAkt.
+Other features that can be similarly compared are the mean fold-changes at treatment
+with high doses of ligand or the pERK/pAkt induction bias. We then show the data
+of individual cell types by a diamond overlayed on the overall distribution of the
+subtypes. </p>
+
+{% include "breast_cancer_signaling/titled_figures.html" with a=fig_args.cell_line_subtype %}
+
+<p>Also the basal expression and phosphorylation levels of RTKs have a wide
+distribution across all cell lines. For each cell line we can highlight the
+most upregulated and downregulated basal measurements. We indicated the level
+of a given cell line by a diamond overlayed on the distribution of the same measurement
+across all lines. The distributions by subtype are indicated as colored bars.</p>
+
+{% include "breast_cancer_signaling/titled_figures.html" with a=fig_args.cell_line_topmeasures %}
+
+<p>The magnitude of response to individual ligands varies significantly from one
+cell line to the next. We can illustrate this range of responses as boxplot for each
+ligand for pERK and pAkt fold-changes. Again, we can indicate the measurement of any
+given cell line as a diamond, to put a single cell line into its appropriate context.</p>
+
+{% include "breast_cancer_signaling/titled_figures.html" with a=fig_args.cell_line_foldchange %}
+
+{% include "breast_cancer_signaling/sibling_browser.html" with class="ligand" all_names=ligand_names %}
+
+<h2 id="data-by-ligand">Data by Ligand</h2>
+
+<p>We can display the full time courses for individual ligand/downstream kinase combination
+across all cell lines to see both the variance in the kinetics and the magnitude
+of the responses. For a given ligand there are two plots corresponding to a low and
+high dose treatment and the two different downstream targets. We chose six cell lines
+that are highlighted in every plot that can be used a reference they that cover much
+of the variablity observed in the whole data set.</p>
+
+{% include "breast_cancer_signaling/titled_figures.html" with a=fig_args.ligand_timecourse %}
+
+<p>We can then classify these time course into four kinetic response classes
+(sustained, transient, late, none) and plot their distribution by target and 
+ligand-family. This shows that certain ligands predominantly give responses of certain
+classes, like the ErbB/FGF responses being mainly sustained or the INS/IGF responses
+being often late. We can then compare the response to individual ligands to the
+main ligand-families.</p>
+
+{% include "breast_cancer_signaling/titled_figures.html" with a=fig_args.ligand_responsekinetics %}
+
+<p>Even though we collected responses only at two doses, we can
+use this data to approximate the sensitivity of any cell line to a particular
+ligand. Analogous to the time courses above, we can plot the response of all cell
+lines to a specific ligand measured by a specific downstream kinase across the two doses.
+</p>
+
+{% include "breast_cancer_signaling/titled_figures.html" with a=fig_args.ligand_doseresponse %}
+
+<p>We find that there is a significant range in the magnitude of responses both at
+low and high dose. This means we can classify these sensitivities based on
+whether cells respond equally at high and low dose, higher at high than at low
+dose, only at high dose, or not at all. Once classified this way we can plot the overall
+distribution of these sensitivity classes for all cell lines given a ligand/downstream
+kinase combination. This shows that certain ligands measured by certain targets
+predominantly fall into certain classes, like the ErbB and FGF responses being higher
+at high dose than at low dose meaning they are rarely saturated at low dose.</p>
+
+{% include "breast_cancer_signaling/titled_figures.html" with a=fig_args.ligand_sensitivity %}
+
+<p>When we compare the pERK and pAkt response for the same ligand in a single cell line
+(see above) it is apparent that individual ligands induce a pathway bias. We can plot
+this bias as the response angle distribution or boxplots to compare individual ligands
+to the remaining ligands. When browsing individual ligands we highlight it in black so
+it stands out in contrast to the other ligands.</p>
+
+{% include "breast_cancer_signaling/titled_figures.html" with a=fig_args.ligand_pathwaybias %}
+
+<h2>References</h2>
+<ol>
+  <li id="ref-1-neve">Neve, R. M. et al. A collection of breast cancer cell
+    lines for the study of functionally distinct cancer subtypes. Cancer Cell
+    10, 515-527 (2006). doi:10.1016/j.ccr.2006.10.008</li>
+  <li id="ref-2-niepel">Niepel, M. et al. Profiles of Basal and Stimulated
+    Receptor Signaling Networks Predict Drug Response in Breast Cancer Lines.
+    Sci. Signal. 6, ra84 (2013). doi:10.1126/scisignal.2004379 PMID: 24065145</li>
+  <li id="ref-3-niepel">Niepel, M. et al. Molecular determinants of growth
+    factor signaling in genetically diverse breast cancer lines. BMC Biology
+    (2014, submitted).</li>
+</ol>
+
+{% endblock %}

@@ -1,0 +1,8 @@
+{% for item in breadcrumbs %}
+  {% if  item.url != none %} <a href="{{ item.url }}">{% endif %}
+    {# avoid whitespace between text and if-statement, or link text will have a trailing space #}
+    {{ item.text }}{% if item.url != none %}</a>{% endif %}
+  {% if not forloop.last %}
+    &#160;&#187;&#160;
+  {% endif %}
+{% endfor %}

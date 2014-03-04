@@ -1,0 +1,15 @@
+<div class="titled-figure-wrapper">
+  {% for name in a.names %}
+    <p class="titled-figure">
+      {% if a.link %}
+        <a href="{{ BASE_URL }}{{ a.category }}/{{ name }}.html">
+      {% endif %}
+      {{ name }}<br />
+      <img src="{{ BASE_URL }}{{ a.category }}/img/{{ a.img_type }}/{{ a.fname_prefix }}{{ name }}.jpg"
+           width="{{ a.dimensions.0 }}" height="{{ a.dimensions.1 }}" />
+      {% if a.link %}
+        </a>
+      {% endif %}
+    </p>
+  {% endfor %}
+</div>

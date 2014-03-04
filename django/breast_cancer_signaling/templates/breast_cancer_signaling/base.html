@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}
+  Breast Cancer Signaling Responses - {{ block.super }}
+{% endblock %}
+
+{% block head_extra %}
+  <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+  <script type="text/javascript" src="{{ STATIC_URL }}breast_cancer_signaling/js/main.js"></script>
+  <link rel="stylesheet" type="text/css" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
+  <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}breast_cancer_signaling/css/main.css" />
+  <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}breast_cancer_signaling/css/sibling_browser.css" />
+  <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}breast_cancer_signaling/css/thumbnail_box.css" />
+{% endblock %}        
+
+{% block contentclass %}fullwidth{% endblock %}
+
+{% block body %}
+
+  {% block content %}{% endblock content %}
+
+  <p id="citation-notice">When using any of the data or analysis presented here,
+    please cite <strong>Niepel et al., BMC Biology, 2014</strong>. For more
+    information, contact <a href="mailto:mario_niepel@hms.harvard.edu?subject=HMS%20LINCS%20breast%20cancer%20signaling%20page">
+    Mario Niepel (mario_niepel@hms.harvard.edu)</a>.</p>
+
+{% endblock %}
