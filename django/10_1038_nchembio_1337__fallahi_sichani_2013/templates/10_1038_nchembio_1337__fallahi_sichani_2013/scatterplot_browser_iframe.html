@@ -1,0 +1,29 @@
+{% extends "10_1038_nchembio_1337__fallahi_sichani_2013/base_iframe.html" %}
+
+{% block head_extra %}
+  <script type='text/javascript' src='//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js'></script>
+  <link rel="stylesheet" href="{{ STATIC_URL }}10_1038_nchembio_1337__fallahi_sichani_2013/css/scatterplot_browser.css"/>
+
+<style>
+#content{min-height:0;}
+#content{margin-top:15px;}
+#content > h1{margin-bottom:10px;}
+
+#pagebody{padding-bottom:0;}
+#sidebar{margin:0;}
+
+.empty-div{display:none;}
+
+</style>
+
+{% endblock %}
+
+{% block title %}Scatterplot browser - {{ block.super }}{% endblock %}
+
+{% block contentclass %}fullwidth{% endblock %}
+
+{% block body %}
+
+{% include "10_1038_nchembio_1337__fallahi_sichani_2013/scatterplot_browser_content.html" %}
+
+{% endblock %}
