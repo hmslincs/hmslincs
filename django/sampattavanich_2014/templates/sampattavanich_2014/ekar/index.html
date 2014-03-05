@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block head_extra %}
+  <link rel="stylesheet" type="text/css" href="http://cdnjs.cloudflare.com/ajax/libs/mediaelement/2.13.1/css/mediaelementplayer.min.css"/>
+  <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}sampattavanich_2014/css/jquery-ui/jquery-ui-1.11.0-pre.min.css"/>
+  <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}sampattavanich_2014/css/style.css"/>
+  <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/mediaelement/2.13.1/js/mediaelement-and-player.min.js"></script>
+  <script type="text/javascript" src="{{ STATIC_URL }}sampattavanich_2014/js/jquery-ui/jquery-ui-1.11.0-pre.min.js"></script>
+  <script type="text/javascript" src="{{ STATIC_URL }}sampattavanich_2014/js/main.js"></script>
+{% endblock %}
+
+{% block title %}Sampattavnich et al. 2014 - {{ block.super }}{% endblock %}
+
+{% block contentclass %}fullwidth{% endblock %}
+
+{% block body %}
+
+<table class="lookup-table">
+  <tr>
+    <th colspan="2" rowspan="2"></th>
+    {% for batimastat_conc in batimastat_concs %}
+      <th class="col-super-header
+          {% if batimastat_conc > 0 %}
+          row-header-inhibitor
+          {% endif %}
+          " colspan="{{ num_inhibitors }}">
+        Inhibitor
+        {% if batimastat_conc > 0 %}
+          <br/>+ Batimastat @ {{ batimastat_conc }}&nbsp;μM
+        {% endif %}
+      </th>
+    {% endfor %}
+  </tr>
+  <tr>
+    {% for batimastat_conc in batimastat_concs %}
+      {% for inhibitor in inhibitors %}
+        <th class="col-header
+            {% if batimastat_conc > 0 %}
+            row-header-inhibitor
+            {% endif %}
+            ">
+          {{ inhibitor }}
+        </th>
+      {% endfor %}
+    {% endfor %}
+  </tr>
+  {% for row in table %}
+    <tr>
+      {% if forloop.first %}
+        <th class="row-super-header" rowspan="{{ num_inhibitor_concs }}">
+          Inhibitor<br/>concentration
+        </th>
+      {% endif %}
+      <th class="row-header" style="background-color: {{ row.color }};">
+        {{ row.inhibitor_conc }}&nbsp;μM
+      </th>
+    {% for cell in row.cells %}
+      {% include "sampattavanich_2014/ekar/table_cell.html" %}
+    {% endfor %}
+    </tr>
+  {% endfor %}
+</table>
+
+{% for row in table %}
+  {% for cell in row.cells %}
+    {% include "sampattavanich_2014/ekar/popup.html" %}
+  {% endfor %}
+{% endfor %}
+
+{% endblock %}

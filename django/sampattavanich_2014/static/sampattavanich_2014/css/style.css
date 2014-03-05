@@ -3,6 +3,8 @@ unfortunate stuff from the base stylesheet. */
 
 #content .lookup-table {
   border: 0;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 #content .lookup-table tr:nth-child(2n) {
@@ -17,12 +19,32 @@ unfortunate stuff from the base stylesheet. */
 }
 
 #content .lookup-table th.col-super-header, #content .lookup-table th.col-header {
-  text-align: center;
+  vertical-align: top;
 }
 
 #content .lookup-table th.col-super-header, #content .lookup-table th.row-super-header {
   font-weight: bold;
   font-size: 120%;
+}
+
+#content .lookup-table th {
+  text-align: center;
+}
+
+#content .lookup-table th.row-header {
+  text-align: right;
+}
+
+#content .lookup-table th.col-header {
+  border-bottom: 1px solid #888;
+}
+
+#content .lookup-table td {
+  max-width: 80px;
+}
+
+#content .lookup-table td.col-separator, #content .lookup-table th.col-separator {
+  border-left: 1px solid #888;
 }
 
 #content .lookup-table img {
@@ -39,12 +61,8 @@ div.hr {
   border-bottom: 1px solid #808080;
 }
 
-th.col-header {
-  height: 60px;
-}
-
 th.row-header-inhibitor {
-  background-color: hsl(240, 50%, 80%);
+  background-color: hsl(240, 50%, 95%);
 }
 
 
