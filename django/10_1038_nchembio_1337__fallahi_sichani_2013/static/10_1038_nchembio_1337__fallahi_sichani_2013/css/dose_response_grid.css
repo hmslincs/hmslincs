@@ -7,18 +7,9 @@
 /* #pagebody{outline:5px solid green;} */
 /* #pagebody-wrap{outline:5px solid red;} */
 
-/* ******************************************************* */
-/* assorted hacks to disable site-wide settings */
-
-#content{min-height:0;}
-#content{margin-top:15px;}
-#content > h1{margin-bottom:10px;}
 #pagebody{border-bottom:#ffefe2 1px solid;}
 #pagebody{padding-top:65px;padding-bottom:0;}
 #pagebody-wrap{background-color:white;}
-.empty-div{display:none;}
-
-/* ******************************************************* */
 
 body{ 
   position:relative;
