@@ -300,13 +300,6 @@ html,body{height:100%;}
 }
 */
 
-#picker li{
-  margin:0 5px;
-  padding:0 5px;
-}
-#picker li{
-  line-height:2.5ex;
-}
 #picker{
   background-color:white;
   border:1px solid black;
@@ -318,6 +311,9 @@ html,body{height:100%;}
 }
 
 #picker li{
+  margin:0 5px;
+  padding:0 5px;
+  line-height:2.25ex;
   color:black;
   background-color:white;
   margin-bottom:1px;

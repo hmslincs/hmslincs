@@ -308,10 +308,7 @@
           .style('padding', '0 ' + (hpadding/2) + 'px')
           .style('margin', '0 ' + (hmargin/2) + 'px')
           .style('margin-bottom', '1px')
-          .style('line-height',
-                 (parseInt(lis.style('line-height'), 10) - 1) + 'px')
           .style('width', column_order ? (colwidth + 'px') : '');
-
     }
 
     $$.update_factor = function (factor, levels, handlers) {
