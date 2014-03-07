@@ -2524,12 +2524,6 @@ class SiteSearchManager(models.Manager):
         # ranks into the range zero to one, but of course this is just a 
         # cosmetic change; will not affect the ordering of the search results.
 
-
-
-# " SELECT id, " + facility_salt_id + " as facility_id , ts_headline(" + SmallMoleculeTable.snippet_def + """, query2, 'MaxFragments=10, MinWords=1, MaxWords=20, FragmentDelimiter=" | "') as snippet, """ +
-# " ts_rank_cd(search_vector, query2, 32) AS rank, 'sm_detail' as type FROM db_smallmolecule sm, to_tsquery(%s) as query2 WHERE search_vector @@ query2 ")
-
-
         SEARCH_SQL = \
 '''
 SELECT
