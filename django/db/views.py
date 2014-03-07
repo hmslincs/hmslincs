@@ -2546,7 +2546,7 @@ WHERE search_vector @@ {query_number}
             sql += RESTRICTION_SQL
         sql += " UNION "
         sql += SEARCH_SQL.format(
-            key_id='facility_id',
+            key_id= "facility_id || '-' || salt_id" ,
             snippet_def=SmallMoleculeTable.snippet_def,
             detail_type='sm_detail',
             table_name='db_smallmolecule',
