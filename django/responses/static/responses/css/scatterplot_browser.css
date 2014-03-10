@@ -1,0 +1,455 @@
+/* ******************************************** */
+/* assorted hacks to disable site-wide settings */
+#content{min-height:0;}
+#content{margin-top:15px;}
+#content > h1{margin-bottom:10px;}
+.empty-div{display:none;}
+/* ******************************************** */
+/* ******************************************** */
+
+/**/
+
+
+/******************************************************************************/
+
+/*
+.global,.global *{outline:1px solid red;}
+*/
+
+/******************************************************************************/
+
+html,body{height:100%;}
+.global,.global *{
+  margin:0;
+  padding:0;
+  -webkit-box-sizing:border-box;
+     -moz-box-sizing:border-box;
+          box-sizing:border-box;
+}
+.global :not(button){border:0;}
+.global{
+  font-family:consolas,monaco,courier,monospace;
+  font-size:13px;
+}
+.global table{
+  border-spacing:0;
+  border-collapse:collapse;
+}
+
+/******************************************************************************/
+
+.loading{
+  visibility:hidden;
+}
+
+/******************************************************************************/
+
+#main .centered-track{
+  width:930px;
+  background-color:white;
+  /*padding:30px;*/
+}
+
+/******************************************************************************/
+
+#main ul,#main li{list-style:initial;} /* undoes reset.css */
+
+#main p{
+  margin-top:3ex;
+}
+
+
+/******************************************************************************/
+
+#main .tab{
+  position:absolute;
+  top:0;
+  margin-top:5px;
+  z-index:1;
+  cursor:default;
+}
+
+#main .corner-dingbat{
+  cursor:default;
+  position:relative;
+}
+
+#main .closed            .corner-dingbat,
+#main .open   .tab:hover .corner-dingbat{
+  background-color:white;
+}
+
+#main .open              .corner-dingbat,
+#main .closed .tab:hover .corner-dingbat{ 
+  background-color:#E6941E;
+}
+
+#main .corner-dingbat > div{
+  position:relative;
+  background-color:#E6941E;
+  height:100%;
+}
+
+#main .corner-dingbat{
+  width:26px;height:26px;
+  padding:2px;
+  -moz-border-radius: 13px;
+  -webkit-border-radius: 13px;
+  border-radius: 13px;
+}
+
+#main .corner-dingbat > div{
+  -webkit-border-radius: 11px;
+     -moz-border-radius: 11px;
+          border-radius: 11px;
+}
+
+#main .corner-dingbat > div > div{
+  color:white;
+
+  font-size: 20px;
+  font-weight: bold;
+  /*font-family:helvetica,sans-serif;*/
+  /*font-family:courier,monospace;*/
+  font-family:serif;font-style:italic;margin-left:-2px;
+
+  text-align:center;
+  padding-top:12px;
+  line-height:0px;
+}
+
+/* most of the declarations for :before and :after belong to a hack to
+   squeeze a "close" icon out of CSS */
+
+#main .corner-dingbat > div > div:before,
+#main .corner-dingbat > div > div:after{
+  content:"";
+  position:absolute;
+  top:50%;
+  background:transparent;
+}
+
+#main .corner-dingbat > div > div:before,
+#main .corner-dingbat > div > div:after{
+  left:3px;
+  border-left:8px solid transparent;
+  border-right:8px solid transparent;
+  border-bottom:7px solid transparent;
+}
+
+#main .corner-dingbat > div > div:before{
+  border-bottom-color:white;
+  margin-top:-4px;
+}
+
+#main .corner-dingbat > div > div:after{
+  margin-top:-1px;
+  border-bottom-color:#E6941E;
+}
+
+#main .open   .corner-dingbat > div > div > span,
+#main .closed .corner-dingbat > div > div:before,
+#main .closed .corner-dingbat > div > div:after{
+  display:none;
+}
+
+/******************************************************************************/
+
+#main .pulldown{
+  width:100%;
+}
+
+#main .pulldown > div{
+  color:white;
+  background-color:#E6941E;
+  padding:30px 80px 10px;
+  -webkit-border-radius:4px;
+  border-radius:4px;
+  -moz-background-clip:padding;
+  -webkit-background-clip:padding-box;
+  background-clip:padding-box;
+}
+
+#main .pulldown a{
+  color:indigo;
+}
+
+#main .pulldown .button-reference{
+  outline:1px solid white;
+  padding:0 3px;
+  font-family:Courier;
+}
+
+#main .centered-track{
+  position:relative;
+  margin:0 auto;
+  overflow:hidden;
+}
+
+#main .content{
+  width:100%;
+  display:table;
+}
+
+/******************************************************************************/
+
+#widget{
+  margin:0 auto;
+  font-size:11px;
+  height:500px;
+  max-width:650px;
+}
+
+#widget > table td{white-space:normal;} /* undoes hmslincs.css */
+
+#widget > table{margin-top:30px;}
+
+#left-panel{
+  width:250px;
+}
+#left-panel > div{
+  margin-bottom:15px;
+}
+#left-panel > div:last-child{
+  margin-top:-10px;
+}
+
+#widget > table .radio-button-group label{
+  display:block;
+  padding:0 1ex;
+}
+#widget > table .radio-button-group .group-label{
+  font-weight:bold;
+}
+
+#widget > table .radio-button-group input[type='radio'],
+#widget > table .radio-button-group label{
+  vertical-align:baseline;
+}
+
+/******************************************************************************/
+
+#widget .buttons {
+  visibility: hidden;
+  max-height:0;
+}
+/* #widget .buttons > div{ */
+/*   padding:10px 0; */
+/* } */
+
+#widget .buttons > div > div{
+  display:inline-block;
+  vertical-align:middle;
+}
+
+/******************************************************************************/
+
+#widget #left-panel{
+  vertical-align:top;
+  padding-top:5px;
+}
+
+/******************************************************************************/
+
+#clear{
+  float:right;
+}
+#clear button{
+  padding:1px 6px;
+}
+#clear button:disabled{ 
+  opacity:0.5;
+  filter:alpha(opacity=50);
+}
+
+/******************************************************************************/
+
+#picker{
+  width:100%;
+}
+
+#picker-container{
+  display:inline-block;
+}
+
+.list-container{
+  cursor:default;
+}
+
+.list-container li{
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.list-container ul{
+  list-style:none;
+}
+.list-container li{
+  -webkit-background-clip:padding-box;
+  background-clip:padding-box;
+}
+
+.list-container li{
+  float:left;
+}
+.list-container br{
+  clear:left;
+}
+
+#picker ul{
+  padding-left:0;
+}
+
+/****** columnation ******/
+
+/* TBD = to be determined (dynamically, that is) */
+
+/*
+#picker ul, #picker ol{
+  width:TBD;
+}
+#picker li{
+  width:TBD;
+}
+*/
+
+#picker{
+  background-color:white;
+  border:1px solid black;
+  -webkit-border-radius:4px;
+  border-radius:4px;
+  -moz-background-clip:padding;
+  -webkit-background-clip:padding-box;
+  background-clip:padding-box;
+}
+
+#picker li{
+  margin:0 5px;
+  padding:0 5px;
+  line-height:2.25ex;
+  color:black;
+  background-color:white;
+  margin-bottom:1px;
+}
+#picker li.disabled{
+  color:#aaa;
+}
+
+#picker .y-level{
+  outline:1px solid black;
+  font-weight:bold;
+}
+
+#picker .title{
+  width:100%;
+  text-align:center;
+  border-bottom:1px solid black;
+  margin-top:0.5ex;
+  margin-bottom:0.5ex;
+  font-weight:bold;
+}
+
+#off-stage{
+  position:relative;
+}
+#off-stage .list-container{
+  position:absolute;
+  left:-1000000px;
+}
+
+/******************************************************************************/
+
+#legend{
+  padding:0;
+  padding-top:10px;
+  width:100%;
+}
+#legend li{
+  margin-bottom:8px;
+  line-height:11px;
+  list-style-type:none;
+}
+#legend table{
+  width:100%;
+}
+#legend td{
+  vertical-align:top;
+}
+#legend .bullet{
+  font-size:26px;
+  width:26px;
+  line-height:8px;
+  opacity:0.75;
+  filter:alpha(opacity=75);
+}
+#legend .entry{
+  font-size:11px;
+  color:black;
+}
+
+/******************************************************************************/
+
+#widget .stage{
+  padding:0;
+  line-height:0;
+}
+
+/******************************************************************************/
+
+.canvas,
+.diagonal,
+.frame,
+.axis path,
+.axis line{
+  shape-rendering:crispEdges;
+  stroke:#aaa;
+  fill:none;
+}
+
+.axis path{
+  display:none;
+}
+
+/******************************************************************************/
+
+.plot-label{ 
+  font-family:Consolas, Monaco, Courier, monospace;
+  font-size:12px;
+}
+.math{font-style:italic;}
+.subscript{font-size:smaller;}
+
+/******************************************************************************/
+
+.scatterplot-marker{
+  pointer-events:all;
+  stroke-opacity:1;
+}
+.marker{
+  stroke:black;
+  stroke-width:0;
+  fill-opacity:0.75;
+}
+
+.hbar,.vbar{
+  stroke-width:0;
+  shape-rendering:crispEdges;
+}
+
+.selected.scatterplot-marker *{
+  stroke:red;
+  stroke-width:2;
+  fill-opacity:1;
+}
+
+/******************************************************************************/
+
+.clear-right{
+  clear:right;
+}
+.clear-left{
+  clear:left;
+}
+
+/******************************************************************************/
