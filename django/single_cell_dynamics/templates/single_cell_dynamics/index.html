@@ -2,11 +2,11 @@
 
 {% block head_extra %}
   <link rel="stylesheet" type="text/css" href="http://cdnjs.cloudflare.com/ajax/libs/mediaelement/2.13.1/css/mediaelementplayer.min.css"/>
-  <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}sampattavanich_2014/css/jquery-ui/jquery-ui-1.11.0-pre.min.css"/>
-  <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}sampattavanich_2014/css/style.css"/>
+  <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}single_cell_dynamics/css/jquery-ui/jquery-ui-1.11.0-pre.min.css"/>
+  <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}single_cell_dynamics/css/style.css"/>
   <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/mediaelement/2.13.1/js/mediaelement-and-player.min.js"></script>
-  <script type="text/javascript" src="{{ STATIC_URL }}sampattavanich_2014/js/jquery-ui/jquery-ui-1.11.0-pre.min.js"></script>
-  <script type="text/javascript" src="{{ STATIC_URL }}sampattavanich_2014/js/main.js"></script>
+  <script type="text/javascript" src="{{ STATIC_URL }}single_cell_dynamics/js/jquery-ui/jquery-ui-1.11.0-pre.min.js"></script>
+  <script type="text/javascript" src="{{ STATIC_URL }}single_cell_dynamics/js/main.js"></script>
 {% endblock %}
 
 {% block title %}
@@ -87,7 +87,7 @@
         {{ row.inhibitor_conc }}&nbsp;μM
       </th>
     {% for cell in row.cells %}
-      {% include "sampattavanich_2014/ekar/table_cell.html" %}
+      {% include "single_cell_dynamics/table_cell.html" %}
     {% endfor %}
     </tr>
   {% endfor %}
@@ -95,7 +95,7 @@
 
 {% for row in table %}
   {% for cell in row.cells %}
-    {% include "sampattavanich_2014/ekar/popup.html" %}
+    {% include "single_cell_dynamics/popup.html" %}
   {% endfor %}
 {% endfor %}
 

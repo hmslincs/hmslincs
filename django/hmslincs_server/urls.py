@@ -73,20 +73,12 @@ urlpatterns = patterns('',
      'django.views.generic.simple.direct_to_template',
      {'template': '10_1038_nchembio_1337__fallahi_sichani_2013/scatterplot_browser_content.html'}),
 
-    (r'^explore/10.1038-nchembio.1337/fallahi-sichani-2013/scatterplot_browser_content\.html$',
-     'django.views.generic.simple.direct_to_template',
-     {'template': '10_1038_nchembio_1337__fallahi_sichani_2013/scatterplot_browser_content.html'}),
-
     (r'^explore/responses/scatterplot_browser\.html$',
      'django.views.generic.simple.direct_to_template',
      {'template': 'responses/scatterplot_browser.html'}),
 
-    # breast_cancer_signaling is currently served by apache directly from
-    # STATIC_ROOT, so no url patterns are listed here.
-
-    (r'^explore/sampattavanich_2013/$', 'django.views.static.serve',
-     {'path': 'index.html',
-      'document_root': op.join(_djangopath, 'sampattavanich_2013', 'static', 'sampattavanich_2013')}),
+    # breast_cancer_signaling and single_cell_dynamics are currently served by
+    # apache directly from STATIC_ROOT, so no url patterns are listed here.
 )
 
 # For DEBUG mode only (development) serving of static files

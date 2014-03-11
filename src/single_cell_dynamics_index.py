@@ -38,7 +38,7 @@ CONCENTRATION_COLOR_END = 0xD0
 
 DOCROOT = op.abspath(op.join(
         op.dirname(__file__), os.pardir,
-        'temp', 'docroot', 'explore', 'sampattavanich-2014'
+        'temp', 'docroot', 'explore', 'single-cell-dynamics'
         ))
 BASE_URL = '/explore/breast-cancer-signaling/'
 
@@ -46,7 +46,7 @@ BASE_URL = '/explore/breast-cancer-signaling/'
 def main(argv):
 
     argparser = argparse.ArgumentParser(
-        description='Build sampattavanich_2014 (EKAR) app resources.')
+        description='Build single_cell_dynamics app resources.')
     argparser.add_argument('-d', '--no-data', action='store_true',
                            default=False,
                            help="Don't copy data files")
@@ -94,7 +94,7 @@ def main(argv):
             'BASE_URL': BASE_URL,
             }
     su.mkdirp(DOCROOT)
-    render_template('sampattavanich_2014/ekar/index.html', data,
+    render_template('single_cell_dynamics/index.html', data,
                     DOCROOT, 'index.html')
 
     if not args.no_data:
