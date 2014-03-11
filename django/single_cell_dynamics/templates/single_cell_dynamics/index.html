@@ -44,9 +44,11 @@
       expanded trajectory plot, a movie of the cells showing the ERK activity,
       and a ~4 MB .csv file of the position and ERK signal across time for each
       cell.</li>
-    <li><a href="">Download all computed ERK trajectories</a> with image
-      segmentation information (2 GB, zip)</li>
-    <li><a href="">Access raw image data</a> via our OMERO server</li>
+    <li><a href="{{ STATIC_URL }}single_cell_dynamics/data/HMS-LINCS-ekarev-processed-data.zip">Download
+      all computed ERK trajectories</a> with image segmentation information (2.5 GB,
+      zip)</li>
+    <li><a href="https://lincs-omero.hms.harvard.edu/webclient/?show=dataset-1060">Access
+      raw image data</a> via our OMERO server</li>
   </ul>
 
   <h2>Interactive lookup table</h2>
@@ -124,7 +126,7 @@
   every 7 minutes over a time course of 20 hours. To track cells through time,
   the nucleus and cytoplasm were segmented using a nuclear-localized mCherry
   fluorescent protein. To determine the level of ERK activity, we calculated the
-  mean intensity of the EKAR FRET signal in the cytoplasm divided by the CFP
+  mean intensity of the EKAREV FRET signal in the cytoplasm divided by the CFP
   signal.
 </p>
 
@@ -143,7 +145,7 @@
   <li><strong>y</strong>: Cell y coordinate in pixels within the image frame,
   counting down from the top.</li>
   <li><strong>erk_signal</strong>: The calculated value of the ERK signal
-  &mdash; mean intensity of the EKAR FRET signal divided by the CFP signal
+  &mdash; mean intensity of the EKAREV FRET signal divided by the CFP signal
   across the cytoplasm.</li>
 </ol>
 
