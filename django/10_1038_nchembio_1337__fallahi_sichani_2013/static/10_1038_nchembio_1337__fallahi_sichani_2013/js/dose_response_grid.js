@@ -1,4 +1,34 @@
 (function ($) {
+  function lineno () {
+    return new Error().stack.split('\n')[2].split(':')[3];
+  }
+
+  var elapsed = (function () {
+    function time () {
+      return new Date().getTime();
+    }
+    function elapsed () {
+      var now = time(),
+          ret = now - elapsed.then;
+      elapsed.then = now;
+      return ret;
+    }
+    elapsed.init = function () {
+      elapsed.then = time();
+    };
+    elapsed.log = function (msg) {
+      if (arguments.length == 0) {
+          msg = '';
+      }
+      else {
+          msg += ': ';
+      }
+      console.log(msg + elapsed());
+    };
+    elapsed.init();
+    elapsed.log('start');
+    return elapsed;
+  }());
 
   // the following line may look like a no-op but it actually replaces
   // a percentage with a fixed pixel position, in order to eliminate a
@@ -82,7 +112,7 @@
           $info = $slider.find('.pulldown-content'),
           $content = $slider.find('.main-content'),
           rect = function ($sel) { return $sel.get(0).getBoundingClientRect(); },
-          slider_top = rect($slider).top,
+          slider_top = rect($slider).top, // slow!
           offset_0 = Math.abs(slider_top - rect($pulldown).top),
           offset_1 = Math.abs(slider_top - rect($info).top),
           top_open = -Math.ceil(offset_1),
@@ -146,7 +176,7 @@
             // $fl: floating element
             $fl = $main_content.find('.vfloat'),
             // pt: padding-top; pb: padding-bottom
-            pt = parseInt($main_content.css('padding-top'), 10),
+            pt = parseInt($main_content.css('padding-top'), 10), // slow
             pb = parseInt($main_content.css('padding-bottom'), 10),
             // ptvp: top padding relative to viewport (i.e. $fl will
             // stop at ptvp from the top of the viewport)
@@ -265,8 +295,7 @@
       ret.reset();
       return ret;
     }());
-  }
-  // eodiff
+  } // end of install_handlers
 
 
   // ----------------------------------------------------------------------
@@ -288,37 +317,78 @@
         fgetters = FACTORS.map(get),
         grid = build_grid(d3.max(FACTORS.map(function (f) {
                  return levels(data, f).length;
-               })), SHAPE),
-        get_xy = mk_get_xy(),
+               })), SHAPE);
+
         current_color_index = 0;
 
     $('.slider').css('visibility', 'hidden');
 
     // ----------------------------------------------------------------------
+    // in d3.tsv(INPUT_FILE, function(error, data) { ...
 
     var paths = grid.select('g')
                     .selectAll('path')
                     .data(data)
                     .enter()
-                  .append('svg:path')
-                    .each(function (d, i) {
-                       var classes = d3.zip(FACTORS, fgetters.map(apply(d)))
-                                       .map(function (args) {
-                                          return get_class.apply(null, args);
-                                        })
-                                       .sort()
-                                       .join(' ');
-                       d3.select(this).classed(classes, true);
-                     })
-                    .datum(function (d) {
-                       var params = pgetters.map(apply(d))
-                                            .map(function (d) { return +d; });
-                       return   params.every(isFinite)
-                              ? get_xy(MK_FN.apply(null, params), XRANGE)
-                              : [];
-                     });
+                  .append('svg:path');
 
-    var domains = d3.transpose(paths.data()
+
+    var todo = paths[0],
+        stride = 200;
+
+    function inner () {
+      if (todo.length > 0) {
+        elapsed.init();
+        var q = d3.selectAll(todo.slice(0, stride));
+        q.each(function (d, i) {
+             var classes = d3.zip(FACTORS, fgetters.map(apply(d)))
+                             .map(function (args) {
+                                return get_class.apply(null, args);
+                              })
+                             .sort()
+                             .join(' ');
+             d3.select(this).classed(classes, true);
+           });
+        todo = todo.slice(stride);
+        setTimeout(inner, elapsed());
+        return;
+      }
+      dostage_1000(data, grid, paths, get_class, pgetters);
+    }
+
+    setTimeout(inner, 0);
+  }); // closing of d3.tsv(INPUT_FILE, function(error, data) { ...
+
+  function dostage_1000 (data, grid, paths, get_class, pgetters) {
+    var todo = paths[0],
+        stride = 200,
+        get_xy = mk_get_xy();
+
+    function inner () {
+      if (todo.length > 0) {
+        elapsed.init();
+        var q = d3.selectAll(todo.slice(0, stride));
+        q.datum(function (d) {
+           var params = pgetters.map(apply(d))
+                                .map(function (d) { return +d; });
+           return   params.every(isFinite)
+                  ? get_xy(MK_FN.apply(null, params), XRANGE)
+                  : [];
+         });
+         todo = todo.slice(stride);
+         setTimeout(inner, elapsed());
+         return;
+      }
+      dostage_2000(data, grid, paths, get_class);
+    }
+    setTimeout(inner, 0);
+  } // dostage_1000
+
+  function dostage_2000 (data, grid, paths, get_class) {
+    var svg = grid.select('svg'),
+        voodoo = 3,
+        text_height = svg.select('text').node().getBBox().height + voodoo,
+        domains = d3.transpose(paths.data()
                                     .map(d3.transpose)
                                     .filter(function (p) {
                                       return p.length > 0;
@@ -327,14 +397,30 @@
                        return pad_interval(d3.extent(d3.merge(a)),
                                            PLOT_RANGE_PADDING);
                      }),
-        svg = grid.select('svg'),
-        voodoo = 3,
-        text_height = svg.select('text').node().getBBox().height + voodoo,
         ranges = [[0, parseInt(svg.attr('width'))],
                   [parseInt(svg.attr('height')), text_height]],
         line = linedrawer(domains, ranges);
         
-    paths.attr('d', function(d){ return line(d) });
+    var todo = paths[0],
+        stride = 200;
+
+    function inner () {
+      if (todo.length) {
+        elapsed.init();
+        d3.selectAll(todo.slice(0, stride)).attr('d', line);
+        todo = todo.slice(stride);
+        setTimeout(inner, elapsed());
+      }
+      else {
+        dostage_3000(data, grid, get_class);
+      }
+    }
+    setTimeout(inner, 0);
+  }
+
+  function dostage_3000 (data, grid, get_class) {
+    // ----------------------------------------------------------------------
+
 
     var argmax =  FACTORS
                  .map(function (f) {
@@ -349,6 +435,7 @@
                   });
 
     // ----------------------------------------------------------------------
+    // in d3.tsv(INPUT_FILE, function(error, data) { ...
 
     $('#dose-response-grid-main')
       .append($('<div id="off-stage" class="track-container">' +
@@ -357,10 +444,11 @@
                   '</div>' + 
                 '</div>'));
 
+
     // ----------------------------------------------------------------------
+    // in d3.tsv(INPUT_FILE, function(error, data) { ...
 
     // instrument button
-
     var nfactors = FACTORS.length,
         pick = -1;
 
@@ -368,57 +456,54 @@
       .click(function() {
          var factor = FACTORS[pick = (pick + 1) % nfactors],
              other = FACTORS[(pick + 1) % nfactors];
-
          set_track(data, other);
-
          var lvls = levels(data, factor),
              nlevels = lvls.length,
              classes = lvls.map(function (lvl) { return get_class(factor, lvl) });
 
          grid.selectAll('g')
              .each(function (_, i) {
-                var g = this, label = '', cls;
-                if (i < nlevels) {
-                  label = factor + ': "' + lvls[i] + '"';
-                  cls = classes[i];
-                  grid.selectAll('.' + cls)
-                      .each(function(){
-                        this.parentNode.removeChild(this);
-                        g.appendChild(this)
-                      });
-                  unhighlight(cls);
-                }
-                d3.select(g).select('text').text(label);
+                var g = this;
+                setTimeout(function(){
+                    var label = '', cls;
+                    if (i < nlevels) {
+                      label = factor + ': "' + lvls[i] + '"';
+                      cls = classes[i];
+                      grid.selectAll('.' + cls)
+                          .each(function(){
+                            this.parentNode.removeChild(this);
+                            g.appendChild(this)
+                          });
+                      unhighlight(cls);
+                    }
+                    d3.select(g).select('text').text(label);
+                }, 10*i);
               });
-
-         // d3.select('#grid')
-         //   .selectAll('svg')
-         //   .each(function () {
-         //     var $this = d3.select(this),
-         //         c = $this.selectAll('path')[0].length;
-         //     $this.style('display', c === 0 ? 'none' : '');
-         //    });
 
          $('.current-view').text(factor);
          $('.other-view').text(other);
 
-       }).click();
+       });
+
+    $('#toggle button').click();
 
     $('#reset').css('display', '');
-
     $('#reset').click(function () {
       reset();
       $(this).prop('disabled', true);
     });
 
     // ---------------------------------------------------------------------------
+    // in d3.tsv(INPUT_FILE, function(error, data) { ...
 
     install_handlers();
+
     $('.slider').css('visibility', 'visible');
     $('#loading').fadeOut(800);
 
     // ----------------------------------------------------------------------
 
+    // in d3.tsv(INPUT_FILE, function(error, data) { ...
     function set_track (data, factor) {
       // var sbmargin = 25;
       var borderwidth = 1;
@@ -449,7 +534,7 @@
       //                            'padding-right': bbmargin + 'px'});
       // var width = $('.vfloat').innerWidth() - (2 * bbmargin);
 
-      var width = $('.vfloat').innerWidth();
+      var width = $('.vfloat').innerWidth(); //slow (innerWidth)
       // console.log(width - sbmargin);
       // populate_list(ul, items, width - sbmargin);
       populate_list(ul, items, width - 2 * borderwidth);
@@ -463,6 +548,7 @@
       return;
     }
 
+    // in d3.tsv(INPUT_FILE, function(error, data) { ...
     function highlight (cls) {
       refresh();
       d3.select('#grid :first-child')
@@ -474,6 +560,7 @@
               });
     }
 
+    // in d3.tsv(INPUT_FILE, function(error, data) { ...
     function unhighlight (cls) {
       d3.selectAll("." + cls)
         .classed('unhighlit', true)
@@ -481,6 +568,7 @@
       refresh();
     }
 
+    // in d3.tsv(INPUT_FILE, function(error, data) { ...
     function refresh () {
       d3.selectAll('path:not(.unhighlit)')
         .each(function () {
@@ -488,6 +576,7 @@
               });
     }
 
+    // in d3.tsv(INPUT_FILE, function(error, data) { ...
     function reset () {
       $('#track .list-container').find('li')
                                  .css({'background-color':''})
@@ -500,6 +589,7 @@
         });
     }
 
+    // in d3.tsv(INPUT_FILE, function(error, data) { ...
     function populate_list (list, data, max_width, callback) {
       var n = data.length,
           min_rows = 3,
@@ -555,6 +645,7 @@
           .style('margin', '0 ' + (hmargin/2) + 'px')
           .style('width', column_order ? (colwidth + 'px') : '');
 
+      // in function populate_list (list, data, max_width, callback) { ...
       function handlers () {
             $(this).hover(function () {
                 var $li = $(this);
@@ -592,10 +683,12 @@
               });
       }
 
+      // in function populate_list (list, data, max_width, callback) { ...
       function get_width (t) {
         return Math.ceil(t.getBoundingClientRect().width);
       }
 
+      // in function populate_list (list, data, max_width, callback) { ...
       function _populate_list_0 (list, data, callback) {
         var lis0 = list.selectAll('li'),
             lis = lis0.data(data),
@@ -614,6 +707,7 @@
                   function (d) { return d === sentinel ? 'hidden' : 'visible'; });
       }
 
+      // in function populate_list (list, data, max_width, callback) { ...
       function acceptable_width (descending_widths, f) {
         // f represents the maximum acceptable number of entries in
         // descending_widths that are strictly greater than the value
@@ -621,16 +715,19 @@
         return descending_widths[Math.floor(descending_widths.length * f)];
       }
 
+      // in function populate_list (list, data, max_width, callback) { ...
       function columnate (array, ncols) {
         var nrows = Math.max(min_rows, Math.ceil(array.length/ncols));
         return d3.transpose(chunk(pad_array(array, nrows * ncols), nrows));
       }
 
+      // in function populate_list (list, data, max_width, callback) { ...
       function pad_array (array, n) {
         return array.concat(d3.range(n - array.length)
                               .map(function () { return sentinel; }));
       }
 
+      // in function populate_list (list, data, max_width, callback) { ...
       function chunk (array, chunksize) {
         return d3.range(array.length/chunksize)
                  .map(function (i) {
@@ -638,9 +735,8 @@
                     return array.slice(s, s + chunksize);
                   });
       }
-    }
-
-  });   // closing of d3.tsv(INPUT_FILE, function(error, data) { ...
+    } // function populate_list (list, data, max_width, callback) { ...
+  } // dostage_3000
 
   function color (i) {
     var
@@ -799,6 +895,5 @@
   // }
 
   // label_dom($('body').get(0));
-
 
 })(jQuery);

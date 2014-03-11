@@ -1,3 +1,15 @@
+/* ******************************************** */
+/* assorted hacks to disable site-wide settings */
+#content{min-height:0;}
+#content{margin-top:15px;}
+#content > h1{margin-bottom:10px;}
+.empty-div{display:none;}
+/* ******************************************** */
+/* ******************************************** */
+
+/**/
+
+
 /******************************************************************************/
 
 /*
@@ -184,7 +196,8 @@ html,body{height:100%;}
 #widget{
   margin:0 auto;
   font-size:11px;
-  height:660px;
+  height:500px;
+  max-width:650px;
 }
 
 #widget > table td{white-space:normal;} /* undoes hmslincs.css */
@@ -199,9 +212,6 @@ html,body{height:100%;}
 }
 #left-panel > div:last-child{
   margin-top:-10px;
-}
-#legend li{
-  margin-bottom:8px;
 }
 
 #widget > table .radio-button-group label{
@@ -219,6 +229,10 @@ html,body{height:100%;}
 
 /******************************************************************************/
 
+#widget .buttons {
+  visibility: hidden;
+  max-height:0;
+}
 /* #widget .buttons > div{ */
 /*   padding:10px 0; */
 /* } */
@@ -318,6 +332,10 @@ html,body{height:100%;}
   background-color:white;
   margin-bottom:1px;
 }
+#picker li.disabled{
+  color:#aaa;
+}
+
 #picker .y-level{
   outline:1px solid black;
   font-weight:bold;
@@ -343,13 +361,14 @@ html,body{height:100%;}
 /******************************************************************************/
 
 #legend{
-  margin:0;
   padding:0;
-  list-style:none;
+  padding-top:10px;
   width:100%;
 }
 #legend li{
+  margin-bottom:8px;
   line-height:11px;
+  list-style-type:none;
 }
 #legend table{
   width:100%;
@@ -373,6 +392,7 @@ html,body{height:100%;}
 
 #widget .stage{
   padding:0;
+  line-height:0;
 }
 
 /******************************************************************************/
@@ -406,7 +426,7 @@ html,body{height:100%;}
   pointer-events:all;
   stroke-opacity:1;
 }
-.circ{
+.marker{
   stroke:black;
   stroke-width:0;
   fill-opacity:0.75;
@@ -433,4 +453,3 @@ html,body{height:100%;}
 }
 
 /******************************************************************************/
-

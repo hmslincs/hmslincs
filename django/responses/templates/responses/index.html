@@ -1,178 +1,152 @@
 {% extends "base.html" %}
 
 {% block head_extra %}
-  <link rel="stylesheet" href="{{ STATIC_URL }}responses/css/responses.css"/>
-  <link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.9.0/themes/base/jquery-ui.css" />
-  <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.9.1/jquery-ui.min.js"></script>
-  <script>var IMGBASE = "{{ STATIC_URL }}responses/img/";</script>
-  <script src="{{ STATIC_URL }}responses/js/pointmap.js"></script>
-  <script src="{{ STATIC_URL }}responses/js/responses.js"></script>
+
+  <link rel="stylesheet" href="{{ STATIC_URL }}responses/css/scatterplot_browser.css"/>
+
+<style>
+#pagebody{padding-bottom:0;}
+#sidebar{margin:0;}
+.empty-div{display:none;}
+
+#preamble{
+  max-width:900px;
+  margin:0 auto;
+}
+
+</style>
+
 {% endblock %}
 
-{% block title %}Perturbational profiling of receptor signaling in cancer cells  - {{ block.super }}{% endblock %}
+{% block title %}Scatterplot browser - {{ block.super }}{% endblock %}
 
 {% block contentclass %}fullwidth{% endblock %}
 
 {% block body %}
+    </div> <!-- close <div id="content"> -->
+  <!-- </div> <\!-- close <div id="pagebody"> -\-> -->
+<!-- </div> --> <!-- close <div id="pagebody-wrap"> -->
+    <br class="clear-left"/>
 
-<h1>Perturbational profiling of receptor signaling in cancer cells</h1>
+    <div id="preamble">
+      <h1>Scatterplot browser</h1>
+      <p>This browser widget serves to explore the basal levels and activity of key receptor tyrosine kinases (RTKs) across the panel of 39 breast cancer cell lines studied in <a href="http://dx.doi.org/10.1126/scisignal.2004379">Niepel et al. (2013)</a>. The set of measurements comprises the abundance and basal phosphorylation of 22 receptors and 3 downstream kinases (ERK, Akt, and Src).  Hovering the cursor over the names in the Selection Panel gives a rapid scan over the available data; clicking on a name fixes the choice.  (For more info, click on the &#x24d8; icon.)</p>
+    </div>
 
-<p>The HMS LINCS center is undertaking a perturbational approach to receptor
-signaling in cancer cells by measuring basal and phosphorylation levels of
-multiple receptors along with their responsiveness to exogenous ligands across
-panels of cell lines. We then determine the information content of these
-perturbagen profiles by asking how predictive they are of a second set of
-perturbations involving small molecule drugs.
+  <div id="main" class="loading global">
 
-<p>The 2D landscapes below display basal and response data for a set of
-well-characterized breast cancer cell lines. Clicking on a data point or cluster
-of points will display the corresponding cell line names and raw data values. We
-find that relatively simple receptor profiles can be predictive of drug
-response; the very last figure shows a predictor of <a
-href="/db/sm/10051-104/">lapatinib</a> sensitivity. The underlying data for
-these plots is currently being formatted for release via the LINCS Data
-Repository (Updated 3/19/2013).
+    <div class="centered-track">
+      <div id="help" class="pulldown">
 
-<table class="plain">
+        <div>
+          <p>USAGE:</p>
+          <ul>
+            <li>first, choose the target corresponding to the <i>x</i>-axis by clicking on its abbreviation in the Selection Panel (to the left of the plots); this choice serves as the "anchor" for all subsequent selections, but it can be changed easily, as described below;</li>
+            <li>next, select one or more entities for the <i>y</i>-axis, by clicking on their abbreviations; selecting an entity for the <i>y</i>-axis in this way amounts to selecting a new pair; each newly selected pair gets added to a running list of selected pairs, shown below the Selection Panel; this list of selected pairs persists until the <span class="button-reference">clear</span> button is pressed;</li>
+            <li>to select a different "anchor" for the <i>x</i>-axis, click on the previously selected one to deselect it (this will not affect any previously selected pairs), and then proceed as before; (it is possible to choose the <i>x</i>-axis identifier also for the <i>y</i>-axis, by holding down the shift key while clicking on the <i>x</i>-axis identifier the second time).</li>
+          </ul>
 
-  <tr>
-    <td colspan="2"><h2>Ligand responses</h2></td>
-  </tr>
-  <tr>
-    <td class="matrix">
-      <h3>pERK responses, to EGF vs. BTC</h3>
-      <p><img class="scatterplot" src="{{ STATIC_URL }}responses/img/perk,btc,100,m__perk,egf,100,m.png" width="300" height="300">
-      <img src="{{ STATIC_URL }}responses/img/legends/categorical.png" width="300" height="13">
-      <p>
+          <p>NOTES:</p>
+          <ul>
+            <li>the thin marks along an axis correspond to cell lines for which the measurement was below the detection threshold for that axis;</li>
+            <li>cross-shaped marks correspond to cell lines for which the measurements were below the detection threshold for both axes (such a cross-shaped mark, when present, always appears on the diagonal, near the lower left corner of the plot);</li>
+            <li>grayed-out targets are those for which no above-threshhold data is available;</li>
+            <li>scatterplot points correspond to cell lines; hovering the cursor over a marker in the scatterplot highlights all the other markers (across all the plots) associated with the same cell line, and, after a short wait, it also brings up the name of this cell line;</li>
+            <li>marker type correspond to the clinical subtype of the cell line (circle for triple negative breast cancer, triangle for HER2-amplified lines, and squares for hormone receptor positive lines);</li>
+            <li>performance and appearance vary across web browsers; in our experience, Chrome is best, followed by Safari, Firefox, Internet Explorer (11+), and Opera, in roughly that order.</li>
+          </ul>
 
-      Average pERK fold-change response to BTC and EGF are strongly correlated,
-      suggesting strong similarities in the response to ErbB ligands targeting
-      similar receptors. The Her2amp cell lines (triangle) are the least
-      responsive cell lines.
-      
-    </td>
-    <td class="matrix">
-      <h3>pAKT response, to HRG vs. EGF</h3>
-      <p><img class="scatterplot" src="{{ STATIC_URL }}responses/img/pakt,egf,100,m__pakt,hrg,100,m.png" width="300" height="300">
-      <img src="{{ STATIC_URL }}responses/img/legends/categorical.png" width="300" height="13">
-      <p>
+        </div>
 
-      Average pAKT fold-change response to EFG and HRG are not correlated,
-      showing that HRG is significantly different from other ErbB ligands. The
-      HR+ cell lines (squares) being responsive only to HRG.
-
-    </td>
-  </tr>
-  <tr>
-    <td class="matrix">
-      <h3>pERK response vs. pAKT response, to FGF-1</h3>
-      <p><img class="scatterplot" src="{{ STATIC_URL }}responses/img/pakt,fgf-1,100,m__perk,fgf-1,100,m.png" width="300" height="300">
-      <img src="{{ STATIC_URL }}responses/img/legends/categorical.png" width="300" height="13">
-      <p>
-
-      FGFs predominantly signal to pERK, but not to pAKT. Cells are responding
-      by pERK (y-axis) to stimulation by FGF-1, but pAKT (x-axis) is hardly
-      increased.
-
-    </td>
-    <td class="matrix">
-      <h3>pERK response vs. pAKT response, to IGF-1</h3>
-      <p><img class="scatterplot" src="{{ STATIC_URL }}responses/img/pakt,igf-1,100,m__perk,igf-1,100,m.png" width="300" height="300">
-      <img src="{{ STATIC_URL }}responses/img/legends/categorical.png" width="300" height="13">
-      <p>
-      
-      IGFs signal predominantly to AKT. Simulation with IGF-1 activates more
-      pAKT (x-axis) than pERK (y-axis). In general, the Her2amp cell lines
-      (triangle) are the least responsive cell lines.
-
-    </td>
-  </tr>
-
-  <tr>
-    <td colspan="2"><h2>Basal protein levels</h2></td>
-  </tr>
-  <tr>
-    <td class="matrix">
-      <h3>Basal pAKT vs. AKT</h3>
-      <p><img class="scatterplot" src="{{ STATIC_URL }}responses/img/akt__pakt.png" width="300" height="300">
-      <img src="{{ STATIC_URL }}responses/img/legends/categorical.png" width="300" height="13">
-      <p>
-
-      Basal expression levels and phosphorylation levels of AKT are not
-      correlated. The Her2amp cell lines (triangle) are generally high in pAKT.
-
-    </td>
-    <td class="matrix">
-      <h3>Basal pErbB2 vs. pAKT</h3>
-      <p><img class="scatterplot" src="{{ STATIC_URL }}responses/img/pakt__perbb2.png" width="300" height="300">
-      <img src="{{ STATIC_URL }}responses/img/legends/categorical.png" width="300" height="13">
-      <p>
-      
-      The Her2amp cell lines (triangle) are generally high in pErbB2 and also
-      have a high pAKT basal level. The HR+ (squares) and TNBC (circles) have
-      low pErbB2 basal levels, but diverse pAKT basal levels.
-
-    </td>
-  </tr>
-  <tr>
-    <td class="matrix">
-      <h3>Basal pErbB2 vs. ErbB2</h3>
-      <p><img class="scatterplot" src="{{ STATIC_URL }}responses/img/erbb2__perbb2.png" width="300" height="300">
-      <img src="{{ STATIC_URL }}responses/img/legends/categorical.png" width="300" height="13">
-      <p>
-
-      The Her2amp cell lines (triangle) are generally high in ErbB2 and also
-      have a high pErbB2 basal level. The HR+ (squares) and TNBC (circles) have
-      low ErbB2 basal levels and are also low in pErbB2 levels.
-
-    </td>
-    <td class="matrix">
-      <h3>Basal pErbB3 vs. pErbB2</h3>
-      <p><img class="scatterplot" src="{{ STATIC_URL }}responses/img/perbb2__perbb3.png" width="300" height="300">
-      <img src="{{ STATIC_URL }}responses/img/legends/categorical.png" width="300" height="13">
-      <p>
-
-      Basal levels of pErbB3 are generally below the detection threshold expect
-      for a majority of Her2amp cell lines (triangles) that have high pErbB2.
-
-    </td>
-  </tr>
-
-  <tr>
-    <td colspan="2"><h2>Predicting Responsiveness to the ErbB inhibitor
-    Lapatinib using cytokine response profiles</h2></td>
-  </tr>
-  <tr>
-    <td class="featured">
-      <img class="scatterplot" id="slider-img" src="{{ STATIC_URL }}responses/img/slider/pakt,igf-1,100,10__perk,fgf-1,100,10.png" width="300" height="300">
-      <img src="{{ STATIC_URL }}responses/img/legends/graded.png" width="300" height="64">
-
-      <!-- hack to preload the images -->
-      <img class="scatterplot" style="display: none" src="{{ STATIC_URL }}responses/img/slider/pakt,igf-1,100,30__perk,fgf-1,100,30.png">
-      <img class="scatterplot" style="display: none" src="{{ STATIC_URL }}responses/img/slider/pakt,igf-1,100,90__perk,fgf-1,100,90.png">
-
-      <div id="slider-wrap">
-        <label for="timepoint">Time point:</label>
-        <input type="text" id="timepoint"/>
-        <div id="slider"></div>
+      </div> <!-- #help .pulldown -->
+      <div class="tab">
+        <div class="corner-dingbat"><div><div><span>i</span></div></div></div>
       </div>
-    </td>
-    <td class="featured righthand">
-      <h3>pERK response to FGF-1 vs. pAKT response to IGF-1, over time</h3>
 
-      <p>The pERK response to FGF-1 (y-axis) is strongest at the first time
-      point (10 minutes) and decreases thereafter, while the pAKT response to
-      IGF-1 occurs only at the last time point and is much weaker. In general,
-      the Her2amp cell lines (triangles) that are the most responsive to
-      Lapatinib (in red) are the weakest responders to FGF-1 or IGF-1.
+      <div id="widget" class="content">
 
-      <p>Move the time point slider to view the response at the
-      different time points (10, 30 and 90 minutes).
+        <table><tr>
+          <td id="left-panel">
 
-    </td>
-  </tr>
+             <div id="clear"><button>clear</button></div><br class="clear-right"/>
 
-</table>
+             <div class="buttons">
+               <div id="factor-group" class="radio-button-group">
+                 <div class="group-label">plot type:</div>
+                 <div>
+                   <label> <input type="radio" value="target">    target vs. target       </label>
+                   <label> <input type="radio" value="cell line"> cell line vs. cell line </label>
+                 </div>
+               </div>
+             </div>
 
+             <div id="picker-container">
+               <div id="picker" class="list-container">
+                 <ul>
+                   <div class="title"></div>
+                 </ul>
+
+                 <br>
+               </div> <!-- #picker -->
+             </div> <!-- #picker-container -->
+             <div id="legend">
+               <ul></ul>
+             </div>
+
+          </td> <!-- #left-panel -->
+
+          <td id="right-panel">
+            <div class="stage"></div>
+            <div id="marker-legend">
+              <svg width="400" height="30" viewbox="0 0 400 30">
+
+                <g transform="translate(30, 15)">
+                  <g fill="#999" stroke="#999">
+                    <path class="marker" d="M0,5.5A5.5,5.5 0 1,1 0,-5.5A5.5,5.5 0 1,1 0,5.5Z"></path>
+                  </g>
+                  <text transform="translate(10, 5)">TNBC</text>
+                </g>
+
+                <g transform="translate(110, 15)">
+                  <g  fill="#999" stroke="#999">
+                    <path class="marker" d="M0,-5.1L5.9,5.1 -5.9,5.1Z"></path>
+                  </g>
+                  <text transform="translate(10, 5)">HER2amp</text>
+                </g>
+
+                <g transform="translate(190, 15)">
+                  <g fill="#999" stroke="#999">
+                    <path class="marker" d="M-4.9,-4.9L4.9,-4.9 4.9,4.9 -4.9,4.9Z"></path>
+                  </g>
+                  <text transform="translate(10, 5)">HR+</text>
+                </g>
+
+              </svg>
+            </div>
+          </td>
+
+        </tr></table>
+
+      </div> <!-- .content -->
+
+
+    </div> <!-- .centered-track -->
+  </div> <!-- #main .global -->
+
+    <script>
+(function (hmslincs) {
+  hmslincs.STATIC_URL = "{{ STATIC_URL }}";
+})(window.hmslincs = window.hmslincs || {});
+    </script>
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/jquery-ui.js"></script>
+    <!-- <script src="//cdnjs.cloudflare.com/ajax/libs/d3/3.3.10/d3.min.js"></script> -->
+    <script src="//cdnjs.cloudflare.com/ajax/libs/d3/3.3.10/d3.js"></script>
+    <script src="{{ STATIC_URL }}responses/js/scatterplot_browser.js"></script>
+
+<!-- <div class="empty-div"> --> <!-- match the </div> for <div id="pagebody-wrap"> -->
+  <!-- <div class="empty-div"> <\!-- match the </div> for <div id="pagebody"> -\-> -->
+    <div class="empty-div"> <!-- match the </div> for <div id="content"> -->
 
 {% endblock %}

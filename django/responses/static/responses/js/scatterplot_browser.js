@@ -15,7 +15,9 @@
   /*global window,document,console,debugger,jQuery,d3,Error,Math */
 
   var FIRST_COORD = 'x',
-      SENTINEL = String.fromCharCode(29);
+      SENTINEL = String.fromCharCode(29),
+      NODATA,
+      TYPE2MARKER;
 
   function assert (bool, info) {
     if (bool) { return; }
@@ -28,6 +30,14 @@
 
   function is_numeric (s) {
     return !isNaN(parseFloat(s)) && isFinite(s);
+  }
+
+  function mkobj(arr) {
+    var o = {};
+    arr.forEach(function (v) {
+      o[v[0]] = v[1];
+    });
+    return o;
   }
 
   function named_array (pairs) {
@@ -105,16 +115,22 @@
     return function (d) { return d[key]; };
   }
 
-  function unstack(data, keycols, pivcol, valcol) {
-    var nest = d3.nest()
+  function unstack(data, keycols, pivcol, valcol, othercols) {
+    var cokeycols = d3.merge([keycols, othercols]),
+        ckc_set = d3.set(cokeycols),
+        chk = function (v) {
+          assert(!ckc_set.has(v));
+          return v;
+        },
+        nest = d3.nest()
                  .rollup(function (d) {
                     var o = {}, d0 = d[0];
-                    keycols.forEach(function (k) { o[k] = d0[k]; });
+                    cokeycols.forEach(function (c) { o[c] = d0[c]; });
                     if (valcol !== undefined) {
-                      d.forEach(function (e) { o[e[pivcol]] = e[valcol]; });
+                      d.forEach(function (e) { o[chk(e[pivcol])] = e[valcol]; });
                     }
                     else {
-                      d.forEach(function (e) { o[e[pivcol]] = null; });
+                      d.forEach(function (e) { o[chk(e[pivcol])] = null; });
                     }
                     return o;
                   });
@@ -457,7 +473,10 @@
 
        var PLOT_RANGE_PADDING,
            EDGE_PARAM,
+           MARKER = {},
            CIRC,
+           TRI,
+           SQR,
            HBAR,
            VBAR;
 
@@ -482,7 +501,11 @@
           PLOT_RANGE_PADDING = rel_padding;
           EDGE_PARAM = (margin + halfwidth)/abs_padding;
 
-          CIRC = d3.svg.symbol().type('circle')
+          MARKER.CIRC = d3.svg.symbol().type('circle')
+                  .size(radius*radius*Math.PI)();
+          MARKER.TRI = d3.svg.symbol().type('triangle-up')
+                  .size(2*radius*radius)();
+          MARKER.SQR = d3.svg.symbol().type('square')
                    .size(radius*radius*Math.PI)();
 
           function rect (hw, hh) {
@@ -561,16 +584,17 @@
                              .attr({'class': 'hbar', d: HBAR});
                       $this.append('path')
                              .attr({'class': 'vbar', d: VBAR});
-                      var $circ = $this.append('path')
-                                         .attr({'class': 'circ', d: CIRC})
+                      var $marker = $this.append('path')
+                                         .attr({'class': 'marker',
+                                                d: MARKER[TYPE2MARKER[d.type]]})
                       var title = d.title;
-                      $circ.append('svg:title')
+                      $marker.append('svg:title')
                              .datum(title)
                              .text(String);
 
                       function match_title (e) { return e.title === title; }
 
-                      $circ.on('mouseover', function (d) {
+                      $marker.on('mouseover', function (d) {
                         d3.selectAll('.points .scatterplot-marker')
                           .filter(match_title)
                           .classed('selected', true)
@@ -582,7 +606,7 @@
 
                       });
 
-                      $circ.on('mouseout', function (d) {
+                      $marker.on('mouseout', function (d) {
                         d3.selectAll('.points .scatterplot-marker')
                           .filter(match_title)
                           .classed('selected', false);
@@ -596,7 +620,7 @@
            points_g.selectAll('g:not(.fixed)')
                    .attr('transform', function (d) {
                             return translate(d3.round(x(xcoord(d.x)), 1),
-                                            d3.round(y(ycoord(d.y)), 1));
+                                             d3.round(y(ycoord(d.y)), 1));
                          })
                    .attr({fill: color, stroke: color})
                    .each(function (d) {
@@ -612,7 +636,7 @@
                   // if (isFinite(d[c0]) && isFinite(d[c1])) {
                   if (isFinite(d[c0]) &&
                       !(have_one_coord && !isFinite(d[c1]))) {
-                    $this.select('.circ').style('visibility', 'visible');
+                    $this.select('.marker').style('visibility', 'visible');
                   }
                   else {
                     // if (have_one_coord && !isFinite(d.x)) {
@@ -667,6 +691,12 @@
                          });
     }
 
+    function get_levels(factor) {
+      return d3.set(proj(STACKED_DATA, factor)).values().sort(function (a, b) {
+               return a.toLowerCase().localeCompare(b.toLowerCase());
+             });
+    }
+
     var METRICS;
     (function () {
        var dy = 4;  // NB: this should be 1/3 of .plot-label's font-size
@@ -678,47 +708,36 @@
        METRICS =
          named_array(
            [
-            ['log10[IC50 (M)]',
+            ['basal level',
              [
-              {attr: {},                              text: 'log'},
-              {attr: {'class': 'subscript', dy: +dy}, text: '10'},
-              {attr: {                      dy: -dy}, text: '(IC'},
-              {attr: {'class': 'subscript', dy: +dy}, text: '50'},
-              {attr: {                      dy: -dy}, text: ')'}
-             ]],
-            ['log10[GI50 (M)]',
-             [
-              {attr: {},                              text: 'log'},
-              {attr: {'class': 'subscript', dy: +dy}, text: '10'},
-              {attr: {                      dy: -dy}, text: '(GI'},
-              {attr: {'class': 'subscript', dy: +dy}, text: '50'},
-              {attr: {                      dy: -dy}, text: ')'}
-             ]],
-            ['log2[HillSlope]',
-             [
-              {attr: {},                              text: 'log'},
-              {attr: {'class': 'subscript', dy: +dy}, text: '2'},
-              {attr: {                      dy: -dy}, text: '(HillSlope)'}
-             ]],
-            ['E_max',
-             [{attr: {'class': 'math'},               text: 'E'},
-              {attr: {'class': 'subscript', dy: +dy}, text: 'max'}
+              {attr: {}, text: ''}
              ]]
            ]
          );
     }());
 
     var FACTORS = named_array(get_values('factor').map(function (f) {
-                    return [f, d3.set(proj(STACKED_DATA, f)).values().sort()];
-                  })),
+            return [f, get_levels(f)];
+        })),
         PICKER = make_picker(FACTORS),
         KEYCOL,
-        ncols = 2,
-        ww = $('#main .centered-track').width(),
+        // WARNING: hard-coding COKEYCOLS to meet the latest deadline,
+        // and making this mess even worse...
+        COKEYCOLS = ['cell line', 'type'],
+        // ncols = 2,
+        // ww = $('#main .centered-track').width(),
+        ncols = 1,
+        ww = $('#widget').width(),
         lpw = $('#left-panel').width();
 
     $('#widget').width(ww);
     $('.stage').width(ww - lpw);
+
+    // a sad, sad, sad kluge:
+    TYPE2MARKER = mkobj(d3.zip(get_levels('type'), ['TRI', 'SQR', 'CIRC']));
+
+    // var arr = projn(STACKED_DATA, ['type', 'cell line']).map(function (p) { return p.join(SENTINEL); });
+    // var q = d3.set(arr).values().sort().map(function (k) { return k.split(SENTINEL)[1]; })
 
     var side = ~~((ww - lpw)/ncols),
         //zide = function () { return ~~((ww - $('#left-panel').width())/ncols); },
@@ -732,7 +751,7 @@
     });
 
     function toxys (levels, data) {
-      var ret = xys(levels, data, [KEYCOL]);
+      var ret = xys(levels, data, COKEYCOLS);
       if (KEYCOL !== 'title') {
         ret.forEach(function (d) {
           d.title = d[KEYCOL];
@@ -800,19 +819,24 @@
       $(this).hover(function (e) {
           e.stopPropagation();
           var $li = $(this);
-          if ($('.first-coord').length > 0) {
-            $li.css({'background-color': current_color(),
-                     color: 'white',
-                     opacity: 0.75,
-                     filter: 'alpha(opacity=75)'});
-          }
-          else {
-            $li.css({outline: '1px solid black'});
+          if (!$li.hasClass('disabled')) {
+            if ($('.first-coord').length > 0) {
+              $li.css({'background-color': current_color(),
+                       color: 'white',
+                       opacity: 0.75,
+                       filter: 'alpha(opacity=75)'});
+            }
+            else {
+              $li.css({outline: '1px solid black'});
+            }
           }
           view_data(d3.select(this).datum().text);
         },
         function () {
           var $li = $(this);
+          if ($li.hasClass('disabled')) {
+              return;
+          }
           $li.css({'background-color': '',
                    color: '',
                    opacity: 1,
@@ -823,6 +847,9 @@
              .click(function (e) {
           if (e.which !== 1) { return; }
           var $li = $(this);
+          if ($li.hasClass('disabled')) {
+              return;
+          }
           var $first_coord = $('.first-coord');
           if ($first_coord.length > 0) {
             if ($li.hasClass('first-coord') && !e.shiftKey) {
@@ -889,6 +916,9 @@
 
         })
              .dblclick(function (e) {
+          if ($(this).hasClass('disabled')) {
+              return;
+          }
           clear_text_selection();
           e.stopPropagation();
         });
@@ -915,12 +945,14 @@
       //$('#clear button').css('visibility', 'hidden');
     }
 
-    function _extract_data (keycol, pivcol, valcol) {
-      var unstacked = unstack(STACKED_DATA,
-                              FACTORS.keys.filter(function (q) {
-                                return q !== pivcol;
-                              }),
-                              pivcol, valcol);
+    function _extract_data (keycol, pivcol, valcol, othercols) {
+      if (arguments.length === 3) {
+          othercols = [];
+      }
+      assert(FACTORS.keys.indexOf(keycol) > -1);
+      assert(keycol !== pivcol);
+      var unstacked = unstack(STACKED_DATA, [keycol],
+                              pivcol, valcol, othercols);
 
       return flatten_nest(d3.nest()
                             .key(get(keycol))
@@ -936,12 +968,24 @@
 
       clear_all();
       PICKER.update_factor(p.pivcol, FACTORS[p.pivcol], handlers);
-      //update_data();
 
+      _update_factor(p.keycol, p.pivcol)
       KEYCOL = p.keycol;
+    }
+
+    function _update_factor(keycol, pivcol) {
       METRICS.keys.forEach(function (m, i) {
-        var data = _extract_data(p.keycol, p.pivcol, m),
-            traits = FACTORS[p.pivcol],
+        assert(STACKED_DATA.length > 0);
+        // othercols should really be set of all non-key columns that
+        // "covary" with the key columns (typically metadata columns
+        // associated with the keycols); the setting of othercols below
+        // is a very imperfect kluge that works for this case.
+        var othercols = Object.getOwnPropertyNames(STACKED_DATA[0])
+                              .filter(function (v) { return v !== keycol &&
+                                                            v !== pivcol &&
+                                                            v !== m; }),
+            data = _extract_data(keycol, pivcol, m, othercols),
+            traits = FACTORS[pivcol],
             dmn = d3.extent(d3.merge(projn(data, traits))
                               .map(function (s) { return +s; })),
             plot = PLOTS[i];
@@ -972,6 +1016,31 @@
     }());
 
     // -------------------------------------------------------------------------
+
+    NODATA = (function () {
+      return _extract_data('target', 'cell line', 'basal level', [])
+                .map(function (o) { return [o.target,
+                                            FACTORS[1].map(function (f) {
+                                                return o[f] === "NaN"; })];
+                                  })
+                .filter(function (o) { return o[1].every(Boolean); })
+                .map(function (o) { return o[0]; })
+                .forEach(function (s) {
+                  var regex = new RegExp('^' + s + '$');
+                      $('#picker li').filter(function () { return (this.textContent || this.innerText || '').match(regex) })
+                                     .addClass('disabled');
+                });
+
+      var x = _extract_data('target', 'cell line', 'basal level', []),
+          y = x.map(function (o) { return [o.target,
+                                           FACTORS[1].map(function (f) {
+                                               return o[f] === "NaN"; })];
+                                 }
+                   ),
+          z = y.filter(function (o) { return o[1].every(Boolean); })
+               .map(function (o) { return o[0]; });
+      return z;
+    }());
 
     return $$;
   } // function app (STACKED_DATA) {
