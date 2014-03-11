@@ -26,7 +26,6 @@
       console.log(msg + elapsed());
     };
     elapsed.init();
-    elapsed.log('start');
     return elapsed;
   }());
 
@@ -78,7 +77,6 @@
   //   //fn();
   //   return fn;
   // }());
-
 
   function update_min_height () {
     var $main = $('.main-content');
@@ -307,13 +305,11 @@
       MK_FN = mk_sigmoids,
       SHAPE = {width: 125, height: 75},
       PARAMS = 'log10[EC50 (M)]	E_inf	HillSlope'.split('\t'),
-      FACTORS = 'cell line	drug'.split('\t');
+      FACTORS = 'cell line	drug'.split('\t'),
+      GET_CLASS = mk_get_class();
 
   d3.tsv(INPUT_FILE, function(error, data) {
-
-    var pgetters = PARAMS.map(get),
-        params_set = d3.set(PARAMS),
-        get_class = mk_get_class(),
+    var params_set = d3.set(PARAMS),
         fgetters = FACTORS.map(get),
         grid = build_grid(d3.max(FACTORS.map(function (f) {
                  return levels(data, f).length;
@@ -322,10 +318,6 @@
         current_color_index = 0;
 
     $('.slider').css('visibility', 'hidden');
-
-    // ----------------------------------------------------------------------
-    // in d3.tsv(INPUT_FILE, function(error, data) { ...
-
     var paths = grid.select('g')
                     .selectAll('path')
                     .data(data)
@@ -343,7 +335,7 @@
         q.each(function (d, i) {
              var classes = d3.zip(FACTORS, fgetters.map(apply(d)))
                              .map(function (args) {
-                                return get_class.apply(null, args);
+                                return GET_CLASS.apply(null, args);
                               })
                              .sort()
                              .join(' ');
@@ -353,17 +345,18 @@
         setTimeout(inner, elapsed());
         return;
       }
-      dostage_1000(data, grid, paths, get_class, pgetters);
+      dostage_1000(data, grid, paths);
     }
 
     setTimeout(inner, 0);
   }); // closing of d3.tsv(INPUT_FILE, function(error, data) { ...
 
-  function dostage_1000 (data, grid, paths, get_class, pgetters) {
+  function dostage_1000 (data, grid, paths) {
     var todo = paths[0],
         stride = 200,
-        get_xy = mk_get_xy();
-
+        get_xy = mk_get_xy(),
+        pgetters = PARAMS.map(get);
+        
     function inner () {
       if (todo.length > 0) {
         elapsed.init();
@@ -379,12 +372,12 @@
          setTimeout(inner, elapsed());
          return;
       }
-      dostage_2000(data, grid, paths, get_class);
+      dostage_2000(data, grid, paths);
     }
     setTimeout(inner, 0);
   } // dostage_1000
 
-  function dostage_2000 (data, grid, paths, get_class) {
+  function dostage_2000 (data, grid, paths) {
     var svg = grid.select('svg'),
         voodoo = 3,
         text_height = svg.select('text').node().getBBox().height + voodoo,
@@ -403,7 +396,6 @@
         
     var todo = paths[0],
         stride = 200;
-
     function inner () {
       if (todo.length) {
         elapsed.init();
@@ -412,16 +404,13 @@
         setTimeout(inner, elapsed());
       }
       else {
-        dostage_3000(data, grid, get_class);
+        dostage_3000(data, grid);
       }
     }
     setTimeout(inner, 0);
   }
 
-  function dostage_3000 (data, grid, get_class) {
-    // ----------------------------------------------------------------------
-
-
+  function dostage_3000 (data, grid) {
     var argmax =  FACTORS
                  .map(function (f) {
                    return [f, levels(data, f)];
@@ -431,11 +420,8 @@
                   })[0],
         maxfactor = argmax[0],
         classes = argmax[1].map(function (lvl) {
-                    return get_class(maxfactor, lvl);
+                    return GET_CLASS(maxfactor, lvl);
                   });
-
-    // ----------------------------------------------------------------------
-    // in d3.tsv(INPUT_FILE, function(error, data) { ...
 
     $('#dose-response-grid-main')
       .append($('<div id="off-stage" class="track-container">' +
@@ -445,8 +431,6 @@
                 '</div>'));
 
 
-    // ----------------------------------------------------------------------
-    // in d3.tsv(INPUT_FILE, function(error, data) { ...
 
     // instrument button
     var nfactors = FACTORS.length,
@@ -459,7 +443,7 @@
          set_track(data, other);
          var lvls = levels(data, factor),
              nlevels = lvls.length,
-             classes = lvls.map(function (lvl) { return get_class(factor, lvl) });
+             classes = lvls.map(function (lvl) { return GET_CLASS(factor, lvl) });
 
          grid.selectAll('g')
              .each(function (_, i) {
@@ -497,9 +481,8 @@
     // in d3.tsv(INPUT_FILE, function(error, data) { ...
 
     install_handlers();
-
     $('.slider').css('visibility', 'visible');
-    $('#loading').fadeOut(800);
+    //$('#loading').fadeOut(800);
 
     // ----------------------------------------------------------------------
 
@@ -526,7 +509,7 @@
 
       var items = levels(data, factor)
                     .map(function (lvl) {
-                       return { text: lvl, 'class': get_class(factor, lvl) };
+                       return { text: lvl, 'class': GET_CLASS(factor, lvl) };
                      });
 
       // var bbmargin = 20;
