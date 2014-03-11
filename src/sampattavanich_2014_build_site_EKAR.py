@@ -7,7 +7,10 @@ import errno
 import shutil
 import stat
 import argparse
+import collections
 import pandas as pd
+import numpy as np
+import h5py
 import openpyxl
 import django.conf
 from django.template.loader import render_to_string
@@ -18,10 +21,13 @@ import shell_utils as su
 RESOURCE_PATH = os.environ.get(
     'RESOURCE_PATH',
     ('/home/jmuhlich/Volumes/imstor on research.files.med.harvard.edu/'
-     'sorger/data/NIC/Pat/02-03-2013-videos')
+     'sorger/data/NIC/Pat')
 )
 
-PLATEMAP_FILENAME = op.join(RESOURCE_PATH, 'Experiment 02-03-2013.xlsx')
+VIDEO_PATH = op.join(RESOURCE_PATH, '02-03-2013-videos')
+DATA_PATH = op.join(RESOURCE_PATH, '02-03-2013-dataanalysis')
+
+PLATEMAP_FILENAME = op.join(VIDEO_PATH, 'Experiment 02-03-2013.xlsx')
 CELL_IMAGE_PREFIX = 'Individual_nolabel_'
 
 LIGAND_ORDER = ['IGF1', 'HRG', 'HGF', 'EGF', 'FGF', 'BTC', 'EPR']
@@ -41,12 +47,16 @@ def main(argv):
 
     argparser = argparse.ArgumentParser(
         description='Build sampattavanich_2014 (EKAR) app resources.')
-    argparser.add_argument('-n', '--no-media', action='store_true',
+    argparser.add_argument('-d', '--no-data', action='store_true',
                            default=False,
-                           help="Don't copy media files)")
+                           help="Don't copy data files")
+    argparser.add_argument('-m', '--no-media', action='store_true',
+                           default=False,
+                           help="Don't copy media files")
     args = argparser.parse_args()
 
     cur_dir = op.abspath(op.dirname(__file__))
+    data_out_dir = op.join(DOCROOT, 'data')
     cell_img_out_dir = op.join(DOCROOT, 'img', 'cell')
     popup_img_out_dir = op.join(DOCROOT, 'img', 'popup')
     movie_out_dir = op.join(DOCROOT, 'movies')
@@ -87,31 +97,44 @@ def main(argv):
     render_template('sampattavanich_2014/ekar/index.html', data,
                     DOCROOT, 'index.html')
 
+    if not args.no_data:
+        su.mkdirp(data_out_dir)
+        for src_filename in os.listdir(DATA_PATH):
+            match = re.match(r'H5OUT_(r\d+)_(c\d+)\.h5', src_filename)
+            if not match:
+                continue
+            src_path = op.join(DATA_PATH, src_filename)
+            dest_filename = 'ekar_single_cell_data_%s%s.csv' % match.groups()
+            dest_path = op.join(data_out_dir, dest_filename)
+            data = extract_well_data(src_path)
+            with open(dest_path, 'w') as f:
+                data.to_csv(f, index=False)
+
     if not args.no_media:
         su.mkdirp(cell_img_out_dir)
-        for src_filename in os.listdir(RESOURCE_PATH):
+        for src_filename in os.listdir(VIDEO_PATH):
             if not (src_filename.startswith(CELL_IMAGE_PREFIX) and
                     src_filename.endswith('.png')):
                 continue
-            src_path = op.join(RESOURCE_PATH, src_filename)
+            src_path = op.join(VIDEO_PATH, src_filename)
             dest_filename = src_filename[len(CELL_IMAGE_PREFIX):]
             dest_path = op.join(cell_img_out_dir, dest_filename)
             shutil.copy(src_path, dest_path)
             os.chmod(dest_path, 0644)
         su.mkdirp(popup_img_out_dir)
-        for src_filename in os.listdir(RESOURCE_PATH):
+        for src_filename in os.listdir(VIDEO_PATH):
             if not re.match(r'r\d+c\d+\.png', src_filename):
                 continue
-            src_path = op.join(RESOURCE_PATH, src_filename)
+            src_path = op.join(VIDEO_PATH, src_filename)
             dest_filename = src_filename
             dest_path = op.join(popup_img_out_dir, dest_filename)
             shutil.copy(src_path, dest_path)
             os.chmod(dest_path, 0644)
         su.mkdirp(movie_out_dir)
-        for src_filename in os.listdir(RESOURCE_PATH):
+        for src_filename in os.listdir(VIDEO_PATH):
             if not src_filename.endswith('.mp4'):
                 continue
-            src_path = op.join(RESOURCE_PATH, src_filename)
+            src_path = op.join(VIDEO_PATH, src_filename)
             dest_filename = re.sub(r'myMov_(\w+)f1ratio', r'\1', src_filename)
             dest_path = op.join(movie_out_dir, dest_filename)
             shutil.copy(src_path, dest_path)
@@ -166,6 +189,26 @@ def dataframe_for_range(worksheet, range):
     data = [[c.value for c in row] for row in worksheet.range(range)]
     return pd.DataFrame(data)
 
+
+def extract_well_data(filename):
+    "Extract dataframe from one per-well HDF5 file."
+    f = h5py.File(filename)
+    field1 = f['field1']
+    num_cells = field1['outputsignal1'].shape[2]
+    num_times = field1['timestamp1'].shape[0]
+    # Here we collect the various data columns, for all cells and all
+    # timepoints. The rows are to be ordered first by cell, then by timepoint.
+    cell_id = np.repeat(np.arange(0, num_cells), num_times)
+    # Index 1 in outputsignal1 is "signal2" ("Cytosol-Math").
+    erk_signal = field1['outputsignal1'][1, :].T.flatten()
+    x = field1['cellpath'][:,0,:].T.flatten()
+    y = field1['cellpath'][:,1,:].T.flatten()
+    time = np.tile(field1['timestamp1'][:], num_cells)
+    data = collections.OrderedDict([
+            ('cell_id', cell_id), ('time', time), ('x', x), ('y', y),
+            ('erk_signal', erk_signal)])
+    df = pd.DataFrame(data)
+    return df
 
 def render_template(template_name, data, dirname, basename):
     "Render a template with data to a file specified by dirname and basename."

@@ -98,3 +98,7 @@ th.row-header-inhibitor {
 .ui-dialog {
   box-shadow: 10px 10px 10px rgba(0,0,0,0.7)
 }
+
+.ui-widget-content a {
+  color: hsl(200, 100%, 46%); /* main theme color */
+}
