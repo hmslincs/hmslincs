@@ -53,12 +53,13 @@ body{
   width:1000px;
   top:40%;
   margin:0 auto;
-  padding:2ex 0;
+  padding:38px 0;
   color:white;
   border-radius:7px;
   background-color:#121212;
   text-align:center;
-  font-size: 3em;
+  font-size:39px;
+  line-height:20px;
 }
 
 /* ******************************************************* */
