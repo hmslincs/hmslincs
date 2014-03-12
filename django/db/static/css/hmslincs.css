@@ -278,3 +278,9 @@ li.nav-menu-separator {
     border-top: 1px solid #E6941E;
     border-bottom: 1px solid #F9E8D1;
 }
+
+a.ref {
+  vertical-align: super;
+  font-size: smaller;
+  line-height: 0;
+}

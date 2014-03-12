@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block head_extra %}
+  <link rel="stylesheet" type="text/css" href="http://cdnjs.cloudflare.com/ajax/libs/mediaelement/2.13.1/css/mediaelementplayer.min.css"/>
+  <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}sampattavanich_2014/css/jquery-ui/jquery-ui-1.11.0-pre.min.css"/>
+  <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}sampattavanich_2014/css/style.css"/>
+  <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/mediaelement/2.13.1/js/mediaelement-and-player.min.js"></script>
+  <script type="text/javascript" src="{{ STATIC_URL }}sampattavanich_2014/js/jquery-ui/jquery-ui-1.11.0-pre.min.js"></script>
+  <script type="text/javascript" src="{{ STATIC_URL }}sampattavanich_2014/js/main.js"></script>
+{% endblock %}
+
+{% block title %}Sampattavnich et al. 2014 - {{ block.super }}{% endblock %}
+
+{% block contentclass %}fullwidth{% endblock %}
+
+{% block body %}
+
+<table class="lookup-table">
+  <tr>
+    <th rowspan="2" colspan="3"></th>
+    <th colspan="{{ ligands|length }}" class="col-super-header">Ligand</th>
+  </tr>
+  <tr>
+    {% for ligand in ligands %}
+     <th class="col-header">{{ ligand }}</th>
+    {% endfor %}
+  </tr>
+  {% for row in table %}
+    <tr>
+      {% if forloop.first %}
+      <th rowspan="{{ num_ligand_concs }}" class="row-super-header">
+        Ligand concentration
+      </th>
+      {% endif %}
+      <th class="row-header" style="background-color: {{ row.color }};">
+        {{ row.ligand_conc }}&nbsp;ng/mL
+      </th>
+      <th></th>
+    {% for cell in row.cells %}
+      {% include "sampattavanich_2014/table_cell.html" %}
+    {% endfor %}
+    </tr>
+  {% endfor %}
+  <tr>
+    <td colspan="{{ ligands|length|add:3 }}"><div class="hr"></div></td>
+  </tr>
+  {% for row in table_inhibitors %}
+    <tr>
+      {% if forloop.first %}
+      <th rowspan="{{ num_inhibitors }}" class="row-super-header">
+        +&nbsp;inhibitor
+      </th>
+      {% endif %}
+      <th class="row-header" style="background-color: {{ row.color }};">
+        {{ row.ligand_conc }} ng/mL
+      </th>
+      <th class="row-header row-header-inhibitor">
+        {% for inhibitor in row.inhibitors %}
+        +&nbsp;{{ inhibitor }}
+        {% endfor %}
+      </th>
+    {% for cell in row.cells %}
+      {% include "sampattavanich_2014/table_cell.html" %}
+    {% endfor %}
+    </tr>
+  {% endfor %}
+</table>
+
+{% for row in table %}
+  {% for cell in row.cells %}
+    {% include "sampattavanich_2014/popup.html" %}
+  {% endfor %}
+{% endfor %}
+{% for row in table_inhibitors %}
+  {% for cell in row.cells %}
+    {% include "sampattavanich_2014/popup.html" %}
+  {% endfor %}
+{% endfor %}
+
+{% endblock %}

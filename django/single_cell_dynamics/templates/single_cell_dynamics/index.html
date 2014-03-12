@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block head_extra %}
+  <link rel="stylesheet" type="text/css" href="http://cdnjs.cloudflare.com/ajax/libs/mediaelement/2.13.1/css/mediaelementplayer.min.css"/>
+  <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}single_cell_dynamics/css/jquery-ui/jquery-ui-1.11.0-pre.min.css"/>
+  <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}single_cell_dynamics/css/style.css"/>
+  <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/mediaelement/2.13.1/js/mediaelement-and-player.min.js"></script>
+  <script type="text/javascript" src="{{ STATIC_URL }}single_cell_dynamics/js/jquery-ui/jquery-ui-1.11.0-pre.min.js"></script>
+  <script type="text/javascript" src="{{ STATIC_URL }}single_cell_dynamics/js/main.js"></script>
+{% endblock %}
+
+{% block title %}
+  Dynamics of perturbagen responses in living single cells -
+  {{ block.super }}
+{% endblock %}
+
+{% block contentclass %}fullwidth{% endblock %}
+
+{% block body %}
+
+  <h1>Dynamics of perturbagen responses in<br/>living single cells</h1>
+
+  <h2>Investigation of single-cell ERK response to four ErbB inhibitors</h2>
+
+  <p>
+    <strong><span style="text-decoration: underline;">This dataset is
+    unpublished</span></strong>&nbsp;- please read the&nbsp;<a href="/terms/">terms
+    of use</a>.
+  </p>
+
+  <p>
+    Many signal transduction networks exhibit pulsatile behavior whose amplitude
+    and dynamics regulate downstream processes (see
+    <a href="http://www.elowitz.caltech.edu/publications/Science-2013-Levine-1193-200.pdf">Levine and Elowitz, 2013</a>
+    <a class="ref" href="#ref-1-levine">1</a>)
+    In this unpublished dataset, human mammary epithelial TCT cells expressing a
+    FRET-based reporter of ERK activity were treated with EGF and various small
+    molecule inhibitors targeted against the ErbB kinases.
+  </p>
+
+  <ul>
+    <li>Computed ERK trajectories are available via the <a href="#lookup-table">interactive
+      lookup table below</a> &mdash; click anywhere in the table to view an
+      expanded trajectory plot, a movie of the cells showing the ERK activity,
+      and a ~4 MB .csv file of the position and ERK signal across time for each
+      cell.</li>
+    <li><a href="{{ STATIC_URL }}single_cell_dynamics/data/HMS-LINCS-ekarev-processed-data.zip">Download
+      all computed ERK trajectories</a> with image segmentation information (2.5 GB,
+      zip)</li>
+    <li><a href="https://lincs-omero.hms.harvard.edu/webclient/?show=dataset-1060">Access
+      raw image data</a> via our OMERO server</li>
+  </ul>
+
+  <h2>Interactive lookup table</h2>
+
+<table id="lookup-table" class="lookup-table">
+  <tr>
+    <th class="col-super-header">Drug<br/>concentration</th>
+    {% for batimastat_conc in batimastat_concs %}
+      <th class="col-super-header
+          {% if batimastat_conc > 0 %}
+          row-header-inhibitor
+          {% endif %}
+          " colspan="{{ num_inhibitors }}">
+        Kinase inhibitor
+        {% if batimastat_conc > 0 %}
+          <br/>+ Batimastat @ {{ batimastat_conc }}&nbsp;μM
+        {% endif %}
+      </th>
+    {% endfor %}
+  </tr>
+  <tr>
+    <th></th>
+    {% for batimastat_conc in batimastat_concs %}
+      {% for inhibitor in inhibitors %}
+        <th class="col-header
+            {% if batimastat_conc > 0 %}
+            row-header-inhibitor
+            {% endif %}
+            ">
+          {{ inhibitor }}
+        </th>
+      {% endfor %}
+    {% endfor %}
+  </tr>
+  {% for row in table %}
+    <tr>
+      <th class="row-header" style="background-color: {{ row.color }};">
+        {{ row.inhibitor_conc }}&nbsp;μM
+      </th>
+    {% for cell in row.cells %}
+      {% include "single_cell_dynamics/table_cell.html" %}
+    {% endfor %}
+    </tr>
+  {% endfor %}
+</table>
+
+{% for row in table %}
+  {% for cell in row.cells %}
+    {% include "single_cell_dynamics/popup.html" %}
+  {% endfor %}
+{% endfor %}
+
+<h2>Purpose and dataset details</h2>
+
+<p>
+  The purpose of this dataset was to delineate the differences between clinical
+  grade inhibitors of ErbB signal transduction that have fundamentally different
+  chemistry. <a href="/db/sm/10098-101/">Gefitinib</a> binds reversibly to the
+  active kinase conformation, <a href="/db/sm/10051-104/">Lapatinib</a> binds
+  “irreversibly” to the inactive kinase conformation (that is, it dissociates
+  very slowly<a class="ref" href="#ref-2-kleiman">2</a>) and
+  <a href="/db/sm/10120-102/">Canertinib</a> is a covalent modifier. Batimastat
+  is a
+  <a href="http://en.wikipedia.org/wiki/Matrix_metalloproteinase_inhibitor">matrix metalloproteinase inhibitor</a>
+  (MMPI) that blocks autocrine shedding of ligand.
+</p>
+
+<p>
+  TCT cells expressing EKAREV, a FRET-based reporter of ERK 
+  activity<a class="ref" href="#ref-3-komatsu">3</a>, were serum-starved
+  overnight and at the same time treated with Batimastat to inhibit autocrine
+  secretion of EGFR ligands or left untreated. They were then stimulated with
+  EGF at 100 ng/ml and treated 15 minutes later with inhibitors of ErbB receptor
+  tyrosine kinases at varying concentrations. Images were acquired approximately
+  every 7 minutes over a time course of 20 hours. To track cells through time,
+  the nucleus and cytoplasm were segmented using a nuclear-localized mCherry
+  fluorescent protein. To determine the level of ERK activity, we calculated the
+  mean intensity of the EKAREV FRET signal in the cytoplasm divided by the CFP
+  signal.
+</p>
+
+<p>
+  The individual .csv files available through the lookup table above have one
+  row per cell per time point, with the following 5 columns:
+</p>
+
+<ol>
+  <li><strong>cell_id</strong>: A unique integer for each distinct cell detected
+  by the segmentation and tracking algorithm.</li>
+  <li><strong>time</strong>: Time in minutes since the beginning of the image
+  acquisition.</li>
+  <li><strong>x</strong>: Cell x coordinate in pixels within the image frame,
+  counting from the left side.</li>
+  <li><strong>y</strong>: Cell y coordinate in pixels within the image frame,
+  counting down from the top.</li>
+  <li><strong>erk_signal</strong>: The calculated value of the ERK signal
+  &mdash; mean intensity of the EKAREV FRET signal divided by the CFP signal
+  across the cytoplasm.</li>
+</ol>
+
+<p>
+  Note that cell coordinates of (-1, -1) indicate that the tracking algorithm
+  failed to detect a given cell at the corresponding time point, or that the
+  cell is a sister cell whose mother cell divides at a later time. (-2, -2)
+  indicates that the cell was detected but classified as dead.
+</p>
+
+<h2>References</h2>
+<ol>
+  <li id="ref-1-levine">Levine, J. H., Lin, Y. &amp; Elowitz, M. B. Functional Roles
+    of Pulsing in Genetic Circuits. Science 342, 1193-1200 (2013).
+    doi:<a href="http://dx.doi.org/10.1126/science.1239999">10.1126/science.1239999</a></li>
+  <li id="ref-2-kleiman">Kleiman, L. B., Maiwald, T., Conzelmann, H.,
+    Lauffenburger, D. A. & Sorger, P. K. Rapid phospho-turnover by receptor
+    tyrosine kinases impacts downstream signaling and drug binding. Mol. Cell
+    43, 723-737 (2011).
+    doi:<a href="http://dx.doi.org/10.1016/j.molcel.2011.07.014">10.1016/j.molcel.2011.07.014</a></li>
+  <li id="ref-3-komatsu">Komatsu, N. et al. Development of an optimized backbone
+    of FRET biosensors for kinases and GTPases. Mol. Biol. Cell 22, 4647-4656
+    (2011). doi:<a href="http://dx.doi.org/10.1091/mbc.E11-01-0072">10.1091/mbc.E11-01-0072</a>
+</ol>
+
+{% endblock %}
