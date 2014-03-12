@@ -1,9 +1,8 @@
+    <div id="preamble">
       <h1>Scatterplot browser</h1>
-    </div> <!-- close <div id="content"> -->
-    <br class="clear-left"/>
-  <!-- </div> <\!-- close <div id="pagebody"> -\-> -->
-<!-- </div> --> <!-- close <div id="pagebody-wrap"> -->
-
+          <p>This browser widget serves to explore the dose-response data analyzed in <a href="http://dx.doi.org/10.1038/nchembio.1337">Fallahi-Sichani, et al. (2013)</a>, by overlaying multiple "cell line vs. cell line" or "drug vs. drug" scatterplots like those shown in Figure&nbsp;4&nbsp;(a, c, d, e).  The different scatterplots shown in the widget's right-hand panel correspond to different dose-response metrics.</p>
+          <p>The scatterplots to be displayed are specified by selecting <i>pairs</i> of either cell lines or drugs; each such pair is selected by clicking on its members' names in the Selection Panel (to the left of the plots).  Hovering the cursor over the names in the Selection Panel gives a rapid scan over the available data; clicking on a name fixes the choice.  (For more info, click on the &#x24d8; icon.)</p>
+    </div>
 
   <div id="main" class="loading global">
 
@@ -11,10 +10,6 @@
       <div id="help" class="pulldown">
 
         <div>
-          <p>This browser widget serves to explore the dose-response data analyzed in <a href="http://dx.doi.org/10.1038/nchembio.1337">Fallahi-Sichani, et al. (2013)</a>, by overlaying multiple "cell line vs. cell line" or "drug vs. drug" scatterplots like those shown in Figure&nbsp;4&nbsp;(a, c, d, e).  The different scatterplots shown in the widget's right-hand panel correspond to different dose-response metrics.</p>
-
-          <p>The scatterplots to be displayed are specified by selecting <i>pairs</i> of either cell lines or drugs; each such pair is selected by clicking on its members' names in the Selection Panel (to the left of the plots).</p>
-
           <p>USAGE:</p>
           <ul>
             <li>first specify the desired plot type (if necessary);</li>
@@ -25,7 +20,6 @@
 
           <p>NOTES:</p>
           <ul>
-            <li>hovering the cursor over the names in the Selection Panel gives a rapid scan over the available data; clicking on a name fixes the choice;</li>
             <li>the thin marks along either axis correspond to points for which only the coordinate for that axis is available;</li>
             <li>a cross-shaped mark represents points for which neither coordinate is available (such a cross-shaped mark, when present, always appears on the diagonal, near the lower left corner of the plot);</li>
             <li>hovering the cursor over a marker in the scatterplot highlights all the other markers (across all the plots) corresponding to the drug or cell line associated with it, and, after a short wait, it also brings up the name of this drug or cell line;
@@ -94,7 +88,3 @@
     <script src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/jquery-ui.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/d3/3.3.10/d3.min.js"></script>
     <script src="{{ STATIC_URL }}10_1038_nchembio_1337__fallahi_sichani_2013/js/scatterplot_browser.js"></script>
-
-<!-- <div class="empty-div"> --> <!-- match the </div> for <div id="pagebody-wrap"> -->
-  <!-- <div class="empty-div"> <\!-- match the </div> for <div id="pagebody"> -\-> -->
-    <div class="empty-div"> <!-- match the </div> for <div id="content"> -->

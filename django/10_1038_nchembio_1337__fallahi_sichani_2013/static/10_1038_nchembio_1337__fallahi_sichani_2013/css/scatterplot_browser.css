@@ -6,6 +6,11 @@
 
 /******************************************************************************/
 
+#preamble{
+  max-width:900px;
+  margin:0 auto;
+}
+
 html,body{height:100%;}
 .global,.global *{
   margin:0;

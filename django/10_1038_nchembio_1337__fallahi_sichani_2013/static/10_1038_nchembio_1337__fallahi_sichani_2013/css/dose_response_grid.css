@@ -11,6 +11,11 @@
 #pagebody{padding-top:65px;padding-bottom:0;}
 #pagebody-wrap{background-color:white;}
 
+#preamble{
+  max-width:900px;
+  margin:0 auto;
+}
+
 body{ 
   position:relative;
 }
