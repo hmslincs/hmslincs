@@ -2254,6 +2254,7 @@ class SmallMoleculeTable(PagedTable):
 class DataColumnTable(PagedTable):
     protein = tables.LinkColumn("protein_detail", args=[A('protein.lincs_id')])
     cell = tables.LinkColumn("cell_detail", args=[A('cell.facility_id')])
+    description = DivWrappedColumn(classname='fixed_width_column', visible=True)
     
     class Meta:
         model = DataColumn
