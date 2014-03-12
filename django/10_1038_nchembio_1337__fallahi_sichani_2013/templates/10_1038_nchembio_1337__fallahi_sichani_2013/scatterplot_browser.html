@@ -18,4 +18,17 @@
 
 {% block contentclass %}fullwidth{% endblock %}
 
-{% block body %}{% include "10_1038_nchembio_1337__fallahi_sichani_2013/scatterplot_browser_content.html" %}{% endblock %}
+{% block body %}
+      <!-- <h1>Scatterplot browser</h1> -->
+    </div> <!-- close <div id="content"> -->
+    <br class="clear-left"/>
+  <!-- </div> <\!-- close <div id="pagebody"> -\-> -->
+<!-- </div> --> <!-- close <div id="pagebody-wrap"> -->
+
+{% include "10_1038_nchembio_1337__fallahi_sichani_2013/scatterplot_browser_content.html" %}
+
+<!-- <div class="empty-div"> --> <!-- match the </div> for <div id="pagebody-wrap"> -->
+  <!-- <div class="empty-div"> <\!-- match the </div> for <div id="pagebody"> -\-> -->
+    <div class="empty-div"> <!-- match the </div> for <div id="content"> -->
+
+{% endblock %}

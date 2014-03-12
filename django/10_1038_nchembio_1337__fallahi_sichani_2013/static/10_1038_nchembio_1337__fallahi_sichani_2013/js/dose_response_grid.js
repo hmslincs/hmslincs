@@ -460,7 +460,9 @@
                           });
                       unhighlight(cls);
                     }
-                    d3.select(g).select('text').text(label);
+                    d3.select(g).select('text')
+                                .text(label)
+                                .attr('fill', '#000000');
                 }, 10*i);
               });
 
@@ -480,9 +482,9 @@
     // ---------------------------------------------------------------------------
     // in d3.tsv(INPUT_FILE, function(error, data) { ...
 
-    install_handlers();
+    //install_handlers();
     $('.slider').css('visibility', 'visible');
-    //$('#loading').fadeOut(800);
+    $('#loading').fadeOut(800);
 
     // ----------------------------------------------------------------------
 
@@ -752,6 +754,7 @@
       .append('g')
       .append('text')
         .text('placeholder')
+        .attr('fill', '#ffffff')
         .attr('x', 0)
         .attr('y', function () {
            return this.getBBox().height;
