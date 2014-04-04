@@ -8,18 +8,6 @@ import json
 
 __version__ = "$Revision: 24d02504e664 $"
 
-# ---------------------------------------------------------------------------
-
-# import setparams as _sg
-# _params = dict(
-#     VERBOSE = False,
-#     APPNAME = 'db',
-# )
-# _sg.setparams(_params)
-# del _sg, _params
-
-# ---------------------------------------------------------------------------
-
 logger = logging.getLogger(__name__)
 
 PUBCHEM_BASE_URL = 'http://pubchem.ncbi.nlm.nih.gov/rest/pug/'
