@@ -58,10 +58,14 @@ $(function() {
         // $('#search_form').submit();
     });
     $('#submit_button').click(function(evt){
+      console.log('submit form');
         evt.preventDefault();
         $('#search_form').submit();
     });
-    if(window.location.search){
+    if(window.location.search && 
+        ( window.location.search.indexOf('small') > -1  
+          || window.location.search.indexOf('cell') > -1
+          || window.location.search.indexOf('protein') > -1 )){
         form_toggle();
         var new_uri = clean_form_uri + window.location.search;
         $('#excel_export_link').attr('href', new_uri + '&output_type=.xls');
