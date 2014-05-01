@@ -52,13 +52,17 @@ class SmallMoleculeResource(ModelResource):
 #        authentication = MultiAuthentication(BasicAuthentication(), SessionAuthentication())
         
     def dehydrate(self, bundle):
-        _filter = lambda field_information: not bundle.obj.is_restricted or field_information.is_unrestricted # or is_authorized
+        _filter = ( 
+            lambda field_information: 
+                ( not bundle.obj.is_restricted 
+                    or field_information.is_unrestricted ) )
         bundle.data = get_detail_bundle(bundle.obj, ['smallmolecule',''], _filter=_filter)
         
         smbs = SmallMoleculeBatch.objects.filter(smallmolecule=bundle.obj)
         bundle.data['batches'] = []
         for smb in smbs:
-            bundle.data['batches'].append(get_detail_bundle(smb, ['smallmoleculebatch',''], _filter=_filter))
+            bundle.data['batches'].append(
+                get_detail_bundle(smb, ['smallmoleculebatch',''], _filter=_filter))
         return bundle
 
     def build_schema(self):
