@@ -1,4 +1,4 @@
-{% extends "db/datasetDetailBase.html" %}
+{% extends "db/datasetDetailBase_minimal.html" %}
 {% block datasetContent %}
 	{% if table %}
         {% if object.usage_message.value %}
@@ -7,9 +7,6 @@
             </div>
             <br/>
         {% endif %}
-        <div style="float: left;" class="href-button" >
-          <a title="(open table in a new window)" href="{{ pop_out_link }}"  target="_blank">Full screen view</a>
-        </div>
         {% include "db/searchExportBox.html" %}
 
     <a href="#" id='form_toggler1' onclick="form_toggle();">Filter results: &gt;&gt;&gt;&gt;</a>

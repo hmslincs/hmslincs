@@ -1,5 +1,29 @@
-#content {
+.content#content {
   overflow-x: auto; /* for pages with too many columns */
+}
+
+.content-minimal#content{
+	overflow-x: inherit;
+	width: 100%;
+	left: 10px;
+}
+
+.href-button {
+	font-size: 14px;
+}
+.href-button a:hover {
+    text-decoration: none;
+    background: url(../images/full_window_button_hover.png);
+}
+.href-button a{
+	  padding: 10px 19px 10px 4px;
+    width: 125px;
+    height: 35px;
+    color: #ffffff;
+    text-align: center;
+    text-decoration: none;
+    text-shadow: 2px 2px 3px #000000 ;
+    background: url(../images/full_window_button.png);
 }
 
 #loginmsg {

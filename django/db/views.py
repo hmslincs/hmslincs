@@ -941,8 +941,11 @@ def datasetDetailDataColumns(request, facility_id):
         return render(request,'db/datasetDetailRelated.html', details)
     except Http401, e:
         return HttpResponse('Unauthorized', status=401)
+
+def datasetDetailResults_minimal(request, facility_id):
+    return datasetDetailResults(request, facility_id, template='db/datasetDetailResults_minimal.html')
     
-def datasetDetailResults(request, facility_id):
+def datasetDetailResults(request, facility_id, template='db/datasetDetailResults.html'):
     try:
         details = None
 
@@ -961,8 +964,10 @@ def datasetDetailResults(request, facility_id):
                 datacolumns, cursor, 'dataset' )
         
         details = datasetDetail(request,facility_id, 'results')
+        
+        details['pop_out_link'] = request.get_full_path().replace('results','results_minimal')
 
-        return render(request,'db/datasetDetailResults.html', details)
+        return render(request,template, details)
     except Http401, _:
         return HttpResponse('Unauthorized', status=401)
 
