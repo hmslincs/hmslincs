@@ -84,6 +84,28 @@ class FieldsManager(models.Manager):
                 if( i+1 == len(tables_by_priority)): raise Exception(str((type(e), field_or_alias,tables_by_priority, e.args)))
                 
     def get_column_fieldinformation(self,field_or_alias,table_or_queryset=None):
+        
+        table_hash = None
+        if table_or_queryset and table_or_queryset in self.fieldinformation_map:
+            table_hash = self.fieldinformation_map[table_or_queryset]
+        elif '' in self.fieldinformation_map:
+            table_hash = self.fieldinformation_map['']
+        
+        if not table_hash:
+            table_hash = {}
+            self.fieldinformation_map[table_or_queryset] = table_hash
+        
+        try:
+            if not field_or_alias in table_hash:
+                logger.info(str(('finding', table_or_queryset,  field_or_alias)))
+                table_hash[field_or_alias] = \
+                    self.get_column_fieldinformation1(field_or_alias, table_or_queryset)
+        except Exception, e:
+            logger.warn(str(('not found', table_or_queryset,  field_or_alias)))
+            table_hash[field_or_alias] = None
+        return table_hash[field_or_alias]
+
+    def get_column_fieldinformation1(self,field_or_alias,table_or_queryset=None):
         """
         return the FieldInformation object for the column, or None if not defined
         """
@@ -97,7 +119,7 @@ class FieldsManager(models.Manager):
             try:
                 return self.get_query_set().get(field=field_or_alias, table=None, queryset=None); # TODO can use get?
             except (ObjectDoesNotExist,MultipleObjectsReturned) as e:
-                logger.debug(str(('No field information for the field: ',field_or_alias,e)))
+                logger.info(str(('No field information for the field: ',field_or_alias,e)))
                 raise e
         else:
             try:
@@ -118,7 +140,7 @@ class FieldsManager(models.Manager):
             try:
                 return self.get_query_set().get(table=table_or_queryset, alias=field_or_alias)
             except (ObjectDoesNotExist,MultipleObjectsReturned) as e:
-                logger.debug(str(('No field information for the table,alias: ',table_or_queryset,field_or_alias, e)))
+                logger.info(str(('No field information for the table,alias: ',table_or_queryset,field_or_alias, e)))
                 raise e
         
     #TODO: link this in to the reindex process!
@@ -747,7 +769,6 @@ def get_fielddata(model_object, search_tables, field_information_filter=None, ex
     #dump(self.dataset)
     #data=model_to_dict(self.dataset)
     property_dict = get_properties(model_object)
-    logger.info(str(('extra', extra_properties)))
     if len(extra_properties) > 0:
         for prop in extra_properties:
             property_dict[prop] = getattr(model_object, prop)
@@ -761,9 +782,7 @@ def get_fielddata(model_object, search_tables, field_information_filter=None, ex
         try:
             fi = FieldInformation.manager.get_column_fieldinformation_by_priority(field,search_tables)
             
-            if not fi:
-                ui_dict['field'] = 'field not defined: "' + field + '"'
-            if (field_information_filter and field_information_filter(fi)
+            if fi and (field_information_filter and field_information_filter(fi)
                     or field_information_filter == None ): 
                 details['fieldinformation'] = fi
                 details['value'] = value
