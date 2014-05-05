@@ -7,8 +7,15 @@
             </div>
             <br/>
         {% endif %}
+      {% comment %}
+        <div class='left_link' style="float: left;" >
+        <a class="button" href="{{ pop_out_link }}"  target="_blank">
+        Full data table view (open new window)<img src="{{ STATIC_URL }}/images/glyphicons_389_new_window_alt.png"/>
+        </a>
+        </div>
+      {% endcomment %}
         <div style="float: left;" class="href-button" >
-          <a title="(open table in a new window)" href="{{ pop_out_link }}"  target="_blank">Full screen view</a>
+          <a title="(open table in a new window)" href="{{ pop_out_link }}"  target="_blank">&nbsp;Full screen view</a>
         </div>
         {% include "db/searchExportBox.html" %}
 
