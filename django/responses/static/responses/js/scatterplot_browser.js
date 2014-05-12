@@ -59,7 +59,7 @@
       k2i[k] = i;
     });
 
-    set_key('keys', keys);
+    set_key('keys_', keys);
     set_key('values', values);
     set_key('index', function (k) { return k2i[k]; });
     set_key('pairs', function () { return d3.zip(keys, values); });
@@ -741,7 +741,7 @@
 
     var side = ~~((ww - lpw)/ncols),
         //zide = function () { return ~~((ww - $('#left-panel').width())/ncols); },
-        PLOTS = named_array(METRICS.keys.map(function (k) {
+        PLOTS = named_array(METRICS.keys_.map(function (k) {
           return [k, make_plot(side, side, METRICS[k])];
         }));
 
@@ -925,7 +925,7 @@
     }
 
     function next_factor (factor) {
-      return FACTORS.keys[(1 + FACTORS.keys.indexOf(factor)) % FACTORS.length];
+      return FACTORS.keys_[(1 + FACTORS.keys_.indexOf(factor)) % FACTORS.length];
     }
 
     function _params () {
@@ -949,7 +949,7 @@
       if (arguments.length === 3) {
           othercols = [];
       }
-      assert(FACTORS.keys.indexOf(keycol) > -1);
+      assert(FACTORS.keys_.indexOf(keycol) > -1);
       assert(keycol !== pivcol);
       var unstacked = unstack(STACKED_DATA, [keycol],
                               pivcol, valcol, othercols);
@@ -974,7 +974,7 @@
     }
 
     function _update_factor(keycol, pivcol) {
-      METRICS.keys.forEach(function (m, i) {
+      METRICS.keys_.forEach(function (m, i) {
         assert(STACKED_DATA.length > 0);
         // othercols should really be set of all non-key columns that
         // "covary" with the key columns (typically metadata columns
