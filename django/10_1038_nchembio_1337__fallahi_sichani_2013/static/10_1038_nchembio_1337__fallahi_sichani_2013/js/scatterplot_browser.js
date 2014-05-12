@@ -49,7 +49,7 @@
       k2i[k] = i;
     });
 
-    set_key('keys', keys);
+    set_key('keys_', keys);
     set_key('values', values);
     set_key('index', function (k) { return k2i[k]; });
     set_key('pairs', function () { return d3.zip(keys, values); });
@@ -722,7 +722,7 @@
 
     var side = ~~((ww - lpw)/ncols),
         //zide = function () { return ~~((ww - $('#left-panel').width())/ncols); },
-        PLOTS = named_array(METRICS.keys.map(function (k) {
+        PLOTS = named_array(METRICS.keys_.map(function (k) {
           return [k, make_plot(side, side, METRICS[k])];
         }));
 
@@ -895,7 +895,7 @@
     }
 
     function next_factor (factor) {
-      return FACTORS.keys[(1 + FACTORS.keys.indexOf(factor)) % FACTORS.length];
+      return FACTORS.keys_[(1 + FACTORS.keys_.indexOf(factor)) % FACTORS.length];
     }
 
     function _params () {
@@ -917,7 +917,7 @@
 
     function _extract_data (keycol, pivcol, valcol) {
       var unstacked = unstack(STACKED_DATA,
-                              FACTORS.keys.filter(function (q) {
+                              FACTORS.keys_.filter(function (q) {
                                 return q !== pivcol;
                               }),
                               pivcol, valcol);
@@ -939,7 +939,7 @@
       //update_data();
 
       KEYCOL = p.keycol;
-      METRICS.keys.forEach(function (m, i) {
+      METRICS.keys_.forEach(function (m, i) {
         var data = _extract_data(p.keycol, p.pivcol, m),
             traits = FACTORS[p.pivcol],
             dmn = d3.extent(d3.merge(projn(data, traits))
