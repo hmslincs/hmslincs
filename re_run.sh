@@ -986,6 +986,38 @@ else
 	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20203_HMSL10355_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/kinativ/Screen20204_HMSL10075_kinativ.xls
+	check_errs $? "import dataset fails"
+	
+	# echo 'import screen results...'
+	# python src/import_dataset.py -f $DATADIR/kinativ/Screen20205_HMSL10077_kinativ.xls
+	# check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/kinativ/Screen20206_HMSL10129_kinativ.xls
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/kinativ/Screen20207_HMSL10188_kinativ.xls
+	check_errs $? "import dataset fails"
+	
+	# echo 'import screen results...'
+	# python src/import_dataset.py -f $DATADIR/kinativ/Screen20208_HMSL10229_kinativ.xls
+	# check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/kinativ/Screen20209_HMSL10337_kinativ.xls
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/kinativ/Screen20210_HMSL10351_kinativ.xls
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20211_HMSL10356_kinomescan.xls
+	check_errs $? "import dataset fails"
+	
 	echo 'import attached file...'      
 	python src/import_attachedfiles.py -f $DATADIR/qc/NMR_HMSL10001.101.01.pdf -fi 10001 -fd '2013-04-04' -si 101 -bi 1 -ft "QC-NMR" --restricted
 	check_errs $? "import attached file fails"
