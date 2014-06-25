@@ -38,6 +38,11 @@ _NULLOKSTR  = dict(null=True, blank=False)
 # definition
 # _NULLOKSTR  = dict(null=False, blank=True)
 
+class FieldInformationLookupException(Exception):
+    ''' Signals missing field information
+    '''
+    pass
+
 class FieldsManager(models.Manager):
     
     fieldinformation_map = {}
@@ -49,10 +54,9 @@ class FieldsManager(models.Manager):
         
         logger.info(str(('getting', table_or_queryset_name)))
         fieldmetas = self.get_table_fields(table_or_queryset_name);
-#        logger.info(str(('got', table_or_queryset_name, fieldmetas)))
-        # TODO: note that fi.field is the fieldname and is unique for this scope.  (rework as in iccbl-lims)
+        # TODO: note that fi.field is the fieldname and is unique for this scope.
+        #  (rework as in iccbl-lims)
         table_fields = dict(zip([x.field for x in fieldmetas],  fieldmetas ))    
-#        logger.info(str(('got', table_or_queryset_name, table_fields)))
         
         fieldmetas = self.get_query_set().filter(queryset=table_or_queryset_name)
         queryset_fields = dict(zip([x.field for x in fieldmetas],  fieldmetas ))    
@@ -66,24 +70,38 @@ class FieldsManager(models.Manager):
         """
         return self.get_query_set().filter(table=table)
     
-    def get_column_fieldinformation_by_priority(self,field_or_alias,tables_by_priority):
+    def get_column_fieldinformation_by_priority(
+            self,field_or_alias,tables_by_priority):
         """
-        searches for the FieldInformation using the tables in the tables_by_priority, in the order given.
-        raises an ObjectDoesNotExist exception if not found in any of them.
-        :param tables_by_priority: a sequence of table names.  If an empty table name is given, then
-        a search through all fields is used.  This search can result in MultipleObjectsReturned exception.
+        searches for the FieldInformation using the tables in the 
+        "tables_by_priority", in the order given.
+        raises a FieldInformationLookupException if not found in any of them.
+        @param tables_by_priority: a sequence of table names.  
+            If an empty string is given, then a search through all fields having
+            no table name.  
         """
-        if isinstance(tables_by_priority, basestring): tables_by_priority = (tables_by_priority,)
-        assert isinstance(tables_by_priority, (list, tuple)), 'search_tables must be a list or tuple'
+        if isinstance(tables_by_priority, basestring): 
+            tables_by_priority = (tables_by_priority,)
+
         for i,table in enumerate(tables_by_priority):
-            try:
-                if(table == ''):
-                    return self.get_column_fieldinformation(field_or_alias)
-                return self.get_column_fieldinformation(field_or_alias, table)
-            except (ObjectDoesNotExist,MultipleObjectsReturned) as e:
-                if( i+1 == len(tables_by_priority)): raise Exception(str((type(e), field_or_alias,tables_by_priority, e.args)))
+            val = None
+            if(table == ''):
+                val = self.get_column_fieldinformation(field_or_alias)
+            else:
+                val = self.get_column_fieldinformation(field_or_alias, table)
+            if val:
+                return val
+            else:
+                if( i+1 == len(tables_by_priority)): 
+                    raise FieldInformationLookupException(
+                        str(('Fieldinformation not found', 
+                             field_or_alias,tables_by_priority )))
                 
     def get_column_fieldinformation(self,field_or_alias,table_or_queryset=None):
+        '''
+        Cache and return the FieldInformation object for the column, or None if
+        not defined
+        '''
         
         table_hash = None
         if table_or_queryset and table_or_queryset in self.fieldinformation_map:
@@ -95,53 +113,63 @@ class FieldsManager(models.Manager):
             table_hash = {}
             self.fieldinformation_map[table_or_queryset] = table_hash
         
-        try:
-            if not field_or_alias in table_hash:
-                logger.info(str(('finding', table_or_queryset,  field_or_alias)))
-                table_hash[field_or_alias] = \
-                    self.get_column_fieldinformation1(field_or_alias, table_or_queryset)
-        except Exception, e:
-            logger.warn(str(('not found', table_or_queryset,  field_or_alias)))
-            table_hash[field_or_alias] = None
+        if not field_or_alias in table_hash or not table_hash[field_or_alias]:
+            logger.info(str(('finding', table_or_queryset,  field_or_alias)))
+            val = self.get_column_fieldinformation_uncached(
+                field_or_alias, table_or_queryset)
+            table_hash[field_or_alias] = val
+        
         return table_hash[field_or_alias]
 
-    def get_column_fieldinformation1(self,field_or_alias,table_or_queryset=None):
+    def get_column_fieldinformation_uncached(
+            self,field_or_alias,table_or_queryset=None):
         """
-        return the FieldInformation object for the column, or None if not defined
+        @return the FieldInformation object for the column, or None if a 
+            FieldInformation entry is not found for the table_or_queryset
         """
-        
         fi = None
         if(table_or_queryset == None):
             try:
-                return self.get_query_set().get(alias=field_or_alias, table=None, queryset=None); # TODO can use get?
+                return self.get_query_set().get(
+                    alias=field_or_alias, table=None, queryset=None);
             except (ObjectDoesNotExist,MultipleObjectsReturned) as e:
-                logger.debug(str(('No field information for the alias: ',field_or_alias,e)))
+                logger.debug(str((
+                    'No field information for the alias: ',field_or_alias,e)))
             try:
-                return self.get_query_set().get(field=field_or_alias, table=None, queryset=None); # TODO can use get?
+                return self.get_query_set().get(
+                    field=field_or_alias, table=None, queryset=None)
             except (ObjectDoesNotExist,MultipleObjectsReturned) as e:
-                logger.info(str(('No field information for the field: ',field_or_alias,e)))
-                raise e
+                return None
         else:
             try:
-                fi = self.get_query_set().get(queryset=table_or_queryset, field=field_or_alias)
+                fi = self.get_query_set().get(
+                    queryset=table_or_queryset, field=field_or_alias)
                 return fi
             except (ObjectDoesNotExist,MultipleObjectsReturned) as e:
-                logger.debug(str(('No field information for the queryset,field: ',table_or_queryset,field_or_alias, e)))
+                logger.debug(str((
+                    'No field information for the queryset,field: ',
+                    table_or_queryset,field_or_alias, e)))
             try:
-                fi = self.get_query_set().get(queryset=table_or_queryset, alias=field_or_alias)
+                fi = self.get_query_set().get(
+                    queryset=table_or_queryset, alias=field_or_alias)
                 return fi
             except (ObjectDoesNotExist,MultipleObjectsReturned) as e:
-                logger.debug(str(('No field information for the queryset,alias: ',table_or_queryset,field_or_alias, e)))
+                logger.debug(str((
+                    'No field information for the queryset,alias: ',
+                    table_or_queryset,field_or_alias, e)))
             
             try:
-                return self.get_query_set().get(table=table_or_queryset, field=field_or_alias)
+                return self.get_query_set().get(
+                    table=table_or_queryset, field=field_or_alias)
             except (ObjectDoesNotExist,MultipleObjectsReturned) as e:
-                logger.debug(str(('No field information for the table,field: ',table_or_queryset,field_or_alias, e)))
+                logger.debug(str((
+                    'No field information for the table,field: ',
+                    table_or_queryset,field_or_alias, e)))
             try:
-                return self.get_query_set().get(table=table_or_queryset, alias=field_or_alias)
+                return self.get_query_set().get(
+                    table=table_or_queryset, alias=field_or_alias)
             except (ObjectDoesNotExist,MultipleObjectsReturned) as e:
-                logger.info(str(('No field information for the table,alias: ',table_or_queryset,field_or_alias, e)))
-                raise e
+                return None
         
     #TODO: link this in to the reindex process!
     def get_search_fields(self,model):
@@ -790,7 +818,7 @@ def get_fielddata(model_object, search_tables, field_information_filter=None, ex
                 #ui_dict[fi.get_verbose_name()] = value
             else:
                 logger.debug(str(('field not shown in this view: ', field,value)))
-        except (ObjectDoesNotExist,MultipleObjectsReturned,Exception) as e:
+        except (FieldInformationLookupException) as e:
             logger.debug(str(('no field information defined for: ', field, value)))
     ui_dict = OrderedDict(sorted(ui_dict.items(), key=lambda x: x[1]['fieldinformation'].order))
     if(logger.isEnabledFor(logging.DEBUG)): logger.debug(str(('ui_dict',ui_dict)))

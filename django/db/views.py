@@ -1204,7 +1204,6 @@ def render_list_index(request, table, search, name, name_plural, **requestArgs):
     requestArgs.setdefault('search',search)
     requestArgs.setdefault('heading', name_plural)
     
-    logger.info('process table')
     requestArgs.setdefault('table',table)
     table.data.length = len(table.data)
     if(len(table.data)>0):
@@ -1214,9 +1213,7 @@ def render_list_index(request, table, search, name, name_plural, **requestArgs):
         setattr(table.data,'verbose_name',name)
         requestArgs.setdefault('items_per_page_form',form )
         logger.debug(str(('requestArgs', requestArgs)))
-    logger.info('render result')
     result = render(request, 'db/listIndex.html', requestArgs)
-    logger.info('render result1')
     return result
 
 class SmallMoleculeReportForm(forms.Form):
@@ -1374,7 +1371,7 @@ def set_field_information_to_table_column(fieldname,table_names,column):
         column.attrs['th']={'title':fi.get_column_detail()}
         column.verbose_name = SafeString(fi.get_verbose_name())
     except (Exception) as e:
-        raise Exception(str(('no fieldinformation found for field:', fieldname,e)))
+        raise Exception(str(('no fieldinformation found for field:', fieldname, table_names,e)))
     
 OMERO_IMAGE_TEMPLATE = '''
    <a href="#" onclick='window.open("https://lincs-omero.hms.harvard.edu/webclient/img_detail/{{ record.%s }}", "Image","height=700,width=800")' ><img src='https://lincs-omero.hms.harvard.edu/webgateway/render_thumbnail/{{ record.%s }}/32/' alt='image if available' ></a>
