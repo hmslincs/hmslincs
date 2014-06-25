@@ -1371,7 +1371,7 @@ def set_field_information_to_table_column(fieldname,table_names,column):
         column.attrs['th']={'title':fi.get_column_detail()}
         column.verbose_name = SafeString(fi.get_verbose_name())
     except (Exception) as e:
-        raise Exception(str(('no fieldinformation found for field:', fieldname,e)))
+        raise Exception(str(('no fieldinformation found for field:', fieldname, table_names,e)))
     
 OMERO_IMAGE_TEMPLATE = '''
    <a href="#" onclick='window.open("https://lincs-omero.hms.harvard.edu/webclient/img_detail/{{ record.%s }}", "Image","height=700,width=800")' ><img src='https://lincs-omero.hms.harvard.edu/webgateway/render_thumbnail/{{ record.%s }}/32/' alt='image if available' ></a>
