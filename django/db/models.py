@@ -84,6 +84,9 @@ class FieldsManager(models.Manager):
                 if( i+1 == len(tables_by_priority)): raise Exception(str((type(e), field_or_alias,tables_by_priority, e.args)))
                 
     def get_column_fieldinformation(self,field_or_alias,table_or_queryset=None):
+        '''
+        Cache requests to get field information in the fieldinformation_map
+        '''
         
         table_hash = None
         if table_or_queryset and table_or_queryset in self.fieldinformation_map:
@@ -103,11 +106,14 @@ class FieldsManager(models.Manager):
         except Exception, e:
             logger.warn(str(('not found', table_or_queryset,  field_or_alias)))
             table_hash[field_or_alias] = None
+            raise e
         return table_hash[field_or_alias]
 
     def get_column_fieldinformation1(self,field_or_alias,table_or_queryset=None):
         """
-        return the FieldInformation object for the column, or None if not defined
+        Unchached requests to get field information.
+        
+        @return the FieldInformation object for the column, or None if not defined
         """
         
         fi = None

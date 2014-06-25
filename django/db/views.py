@@ -1204,7 +1204,6 @@ def render_list_index(request, table, search, name, name_plural, **requestArgs):
     requestArgs.setdefault('search',search)
     requestArgs.setdefault('heading', name_plural)
     
-    logger.info('process table')
     requestArgs.setdefault('table',table)
     table.data.length = len(table.data)
     if(len(table.data)>0):
@@ -1214,9 +1213,7 @@ def render_list_index(request, table, search, name, name_plural, **requestArgs):
         setattr(table.data,'verbose_name',name)
         requestArgs.setdefault('items_per_page_form',form )
         logger.debug(str(('requestArgs', requestArgs)))
-    logger.info('render result')
     result = render(request, 'db/listIndex.html', requestArgs)
-    logger.info('render result1')
     return result
 
 class SmallMoleculeReportForm(forms.Form):
