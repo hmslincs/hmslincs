@@ -85,7 +85,8 @@ class FieldsManager(models.Manager):
                 
     def get_column_fieldinformation(self,field_or_alias,table_or_queryset=None):
         '''
-        Cache requests to get field information in the fieldinformation_map
+        Cache and return the FieldInformation object for the column, or None if
+        not defined
         '''
         
         table_hash = None
@@ -102,17 +103,15 @@ class FieldsManager(models.Manager):
             if not field_or_alias in table_hash:
                 logger.info(str(('finding', table_or_queryset,  field_or_alias)))
                 table_hash[field_or_alias] = \
-                    self.get_column_fieldinformation1(field_or_alias, table_or_queryset)
-        except Exception, e:
+                    self.get_column_fieldinformation_uncached(field_or_alias, table_or_queryset)
+        except (ObjectDoesNotExist,MultipleObjectsReturned) as e:
             logger.warn(str(('not found', table_or_queryset,  field_or_alias)))
             table_hash[field_or_alias] = None
             raise e
         return table_hash[field_or_alias]
 
-    def get_column_fieldinformation1(self,field_or_alias,table_or_queryset=None):
+    def get_column_fieldinformation_uncached(self,field_or_alias,table_or_queryset=None):
         """
-        Unchached requests to get field information.
-        
         @return the FieldInformation object for the column, or None if not defined
         """
         
