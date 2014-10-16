@@ -1018,6 +1018,14 @@ else
 	python src/import_dataset.py -f $DATADIR/kinomescan/Screen20211_HMSL10356_kinomescan.xls
 	check_errs $? "import dataset fails"
 	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/Screen20215_TransCenter_SensitivityMeasures.xls
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/Screen20216_TransCenter_DoseResponse.xls
+	check_errs $? "import dataset fails"
+	
 	echo 'import attached file...'      
 	python src/import_attachedfiles.py -f $DATADIR/qc/NMR_HMSL10001.101.01.pdf -fi 10001 -fd '2013-04-04' -si 101 -bi 1 -ft "QC-NMR" --restricted
 	check_errs $? "import attached file fails"
@@ -2485,7 +2493,371 @@ else
 	echo 'import attached file...'      
 	python src/import_attachedfiles.py -f $DATADIR/qc/LCMS_HMSL10208.101.01.pdf -fi 10208 -fd '2013-04-04' -si 101 -bi 1 -ft "QC-LCMS" --restricted
 	check_errs $? "import attached file fails"
-		
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/NMR_HMSL10300.101.01.pdf -fi 10300 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-NMR" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/HPLC_HMSL10300.101.01.pdf -fi 10300 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-HPLC" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/NMR_HMSL10301.101.01.pdf -fi 10301 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-NMR" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/HPLC_HMSL10301.101.01.pdf -fi 10301 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-HPLC" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/NMR_HMSL10302.101.01.pdf -fi 10302 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-NMR" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/HPLC_HMSL10302.101.01.pdf -fi 10302 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-HPLC" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/NMR_HMSL10303.101.01.pdf -fi 10303 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-NMR" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/HPLC_HMSL10303.101.01.pdf -fi 10303 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-HPLC" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/LCMS_HMSL10303.101.01.pdf -fi 10303 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-LCMS" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/NMR_HMSL10304.105.01.pdf -fi 10304 -fd '2014-10-10' -si 105 -bi 1 -ft "QC-NMR" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/LCMS_HMSL10304.105.01.pdf -fi 10304 -fd '2014-10-10' -si 105 -bi 1 -ft "QC-LCMS" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/NMR_HMSL10305.101.01.pdf -fi 10305 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-NMR" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/LCMS_HMSL10305.101.01.pdf -fi 10305 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-LCMS" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/NMR_HMSL10306.101.01.pdf -fi 10306 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-NMR" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/LCMS_HMSL10306.101.01.pdf -fi 10306 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-LCMS" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/NMR_HMSL10307.101.01.pdf -fi 10307 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-NMR" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/LCMS_HMSL10307.101.01.pdf -fi 10307 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-LCMS" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/NMR_HMSL10308.101.01.pdf -fi 10308 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-NMR" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/NMR_HMSL10309.101.01.pdf -fi 10309 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-NMR" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/LCMS_HMSL10309.101.01.pdf -fi 10309 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-LCMS" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/NMR_HMSL10310.101.01.pdf -fi 10310 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-NMR" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/HPLC_HMSL10310.101.01.pdf -fi 10310 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-HPLC" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/NMR_HMSL10311.101.01.pdf -fi 10311 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-NMR" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/HPLC_HMSL10311.101.01.pdf -fi 10311 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-HPLC" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/LCMS_HMSL10311.101.01.pdf -fi 10311 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-LCMS" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/NMR_HMSL10312.101.01.pdf -fi 10312 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-NMR" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/LCMS_HMSL10312.101.01.pdf -fi 10312 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-LCMS" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/NMR_HMSL10313.101.01.pdf -fi 10313 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-NMR" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/LCMS_HMSL10313.101.01.pdf -fi 10313 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-LCMS" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/NMR_HMSL10314.101.01.pdf -fi 10314 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-NMR" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/HPLC_HMSL10314.101.01.pdf -fi 10314 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-HPLC" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/LCMS_HMSL10314.101.01.pdf -fi 10314 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-LCMS" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/NMR_HMSL10315.101.01.pdf -fi 10315 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-NMR" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/HPLC_HMSL10315.101.01.pdf -fi 10315 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-HPLC" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/LCMS_HMSL10315.101.01.pdf -fi 10315 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-LCMS" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/NMR_HMSL10316.101.01.pdf -fi 10316 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-NMR" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/LCMS_HMSL10316.101.01.pdf -fi 10316 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-LCMS" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/NMR_HMSL10317.101.01.pdf -fi 10317 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-NMR" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/LCMS_HMSL10317.101.01.pdf -fi 10317 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-LCMS" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/HPLC_HMSL10318.101.01.pdf -fi 10318 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-HPLC" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/LCMS_HMSL10318.101.01.pdf -fi 10318 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-LCMS" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/NMR_HMSL10319.101.01.pdf -fi 10319 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-NMR" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/HPLC_HMSL10319.101.01.pdf -fi 10319 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-HPLC" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/LCMS_HMSL10319.101.01.pdf -fi 10319 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-LCMS" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/NMR_HMSL10320.101.01.pdf -fi 10320 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-NMR" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/LCMS_HMSL10320.101.01.pdf -fi 10320 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-LCMS" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/NMR_HMSL10321.110.01.pdf -fi 10321 -fd '2014-10-10' -si 110 -bi 1 -ft "QC-NMR" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/LCMS_HMSL10321.110.01.pdf -fi 10321 -fd '2014-10-10' -si 110 -bi 1 -ft "QC-LCMS" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/NMR_HMSL10322.110.01.pdf -fi 10322 -fd '2014-10-10' -si 110 -bi 1 -ft "QC-NMR" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/LCMS_HMSL10322.110.01.pdf -fi 10322 -fd '2014-10-10' -si 110 -bi 1 -ft "QC-LCMS" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/NMR_HMSL10323.102.01.pdf -fi 10323 -fd '2014-10-10' -si 102 -bi 1 -ft "QC-NMR" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/LCMS_HMSL10323.102.01.pdf -fi 10323 -fd '2014-10-10' -si 102 -bi 1 -ft "QC-LCMS" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/NMR_HMSL10324.101.01.pdf -fi 10324 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-NMR" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/HPLC_HMSL10324.101.01.pdf -fi 10324 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-HPLC" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/NMR_HMSL10325.101.01.pdf -fi 10325 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-NMR" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/LCMS_HMSL10325.101.01.pdf -fi 10325 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-LCMS" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/NMR_HMSL10326.102.01.pdf -fi 10326 -fd '2014-10-10' -si 102 -bi 1 -ft "QC-NMR" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/LCMS_HMSL10326.102.01.pdf -fi 10326 -fd '2014-10-10' -si 102 -bi 1 -ft "QC-LCMS" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/NMR_HMSL10327.101.01.pdf -fi 10327 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-NMR" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/LCMS_HMSL10327.101.01.pdf -fi 10327 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-LCMS" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/NMR_HMSL10328.101.01.pdf -fi 10328 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-NMR" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/HPLC_HMSL10328.101.01.pdf -fi 10328 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-HPLC" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/LCMS_HMSL10328.101.01.pdf -fi 10328 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-LCMS" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/NMR_HMSL10329.101.01.pdf -fi 10329 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-NMR" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/HPLC_HMSL10329.101.01.pdf -fi 10329 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-HPLC" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/LCMS_HMSL10329.101.01.pdf -fi 10329 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-LCMS" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/NMR_HMSL10330.101.01.pdf -fi 10330 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-NMR" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/HPLC_HMSL10330.101.01.pdf -fi 10330 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-HPLC" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/LCMS_HMSL10330.101.01.pdf -fi 10330 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-LCMS" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/NMR_HMSL10331.101.01.pdf -fi 10331 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-NMR" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/HPLC_HMSL10331.101.01.pdf -fi 10331 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-HPLC" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/LCMS_HMSL10331.101.01.pdf -fi 10331 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-LCMS" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/NMR_HMSL10332.101.01.pdf -fi 10332 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-NMR" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/LCMS_HMSL10332.101.01.pdf -fi 10332 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-LCMS" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/NMR_HMSL10333.101.01.pdf -fi 10333 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-NMR" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/LCMS_HMSL10333.101.01.pdf -fi 10333 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-LCMS" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/NMR_HMSL10334.101.01.pdf -fi 10334 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-NMR" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/LCMS_HMSL10334.101.01.pdf -fi 10334 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-LCMS" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/NMR_HMSL10335.101.01.pdf -fi 10335 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-NMR" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/HPLC_HMSL10335.101.01.pdf -fi 10335 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-HPLC" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/LCMS_HMSL10335.101.01.pdf -fi 10335 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-LCMS" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/NMR_HMSL10336.101.01.pdf -fi 10336 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-NMR" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/HPLC_HMSL10336.101.01.pdf -fi 10336 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-HPLC" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/LCMS_HMSL10336.101.01.pdf -fi 10336 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-LCMS" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/NMR_HMSL10337.102.01.pdf -fi 10337 -fd '2014-10-10' -si 102 -bi 1 -ft "QC-NMR" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/HPLC_HMSL10337.102.01.pdf -fi 10337 -fd '2014-10-10' -si 102 -bi 1 -ft "QC-HPLC" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/LCMS_HMSL10337.102.01.pdf -fi 10337 -fd '2014-10-10' -si 102 -bi 1 -ft "QC-LCMS" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/HPLC_HMSL10338.101.01.pdf -fi 10338 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-HPLC" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/LCMS_HMSL10338.101.01.pdf -fi 10338 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-LCMS" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/NMR_HMSL10339.101.01.pdf -fi 10339 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-NMR" --restricted
+	check_errs $? "import attached file fails"
+	
+	echo 'import attached file...'      
+	python src/import_attachedfiles.py -f $DATADIR/qc/LCMS_HMSL10339.101.01.pdf -fi 10339 -fd '2014-10-10' -si 101 -bi 1 -ft "QC-LCMS" --restricted
+	check_errs $? "import attached file fails"
+	
 # if restricted:
 #	python src/import_attachedfiles.py -f attach_test_1.txt -fi 10001 -ft "text"  -fd '2012-12-10' -si 101 -bi 1 --restricted
 	
