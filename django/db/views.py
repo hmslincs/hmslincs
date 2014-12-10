@@ -23,6 +23,7 @@ from django.contrib.staticfiles.templatetags.staticfiles import static
 from django.core.servers.basehttp import FileWrapper
 from django.core.urlresolvers import reverse
 from django.db import connection, models
+from django.db.models import Q
 from django import forms
 from django.forms import ModelForm
 from django.forms.models import model_to_dict
@@ -40,7 +41,7 @@ from dump_obj import dumpObj
 from PagedRawQuerySet import PagedRawQuerySet
 from db.models import PubchemRequest, SmallMolecule, SmallMoleculeBatch, Cell, \
     Protein, DataSet, Library, FieldInformation, AttachedFile, DataRecord, \
-    DataColumn, get_detail, Antibody, OtherReagent
+    DataColumn, get_detail, Antibody, OtherReagent, CellBatch
 
 
 logger = logging.getLogger(__name__)
@@ -161,15 +162,54 @@ def cellIndex(request):
     return render_list_index(request, table,search,'Cell','Cells',
         **{ 'extra_form': form, 'search_label': search_label })
 
-def cellDetail(request, facility_id):
+def cellDetail(request, facility_batch, batch_id=None):
     try:
-        cell = Cell.objects.get(facility_id=facility_id) # todo: cell here
+        _batch_id = None
+        if not batch_id:
+            temp = facility_batch.split('-') 
+            logger.info(str(('find cell for', temp)))
+            _facility_id = temp[0]
+            if len(temp) > 1:
+                _batch_id = temp[1]
+        else:
+            _facility_id = facility_batch
+            _batch_id = batch_id        
+        
+        cell = Cell.objects.get(facility_id=_facility_id) 
         if(cell.is_restricted and not request.user.is_authenticated()):
             return HttpResponse('Log in required.', status=401)
         details = {'object': get_detail(cell, ['cell',''])}
+        
+        #Testing...
+        details['facility_id'] = cell.facility_id
+        #
+        
+        
+        logger.info(str(('batch_id', _batch_id)))
+        cell_batch = None
+        if(_batch_id):
+            cell_batch = CellBatch.objects.get(
+                cell=cell,batch_id=_batch_id) 
+        # batch table
+        if(cell_batch == None):
+            batches = CellBatch.objects.filter(cell=cell)
+            logger.info(str(('batches', len(batches))))
+            
+            if len(batches)>1:
+                details['batchTable']=CellBatchTable(batches)
+            elif len(batches)==1:
+                cell_batch = batches[0]
+        if cell_batch:
+            details['cell_batch']= get_detail(
+                cell_batch,['cellbatch',''])
+            attachedFiles = get_attached_files(
+                cell.facility_id,batch_id=cell_batch.batch_id)
+            if(len(attachedFiles)>0):
+                details['attached_files_batch'] = AttachedFileTable(attachedFiles)        
+        
         dataset_ids = find_datasets_for_cell(cell.id)
         if(len(dataset_ids)>0):
-            logger.debug(str(('dataset ids for sm',dataset_ids)))
+            logger.debug(str(('dataset ids for cell',dataset_ids)))
             where = []
             if(not request.user.is_authenticated()): 
                 where.append("(not is_restricted or is_restricted is NULL)")
@@ -179,10 +219,10 @@ def cellDetail(request, facility_id):
             details['datasets'] = DataSetTable(queryset)
 
         # add in the LIFE System link: TODO: put this into the fieldinformation
+        _LINK = 'http://life.ccs.miami.edu/life/summary?mode=CellLine&input={cl_center_specific_id}&source=HMS'
         extralink = {   'title': 'LINCS Information Framework Structure Page' ,
-                        'name': 'LIFE Compound Information',
-                        'link': 'http://life.ccs.miami.edu/life/summary?mode=CellLine&input={cl_center_specific_id}&source=HMS'
-                            .format(cl_center_specific_id=cell.facility_id),
+                        'name': 'LIFE Cell Information',
+                        'link': _LINK.format(cl_center_specific_id=cell.facility_id),
                         'value': cell.facility_id }
         details['extralink'] = extralink
 
@@ -570,11 +610,13 @@ def smallMoleculeDetail(request, facility_salt_id):
                 details['attached_files'] = AttachedFileTable(attachedFiles)
             
         # batch table
-        if(smb == None):
+        if smb == None:
             batches = SmallMoleculeBatch.objects.filter(smallmolecule=sm)
-            if(len(batches)>0):
+            if(len(batches)>1):
                 details['batchTable']=SmallMoleculeBatchTable(batches)
-        else:
+            elif(len(batches)==1):
+                smb = batches[0]
+        if smb:
             details['smallmolecule_batch']= get_detail(
                 smb,['smallmoleculebatch',''])
             if(not sm.is_restricted or request.user.is_authenticated()):
@@ -1403,17 +1445,17 @@ class DataSetResultTable(PagedTable):
     set_field_information_to_table_column('name', ['smallmolecule'], sm_name)
 
     cell_name = \
-        tables.LinkColumn('cell_detail',args=[A('cell_facility_id')], 
+        tables.LinkColumn('cell_detail',args=[A('cell_facility_batch')], 
                           visible=False,verbose_name='Cell Name') 
     defined_base_columns.append('cell_name')
     set_field_information_to_table_column('name', ['cell'], cell_name)
     
-    cell_facility_id = \
-        tables.LinkColumn('cell_detail',args=[A('cell_facility_id')], 
+    cell_facility_batch = \
+        tables.LinkColumn('cell_detail',args=[A('cell_facility_batch')], 
                           visible=False,verbose_name='Cell Facility ID') 
-    defined_base_columns.append('cell_facility_id')
+    defined_base_columns.append('cell_facility_batch')
     set_field_information_to_table_column(
-        'facility_id', ['cell'], cell_facility_id)
+        'facility_id', ['cell'], cell_facility_batch)
     
     protein_name = \
         tables.LinkColumn('protein_detail',args=[A('protein_lincs_id')], 
@@ -1493,7 +1535,7 @@ class DataSetResultTable(PagedTable):
         temp = ['facility_salt_batch','sm_name']
         if(show_cells): 
             temp.append('cell_name')
-            temp.append('cell_facility_id')
+            temp.append('cell_facility_batch')
         if(show_proteins): 
             temp.append('protein_name')
             temp.append('protein_lincs_id')
@@ -1531,10 +1573,10 @@ class DataSetResultTable(PagedTable):
         # Todo: these colums should be controlled by the column_exclusion_overrides
         if(show_cells):
             self.base_columns['cell_name'].visible = True
-            self.base_columns['cell_facility_id'].visible = True
+            self.base_columns['cell_facility_batch'].visible = True
         else:
             self.base_columns['cell_name'].visible = False
-            self.base_columns['cell_facility_id'].visible = False
+            self.base_columns['cell_facility_batch'].visible = False
         if(show_proteins):
             self.base_columns['protein_name'].visible = True
             self.base_columns['protein_lincs_id'].visible = True
@@ -1683,7 +1725,7 @@ class DataSetManager():
                  " or lower(sm_alternative_names) like lower(%s) ")
             searchParams = [searchParam,searchParam,searchParam]
             if(self.has_cells()): 
-                searchClause += (" or cell_facility_id::TEXT like %s"
+                searchClause += (" or cell_facility_batch like %s"
                                  " or lower(cell_name) like lower(%s) ")
                 searchParams += [searchParam,searchParam]
             if(self.has_proteins()): 
@@ -1794,10 +1836,13 @@ class DataSetManager():
         # and make a DataSetResultSearchTable on the fly.
     
         # Need to construct something like this:
-        # SELECT distinct (datarecord_id), smallmolecule_id, sm.facility_id || '-' || sm.salt_id as facility_id,
+        # SELECT distinct (datarecord_id), smallmolecule_id, 
+        #        sm.facility_id || '-' || sm.salt_id as facility_id,
         #        (SELECT int_value as col1 from db_datapoint dp1 where dp1.datacolumn_id=2 and dp1.datarecord_id = dp.datarecord_id) as col1, 
         #        (SELECT int_value as col2 from db_datapoint dp2 where dp2.datarecord_id=dp.datarecord_id and dp2.datacolumn_id=3) as col2 
-        #        from db_datapoint dp join db_datarecord dr on(datarecord_id=dr.id) join db_smallmoleculebatch smb on(smb.id=dr.smallmolecule_batch_id) join db_smallmolecule sm on(sm.id=smb.smallmolecule_id) 
+        #        from db_datapoint dp join db_datarecord dr on(datarecord_id=dr.id)
+        #        join db_smallmoleculebatch smb on(smb.id=dr.smallmolecule_batch_id) 
+        #        join db_smallmolecule sm on(sm.id=smb.smallmolecule_id) 
         #        where dp.dataset_id = 1 order by datarecord_id;
         
         queryString = \
@@ -1812,7 +1857,10 @@ class DataSetManager():
         show_antibodies = self.has_antibodies()
         show_otherreagents = self.has_otherreagents()
         if(show_cells): 
-            queryString += ", cell_id, cell_name, cell_facility_id " 
+            queryString += \
+            (", trim( both '-' from ( "
+                " cell_facility_id || '-' || coalesce(cell_batch_id::TEXT,''))) as cell_facility_batch ,"
+                " cell_name, cell_id " )
         if(show_proteins): 
             queryString += ", protein_id,  protein_name,  protein_lincs_id " 
         if(show_antibodies): 
@@ -1844,7 +1892,8 @@ class DataSetManager():
              " ,plate, well, control_type " )
         if(show_cells):     
             queryString += \
-                " ,cell_id, cell.name as cell_name, cell.facility_id as cell_facility_id " 
+                (" ,cell.id as cell_id, cb.batch_id as cell_batch_id, cell.name as cell_name,"
+                " cell.facility_id as cell_facility_id ") 
         if(show_proteins):  
             queryString += \
                 (",protein.name as protein_name"
@@ -1865,9 +1914,12 @@ class DataSetManager():
             " LEFT JOIN db_smallmolecule sm on(dr.smallmolecule_id = sm.id) "
         fromClause += \
             (" LEFT JOIN db_smallmoleculebatch smb on(smb.smallmolecule_id=sm.id"
-             " and smb.facility_batch_id=dr.batch_id) ")
+             " and smb.facility_batch_id=dr.sm_batch_id) ")
         if(show_cells):     
             fromClause += " LEFT JOIN db_cell cell on(cell.id=dr.cell_id ) "
+            fromClause += \
+                (" LEFT JOIN db_cellbatch cb on(cb.cell_id=cell.id"
+                 " and cb.batch_id=dr.cell_batch_id) ")
         if(show_proteins):  
             fromClause += " LEFT JOIN db_protein protein on (protein.id=dr.protein_id) "
         if(show_antibodies):  
@@ -2192,6 +2244,21 @@ class SmallMoleculeBatchTable(PagedTable):
         sequence_override = ['facility_salt_batch']
         set_table_column_info(
             self, ['smallmolecule','smallmoleculebatch',''],sequence_override)  
+
+
+class CellBatchTable(PagedTable):
+    batch_id = tables.LinkColumn("cell_detail2", args=[A('cell.facility_id'),A('batch_id')])
+    
+    class Meta:
+        model = CellBatch
+        orderable = True
+        attrs = {'class': 'paleblue'}
+
+    def __init__(self, table, *args, **kwargs):
+        super(CellBatchTable, self).__init__(table, *args, **kwargs)
+        sequence_override = ['batch_id']
+        set_table_column_info(
+            self, ['cell','cellbatch',''],sequence_override)  
 
 
 class SaltTable(PagedTable):
@@ -2630,8 +2697,7 @@ WHERE search_vector @@ {query_number}
                     _data.append(
                         {'id': obj.id, 'facility_id':obj.facility_id, 
                          'snippet': ', '.join(
-                             [x for x in [obj.name, obj.alternate_name, 
-                                          obj.provider_name] 
+                             [x for x in [obj.name, obj.alternate_name ] 
                                  if x and len(x) > 0]),
                          'type': 'cell_detail', 'rank': 1})
     
@@ -2685,10 +2751,14 @@ WHERE search_vector @@ {query_number}
 class SearchManager(models.Manager):
     
     def search(self, base_query, tablename, searchString, id_fields, 
-               snippet_def):
+            snippet_def, ids=[] ):
+        '''
+        @param ids extra pk id's for the base_query to 'OR in with the search
+        '''
+        
         # format the search string to be compatible with the plain text search
         searchProcessed = format_search(searchString) 
-        # because the "ID" fields contain a log of non-words (by english dict),
+        # because the "ID" fields contain a lot of non-words (by english dict),
         # we augment the plain text search with simple contains searches on 
         # these fields
         criteria =   ' ( ' + tablename + '.search_vector @@ to_tsquery(%s)'
@@ -2696,15 +2766,23 @@ class SearchManager(models.Manager):
         criteria += ' or ' 
         criteria += ' or '.join(['lower('+ x + ') like %s ' for x in id_fields]) 
         criteria += ' ) '
-        for x in id_fields: params.append( '%' + searchString.lower() + '%')
+        for x in id_fields: 
+            params.append( '%' + searchString.lower() + '%')
         
+        if ids:
+            # warning: "ANY" is postgresql specific
+            criteria += ' or {tablename}.id = ANY(%s)'.format(tablename=tablename)
+            params.append(ids)
+
         where = [criteria]
+                
         # postgres fulltext search with rank and snippets
-        queryset = base_query.extra(
-            select={
+        extra_select = {
                 'snippet': "ts_headline(" + snippet_def + ", to_tsquery(%s))",
                 'rank':"ts_rank_cd("+tablename+".search_vector,to_tsquery(%s),32)",
-                },
+                }
+        queryset = base_query.extra(
+            select=extra_select,
             where=where,
             params=params,
             select_params=[searchProcessed,searchProcessed],
@@ -2716,17 +2794,25 @@ class SearchManager(models.Manager):
 class CellSearchManager(SearchManager):
 
     def search(self, searchString, is_authenticated=False):
+        base_query = Cell.objects
 
-        id_fields = ['name', 'alternate_name', 'provider_name', 
-                     'provider_catalog_id', 'center_name']
-        return super(CellSearchManager, self).search(
-            Cell.objects, 'db_cell', searchString, id_fields, 
-            CellTable.snippet_def)
+        # Override to find the batch field matches
+        cell_ids = [ id for id in CellBatch.objects.filter(
+            Q(provider_name__icontains=searchString) |
+            Q(provider_catalog_id__icontains=searchString)).\
+                values_list('cell__id').distinct('cell__id')]
+        
+        id_fields = ['name', 'alternate_name', 'center_name']
+        query =  super(CellSearchManager, self).search(
+            base_query, 'db_cell', searchString, id_fields, 
+            CellTable.snippet_def, ids=cell_ids)
+        
+        return query
 
     def join_query_to_dataset_type(self, queryset, dataset_type=None ):
         key = 'dataset_types'
         if dataset_type:
-            # get the set to of primary entity id's that satisfy the join to the
+            # get the set of primary entity id's that satisfy the join to the
             # dataset type - do this as a separate query (filter() returns a 
             # clone) and then use the result to add just the id's back in to the
             # parent query
@@ -2785,9 +2871,17 @@ class SmallMoleculeSearchManager(SearchManager):
         # - perm fix is to update all ID's to the "HMSLXXX" form
         searchString = re.sub('HMSL','', searchString)
         id_fields = ['name', 'alternative_names', 'lincs_id']
+        
+        # Override to find the batch field matches
+        sm_ids = [ id for id in SmallMoleculeBatch.objects.filter(
+            Q(provider__icontains=searchString) |
+            Q(provider_catalog_id__icontains=searchString) |
+            Q(provider_sample_id__icontains=searchString) ).\
+                values_list('smallmolecule__id').distinct('smallmolecule__id')]
+        
         return super(SmallMoleculeSearchManager, self).search(
             queryset, 'db_smallmolecule', searchString, id_fields, 
-            SmallMoleculeTable.snippet_def_localized )        
+            SmallMoleculeTable.snippet_def_localized, ids=sm_ids )        
 
     def join_query_to_dataset_type(self, queryset, dataset_type=None ):
         key = 'dataset_types'
@@ -2911,8 +3005,9 @@ def set_table_column_info(table,table_names, sequence_override=None,
                           visible_field_overrides=[]):
     """
     Field information section
-    @param: table: a django-tables2 table
-    @param: table_names: a list of table names, by order of priority, 
+    @param table: a django-tables2 table
+    @param sequence_override list of fields to show before all other fields
+    @param table_names: a list of table names, by order of priority, 
             include '' empty string for a general search.
     """ 
     # TODO: set_table_column info could pick the columns to include from the 

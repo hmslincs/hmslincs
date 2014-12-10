@@ -116,10 +116,14 @@ then
  
   #============ Here is where the test data imports go =========================
   
-	echo 'import cell tables ...'
-	python src/import_cell.py -f sampledata/LINCS_Cells_forLoading.xls
-	check_errs $? "import cell fails"
-	
+  echo 'import cell tables ...'
+  python src/import_cell.py -f sampledata/LINCS_Cells_forLoading.xls
+  check_errs $? "import cell fails"
+  
+  echo 'import cell batch tables ...'
+  python src/import_cell_batch.py -f sampledata/cell_line_batch.xlsx
+  check_errs $? "import cell fails"
+  
   echo 'import small molecule tables...'
   python src/import_smallmolecule.py -f  sampledata/HMS-LINCS_complete.sdf
   check_errs $? "import sdf fails"
@@ -161,8 +165,12 @@ then
 	check_errs $? "import study dataset fails"
 	
 	echo 'import attached files...'
-	python ./src/import_attachedfiles.py -f sampledata/HPLC_HMSL10001.101.01.pdf -rp upload_files -fi 10001 -si 101 -bi 1 -ft 'QC-NMR' -fd 2012-10-11
-	check_errs $? "import attached file fails"
+  python ./src/import_attachedfiles.py -f sampledata/HPLC_HMSL10001.101.01.pdf -rp upload_files -fi 10001 -si 101 -bi 1 -ft 'QC-NMR' -fd 2012-10-11
+  check_errs $? "import attached file fails"
+
+  # try attaching the same file to a cell batch, to test
+  python ./src/import_attachedfiles.py -f sampledata/sample_attached_file_for_cell.txt -rp upload_files -fi 50001 -bi 1 -ft 'QC-NMR' -fd 2012-10-11
+  check_errs $? "import attached file fails"
 
 else
 	
@@ -172,6 +180,10 @@ else
 	python src/import_cell.py -f $DATADIR/LINCS_Cells_forLoading.xls
 	check_errs $? "import cell fails"
 	
+  echo 'import cell batch tables ...'
+  python src/import_cell_batch.py -f $DATADIR/cell_line_batch.xlsx
+  check_errs $? "import cell fails"
+  
 	echo 'import small molecule tables...'
 	python src/import_smallmolecule.py -f $DATADIR/HMS-LINCS_complete.sdf
 	check_errs $? "import sdf fails"

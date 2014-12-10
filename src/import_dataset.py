@@ -324,12 +324,12 @@ def main(path):
         if metaColumnDict['batch_id'] > -1: 
             temp = util.convertdata(r[metaColumnDict['batch_id']], int)
             if(temp != None):
-                if(dataRecord.batch_id is not None and 
-                        temp is not None and dataRecord.batch_id != temp):
+                if(dataRecord.sm_batch_id is not None and 
+                        temp is not None and dataRecord.sm_batch_id != temp):
                     raise Exception(str((
                         'batch id field(1) does not match batch id set with '
-                        'entity(2):',temp,dataRecord.batch_id)))
-                dataRecord.batch_id = temp
+                        'entity(2):',temp,dataRecord.sm_batch_id)))
+                dataRecord.sm_batch_id = temp
         
         #dataRecord.save()
         logger.debug(str(('datarecord created:', dataRecord)))
@@ -457,8 +457,12 @@ def _read_cell(map_column,r,current_row, dr):
         value = util.convertdata(r[map_column].strip())
         facility_id = None
         if(value != None and value != '' ):
-            facility_id = util.convertdata(value,int) 
+            value = value.split("-")
+            facility_id = util.convertdata(value[0],int) 
             dr.cell = Cell.objects.get(facility_id=facility_id) 
+            if(len(value)>1):
+                dr.cell_batch_id = util.convertdata(value[1],int)
+                # TODO: validate that the batch exists? 
     except Exception, e:
         logger.error(str(("Invalid Cell facility id: ", facility_id,
                           'row',current_row, e)))
@@ -488,7 +492,7 @@ def _read_small_molecule_batch(map_column,r,current_row, dr):
                                   facility,e)))
                 raise
             if(len(value)>2):
-                dr.batch_id = util.convertdata(value[2],int)
+                dr.sm_batch_id = util.convertdata(value[2],int)
                 # TODO: validate that the batch exists?  (would need to
                 # do for all types, not just Small Molecule
     except Exception, e:

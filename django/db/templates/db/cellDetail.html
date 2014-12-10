@@ -7,11 +7,30 @@
 {% block content %}
 {% include "db/detailTitle.html" with name=object.name type="Cell" id=object.facility_id %}
  {% include "db/detailListing.html" %}
+
 	{% if attached_files %}
 		<h2 class='entity_detail_title'>Attached Files</h2>
 		{% load render_table from django_tables2 %}
 		{% render_table attached_files %}
 	{% endif %}
+
+  {% if batchTable %}
+    {% load render_table from django_tables2 %}
+    <h2 class='entity_detail_title'>Batch Information:</h2>
+    {% render_table batchTable %}
+  {% endif %}
+
+  {% if cell_batch %}
+    <h2 class='entity_detail_title'>Batch Information:</h2>
+    {% include "db/detailListing.html" with object=cell_batch %}
+    {% if attached_files_batch %}
+      <h2 class='entity_detail_title'>Attached Files</h2>
+      {% load render_table from django_tables2 %}
+      {% render_table attached_files_batch %}
+    {% endif %}
+  {% endif %}
+
+
 	{% if datasets %}
 		{% load render_table from django_tables2 %}
 		<h2 class='entity_detail_title'>Datasets:</h2>
