@@ -22,7 +22,7 @@ class CustomAuthenticationBackend():
                     logger.info(str(('authenticated',user)))
                     return user
                 else:
-                    logger.info(str('incorrect password given for superuser:', user))
+                    logger.info(str(('incorrect password given for superuser:', user)))
                     return None
             logger.info("found non-superuser user, now try to authenticate with ecommons...")
             if(authenticate(username, password)):

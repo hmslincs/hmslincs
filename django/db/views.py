@@ -564,9 +564,10 @@ def smallMoleculeDetail(request, facility_salt_id):
         #TODO: set is_restricted if the user is not logged in only
         details['is_restricted'] = sm.is_restricted
         
-        attachedFiles = get_attached_files(sm.facility_id,sm.salt_id)
-        if(len(attachedFiles)>0):
-            details['attached_files'] = AttachedFileTable(attachedFiles)
+        if(not sm.is_restricted or request.user.is_authenticated()):
+            attachedFiles = get_attached_files(sm.facility_id,sm.salt_id)
+            if(len(attachedFiles)>0):
+                details['attached_files'] = AttachedFileTable(attachedFiles)
             
         # batch table
         if(smb == None):
@@ -576,10 +577,11 @@ def smallMoleculeDetail(request, facility_salt_id):
         else:
             details['smallmolecule_batch']= get_detail(
                 smb,['smallmoleculebatch',''])
-            attachedFiles = get_attached_files(
-                sm.facility_id,sm.salt_id,smb.facility_batch_id)
-            if(len(attachedFiles)>0):
-                details['attached_files_batch'] = AttachedFileTable(attachedFiles)        
+            if(not sm.is_restricted or request.user.is_authenticated()):
+                attachedFiles = get_attached_files(
+                    sm.facility_id,sm.salt_id,smb.facility_batch_id)
+                if(len(attachedFiles)>0):
+                    details['attached_files_batch'] = AttachedFileTable(attachedFiles)        
         
         # datasets table
         dataset_ids = find_datasets_for_smallmolecule(sm.id)
