@@ -436,9 +436,6 @@ class Cell(models.Model):
     assay                          = _TEXT(**_NULLOKSTR)                    # Mitchison Mitosis-apoptosis Img; Mitchison 
                                                                             # Prolif-Mitosis Img; Mitchison 2-3 color apo
                                                                             # pt Img
-    provider_name                  = _CHAR(max_length=35, **_NOTNULLSTR)    # ATCC
-    provider_catalog_id            = _CHAR(max_length=35, **_NOTNULLSTR)    # HTB-9
-    batch_id                       = _CHAR(max_length=35, **_NULLOKSTR)     #
     organism                       = _CHAR(max_length=35, **_NOTNULLSTR)    # Homo sapiens
     organ                          = _CHAR(max_length=35, **_NOTNULLSTR)    # urinary bladder
     tissue                         = _CHAR(max_length=35, **_NULLOKSTR)     #
@@ -464,7 +461,6 @@ class Cell(models.Model):
                                                                                # flasks.\012Subcultivation ratio: A subculti
                                                                                # vation ratio of 1:4 to 1:8 is recommended
                                                                                # \012\012
-    verification_profile           = _CHAR(max_length=35, **_NULLOKSTR)     #
     verification_reference_profile = _TEXT(**_NULLOKSTR)                    # DNA Profile (STR, source: ATCC):\012Ameloge
                                                                                # nin: X,Y \012CSF1PO: 11 \012D13S317: 11 \01
                                                                                # 2D16S539: 9 \012D5S818: 11,12 \012D7S820: 1
@@ -489,6 +485,26 @@ class Cell(models.Model):
     # ----------------------------------------------------------------------------------------------------------------------
     def __unicode__(self):
         return unicode(self.facility_id)
+
+
+class CellBatch(models.Model):
+    cell = models.ForeignKey('Cell')
+    batch_id = _CHAR(max_length=_BATCH_ID_LENGTH, **_NOTNULLSTR)
+    provider_name = _TEXT(**_NULLOKSTR)
+    provider_catalog_id = _CHAR(max_length=64, **_NULLOKSTR)
+    verification_profile = _TEXT(**_NULLOKSTR)
+
+    date_data_received = models.DateField(null=True,blank=True)
+    date_loaded = models.DateField(null=True,blank=True)
+    date_publicly_available = models.DateField(null=True,blank=True)
+    date_updated = models.DateField(null=True,blank=True)
+
+    def __unicode__(self):
+        return unicode(str((self.cell,self.batch_id)))
+    class Meta:
+        unique_together = ('cell', 'batch_id',)    
+
+
 
 class Protein(models.Model):
     name                = _TEXT(**_NOTNULLSTR)
@@ -689,8 +705,8 @@ class DataRecord(models.Model):
     dataset                 = models.ForeignKey('DataSet')
     smallmolecule           = models.ForeignKey('SmallMolecule', null=True)
     
-    # TODO: need a schema that provides proper indexes
-    batch_id                = _CHAR(max_length=_BATCH_ID_LENGTH, **_NULLOKSTR) # if given, denotes the batch associated with whichever entity is linked to this dataset through this recordd
+    sm_batch_id             = _CHAR(max_length=_BATCH_ID_LENGTH, **_NULLOKSTR) 
+    cell_batch_id           = _CHAR(max_length=_BATCH_ID_LENGTH, **_NULLOKSTR) 
     
     # NOTE: library_mapping: used in the case of control wells, if smallmolecule_batch is defined, then this must match the librarymapping to the smb
     library_mapping         = models.ForeignKey('LibraryMapping',null=True)  
@@ -702,7 +718,7 @@ class DataRecord(models.Model):
     well                    = _CHAR(max_length=4, **_NULLOKSTR) # AA99
     control_type            = _CHAR(max_length=35, **_NULLOKSTR) # TODO: controlled vocabulary
     def __unicode__(self):
-        return unicode(str((self.dataset,self.smallmolecule,self.cell,self.protein,self.batch_id,self.plate,self.well)))
+        return unicode(str((self.dataset,self.smallmolecule,self.cell,self.protein,self.plate,self.well)))
     
 class DataPoint(models.Model):
     datacolumn              = models.ForeignKey('DataColumn')

@@ -18,7 +18,8 @@ with cd.chdir(_djangodir):
 del _mydir, _djangodir
 
 import import_utils as util
-from db.models import SmallMolecule, SmallMoleculeBatch, Cell, Protein, DataSet, Library, AttachedFile
+from db.models import SmallMolecule, SmallMoleculeBatch, Cell, Protein, DataSet,\
+    Library, AttachedFile, CellBatch
 
 __version__ = "$Revision: 24d02504e664 $"
 # $Source$
@@ -166,6 +167,15 @@ if __name__ == "__main__":
     elif(facilityId <=60000): # Cell
         try:
             cell = Cell.objects.get(facility_id=facilityId)
+            batchId = util.int_converter(args.batchId)
+            if(batchId is not None):
+                logger.info('look for the batch Id: ' + str(batchId))
+                attachedFile.batch_id_for=batchId
+                try:
+                    cb = CellBatch(cell=cell,batch_id=batchId)
+                except ObjectDoesNotExist,e:
+                    logger.error(str(('No such Cell batch found', facilityId, batchId, e)))
+                    raise e
         except ObjectDoesNotExist,e:
             logger.error(str(('No such Cell found', facilityId, saltId, e)))
             raise e

@@ -668,7 +668,7 @@ class DataSetDataResource(Resource):
             left join db_smallmolecule smallmolecule on (datarecord.smallmolecule_id=smallmolecule.id) 
             left join db_smallmoleculebatch smallmoleculebatch 
                 on(smallmoleculebatch.smallmolecule_id=smallmolecule.id 
-                    and smallmoleculebatch.facility_batch_id=datarecord.batch_id)
+                    and smallmoleculebatch.facility_batch_id=datarecord.sm_batch_id)
             , db_datapoint dp 
             where dp.datarecord_id=datarecord.id and dp.datacolumn_id=datacolumn.id 
             and dataset.id = %s 
