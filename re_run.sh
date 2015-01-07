@@ -1039,7 +1039,7 @@ else
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/Screen20217_Viability&Apoptosis.xls
+	python src/import_dataset.py -f $DATADIR/Screen20217_ViabilityApoptosis.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
@@ -1047,7 +1047,7 @@ else
 	check_errs $? "import dataset fails"
 	
 	echo 'import screen results...'
-	python src/import_dataset.py -f $DATADIR/Screen20219_PhosphoState&ProteinLevels.xls
+	python src/import_dataset.py -f $DATADIR/Screen20219_PhosphoStateProteinLevels.xls
 	check_errs $? "import dataset fails"
 	
 	echo 'import attached file...'      
