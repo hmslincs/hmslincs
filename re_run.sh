@@ -1038,6 +1038,18 @@ else
 	python src/import_dataset.py -f $DATADIR/Screen20216_TransCenter_DoseResponse.xls
 	check_errs $? "import dataset fails"
 	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/Screen20217_ViabilityApoptosis.xls
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/Screen20218_RPPA.xls
+	check_errs $? "import dataset fails"
+	
+	echo 'import screen results...'
+	python src/import_dataset.py -f $DATADIR/Screen20219_PhosphoStateProteinLevels.xls
+	check_errs $? "import dataset fails"
+	
 	echo 'import attached file...'      
 	python src/import_attachedfiles.py -f $DATADIR/qc/NMR_HMSL10001.101.01.pdf -fi 10001 -fd '2013-04-04' -si 101 -bi 1 -ft "QC-NMR" --restricted
 	check_errs $? "import attached file fails"
