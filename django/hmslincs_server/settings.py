@@ -225,6 +225,7 @@ INSTALLED_APPS = (
     'breast_cancer_signaling',
     'single_cell_dynamics',
     'adaptive_drug_resistance',
+    'roux_trail_disc',
     # # 'south', #for schema migrations
     # # 'fts', # for full text search
 )

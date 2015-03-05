@@ -1,0 +1,59 @@
+/* Styles for the table. These require unusual specificity to override some
+unfortunate stuff from the base stylesheet. */
+
+#content .lookup-table {
+  border: 0;
+  margin: 2em auto;
+}
+
+#content .lookup-table tr:nth-child(2n) {
+  background-color: inherit;
+}
+
+#content .lookup-table th, #content .lookup-table td {
+  border: 0;
+  padding: 0 5px;
+}
+
+.lookup-table h3 {
+  font-size: 120%;
+  margin-top: 1em;
+}
+
+
+
+.lookup-table-popup {
+  display: none;
+}
+
+.lookup-table-popup > .mejs-container {
+  display: inline-block;
+}
+
+
+
+/* Override some jquery theme items. */
+
+.ui-widget {
+  font-family: inherit;
+}
+
+.ui-dialog .ui-dialog-titlebar {
+  padding: 0 0.4em;
+}
+
+.ui-dialog .ui-dialog-titlebar-close {
+  right: 0.1em;
+}
+
+.ui-dialog .ui-widget-content {
+  padding: 0.2em 0 0;
+}
+
+.ui-dialog {
+  box-shadow: 10px 10px 10px rgba(0,0,0,0.7)
+}
+
+.ui-widget-content a {
+  color: hsl(200, 100%, 46%); /* main theme color */
+}

@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% load roux_trail_disc %}
+
+{% block head_extra %}
+  <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}roux_trail_disc/css/jquery-ui/jquery-ui-1.11.0-pre.min.css"/>
+  <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}roux_trail_disc/css/style.css"/>
+  <script type="text/javascript" src="{{ STATIC_URL }}roux_trail_disc/js/jquery-ui/jquery-ui-1.11.0-pre.min.js"></script>
+  <script type="text/javascript" src="{{ STATIC_URL }}roux_trail_disc/js/main.js"></script>
+{% endblock %}
+
+{% block title %}
+  Roux Hafner et al. (TODO: FINAL TITLE TBD) -
+  {{ block.super }}
+{% endblock %}
+
+{% block contentclass %}fullwidth{% endblock %}
+
+{% block body %}
+
+  <h1>Roux Hafner et al. (TODO: FINAL TITLE TBD)</h1>
+
+  <h2>Treatment/dose lookup table</h2>
+
+  <table class="lookup-table">
+    {% for section in table %}
+      <tr>
+        <th colspan="99"><h3>{{ section.name }}</h3></th>
+      </tr>
+      <tr><th>Treatment</th><th>Units</th><th colspan="99">Doses</th></tr>
+      {% for treatment in section.treatments %}
+        <tr>
+          <td>{{ treatment.name }}</td>
+          <td>{{ treatment.unit }}</td>
+          {% for dose in treatment.doses %}
+            {% comment %}
+             FIXME the figurespace-based alignment is close but still not quite
+             right, at least on my browser. need another solution.
+            {% endcomment %}
+            {% spaceless %}
+              <td class="lookup-table-hotspot cell-{{ dose.id }}">
+                {# wrap padding in span so spaceless works properly #}
+                <span>{{ dose.amount|figurespace_padding:3 }}</span>
+                <a href="{{ dose.img_filename }}">{{ dose.amount }}</a>
+              </td>
+            {% endspaceless %}
+          {% endfor %}
+        </tr>
+      {% endfor %}
+    {% endfor %}
+  </table>
+
+  {% for dose in doses %}
+    {% include "roux_trail_disc/popup.html" %}
+  {% endfor %}
+
+{% endblock %}
