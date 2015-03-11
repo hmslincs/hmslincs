@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
-{% load roux_trail_disc %}
+{% load trail_threshold_variability %}
 
 {% block head_extra %}
-  <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}roux_trail_disc/css/jquery-ui/jquery-ui-1.11.0-pre.min.css"/>
-  <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}roux_trail_disc/css/style.css"/>
-  <script type="text/javascript" src="{{ STATIC_URL }}roux_trail_disc/js/jquery-ui/jquery-ui-1.11.0-pre.min.js"></script>
-  <script type="text/javascript" src="{{ STATIC_URL }}roux_trail_disc/js/main.js"></script>
+  <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}trail_threshold_variability/css/jquery-ui/jquery-ui-1.11.0-pre.min.css"/>
+  <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}trail_threshold_variability/css/style.css"/>
+  <script type="text/javascript" src="{{ STATIC_URL }}trail_threshold_variability/js/jquery-ui/jquery-ui-1.11.0-pre.min.js"></script>
+  <script type="text/javascript" src="{{ STATIC_URL }}trail_threshold_variability/js/main.js"></script>
 {% endblock %}
 
 {% block title %}
@@ -51,7 +51,7 @@
   </table>
 
   {% for dose in doses %}
-    {% include "roux_trail_disc/popup.html" %}
+    {% include "trail_threshold_variability/popup.html" %}
   {% endfor %}
 
 {% endblock %}

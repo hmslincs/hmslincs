@@ -21,10 +21,10 @@ resource_path = unipath.Path(resource_path_s)
 hmslincs_path = unipath.Path(__file__).ancestor(2)
 
 docroot_path = hmslincs_path.child(
-    'temp', 'docroot', 'explore', 'roux-trail-disc')
+    'temp', 'docroot', 'explore', 'trail-threshold-variability')
 img_src_path = resource_path.child('figures')
 
-base_url = '/explore/roux-trail-disc/'
+base_url = '/explore/trail-threshold-variability/'
 
 table = [{'name': u'Modulation of DISC activity (κ)',
           'treatment_map': [('TRAIL', 1), ('Mapatumumab', 52),
@@ -54,7 +54,7 @@ empty_treatment = dict.fromkeys(['name', 'unit', 'doses'])
 def main(argv):
 
     argparser = argparse.ArgumentParser(
-        description='Build roux_trail_disc app resources.')
+        description='Build trail_threshold_variability app resources.')
     args = argparser.parse_args()
 
     img_dest_path = docroot_path.child('img')
@@ -109,7 +109,7 @@ def main(argv):
             'BASE_URL': base_url,
             }
     docroot_path.mkdir(parents=True)
-    render_template('roux_trail_disc/index.html', data,
+    render_template('trail_threshold_variability/index.html', data,
                     docroot_path, 'index.html')
 
     popup_dest_path = img_dest_path.child('popup')
