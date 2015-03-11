@@ -27,27 +27,27 @@ img_src_path = resource_path.child('figures')
 base_url = '/explore/trail-threshold-variability/'
 
 table = [{'name': u'Modulation of DISC activity (κ)',
-          'treatment_map': [('TRAIL', 1), ('Mapatumumab', 52),
-                            ('Apomab', 90), ('Mapatumumab+anti-Fc', 68),
-                            ('Apomab+anti-Fc', 103),
-                            ('TRAIL+FLIP-L overexpression', 124),
-                            ('TRAIL+FLIP-S overexpression', 131)],
+          'treatment_map': [('TRAIL', '', 1), ('Mapatumumab', '', 52),
+                            ('Apomab', '', 90), ('Mapatumumab', 'anti-Fc', 68),
+                            ('Apomab', 'anti-Fc', 103),
+                            ('TRAIL', 'FLIP-L overexpression', 124),
+                            ('TRAIL', 'FLIP-S overexpression', 131)],
           'treatments': []},
          {'name': u'Modulation of activation timing (τ)',
-          'treatment_map': [('Bortezomib+TRAIL', 27),
-                            ('Bortezomib+Mapatumumab', 84),
-                            ('Bortezomib+Mapatumumab+anti-Fc', 87),
-                            ('Bortezomib+Apomab', 116),
-                            ('Bortezomib+Apomab+anti-Fc', 120),
-                            ('Bortezomib+TRAIL+FLIP-L overexpression', 138),
-                            ('Bortezomib+TRAIL+FLIP-S overexpression', 141)],
+          'treatment_map': [('TRAIL', 'Bortezomib', 27),
+                            ('Mapatumumab', 'Bortezomib', 84),
+                            ('Mapatumumab', 'Bortezomib + anti-Fc', 87),
+                            ('Apomab', 'Bortezomib', 116),
+                            ('Apomab', 'Bortezomib + anti-Fc', 120),
+                            ('TRAIL', 'Bortezomib + FLIP-L overexpression', 138),
+                            ('TRAIL', 'Bortezomib + FLIP-S overexpression', 141)],
           'treatments': []},
          {'name': u'Modulation of the cellular apoptotic threshold (θ)',
-          'treatment_map': [('TRAIL+ABT-263', 40),
-                            ('TRAIL+Bcl-2 overexpression', 144),
-                            ('TRAIL+Bcl-2 overexpression+ABT-263', 158),
-                            ('TRAIL+Bcl-XL overexpression', 149),
-                            ('TRAIL+Bcl-XL overexpression+ABT-263', 160)],
+          'treatment_map': [('TRAIL', 'ABT-263', 40),
+                            ('TRAIL', 'Bcl-2 overexpression', 144),
+                            ('TRAIL', 'ABT-263 + Bcl-2 overexpression', 158),
+                            ('TRAIL', 'Bcl-XL overexpression', 149),
+                            ('TRAIL', 'ABT-263 + Bcl-XL overexpression', 160)],
           'treatments': []}]
 empty_treatment = dict.fromkeys(['name', 'unit', 'doses'])
 
@@ -63,7 +63,7 @@ def main(argv):
     for s_idx, section in enumerate(table):
         tmap = section['treatment_map']
         treatments = section['treatments'] = [empty_treatment] * len(tmap)
-        for t_idx, (treatment_name, dataset_number) in enumerate(tmap):
+        for t_idx, (t_main, t_other, dataset_number) in enumerate(tmap):
             treatment_reverse_map[dataset_number] = s_idx, t_idx
 
     dose_img_paths = {}
@@ -85,7 +85,7 @@ def main(argv):
         s_idx, t_idx = treatment_reverse_map[int(values[0][0])]
         values = [dict(zip(header_row, v)) for v in values]
         values = [v for v in values if v['Dataset'] in dose_img_paths]
-        name = table[s_idx]['treatment_map'][t_idx][0]
+        t_main, t_other = table[s_idx]['treatment_map'][t_idx][0:2]
         unit = re.search(r'(?<=\()[^)]+', header_row[2]).group()
         # FIXME Factor out repeated reference to dose_img_paths[v['Dataset']].
         doses = [{'amount': v['Dose'],
@@ -93,18 +93,18 @@ def main(argv):
                   'img_path': dose_img_paths[v['Dataset']],
                   'id': as_css_identifier(dose_img_paths[v['Dataset']].stem)}
                  for v in values if v['Dataset'] in dose_img_paths]
-        table[s_idx]['treatments'][t_idx] = {'name': name, 'unit': unit,
-                                             'doses': doses}
-    # Build up separate flat list of doses for convenience in the template.
-    doses = [dose for section in table for treatment in section['treatments']
-             for dose in treatment['doses']]
+        table[s_idx]['treatments'][t_idx] = {'name_main': t_main,
+                                             'name_other': t_other,
+                                             'unit': unit, 'doses': doses}
+
     # Sanity check: make sure there are no colliding dose ids. (Yes this code is
     # performance-naive but the list size is trivial.)
-    dose_ids = [dose['id'] for dose in doses]
+    dose_ids = [dose['id'] for section in table
+                for treatment in section['treatments']
+                for dose in treatment['doses']]
     assert len(dose_ids) == len(set(dose_ids))
 
     data = {'table': table,
-            'doses': doses,
             'STATIC_URL': django.conf.settings.STATIC_URL,
             'BASE_URL': base_url,
             }

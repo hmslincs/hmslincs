@@ -2,32 +2,58 @@
 unfortunate stuff from the base stylesheet. */
 
 #content .lookup-table {
+  border-collapse: separate;
   border: 0;
-  margin: 2em auto;
+  margin-left: -4px;
+  margin-top: -1em;
 }
 
 #content .lookup-table tr:nth-child(2n) {
   background-color: inherit;
 }
 
+#content .lookup-table tr.treatment-heading th {
+ border-bottom: 1px solid black;
+}
+
+#content .lookup-table tr.treatment:nth-child(2n) {
+  background-color: hsl(36, 100%, 97%);
+}
+
 #content .lookup-table th, #content .lookup-table td {
-  border: 0;
-  padding: 0 5px;
+  border: 1px solid transparent;
+  padding: 0 4px;
 }
 
-.lookup-table h3 {
+#content .lookup-table h3 {
   font-size: 120%;
-  margin-top: 1em;
+  margin: 1em 0 0;
 }
 
 
+
+.lookup-table-hotspot {
+  text-align: center;
+  cursor: pointer;
+}
+
+#content .lookup-table-hotspot:hover {
+  background-color: hsl(200, 100%, 90%);
+  border: 1px solid hsl(200, 100%, 46%);
+}
+
+.lookup-table-hotspot a, .lookup-table-hotspot a:hover {
+  text-decoration: none;
+}
 
 .lookup-table-popup {
   display: none;
 }
 
-.lookup-table-popup > .mejs-container {
-  display: inline-block;
+
+
+td {
+  white-space: inherit;
 }
 
 

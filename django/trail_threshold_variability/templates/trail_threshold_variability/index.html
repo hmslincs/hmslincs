@@ -10,7 +10,7 @@
 {% endblock %}
 
 {% block title %}
-  Roux Hafner et al. (TODO: FINAL TITLE TBD) -
+  A caspase threshold underlies cell-to-cell variability in apoptosis -
   {{ block.super }}
 {% endblock %}
 
@@ -18,40 +18,73 @@
 
 {% block body %}
 
-  <h1>Roux Hafner et al. (TODO: FINAL TITLE TBD)</h1>
+  <h1>A caspase threshold underlies cell-to-cell variability in apoptosis</h1>
+
+  <h2>Data and software downloads</h2>
+
+  <table>
+    <tr>
+      <td>1.</td>
+      <td style="width: 30em;">Well-by-well summary of the fitted parameters for each replicate of each
+        individual experiment (treatment condition).</td>
+      <td><a href="#">Download (.tsv)</a></td>
+    </tr>
+    <tr>
+      <td>2.</td>
+      <td>All raw data, smoothed single-cell trajectories, and fitted parameters
+      for each replicate for each experiment.</td>
+      <td><a href="#">Download (.zip)</a></td>
+    </tr>
+    <tr>
+      <td>3.</td>
+      <td>The MATLAB code for the image processing routines developed for this
+      project.</td>
+      <td><a href="#">Download (.zip)</a></td>
+    </tr>
+  </table>
 
   <h2>Treatment/dose lookup table</h2>
+
+  <p>Click on any dose entry in this table to view trajectory and landscape
+    plots for the corresponding experiment.</p>
+
+  <ul>
+    <li>Where Bortezomib is used the concentration is always 100 nM; likewise
+    ABT-263 is used at 10 &mu;M.</li>
+    <li>Only one biological replicate is shown for each experiment, but all data
+    are available for download (see above).</li>
+  </ul>
 
   <table class="lookup-table">
     {% for section in table %}
       <tr>
         <th colspan="99"><h3>{{ section.name }}</h3></th>
       </tr>
-      <tr><th>Treatment</th><th>Units</th><th colspan="99">Doses</th></tr>
+      <tr class="treatment-heading"><th>Treatment</th><th colspan="99">Doses</th></tr>
       {% for treatment in section.treatments %}
-        <tr>
-          <td>{{ treatment.name }}</td>
-          <td>{{ treatment.unit }}</td>
+        <tr class="treatment">
+          <td>
+            {{ treatment.name_main }} (<em>{{ treatment.unit }}</em>)
+            {% if treatment.name_other %}
+              + {{ treatment.name_other }}
+            {% endif %}
+          </td>
           {% for dose in treatment.doses %}
-            {% comment %}
-             FIXME the figurespace-based alignment is close but still not quite
-             right, at least on my browser. need another solution.
-            {% endcomment %}
-            {% spaceless %}
-              <td class="lookup-table-hotspot cell-{{ dose.id }}">
-                {# wrap padding in span so spaceless works properly #}
-                <span>{{ dose.amount|figurespace_padding:3 }}</span>
-                <a href="{{ dose.img_filename }}">{{ dose.amount }}</a>
-              </td>
-            {% endspaceless %}
+            <td class="lookup-table-hotspot cell-{{ dose.id }}">
+              <a href="img/popup/{{ dose.img_filename }}">{{ dose.amount }}</a>
+            </td>
           {% endfor %}
         </tr>
       {% endfor %}
     {% endfor %}
   </table>
 
-  {% for dose in doses %}
-    {% include "trail_threshold_variability/popup.html" %}
+  {% for section in table %}
+    {% for treatment in section.treatments %}
+      {% for dose in treatment.doses %}
+        {% include "trail_threshold_variability/popup.html" %}
+      {% endfor %}
+    {% endfor %}
   {% endfor %}
 
 {% endblock %}
