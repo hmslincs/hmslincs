@@ -22,7 +22,13 @@ hmslincs_path = unipath.Path(__file__).ancestor(2)
 
 docroot_path = hmslincs_path.child(
     'temp', 'docroot', 'explore', 'trail-threshold-variability')
+
 img_src_path = resource_path.child('figures')
+img_dest_path = docroot_path.child('img')
+popup_dest_path = img_dest_path.child('popup')
+
+data_src_path = resource_path.child('data')
+data_dest_path = docroot_path.child('data')
 
 base_url = '/explore/trail-threshold-variability/'
 
@@ -49,15 +55,18 @@ table = [{'name': u'Modulation of DISC activity (κ)',
                             ('TRAIL', 'Bcl-XL overexpression', 149),
                             ('TRAIL', 'ABT-263 + Bcl-XL overexpression', 160)],
           'treatments': []}]
+data_filenames = {1: '1 - Aggregate_SingleCell_results.tsv',
+                  2: '2 - All_data.zip',
+                  3: '3 - Results_other_lines.zip',
+                  4: '4 - scripts.zip'}
 empty_treatment = dict.fromkeys(['name', 'unit', 'doses'])
+
 
 def main(argv):
 
     argparser = argparse.ArgumentParser(
         description='Build trail_threshold_variability app resources.')
     args = argparser.parse_args()
-
-    img_dest_path = docroot_path.child('img')
 
     treatment_reverse_map = {}
     for s_idx, section in enumerate(table):
@@ -104,7 +113,13 @@ def main(argv):
                 for dose in treatment['doses']]
     assert len(dose_ids) == len(set(dose_ids))
 
+    # Build docroot-relative paths for download files.
+    data_paths = {idx: docroot_path.rel_path_to(data_dest_path.child(f))
+                  for idx, f in data_filenames.items()}
+
+    # Assemble data for template and render html.
     data = {'table': table,
+            'data_paths': data_paths,
             'STATIC_URL': django.conf.settings.STATIC_URL,
             'BASE_URL': base_url,
             }
@@ -112,14 +127,20 @@ def main(argv):
     render_template('trail_threshold_variability/index.html', data,
                     docroot_path, 'index.html')
 
-    popup_dest_path = img_dest_path.child('popup')
+    # Copy popup images.
     popup_dest_path.mkdir(parents=True)
     for dose in doses:
         dest_path = popup_dest_path.child(dose['img_filename'])
         dose['img_path'].copy(dest_path)
         dest_path.chmod(0o644)
+    # Copy data download files.
+    data_dest_path.mkdir(parents=True)
+    for filename in data_filenames.values():
+        src_path = data_src_path.child(filename)
+        dest_path = data_dest_path.child(filename)
+        src_path.copy(dest_path)
+        dest_path.chmod(0o644)
 
-    globals().update(locals()) # XXX temp debug aid
     return 0
 
 
