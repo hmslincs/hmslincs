@@ -8,6 +8,7 @@ import argparse
 import itertools
 import unipath
 import csv
+import wand.image
 import django.conf
 from django.template.loader import render_to_string
 
@@ -61,6 +62,8 @@ data_filenames = {1: '1 - Aggregate_SingleCell_results.tsv',
                   4: '4 - scripts.zip'}
 empty_treatment = dict.fromkeys(['name', 'unit', 'doses'])
 
+img_target_width = 939 * 2
+
 
 def main(argv):
 
@@ -105,12 +108,12 @@ def main(argv):
         table[s_idx]['treatments'][t_idx] = {'name_main': t_main,
                                              'name_other': t_other,
                                              'unit': unit, 'doses': doses}
+    doses = [dose for section in table for treatment in section['treatments']
+             for dose in treatment['doses']]
 
     # Sanity check: make sure there are no colliding dose ids. (Yes this code is
     # performance-naive but the list size is trivial.)
-    dose_ids = [dose['id'] for section in table
-                for treatment in section['treatments']
-                for dose in treatment['doses']]
+    dose_ids = [dose['id'] for dose in doses]
     assert len(dose_ids) == len(set(dose_ids))
 
     # Build docroot-relative paths for download files.
@@ -127,12 +130,19 @@ def main(argv):
     render_template('trail_threshold_variability/index.html', data,
                     docroot_path, 'index.html')
 
-    # Copy popup images.
+    # Resize and copy popup images.
     popup_dest_path.mkdir(parents=True)
     for dose in doses:
         dest_path = popup_dest_path.child(dose['img_filename'])
-        dose['img_path'].copy(dest_path)
-        dest_path.chmod(0o644)
+        with wand.image.Image(filename=dose['img_path']) as img, \
+                open(dest_path, 'w') as f:
+            scale = float(img_target_width) / img.width
+            target_size = [int(round(d * scale)) for d in img.size]
+            img.resize(*target_size, blur=1.5)
+            img.compression_quality = 20
+            img.format = 'JPEG'
+            img.save(file=f)
+            dest_path.chmod(0o644)
     # Copy data download files.
     data_dest_path.mkdir(parents=True)
     for filename in data_filenames.values():
