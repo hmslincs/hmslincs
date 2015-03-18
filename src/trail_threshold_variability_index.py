@@ -27,6 +27,7 @@ docroot_path = hmslincs_path.child(
 img_src_path = resource_path.child('figures')
 img_dest_path = docroot_path.child('img')
 popup_dest_path = img_dest_path.child('popup')
+schematic_dest_path = img_dest_path.child('schematic')
 
 data_src_path = resource_path.child('data')
 data_dest_path = docroot_path.child('data')
@@ -34,13 +35,16 @@ data_dest_path = docroot_path.child('data')
 base_url = '/explore/trail-threshold-variability/'
 
 table = [{'name': u'Modulation of DISC activity (κ)',
+          'schematic_page': 1,
           'treatment_map': [('TRAIL', '', 1), ('Mapatumumab', '', 52),
                             ('Apomab', '', 90), ('Mapatumumab', 'anti-Fc', 68),
                             ('Apomab', 'anti-Fc', 103),
                             ('TRAIL', 'FLIP-L overexpression', 124),
                             ('TRAIL', 'FLIP-S overexpression', 131)],
-          'treatments': []},
+          'treatments': [], 'num_columns': 0, 'num_dose_columns': 0,
+          'num_padding_columns': 0},
          {'name': u'Modulation of activation timing (τ)',
+          'schematic_page': 3,
           'treatment_map': [('TRAIL', 'Bortezomib', 27),
                             ('Mapatumumab', 'Bortezomib', 84),
                             ('Mapatumumab', 'Bortezomib + anti-Fc', 87),
@@ -48,21 +52,25 @@ table = [{'name': u'Modulation of DISC activity (κ)',
                             ('Apomab', 'Bortezomib + anti-Fc', 120),
                             ('TRAIL', 'Bortezomib + FLIP-L overexpression', 138),
                             ('TRAIL', 'Bortezomib + FLIP-S overexpression', 141)],
-          'treatments': []},
+          'treatments': [], 'num_columns': 0, 'num_dose_columns': 0,
+          'num_padding_columns': 0},
          {'name': u'Modulation of the cellular apoptotic threshold (θ)',
+          'schematic_page': 2,
           'treatment_map': [('TRAIL', 'ABT-263', 40),
                             ('TRAIL', 'Bcl-2 overexpression', 144),
                             ('TRAIL', 'ABT-263 + Bcl-2 overexpression', 158),
                             ('TRAIL', 'Bcl-XL overexpression', 149),
                             ('TRAIL', 'ABT-263 + Bcl-XL overexpression', 160)],
-          'treatments': []}]
+          'treatments': [], 'num_columns': 0, 'num_dose_columns': 0,
+          'num_padding_columns': 0}]
 data_filenames = {1: '1 - Aggregate_SingleCell_results.tsv',
-                  2: '2 - All_data.zip',
+                  2: '2 - All_SingleCell_data.zip',
                   3: '3 - Results_other_lines.zip',
                   4: '4 - scripts.zip'}
 empty_treatment = dict.fromkeys(['name', 'unit', 'doses'])
 
-img_target_width = 939 * 2
+popup_target_width = 939 * 2
+schematic_target_width = 250 * 2
 
 
 def main(argv):
@@ -108,6 +116,13 @@ def main(argv):
         table[s_idx]['treatments'][t_idx] = {'name_main': t_main,
                                              'name_other': t_other,
                                              'unit': unit, 'doses': doses}
+    max_dose_columns = max(len(treatment['doses']) for section in table
+                           for treatment in section['treatments'])
+    for section in table:
+        n = max(len(treatment['doses']) for treatment in section['treatments'])
+        section['num_columns'] = n + 1
+        section['num_dose_columns'] = n
+        section['num_padding_columns'] = max_dose_columns - n
     doses = [dose for section in table for treatment in section['treatments']
              for dose in treatment['doses']]
 
@@ -136,12 +151,29 @@ def main(argv):
         dest_path = popup_dest_path.child(dose['img_filename'])
         with wand.image.Image(filename=dose['img_path']) as img, \
                 open(dest_path, 'w') as f:
-            scale = float(img_target_width) / img.width
+            scale = float(popup_target_width) / img.width
             target_size = [int(round(d * scale)) for d in img.size]
             img.resize(*target_size, blur=1.5)
             img.compression_quality = 20
             img.format = 'JPEG'
             img.save(file=f)
+            dest_path.chmod(0o644)
+    # Extract and copy schematic images.
+    schematic_dest_path.mkdir(parents=True)
+    schematic_path = img_src_path.child('schematics', 'Trajectories_schematics.pdf')
+    with wand.image.Image(filename=schematic_path, resolution=500) as img:
+        for section in table:
+            page_number = section['schematic_page']
+            page = wand.image.Image(image=img.sequence[page_number])
+            page.alpha_channel = False
+            scale = float(schematic_target_width) / page.width
+            target_size = [int(round(d * scale)) for d in page.size]
+            page.resize(*target_size)
+            page.compression_quality = 100
+            page.format = 'JPEG'
+            filename = '{}.jpg'.format(page_number)
+            dest_path = schematic_dest_path.child(filename)
+            page.save(filename=dest_path)
             dest_path.chmod(0o644)
     # Copy data download files.
     data_dest_path.mkdir(parents=True)
@@ -151,6 +183,7 @@ def main(argv):
         src_path.copy(dest_path)
         dest_path.chmod(0o644)
 
+    globals().update(locals())
     return 0
 
 

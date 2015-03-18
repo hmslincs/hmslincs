@@ -22,10 +22,10 @@
 
   <h2>Data and software downloads</h2>
 
-  <table>
+  <table class="downloads">
     <tr>
       <td>1.</td>
-      <td style="width: 30em;">Well-by-well summary of the fitted parameters for each replicate of each
+      <td>Well-by-well summary of the fitted parameters for each replicate of each
         individual experiment (treatment condition).</td>
       <td><a href="{{ data_paths.1 }}">Download (.tsv)</a></td>
     </tr>
@@ -66,9 +66,12 @@
   <table class="lookup-table">
     {% for section in table %}
       <tr>
-        <th colspan="99"><h3>{{ section.name }}</h3></th>
+        <th colspan="{{ section.num_columns }}"><h3>{{ section.name }}</h3></th>
       </tr>
-      <tr class="treatment-heading"><th>Treatment</th><th colspan="99">Doses</th></tr>
+      <tr class="treatment-heading">
+        <th>Treatment</th>
+        <th colspan="{{ section.num_dose_columns }}">Doses</th>
+      </tr>
       {% for treatment in section.treatments %}
         <tr class="treatment">
           <td>
@@ -82,6 +85,15 @@
               <a href="img/popup/{{ dose.img_filename }}">{{ dose.amount }}</a>
             </td>
           {% endfor %}
+          {% if forloop.first %}
+            {% if section.num_padding_columns %}
+              <td class="padding" colspan="{{ section.num_padding_columns }}"></td>
+            {% endif %}
+            <td>
+              <img src="img/schematic/{{ section.schematic_page }}.jpg"
+                   class="schematic" width="250">
+            </td>
+          {% endif %}
         </tr>
       {% endfor %}
     {% endfor %}

@@ -8,7 +8,8 @@ unfortunate stuff from the base stylesheet. */
   margin-top: -1em;
 }
 
-#content .lookup-table tr:nth-child(2n) {
+/* Reset nth-child row coloring. */
+#content .lookup-table tr {
   background-color: inherit;
 }
 
@@ -16,7 +17,8 @@ unfortunate stuff from the base stylesheet. */
  border-bottom: 1px solid black;
 }
 
-#content .lookup-table tr.treatment:nth-child(2n) {
+#content .lookup-table tr.treatment:nth-child(2n) td.lookup-table-hotspot,
+#content .lookup-table tr.treatment:nth-child(2n) td:first-child {
   background-color: hsl(36, 100%, 97%);
 }
 
@@ -30,14 +32,13 @@ unfortunate stuff from the base stylesheet. */
   margin: 1em 0 0;
 }
 
-
-
 .lookup-table-hotspot {
   text-align: center;
   cursor: pointer;
 }
 
-#content .lookup-table-hotspot:hover {
+/* Need to be as specific as tr nth-child selector above. */
+#content .lookup-table tr.treatment td.lookup-table-hotspot:hover {
   background-color: hsl(200, 100%, 90%);
   border: 1px solid hsl(200, 100%, 46%);
 }
@@ -50,6 +51,17 @@ unfortunate stuff from the base stylesheet. */
   display: none;
 }
 
+#content .lookup-table tr.treatment:nth-child(2n) td.padding {
+  background-color: inherit;
+}
+
+.schematic {
+  position: absolute;
+}
+
+.downloads td:nth-child(2) {
+  width: 35em;
+}
 
 
 td {
