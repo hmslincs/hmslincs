@@ -34,7 +34,7 @@ data_dest_path = docroot_path.child('data')
 
 base_url = '/explore/trail-threshold-variability/'
 
-table = [{'name': u'Modulation of DISC activity (κ)',
+table = [{'name': u'Modulation of DISC activity (k)',
           'schematic_page': 1,
           'treatment_map': [('TRAIL', '', 1), ('Mapatumumab', '', 52),
                             ('Apomab', '', 90), ('Mapatumumab', 'anti-Fc', 68),
@@ -63,14 +63,12 @@ table = [{'name': u'Modulation of DISC activity (κ)',
                             ('TRAIL', 'ABT-263 + Bcl-XL overexpression', 160)],
           'treatments': [], 'num_columns': 0, 'num_dose_columns': 0,
           'num_padding_columns': 0}]
-data_filenames = {1: '1 - Aggregate_SingleCell_results.tsv',
-                  2: '2 - All_SingleCell_data.zip',
-                  3: '3 - Results_other_lines.zip',
-                  4: '4 - scripts.zip'}
+data_filenames = ['Aggregate_SingleCell_results.tsv', 'All_SingleCell_data.zip',
+                  'Results_other_lines.zip', 'scripts.zip']
 empty_treatment = dict.fromkeys(['name', 'unit', 'doses'])
 
 popup_target_width = 939 * 2
-schematic_target_width = 250 * 2
+schematic_target_width = 230 * 2
 
 
 def main(argv):
@@ -131,13 +129,9 @@ def main(argv):
     dose_ids = [dose['id'] for dose in doses]
     assert len(dose_ids) == len(set(dose_ids))
 
-    # Build docroot-relative paths for download files.
-    data_paths = {idx: docroot_path.rel_path_to(data_dest_path.child(f))
-                  for idx, f in data_filenames.items()}
-
     # Assemble data for template and render html.
     data = {'table': table,
-            'data_paths': data_paths,
+            'data_rel_url': docroot_path.rel_path_to(data_dest_path),
             'STATIC_URL': django.conf.settings.STATIC_URL,
             'BASE_URL': base_url,
             }
@@ -177,7 +171,7 @@ def main(argv):
             dest_path.chmod(0o644)
     # Copy data download files.
     data_dest_path.mkdir(parents=True)
-    for filename in data_filenames.values():
+    for filename in data_filenames:
         src_path = data_src_path.child(filename)
         dest_path = data_dest_path.child(filename)
         src_path.copy(dest_path)

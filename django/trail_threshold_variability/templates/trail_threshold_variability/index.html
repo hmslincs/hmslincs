@@ -10,57 +10,57 @@
 {% endblock %}
 
 {% block title %}
-  A caspase threshold underlies cell-to-cell variability in apoptosis -
-  {{ block.super }}
+  Fractional killing arises from cell-to-cell variability in overcoming a
+  caspase activity threshold - {{ block.super }}
 {% endblock %}
 
 {% block contentclass %}fullwidth{% endblock %}
 
 {% block body %}
 
-  <h1>A caspase threshold underlies cell-to-cell variability in apoptosis</h1>
+  <h1>Fractional killing arises from cell-to-cell variability in overcoming a
+  caspase activity threshold</h1>
 
-  <h2>Data and software downloads</h2>
+  <p>J Roux, M Hafner, S Bandara, JJ Sims, H Hudson, D Chai and PK Sorger.
+    <em>Mol Syst Biol</em> (2015). doi:<a href="http://dx.doi.org/TBD">TBD</a></p>
 
-  <table class="downloads">
-    <tr>
-      <td>1.</td>
-      <td>Well-by-well summary of the fitted parameters for each replicate of each
-        individual experiment (treatment condition).</td>
-      <td><a href="{{ data_paths.1 }}">Download (.tsv)</a></td>
-    </tr>
-    <tr>
-      <td>2.</td>
-      <td>All raw data, smoothed single-cell trajectories, and fitted parameters
-      for each replicate for each experiment.</td>
-      <td><a href="{{ data_paths.2 }}">Download (.zip)</a></td>
-    </tr>
-    <tr>
-      <td>3.</td>
-      <td>Population-based viability and C8 activity results for the screen for
-      Apomab, Apomab + anti-Fc, and TRAIL across multiple cell lines.</td>
-      <td><a href="{{ data_paths.3 }}">Download (.zip)</a></td>
-    </tr>
-    <tr>
-      <td>4.</td>
-      <td>The MATLAB code for the image processing routines developed for this
-      project.</td>
-      <td><a href="{{ data_paths.4 }}">Download (.zip)</a></td>
-    </tr>
-  </table>
+  <h2>Overview</h2>
 
-  <br>
+  <p>In the paper referenced above we identify a threshold in the rate and
+  timing of initiator caspase activation that distinguishes cells that live
+  after treatment with the death ligand TRAIL and its synthetic antibody mimics
+  from those that die. By mapping this threshold we can predict fractional
+  killing of cells exposed to natural and synthetic receptor agonists alone or
+  in combination with sensitizing drugs such as bortezomib. A phenomenological
+  model of the threshold also quantifies the contributions of two resistance
+  genes (c-FLIP and Bcl-2), providing new insight into the control of cell fate
+  by opposing pro-death and pro-survival proteins. The source data for the
+  following analyses were originally published in the Roux et al. paper. Please
+  cite this work when using any of the data or analyses presented here.</p>
 
   <h2>Treatment/dose lookup table</h2>
 
-  <p>Click on any dose entry in this table to view trajectory and landscape
-    plots for the corresponding experiment.</p>
-
+  <p>
+    Here, we have produced figures containing single-cell trajectories for the
+    FRET ratio (surviving cells in blue, dying in yellow) and the derivative of
+    the FRET ratio (dFR/dt, equivalent to caspase-8 activity) as well as
+    landscape plots (parameters <em>&tau;</em> and <em>k</em> computed from
+    single-cell trajectories) for all of our experiments. Click on any dose
+    entry in the following table to view the plots for the corresponding
+    experiment. For more details on these plots, see the description of Figure 1
+    panels A, B and D in <a href="http://dx.doi.org/TBD">Roux et al</a>.</p>
   <ul>
+    <li>The plots appear in pop-up windows. These windows can be moved around,
+      and multiple windows may be opened at once to compare experiments.</li>
+    <li>The treatments in the table are split into sections based on which one
+      of the three model parameters they perturb. To the right of each section
+      is a schematic figure depicting how a change in the corresponding
+      parameter would be reflected in the dFR/dt (caspase-8 activity) plot.</li>
     <li>Where Bortezomib is used the concentration is always 100 nM; likewise
-    ABT-263 is used at 10 &mu;M.</li>
-    <li>Only one biological replicate is shown for each experiment, but all data
-    are available for download (see above).</li>
+      ABT-263 is used at 10 &mu;M.</li>
+    <li>Only one biological replicate is shown here for each experiment, but the
+      data and trajectory/landscape figures for all replicates are
+      <a href="#downloads">available for download</a> (see the bottom of this page).</li>
   </ul>
 
   <table class="lookup-table">
@@ -99,6 +99,13 @@
     {% endfor %}
   </table>
 
+  {% comment %}
+  div with margin pushes following content below the last schematic figure
+  in the table to avoid overlaps (this is a fragile solution but I don't have
+  a better idea right now...)
+  {% endcomment %}
+  <div style="margin-bottom: 5em;"></div>
+
   {% for section in table %}
     {% for treatment in section.treatments %}
       {% for dose in treatment.doses %}
@@ -106,5 +113,35 @@
       {% endfor %}
     {% endfor %}
   {% endfor %}
+
+  <h2 id="downloads">Available data, signatures and software</h2>
+
+  <table class="downloads">
+    <tr>
+      <td>Data and signatures</td>
+      <td>All single-cell raw data, smoothed trajectories, and fitted parameters
+      for each replicate for each treatment condition in HeLa cells.</td>
+      <td><a href="{{ data_rel_url}}/All_SingleCell_data.zip">Download (.zip)</a></td>
+    </tr>
+    <tr>
+      <td>Signatures</td>
+      <td>Well-by-well summary of the fitted parameters for each replicate for
+      each treatment condition.<em>These data also will be viewable and available for downloading soon through the HMS LINCS Database.</em></td>
+      <td><a href="{{ data_rel_url}}/Aggregate_SingleCell_results.tsv">Download (.tsv)</a></td>
+    </tr>
+    <tr>
+      <td>Data and signatures</td>
+      <td>Population-based viability and C8 activity results for Apomab, Apomab
+      + anti-Fc, and TRAIL treatments in several other cancer cell lines with
+      varying sensitivities to TRAIL.</td>
+      <td><a href="{{ data_rel_url}}/Results_other_lines.zip">Download (.zip)</a></td>
+    </tr>
+    <tr>
+      <td>Software</td>
+      <td>The MATLAB code for the image processing routines developed for this
+      project.</td>
+      <td><a href="{{ data_rel_url}}/scripts.zip">Download (.zip)</a></td>
+    </tr>
+  </table>
 
 {% endblock %}
