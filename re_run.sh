@@ -21,10 +21,12 @@ then
 fi
 
 SERVER=$1
+DATADIR=$2
+VIRTUALENV=$3
 
 if [[ "$SERVER" == "PROD" ]] || [[ "$SERVER" == "prod" ]] 
 then
-  DATADIR=${DIR}/data/prod
+  DATADIR=${DATADIR:-${DIR}/data/prod}
   DB=lincs
   DB_USER=lincsweb
   LINCS_PGSQL_USER=lincsweb
@@ -46,7 +48,7 @@ then
   
 elif [[ "$SERVER" == "DEVTEST" ]] || [[ "$SERVER" == "devtest" ]] 
 then
-  # not needed for test data DATADIR=${DIR}/data/dev
+  DATADIR="${DATADIR:-sampledata}"
   DB=devlincs
   DB_USER=devlincsweb
   PGHOST=dev.pgsql.orchestra
@@ -57,7 +59,7 @@ then
   VIRTUALENV=/www/dev.lincs.hms.harvard.edu/support/virtualenv/bin/activate
 elif [[ "$SERVER" == "DEV" ]] || [[ "$SERVER" == "dev" ]] 
 then
-  DATADIR=${DIR}/data/dev
+  DATADIR=${DATADIR:-${DIR}/data/dev}
   DB=devlincs
   DB_USER=devlincsweb
   PGHOST=dev.pgsql.orchestra
@@ -68,7 +70,18 @@ then
   VIRTUALENV=/www/dev.lincs.hms.harvard.edu/support/virtualenv/bin/activate
 elif [[ "$SERVER" == "DEV2" ]] || [[ "$SERVER" == "dev2" ]] 
 then
-  DATADIR=${DIR}/data/dev
+  DATADIR=${DATADIR:-${DIR}/data/dev}
+  DB=devoshernatprod
+  DB_USER=devoshernatprodweb
+  PGHOST=dev.pgsql.orchestra
+  export LINCS_PGSQL_USER=$DB_USER
+  export LINCS_PGSQL_DB=$DB
+  export LINCS_PGSQL_SERVER=$PGHOST
+  export LINCS_PGSQL_PASSWORD=`cat ~/.pgpass |grep $DB_USER| awk -F ':' '{print $5}'`
+  VIRTUALENV=/www/dev.oshernatprod.hms.harvard.edu/support/virtualenv/bin/activate
+elif [[ "$SERVER" == "DEV2TEST" ]] || [[ "$SERVER" == "dev2test" ]] 
+then
+  DATADIR="${DATADIR:-sampledata}"
   DB=devoshernatprod
   DB_USER=devoshernatprodweb
   PGHOST=dev.pgsql.orchestra
@@ -79,14 +92,14 @@ then
   VIRTUALENV=/www/dev.oshernatprod.hms.harvard.edu/support/virtualenv/bin/activate
 elif [[ "$SERVER" == "LOCAL" ]] || [[ "$SERVER" == "local" ]] 
 then
-  DATADIR=${2:-/home/sde4/sean/docs/work/LINCS/data/dev}
+  DATADIR=${DATADIR:-/home/sde4/sean/docs/work/LINCS/data/dev}
   DB=django
   DB_USER=django
   PGHOST=localhost
   VIRTUALENV=${3:-../hmslincs-env/bin/activate}
 elif [[ "$SERVER" == "TEST" ]] || [[ "$SERVER" == "test" ]] 
 then
-  # NOT NEEDED FOR TEST DATA : DATADIR=${2:-/home/sde4/workspace/hmslincs/}
+  DATADIR="${DATADIR:-sampledata}"
   DB=django
   DB_USER=django
   PGHOST=localhost
@@ -111,9 +124,11 @@ echo 'import dwg field definition tables ...'
 python src/import_fieldinformation.py -f sampledata/fieldinformation.xlsx
 check_errs $? "import fieldinformation fails"
 
-if [[ "$SERVER" == "TEST" ]] || [[ "$SERVER" == "test" ]] || [[ "$SERVER" == "DEVTEST" ]] || [[ "$SERVER" == "devtest" ]] 
+if [[ "$SERVER" == "TEST" ]] || [[ "$SERVER" == "test" ]] \
+	|| [[ "$SERVER" == "DEVTEST" ]] || [[ "$SERVER" == "devtest" ]] \
+	|| [[ "$SERVER" == "DEV2TEST" ]] || [[ "$SERVER" == "dev2test" ]]
 then
- 
+  echo "===== perform the test import =====" 
   #============ Here is where the test data imports go =========================
   
   echo 'import cell tables ...'
@@ -136,10 +151,14 @@ then
   python src/import_smallmolecule_batch.py -f sampledata/small_molecule_batch-HMS_LINCS-1.xls
   check_errs $? "import smallmolecule batch fails"
   
+  echo 'import small molecule batch qc reports...'
+  python src/import_qc_events_batch.py -f sampledata/qc_events_batch.xlsx -fd $DATADIR
+  check_errs $? "import_qc_events_batch fails"
+  
   echo 'import library mapping tables...'
   python src/import_libraries.py -f sampledata/libraries.xls
   check_errs $? "import library fails"
-    
+	    
   echo 'import kinase tables...'
   python src/import_protein.py -f sampledata/HMS-LINCS_ProteinMetadata_forLoading.xls
   check_errs $? 'import kinases fails'
@@ -147,7 +166,7 @@ then
   echo 'import antibody tables...'
   python src/import_antibody.py -f sampledata/HMS-LINCS_antibodies.xls
   check_errs $? 'import antibodies fails'
-    
+
   echo 'import other reagent tables...'
   python src/import_other_reagent.py -f sampledata/HMS-LINCS_other_reagents.xls
   check_errs $? 'import other reagents fails'

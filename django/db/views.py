@@ -41,7 +41,8 @@ from dump_obj import dumpObj
 from PagedRawQuerySet import PagedRawQuerySet
 from db.models import PubchemRequest, SmallMolecule, SmallMoleculeBatch, Cell, \
     Protein, DataSet, Library, FieldInformation, AttachedFile, DataRecord, \
-    DataColumn, get_detail, Antibody, OtherReagent, CellBatch
+    DataColumn, get_detail, Antibody, OtherReagent, CellBatch, QCEvent,\
+    QCAttachedFile
 
 
 logger = logging.getLogger(__name__)
@@ -613,12 +614,51 @@ def smallMoleculeDetail(request, facility_salt_id):
         if smb == None:
             batches = SmallMoleculeBatch.objects.filter(smallmolecule=sm)
             if(len(batches)>1):
-                details['batchTable']=SmallMoleculeBatchTable(batches)
+                in_memory_table = []
+                for smb in batches:
+                    qcEvents = QCEvent.objects.filter(
+                        facility_id_for=sm.facility_id,
+                        salt_id_for=sm.salt_id,
+                        batch_id_for=smb.facility_batch_id).order_by('-date')
+                    _dict = model_to_dict(smb)
+                    _dict['facility_salt_batch'] = smb.facility_salt_batch
+                    # manually add in the qc_outcome field
+                    if qcEvents:
+                        qcEvent = qcEvents[0]
+                        _dict['qc_outcome'] = qcEvent.outcome
+                    else:
+                        _dict['qc_outcome'] = 'not tested'
+                    in_memory_table.append(_dict)
+                details['batchTable']=SmallMoleculeBatchTable(in_memory_table)
+                smb = None
             elif(len(batches)==1):
+                # if there is only one batch, then show details for it
                 smb = batches[0]
         if smb:
             details['smallmolecule_batch']= get_detail(
                 smb,['smallmoleculebatch',''])
+            
+            qcEvents = QCEvent.objects.filter(
+                facility_id_for=sm.facility_id,
+                salt_id_for=sm.salt_id,
+                batch_id_for=smb.facility_batch_id).order_by('-date')
+            fi = FieldInformation.manager.get_column_fieldinformation(
+                'qc_outcome', 'smallmoleculebatch')
+            if qcEvents:
+                # manually add in the qc_outcome field
+                details['smallmolecule_batch']['qc_outcome'] = {
+                    'value': qcEvents[0].outcome,
+                    'fieldinformation': fi
+                    }
+                details['qcTable'] = QCEventTable(qcEvents)
+            else:
+                details['smallmolecule_batch']['qc_outcome'] = {
+                    'value': 'not tested',
+                    'fieldinformation': fi
+                    }
+                
+            logger.info(str(('smb', details['smallmolecule_batch'])))
+            
             if(not sm.is_restricted or request.user.is_authenticated()):
                 attachedFiles = get_attached_files(
                     sm.facility_id,sm.salt_id,smb.facility_batch_id)
@@ -2217,10 +2257,17 @@ class LibraryMappingSearchManager(models.Model):
         v = dictfetchall(cursor)
         return v
     
+class BatchInfoLinkColumn(tables.LinkColumn):
+    
+    def render_link(self, uri, text, attrs=None):
+        
+        return super(BatchInfoLinkColumn,self).render_link(uri + "#batchinfo",text,attrs)    
+    
 class SmallMoleculeBatchTable(PagedTable):
     
-    facility_salt_batch = tables.LinkColumn("sm_detail", args=[A('facility_salt_batch')])
+    facility_salt_batch = BatchInfoLinkColumn("sm_detail", args=[A('facility_salt_batch')])
     facility_salt_batch.attrs['td'] = {'nowrap': 'nowrap'}
+    qc_outcome = tables.Column()
     
     class Meta:
         model = SmallMoleculeBatch
@@ -2324,6 +2371,35 @@ class DataColumnTable(PagedTable):
         super(DataColumnTable, self).__init__(table)
         sequence_override = []
         set_table_column_info(self, ['datacolumn',''],sequence_override)  
+
+class QCFileColumn(tables.Column):
+    
+    def __init__(self, *args, **kwargs):
+        super(QCFileColumn, self).__init__(*args, **kwargs)    
+    
+    def render(self, value):
+        if value and len(value.all()) > 0:
+            links = []
+            a = '<a href="%s" >%s</a>'
+            for x in value.all():
+                link = reverse('download_qc_attached_file',args=[x.id])
+                links.append(a%(link,x.filename))
+            return mark_safe(',<br/>'.join(links))
+            
+class QCEventTable(PagedTable):
+    
+    qcattachedfile_set = QCFileColumn() 
+    
+    class Meta:
+        model = QCEvent
+        orderable = True
+        attrs = {'class': 'paleblue'}
+
+    def __init__(self, table,*args, **kwargs):
+        super(QCEventTable, self).__init__(table)
+        sequence_override = []
+        set_table_column_info(self, ['qcevent',''],sequence_override)  
+
 
 class AttachedFileTable(PagedTable):
     filename=tables.LinkColumn("download_attached_file", args=[A('id')])
@@ -3058,37 +3134,55 @@ def restricted_image(request, filepath):
     response['Content-Length'] = os.path.getsize(_path)
     return response
 
+def download_qc_attached_file(request, id):
+    qf = None
+    try:
+        qf = QCAttachedFile.objects.get(id=id)
+    except Exception,e:
+        msg = str(('could not find qc attached file object for id', id, e))
+        logger.warn(msg)
+        raise Http404(msg)
+    return _download_file(request,qf)
+
 def download_attached_file(request, id):
+    af = None
+    try:
+        af = AttachedFile.objects.get(id=id)
+    except Exception,e:
+        msg = str(('could not find attached file object for id', id, e))
+        logger.warn(msg)
+        raise Http404(msg)
+    return _download_file(request,af)
+        
+def _download_file(request, file_obj):   
     """                                                                         
     Send a file through Django without loading the whole file into              
     memory at once. The FileWrapper will turn the file object into an           
     iterator for chunks of 8KB.                                                 
     """
-    try:
-        af = AttachedFile.objects.get(id=id)
-        logger.debug(str((
-            'send the attached file:', af, request.user.is_authenticated())))
-        if(af.is_restricted and not request.user.is_authenticated()):
+    try:     
+        if(file_obj.is_restricted and not request.user.is_authenticated()):
             logger.warn(str(('access to restricted file for user is denied',
-                             request.user,af)))
+                             request.user,file_obj)))
             return HttpResponse('Log in required.', status=401)
-
-        _path = os.path.join(settings.STATIC_AUTHENTICATED_FILE_DIR,af.filename)
-        if(af.relative_path):
-            _path = os.path.join(settings.STATIC_AUTHENTICATED_FILE_DIR,
-                                 af.relative_path)
+        
+        _path = settings.STATIC_AUTHENTICATED_FILE_DIR
+        if(file_obj.relative_path):
+            _path = os.path.join(_path,file_obj.relative_path)
+        _path = os.path.join(_path,file_obj.filename)
         _file = file(_path)
-        logger.debug(str(('download_attached_file',_path,_file)))
+        logger.info(str(('download_attached_file',_path,_file)))
         wrapper = FileWrapper(_file)
         # use the same type for all files
         response = HttpResponse(wrapper, content_type='text/plain') 
         response['Content-Disposition'] = \
-            'attachment; filename=%s' % unicode(af.filename)
+            'attachment; filename=%s' % unicode(file_obj.filename)
         response['Content-Length'] = os.path.getsize(_path)
         return response
     except Exception,e:
-        logger.error(str(('could not find attached file object for id', id, e)))
-        raise e
+        msg = str(('could not find attached file object for file_obj', file_obj, e))
+        logger.warn(msg)
+        raise Http404(msg)
 
 def _get_raw_time_string():
   return timezone.now().strftime("%Y%m%d%H%M%S")

@@ -306,7 +306,40 @@ class FieldInformation(models.Model):
         #        logger.info(str(('created camel case name', field_name, 'for', self)))
         return field_name
 
+class QCEvent(models.Model):
+    
+    facility_id_for = models.CharField(max_length=_FACILITY_ID_LENGTH, null=False)
+    salt_id_for = models.CharField(max_length=_SALT_ID_LENGTH, null=True)
+    batch_id_for =models.CharField(max_length=_BATCH_ID_LENGTH, null=True)
+    outcome = models.CharField(max_length=36, null=False)
+    date = models.DateField(null=False)
+    comment = models.TextField(null=True)
+    
+    class Meta:
+        unique_together = (
+            'date','facility_id_for','salt_id_for','batch_id_for')  
+    def __unicode__(self):
+        return unicode(str((self.facility_id_for,self.salt_id_for,
+            self.batch_id_for,self.outcome)))  
 
+class QCAttachedFile(models.Model):
+    
+    qc_event                = models.ForeignKey('QCEvent', null=False)
+    filename                = models.TextField(null=False)
+    description             = models.TextField(null=True)
+    relative_path           = models.TextField(null=True)
+    file_type               = models.TextField(null=True)
+    file_date               = models.DateField(null=True,blank=True)
+    is_restricted           = models.BooleanField(default=False) 
+    
+    class Meta:
+        unique_together = ('qc_event','filename')
+        
+    def __unicode__(self):
+        return unicode(
+            str((self.filename,self.relative_path,self.is_restricted, 
+                self.file_type,self.description,self.file_date)))
+        
 class SmallMolecule(models.Model):
     
     nominal_target          = models.ForeignKey('Protein', null=True)
