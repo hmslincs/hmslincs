@@ -61,7 +61,8 @@ def main(path):
     column_definitions = util.fill_in_column_definitions(properties,column_definitions)
     
     # create a dict mapping the column ordinal to the proper column definition dict
-    cols = util.find_columns(column_definitions, sheet.labels)
+    cols = util.find_columns(column_definitions, sheet.labels,
+        all_sheet_columns_required=False)
     
     rows = 0    
     logger.debug(str(('cols: ' , cols)))
