@@ -152,10 +152,14 @@ then
     python src/import_other_reagent.py -f sampledata/HMS-LINCS_other_reagents.xls
     check_errs $? 'import other reagents fails'
 	
-	echo 'import test_dataset...'
-	python src/import_dataset.py -f sampledata/test_dataset.xls 
-	check_errs $? "import dataset fails"
-	
+  echo 'import test_dataset...'
+  python src/import_dataset.py -f sampledata/test_dataset.xls 
+  check_errs $? "import dataset fails"
+  
+  echo 'import test_dataset2...'
+  python src/import_dataset.py -f sampledata/test_dataset2.xls 
+  check_errs $? "import dataset 2 fails"
+  
 	echo 'import targets_test_dataset.xls...'
 	python src/import_dataset.py -f sampledata/targets_test_dataset.xls 
 	check_errs $? "import dataset fails"

@@ -1440,7 +1440,8 @@ class DataSetResultTable(PagedTable):
     set_field_information_to_table_column(
         'facility_salt_batch', ['smallmoleculebatch'], facility_salt_batch)
     
-    sm_name = tables.LinkColumn('sm_detail', args=[A('facility_salt_batch')])
+    sm_name = tables.LinkColumn('sm_detail', args=[A('facility_salt_batch')],
+                                visible=False)
     defined_base_columns.append('sm_name')
     set_field_information_to_table_column('name', ['smallmolecule'], sm_name)
 
@@ -1515,7 +1516,7 @@ class DataSetResultTable(PagedTable):
         orderable = True
         attrs = {'class': 'paleblue'}
     
-    def __init__(self, queryset, ordered_datacolumns,  
+    def __init__(self, queryset, ordered_datacolumns, show_small_mols=False, 
                  show_cells=False, show_proteins=False, 
                  show_antibodies=False, show_otherreagents=False, 
                  column_exclusion_overrides=None, *args, **kwargs):
@@ -1531,8 +1532,10 @@ class DataSetResultTable(PagedTable):
                 logger.debug(str((
                     'deleting column from the table', name,self.defined_base_columns)))
                 del self.base_columns[name]
-        
-        temp = ['facility_salt_batch','sm_name']
+
+        temp = []
+        if(show_small_mols):
+            temp.extend(['facility_salt_batch','sm_name'])
         if(show_cells): 
             temp.append('cell_name')
             temp.append('cell_facility_batch')
@@ -1635,7 +1638,9 @@ class DataSetManager():
             self.has_otherreagents_for_datarecords(self.dataset_id)
         self.small_molecule_queryset = \
             self.small_molecules_for_dataset(self.dataset_id)
-                
+        self.has_small_molecules_for_datarecords = \
+            self.has_small_molecules_for_datarecords(self.dataset_id)
+            
     class DatasetForm(ModelForm):
         class Meta:
             model = DataSet           
@@ -1786,6 +1791,7 @@ class DataSetManager():
         # TODO: again, all these flags are confusing
         _table = DataSetResultTable(queryset,
                                   self.dataset_info.datacolumns, 
+                                  self.has_small_molecules_for_datarecords,
                                   self.has_cells_for_datarecords, 
                                   self.has_proteins_for_datarecords,
                                   self.has_antibodies_for_datarecords,
@@ -2111,6 +2117,16 @@ class DataSetManager():
 #        # view of the small molecule table
 #        logger.info(str(('small molecules for dataset',dataset_id,len(queryset))))
 #        return queryset
+
+    # Need a second distinction, because we'll only show the sm column 
+    # if there are datarecord entries with cells
+    def has_small_molecules_for_datarecords(self, dataset_id):
+        sql = ( 'SELECT count (distinct(smallmolecule_id)) FROM db_datarecord dr '
+            ' WHERE dr.dataset_id=%s')
+        cursor = connection.cursor()
+        cursor.execute(sql, [dataset_id])
+        rows = cursor.fetchone()[0]
+        return rows > 0
     
     def has_plate_wells_defined(self, dataset_id):
         res= len(DataRecord.objects.all().filter(
