@@ -1434,7 +1434,7 @@ class DataSetResultTable(PagedTable):
     defined_base_columns.append('id')
     
     facility_salt_batch = \
-        tables.LinkColumn('sm_detail', args=[A('facility_salt_batch')])
+        tables.LinkColumn('sm_detail', args=[A('facility_salt_batch')],visible=False)
     facility_salt_batch.attrs['td'] = {'nowrap': 'nowrap'}
     defined_base_columns.append('facility_salt_batch')
     set_field_information_to_table_column(
@@ -1574,6 +1574,12 @@ class DataSetResultTable(PagedTable):
         # Note: since every instance reuses the base_columns, 
         # each time the visibility must be set.
         # Todo: these colums should be controlled by the column_exclusion_overrides
+        if(show_small_mols):
+            self.base_columns['sm_name'].visible = True
+            self.base_columns['facility_salt_batch'].visible = True
+        else:
+            self.base_columns['sm_name'].visible = False
+            self.base_columns['facility_salt_batch'].visible = False
         if(show_cells):
             self.base_columns['cell_name'].visible = True
             self.base_columns['cell_facility_batch'].visible = True
@@ -2121,8 +2127,8 @@ class DataSetManager():
     # Need a second distinction, because we'll only show the sm column 
     # if there are datarecord entries with cells
     def has_small_molecules_for_datarecords(self, dataset_id):
-        sql = ( 'SELECT count (distinct(smallmolecule_id)) FROM db_datarecord dr '
-            ' WHERE dr.dataset_id=%s')
+        sql = ( 'SELECT count (smallmolecule_id) FROM db_datarecord dr '
+            ' WHERE dr.dataset_id=%s and dr.smallmolecule_id is not null')
         cursor = connection.cursor()
         cursor.execute(sql, [dataset_id])
         rows = cursor.fetchone()[0]
