@@ -1658,29 +1658,37 @@ class DataSetManager():
     # has_[entity]_for_dataset" methods, because the first take into account the 
     # [entities] that were attached to the Datacolum or the Datarecord, and the
     # second accounts for those attached through the Datarecord only.
-    # Fixme: these methods should use the "exists" method for efficiency
     def has_cells(self):
-        return len(self.cell_queryset) > 0
+        return self.has_cells_for_datarecords \
+            or self.dataset.datacolumn_set.all()\
+                .filter(cell__isnull=False).exists()
+    
     def get_cells(self):
         return self.cell_queryset
     
     def has_proteins(self):
-        return len(self.protein_queryset) > 0
+        return self.has_proteins_for_datarecords \
+            or self.dataset.datacolumn_set.all()\
+                .filter(protein__isnull=False).exists()
+
     def get_proteins(self):
         return self.protein_queryset
     
     def has_antibodies(self):
-        return len(self.antibody_queryset) > 0
+        return self.has_antibodies_for_datarecords
+    
     def get_antibodies(self):
         return self.antibody_queryset
     
     def has_otherreagents(self):
-        return len(self.otherreagent_queryset) > 0
+        return self.has_otherreagents_for_datarecords
+
     def get_otherreagents(self):
         return self.otherreagent_queryset
     
     def has_small_molecules(self):
-        return len(self.small_molecule_queryset) > 0
+        return self.has_small_molecules_for_datarecords
+    
     def get_small_molecules(self):
         return self.small_molecule_queryset
     
