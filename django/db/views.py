@@ -1629,23 +1629,24 @@ class DataSetManager():
         self.dataset_id = dataset.id
         
         # grab these now and cache them
+        ds_query = DataRecord.objects.all().filter(dataset_id=dataset.id)
         self.cell_queryset = self.cells_for_dataset(self.dataset_id) 
         self.has_cells_for_datarecords = \
-            self.has_cells_for_datarecords(self.dataset_id)
+            ds_query.filter(cell__isnull=False).exists()
         self.protein_queryset = self.proteins_for_dataset(self.dataset_id)
         self.has_proteins_for_datarecords = \
-            self.has_proteins_for_datarecords(self.dataset_id)
+            ds_query.filter(protein__isnull=False).exists()
         self.antibody_queryset = self.antibodies_for_dataset(self.dataset_id)
         self.has_antibodies_for_datarecords = \
-            self.has_antibodies_for_datarecords(self.dataset_id)
+            ds_query.filter(antibody__isnull=False).exists()
         self.otherreagent_queryset = \
             self.otherreagents_for_dataset(self.dataset_id)
         self.has_otherreagents_for_datarecords = \
-            self.has_otherreagents_for_datarecords(self.dataset_id)
+            ds_query.filter(otherreagent__isnull=False).exists()
         self.small_molecule_queryset = \
             self.small_molecules_for_dataset(self.dataset_id)
         self.has_small_molecules_for_datarecords = \
-            self.has_small_molecules_for_datarecords(self.dataset_id)
+            ds_query.filter(smallmolecule__isnull=False).exists()
             
     class DatasetForm(ModelForm):
         class Meta:
@@ -2007,12 +2008,6 @@ class DataSetManager():
         cursor.execute(sql, [dataset_id, dataset_id])
         return dictfetchall(cursor)
              
-    # Need a second distinction, because we'll only show the cell column 
-    # if there are datarecord entries with cells
-    def has_cells_for_datarecords(self, dataset_id):
-        return DataRecord.objects.all().filter(dataset_id=dataset_id)\
-            .filter(cell__isnull=False).exists()
-    
 # Note: this usage of the django ORM is not performant 
 # - is there and indexing problem; or can we mimick the sql version above?   
 #    def cells_for_dataset(self,dataset_id):
@@ -2033,12 +2028,6 @@ class DataSetManager():
         cursor.execute(sql, [dataset_id])
         return dictfetchall(cursor)
             
-    # Need a second distinction, because we'll only show the antibody column 
-    # if there are datarecord entries with proteins
-    def has_antibodies_for_datarecords(self, dataset_id):
-        return DataRecord.objects.all().filter(dataset_id=dataset_id)\
-            .filter(antibody__isnull=False).exists()
-
     def otherreagents_for_dataset(self,dataset_id):
         cursor = connection.cursor()
         sql = ( ' SELECT otherreagent.* '
@@ -2049,12 +2038,6 @@ class DataSetManager():
 
         cursor.execute(sql, [dataset_id])
         return dictfetchall(cursor)
-            
-    # Need a second distinction, because we'll only show the antibody column if 
-    # there are datarecord entries with proteins
-    def has_otherreagents_for_datarecords(self, dataset_id):
-        return DataRecord.objects.all().filter(dataset_id=dataset_id)\
-            .filter(otherreagent__isnull=False).exists()
 
     def proteins_for_dataset(self,dataset_id):
         cursor = connection.cursor()
@@ -2068,12 +2051,6 @@ class DataSetManager():
 
         cursor.execute(sql, [dataset_id, dataset_id])
         return dictfetchall(cursor)
-            
-    # Need a second distinction, because we'll only show the protein column if 
-    # there are datarecord entries with proteins
-    def has_proteins_for_datarecords(self, dataset_id):
-        return DataRecord.objects.all().filter(dataset_id=dataset_id)\
-            .filter(protein__isnull=False).exists()
 
 # Note: this usage of the django ORM is a bit more performant than the cell 
 # version above; still, going to stick with the non-ORM version for now    
@@ -2116,12 +2093,6 @@ class DataSetManager():
 #        # view of the small molecule table
 #        logger.info(str(('small molecules for dataset',dataset_id,len(queryset))))
 #        return queryset
-
-    # Need a second distinction, because we'll only show the sm column 
-    # if there are datarecord entries with cells
-    def has_small_molecules_for_datarecords(self, dataset_id):
-        return DataRecord.objects.all().filter(dataset_id=dataset_id)\
-            .filter(smallmolecule__isnull=False).exists()
     
     def has_plate_wells_defined(self, dataset_id):
         return DataRecord.objects.all().filter(dataset_id=dataset_id)\
