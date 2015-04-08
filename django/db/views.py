@@ -1795,9 +1795,9 @@ class DataSetManager():
             self.dataset_info.query_sql, self.dataset_info.count_query_sql, 
             connection,parameters=self.dataset_info.parameters, 
             order_by=['datarecord_id'], verbose_name_plural='records')
-        if(not self.has_plate_wells_defined(self.dataset_id)): 
+        if(not self.has_plate_wells_defined()): 
             column_exclusion_overrides.extend(['plate','well'])
-        if(not self.has_control_type_defined(self.dataset_id)): 
+        if(not self.has_control_type_defined()): 
             column_exclusion_overrides.append('control_type')
 
         # TODO: again, all these flags are confusing
@@ -2094,12 +2094,12 @@ class DataSetManager():
 #        logger.info(str(('small molecules for dataset',dataset_id,len(queryset))))
 #        return queryset
     
-    def has_plate_wells_defined(self, dataset_id):
-        return DataRecord.objects.all().filter(dataset_id=dataset_id)\
+    def has_plate_wells_defined(self):
+        return DataRecord.objects.all().filter(dataset_id=self.dataset_id)\
             .filter(plate__isnull=False).exists()
 
-    def has_control_type_defined(self, dataset_id):
-        return DataRecord.objects.all().filter(dataset_id=dataset_id)\
+    def has_control_type_defined(self):
+        return DataRecord.objects.all().filter(dataset_id=self.dataset_id)\
             .filter(control_type__isnull=False).exists()
 
 def find_datasets_for_protein(protein_id):
