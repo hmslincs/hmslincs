@@ -2104,7 +2104,7 @@ class DataSetManager():
     
     def has_plate_wells_defined(self):
         return DataRecord.objects.all().filter(dataset_id=self.dataset_id)\
-            .filter(plate__isnull=False).exists()
+            .filter(plate__isnull=False).filter(well__isnull=False).exists()
 
     def has_control_type_defined(self):
         return DataRecord.objects.all().filter(dataset_id=self.dataset_id)\
