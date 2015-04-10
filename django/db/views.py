@@ -1434,13 +1434,14 @@ class DataSetResultTable(PagedTable):
     defined_base_columns.append('id')
     
     facility_salt_batch = \
-        tables.LinkColumn('sm_detail', args=[A('facility_salt_batch')])
+        tables.LinkColumn('sm_detail', args=[A('facility_salt_batch')],visible=False)
     facility_salt_batch.attrs['td'] = {'nowrap': 'nowrap'}
     defined_base_columns.append('facility_salt_batch')
     set_field_information_to_table_column(
         'facility_salt_batch', ['smallmoleculebatch'], facility_salt_batch)
     
-    sm_name = tables.LinkColumn('sm_detail', args=[A('facility_salt_batch')])
+    sm_name = tables.LinkColumn('sm_detail', args=[A('facility_salt_batch')],
+                                visible=False)
     defined_base_columns.append('sm_name')
     set_field_information_to_table_column('name', ['smallmolecule'], sm_name)
 
@@ -1515,7 +1516,7 @@ class DataSetResultTable(PagedTable):
         orderable = True
         attrs = {'class': 'paleblue'}
     
-    def __init__(self, queryset, ordered_datacolumns,  
+    def __init__(self, queryset, ordered_datacolumns, show_small_mols=False, 
                  show_cells=False, show_proteins=False, 
                  show_antibodies=False, show_otherreagents=False, 
                  column_exclusion_overrides=None, *args, **kwargs):
@@ -1531,8 +1532,10 @@ class DataSetResultTable(PagedTable):
                 logger.debug(str((
                     'deleting column from the table', name,self.defined_base_columns)))
                 del self.base_columns[name]
-        
-        temp = ['facility_salt_batch','sm_name']
+
+        temp = []
+        if(show_small_mols):
+            temp.extend(['facility_salt_batch','sm_name'])
         if(show_cells): 
             temp.append('cell_name')
             temp.append('cell_facility_batch')
@@ -1571,6 +1574,12 @@ class DataSetResultTable(PagedTable):
         # Note: since every instance reuses the base_columns, 
         # each time the visibility must be set.
         # Todo: these colums should be controlled by the column_exclusion_overrides
+        if(show_small_mols):
+            self.base_columns['sm_name'].visible = True
+            self.base_columns['facility_salt_batch'].visible = True
+        else:
+            self.base_columns['sm_name'].visible = False
+            self.base_columns['facility_salt_batch'].visible = False
         if(show_cells):
             self.base_columns['cell_name'].visible = True
             self.base_columns['cell_facility_batch'].visible = True
@@ -1620,50 +1629,66 @@ class DataSetManager():
         self.dataset_id = dataset.id
         
         # grab these now and cache them
+        ds_query = DataRecord.objects.all().filter(dataset_id=dataset.id)
         self.cell_queryset = self.cells_for_dataset(self.dataset_id) 
         self.has_cells_for_datarecords = \
-            self.has_cells_for_datarecords(self.dataset_id)
+            ds_query.filter(cell__isnull=False).exists()
         self.protein_queryset = self.proteins_for_dataset(self.dataset_id)
         self.has_proteins_for_datarecords = \
-            self.has_proteins_for_datarecords(self.dataset_id)
+            ds_query.filter(protein__isnull=False).exists()
         self.antibody_queryset = self.antibodies_for_dataset(self.dataset_id)
         self.has_antibodies_for_datarecords = \
-            self.has_antibodies_for_datarecords(self.dataset_id)
+            ds_query.filter(antibody__isnull=False).exists()
         self.otherreagent_queryset = \
             self.otherreagents_for_dataset(self.dataset_id)
         self.has_otherreagents_for_datarecords = \
-            self.has_otherreagents_for_datarecords(self.dataset_id)
+            ds_query.filter(otherreagent__isnull=False).exists()
         self.small_molecule_queryset = \
             self.small_molecules_for_dataset(self.dataset_id)
-                
+        self.has_small_molecules_for_datarecords = \
+            ds_query.filter(smallmolecule__isnull=False).exists()
+            
     class DatasetForm(ModelForm):
         class Meta:
             model = DataSet           
             order = ('facility_id', '...')
             exclude = ('id', 'molfile') 
 
+    # Note that the "has_[entity]" methods are different from the 
+    # has_[entity]_for_dataset" methods, because the first take into account the 
+    # [entities] that were attached to the Datacolum or the Datarecord, and the
+    # second accounts for those attached through the Datarecord only.
     def has_cells(self):
-        return len(self.cell_queryset) > 0
+        return self.has_cells_for_datarecords \
+            or self.dataset.datacolumn_set.all()\
+                .filter(cell__isnull=False).exists()
+    
     def get_cells(self):
         return self.cell_queryset
     
     def has_proteins(self):
-        return len(self.protein_queryset) > 0
+        return self.has_proteins_for_datarecords \
+            or self.dataset.datacolumn_set.all()\
+                .filter(protein__isnull=False).exists()
+
     def get_proteins(self):
         return self.protein_queryset
     
     def has_antibodies(self):
-        return len(self.antibody_queryset) > 0
+        return self.has_antibodies_for_datarecords
+    
     def get_antibodies(self):
         return self.antibody_queryset
     
     def has_otherreagents(self):
-        return len(self.otherreagent_queryset) > 0
+        return self.has_otherreagents_for_datarecords
+
     def get_otherreagents(self):
         return self.otherreagent_queryset
     
     def has_small_molecules(self):
-        return len(self.small_molecule_queryset) > 0
+        return self.has_small_molecules_for_datarecords
+    
     def get_small_molecules(self):
         return self.small_molecule_queryset
     
@@ -1778,14 +1803,15 @@ class DataSetManager():
             self.dataset_info.query_sql, self.dataset_info.count_query_sql, 
             connection,parameters=self.dataset_info.parameters, 
             order_by=['datarecord_id'], verbose_name_plural='records')
-        if(not self.has_plate_wells_defined(self.dataset_id)): 
+        if(not self.has_plate_wells_defined()): 
             column_exclusion_overrides.extend(['plate','well'])
-        if(not self.has_control_type_defined(self.dataset_id)): 
+        if(not self.has_control_type_defined()): 
             column_exclusion_overrides.append('control_type')
 
         # TODO: again, all these flags are confusing
         _table = DataSetResultTable(queryset,
                                   self.dataset_info.datacolumns, 
+                                  self.has_small_molecules_for_datarecords,
                                   self.has_cells_for_datarecords, 
                                   self.has_proteins_for_datarecords,
                                   self.has_antibodies_for_datarecords,
@@ -1990,15 +2016,6 @@ class DataSetManager():
         cursor.execute(sql, [dataset_id, dataset_id])
         return dictfetchall(cursor)
              
-    # Need a second distinction, because we'll only show the cell column 
-    # if there are datarecord entries with cells
-    def has_cells_for_datarecords(self, dataset_id):
-        sql = ( 'SELECT count (distinct(cell_id)) FROM db_datarecord dr WHERE dr.dataset_id=%s')
-        cursor = connection.cursor()
-        cursor.execute(sql, [dataset_id])
-        rows = cursor.fetchone()[0]
-        return rows > 0
-    
 # Note: this usage of the django ORM is not performant 
 # - is there and indexing problem; or can we mimick the sql version above?   
 #    def cells_for_dataset(self,dataset_id):
@@ -2019,15 +2036,6 @@ class DataSetManager():
         cursor.execute(sql, [dataset_id])
         return dictfetchall(cursor)
             
-    # Need a second distinction, because we'll only show the antibody column 
-    # if there are datarecord entries with proteins
-    def has_antibodies_for_datarecords(self, dataset_id):
-        sql = ( 'SELECT count (distinct(antibody_id)) FROM db_datarecord dr WHERE dr.dataset_id=%s')
-        cursor = connection.cursor()
-        cursor.execute(sql, [dataset_id])
-        rows = cursor.fetchone()[0]
-        return rows > 0
-
     def otherreagents_for_dataset(self,dataset_id):
         cursor = connection.cursor()
         sql = ( ' SELECT otherreagent.* '
@@ -2038,15 +2046,6 @@ class DataSetManager():
 
         cursor.execute(sql, [dataset_id])
         return dictfetchall(cursor)
-            
-    # Need a second distinction, because we'll only show the antibody column if 
-    # there are datarecord entries with proteins
-    def has_otherreagents_for_datarecords(self, dataset_id):
-        sql = ( 'SELECT count (distinct(otherreagent_id)) FROM db_datarecord dr WHERE dr.dataset_id=%s')
-        cursor = connection.cursor()
-        cursor.execute(sql, [dataset_id])
-        rows = cursor.fetchone()[0]
-        return rows > 0
 
     def proteins_for_dataset(self,dataset_id):
         cursor = connection.cursor()
@@ -2060,15 +2059,6 @@ class DataSetManager():
 
         cursor.execute(sql, [dataset_id, dataset_id])
         return dictfetchall(cursor)
-            
-    # Need a second distinction, because we'll only show the protein column if 
-    # there are datarecord entries with proteins
-    def has_proteins_for_datarecords(self, dataset_id):
-        sql = ( 'SELECT count (distinct(protein_id)) FROM db_datarecord dr WHERE dr.dataset_id=%s')
-        cursor = connection.cursor()
-        cursor.execute(sql, [dataset_id])
-        rows = cursor.fetchone()[0]
-        return rows > 0
 
 # Note: this usage of the django ORM is a bit more performant than the cell 
 # version above; still, going to stick with the non-ORM version for now    
@@ -2112,15 +2102,13 @@ class DataSetManager():
 #        logger.info(str(('small molecules for dataset',dataset_id,len(queryset))))
 #        return queryset
     
-    def has_plate_wells_defined(self, dataset_id):
-        res= len(DataRecord.objects.all().filter(
-            dataset_id=dataset_id).filter(plate__isnull=False).filter(well__isnull=False))>0
-        return res
+    def has_plate_wells_defined(self):
+        return DataRecord.objects.all().filter(dataset_id=self.dataset_id)\
+            .filter(plate__isnull=False).filter(well__isnull=False).exists()
 
-    def has_control_type_defined(self, dataset_id):
-        res= len(DataRecord.objects.all().filter(
-            dataset_id=dataset_id).filter(control_type__isnull=False))>0
-        return res
+    def has_control_type_defined(self):
+        return DataRecord.objects.all().filter(dataset_id=self.dataset_id)\
+            .filter(control_type__isnull=False).exists()
 
 def find_datasets_for_protein(protein_id):
     datasets = [
