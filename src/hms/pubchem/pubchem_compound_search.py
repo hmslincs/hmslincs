@@ -159,7 +159,8 @@ def identity_similarity_substructure_search(smiles='',sdf='', type='identity',
         logger.error(str((
             'exception recorded while contacting pubchem server', e)))
         raise e
-    if(r.status_code != 200): 
+    # TODO: use requests.codes.ok
+    if(r.status_code not in [200,202]): 
         logger.info(str(('synchronous response',r)))
         raise PubchemError(str((
             'HTTP response', r.status_code, json.dumps(r.json)))) 
