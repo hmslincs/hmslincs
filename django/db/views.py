@@ -614,30 +614,32 @@ def smallMoleculeDetail(request, facility_salt_id):
         if smb == None:
             batches = SmallMoleculeBatch.objects.filter(smallmolecule=sm)
             if(len(batches)>1):
-                in_memory_table = []
-                for smb in batches:
-                    qcEvents = QCEvent.objects.filter(
-                        facility_id_for=sm.facility_id,
-                        salt_id_for=sm.salt_id,
-                        batch_id_for=smb.facility_batch_id).order_by('-date')
-                    _dict = model_to_dict(smb)
-                    _dict['facility_salt_batch'] = smb.facility_salt_batch
-                    # manually add in the qc_outcome field
-                    if qcEvents:
-                        qcEvent = qcEvents[0]
-                        _dict['qc_outcome'] = qcEvent.outcome
-                    else:
-                        _dict['qc_outcome'] = 'not tested'
-                    in_memory_table.append(_dict)
-                details['batchTable']=SmallMoleculeBatchTable(in_memory_table)
-                smb = None
+                details['batchTable']=SmallMoleculeBatchTable(batches)
+                # 20150413 - proposed "QC Outcome" field on batch info removed per group discussion
+                #                 in_memory_table = []
+                #                 for smb in batches:
+                #                     qcEvents = QCEvent.objects.filter(
+                #                         facility_id_for=sm.facility_id,
+                #                         salt_id_for=sm.salt_id,
+                #                         batch_id_for=smb.facility_batch_id).order_by('-date')
+                #                     _dict = model_to_dict(smb)
+                #                     _dict['facility_salt_batch'] = smb.facility_salt_batch
+                #                     # manually add in the qc_outcome field
+                #                     if qcEvents:
+                #                         qcEvent = qcEvents[0]
+                #                         _dict['qc_outcome'] = qcEvent.outcome
+                #                     else:
+                #                         _dict['qc_outcome'] = 'not tested'
+                #                     in_memory_table.append(_dict)
+                #                 details['batchTable']=SmallMoleculeBatchTable(in_memory_table)
+                #                 smb = None
             elif(len(batches)==1):
                 # if there is only one batch, then show details for it
                 smb = batches[0]
         if smb:
             details['smallmolecule_batch']= get_detail(
                 smb,['smallmoleculebatch',''])
-            
+            # 20150413 - proposed "QC Outcome" field on batch info removed per group discussion
             qcEvents = QCEvent.objects.filter(
                 facility_id_for=sm.facility_id,
                 salt_id_for=sm.salt_id,
@@ -646,17 +648,17 @@ def smallMoleculeDetail(request, facility_salt_id):
                 'qc_outcome', 'smallmoleculebatch')
             if qcEvents:
                 # manually add in the qc_outcome field
-                details['smallmolecule_batch']['qc_outcome'] = {
-                    'value': qcEvents[0].outcome,
-                    'fieldinformation': fi
-                    }
+                #                 details['smallmolecule_batch']['qc_outcome'] = {
+                #                     'value': qcEvents[0].outcome,
+                #                     'fieldinformation': fi
+                #                     }
                 details['qcTable'] = QCEventTable(qcEvents)
-            else:
-                details['smallmolecule_batch']['qc_outcome'] = {
-                    'value': 'not tested',
-                    'fieldinformation': fi
-                    }
-                
+                #             else:
+                #                 details['smallmolecule_batch']['qc_outcome'] = {
+                #                     'value': 'not tested',
+                #                     'fieldinformation': fi
+                #                     }
+            
             logger.info(str(('smb', details['smallmolecule_batch'])))
             
             if(not sm.is_restricted or request.user.is_authenticated()):
@@ -2267,7 +2269,7 @@ class SmallMoleculeBatchTable(PagedTable):
     
     facility_salt_batch = BatchInfoLinkColumn("sm_detail", args=[A('facility_salt_batch')])
     facility_salt_batch.attrs['td'] = {'nowrap': 'nowrap'}
-    qc_outcome = tables.Column()
+    # qc_outcome = tables.Column()
     
     class Meta:
         model = SmallMoleculeBatch
