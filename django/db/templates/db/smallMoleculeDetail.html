@@ -59,15 +59,15 @@
   {% endif %}
   {% if smallmolecule_batch %}
     <a name='batchinfo'></a>
-    <h2 class='entity_detail_title'>Batch Information:</h2>
+    <h2 class='entity_detail_title'>Batch Information for HMSL{{ facility_salt_batch }}:</h2>
     {% include "db/detailListing.html" with object=smallmolecule_batch %}
     {% if qcTable %}
       {% load render_table from django_tables2 %}
-      <h2 class='entity_detail_title'>HMS QC Testing Events:</h2>
+      <h2 class='entity_detail_title'>QC Testing Events for HMSL{{ facility_salt_batch }}:</h2>
       {% render_table qcTable %}
     {% endif %}
     {% if attached_files_batch %}
-      <h2 class='entity_detail_title'>Attached Files</h2>
+      <h2 class='entity_detail_title'>Attached Files for HMSL{{ facility_salt_batch }}:</h2>
       {% load render_table from django_tables2 %}
       {% render_table attached_files_batch %}
     {% endif %}

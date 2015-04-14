@@ -639,6 +639,7 @@ def smallMoleculeDetail(request, facility_salt_id):
         if smb:
             details['smallmolecule_batch']= get_detail(
                 smb,['smallmoleculebatch',''])
+            details['facility_salt_batch'] = '%s-%s-%s' % (sm.facility_id,sm.salt_id,smb.facility_batch_id) 
             # 20150413 - proposed "QC Outcome" field on batch info removed per group discussion
             qcEvents = QCEvent.objects.filter(
                 facility_id_for=sm.facility_id,
