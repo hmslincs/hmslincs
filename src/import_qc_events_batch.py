@@ -21,6 +21,7 @@ __version__ = "$Revision: 24d02504e664 $"
 import setparams as _sg
 import os
 from shutil import copy
+from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 _params = dict(
     VERBOSE = False,
     APPNAME = 'db',
@@ -47,15 +48,14 @@ def main(import_file,file_directory,deploy_dir):
               'facility_id': ('facility_id_for',True,None, lambda x: util.convertdata(x,int)),
               'salt_id': ('salt_id_for',True,None, lambda x: util.convertdata(x,int)),
               'batch_id':('batch_id_for',True,None, lambda x: util.convertdata(x,int)),
-              'date': ('date',True,None,util.date_converter),
+              'QC event date': ('date',True,None,util.date_converter),
               'outcome': ('outcome',True),
               'comment': 'comment',
               'file1': 'file1',
-              'file1_type': 'file1_type',
               'file2': 'file2',
-              'file2_type': 'file2_type',
               'file3': 'file3',
-              'file3_type':'file3_type',
+              'file4': 'file4',
+              'file5': 'file5',
               }
     # convert the labels to fleshed out dict's, with strategies for optional, default and converter
     column_definitions = util.fill_in_column_definitions(properties,column_definitions)
@@ -112,11 +112,7 @@ def main(import_file,file_directory,deploy_dir):
         files_to_attach = []
         for i in range(10):
             filenameProp = 'file%s'%i;
-            filetypeProp = '%s_type'%filenameProp
             if _dict.get(filenameProp, None):
-                if not _dict.get(filetypeProp,None):
-                    raise Exception(str(('file_type is required',filetypeProp,
-                        'row',rows+start_row)))
                 fileprop = _dict[filenameProp]
                 filepath = os.path.join(file_directory,fileprop)
                 if not os.path.exists(filepath):
@@ -146,7 +142,7 @@ def main(import_file,file_directory,deploy_dir):
                 else:
                     logger.debug(str(('successfully deployed to', deployed_path)))
                 
-                files_to_attach.append((filename,relative_path,_dict[filetypeProp]))
+                files_to_attach.append((filename,relative_path))
         
         initializer = None
         try:
@@ -158,12 +154,12 @@ def main(import_file,file_directory,deploy_dir):
             logger.debug(str(('saved', qc_event)))
             
             # create attached file records
-            for (filename,relative_path,file_type) in files_to_attach:
+            for (filename,relative_path) in files_to_attach:
                 initializer = {
                     'qc_event':qc_event,
                     'filename':filename,
                     'relative_path':relative_path,
-                    'file_type':file_type }
+                    }
                 qc_attached_file = QCAttachedFile(**initializer)
                 qc_attached_file.save()
                 logger.debug(str(('created qc attached file', qc_attached_file)))

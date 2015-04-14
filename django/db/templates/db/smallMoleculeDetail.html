@@ -52,6 +52,11 @@
       <img src="{% url restricted_image filepath=ambit_image_location %}" onclick="w=window.open('{% url restricted_image filepath=ambit_image_location %}','image','height=600,width=1200');w.moveTo(500,400);"/>
     {% endif %}
   {% endif %}
+  {% if datasets and not smallmolecule_batch %}
+    {% load render_table from django_tables2 %}
+    <h2 class='entity_detail_title'>Datasets:</h2>
+    {% render_table datasets %}
+  {% endif %}
   {% if batchTable %}
     {% load render_table from django_tables2 %}
     <h2 class='entity_detail_title'>Batch Information:</h2>
@@ -63,7 +68,7 @@
     {% include "db/detailListing.html" with object=smallmolecule_batch %}
     {% if qcTable %}
       {% load render_table from django_tables2 %}
-      <h2 class='entity_detail_title'>QC Testing Events for HMSL{{ facility_salt_batch }}:</h2>
+      <h2 class='entity_detail_title'>HMS QC Testing Events for HMSL{{ facility_salt_batch }}:</h2>
       {% render_table qcTable %}
     {% endif %}
     {% if attached_files_batch %}
@@ -71,11 +76,6 @@
       {% load render_table from django_tables2 %}
       {% render_table attached_files_batch %}
     {% endif %}
-  {% endif %}
-  {% if datasets %}
-    {% load render_table from django_tables2 %}
-    <h2 class='entity_detail_title'>Datasets:</h2>
-    {% render_table datasets %}
   {% endif %}
   
 {% endblock %}

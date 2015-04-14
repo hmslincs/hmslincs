@@ -187,9 +187,10 @@ then
   python ./src/import_dataset.py -f sampledata/Screen20020_HMSL10008_kinomescan.xlsx
   check_errs $? "import study dataset fails"
   
-  echo 'import attached files...'
-  python ./src/import_attachedfiles.py -f sampledata/HPLC_HMSL10001.101.01.pdf -rp upload_files -fi 10001 -si 101 -bi 1 -ft 'QC-NMR' -fd 2012-10-11
-  check_errs $? "import attached file fails"
+  # remove the attached file example, not needed with the qc event entity handling this
+  #echo 'import attached files...'
+  #python ./src/import_attachedfiles.py -f sampledata/HPLC_HMSL10001.101.01.pdf -rp upload_files -fi 10001 -si 101 -bi 1 -ft 'QC-NMR' -fd 2012-10-11
+  #check_errs $? "import attached file fails"
 
   # try attaching the same file to a cell batch, to test
   python ./src/import_attachedfiles.py -f sampledata/sample_attached_file_for_cell.txt -rp upload_files -fi 50001 -bi 1 -ft 'QC-NMR' -fd 2012-10-11
