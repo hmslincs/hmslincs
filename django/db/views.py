@@ -3147,7 +3147,7 @@ def _download_file(request, file_obj):
         logger.info(str(('download_attached_file',_path,_file)))
         wrapper = FileWrapper(_file)
         # use the same type for all files
-        response = HttpResponse(wrapper, content_type='text/plain') 
+        response = HttpResponse(wrapper, content_type='application/octet-stream') 
         response['Content-Disposition'] = \
             'attachment; filename=%s' % unicode(file_obj.filename)
         response['Content-Length'] = os.path.getsize(_path)
