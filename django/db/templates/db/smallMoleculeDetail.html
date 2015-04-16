@@ -6,70 +6,76 @@
 
 {% block content %}
 <script language="javascript" type="text/javascript">
-	function submit_getmolfile() {
-		document.getElementById("molform").submit();
-	}
+  function submit_getmolfile() {
+    document.getElementById("molform").submit();
+  }
 </script>
 
-	{% if image_location %}
-		{% if not is_restricted %}
-			<form class='molfile_link' id='molform' action={% url smallMoleculeMolfile facility_salt_id=facility_salt_id %} method='get'><a href="javascript:submit_getmolfile();" >download molfile</a></form>
-			{# TODO: window.moveTo not working in chrome #}
-			{# TODO: create a template for the popup window; title, scaling #}
-			<img class='compound_image' src="{{ STATIC_URL }}{{image_location}}" onclick="w=window.open('{{ STATIC_URL }}{{image_location}}','image','height=500,width=500');w.moveTo(500,400);"/>
-		{% elif is_restricted and user.is_authenticated %}
-			<img class='compound_image' src="{% url restricted_image filepath=image_location %}" onclick="w=window.open('{% url restricted_image filepath=image_location %}','image','height=500,width=500');w.moveTo(500,400);"/>
-		{% endif %}
-	{% endif %}
-        {% include "db/detailTitle.html" with name=object.name type="Small Molecule" id=object.facility_salt %}
-	{% if is_restricted  and not user.is_authenticated %}
-		Detailed information for this Small Molecule is restricted at this time.
-	{% endif %}
-	{% include "db/detailListing.html" %}
-	{% if attached_files %}
-	  {% if not is_restricted or user.is_authenticated %}
-			<h2 class='entity_detail_title'>Attached Files</h2>
-			{% load render_table from django_tables2 %}
-			{% render_table attached_files %}
-		{% endif %}
-	{% endif %}
-	{% if nominal_targets_table %}
-		{% load render_table from django_tables2 %}
-		<h2 class='entity_detail_title'>Nominal Targets:</h2>
-		{% render_table nominal_targets_table %}
-	{% endif %}
-	{% if other_targets_table %}
-		{% load render_table from django_tables2 %}
-		<h2 class='entity_detail_title' title='Other proteins effected'>Other Targets:</h2>
-		{% render_table other_targets_table %}
-	{% endif %}
-	{% if ambit_image_location %}
-		{% if not is_restricted %}
-			<h2 class='entity_detail_title'>KINOMEscan Image</h2>
-			<img src="{{ STATIC_URL }}{{ambit_image_location}} " onclick="w=window.open('{{ STATIC_URL }}{{ambit_image_location}}','image','height=600,width=1200');w.moveTo(500,400);" />
-		{% elif is_restricted and user.is_authenticated %}
-			<h2 class='entity_detail_title'>KINOMEscan Image</h2>
-			<img src="{% url restricted_image filepath=ambit_image_location %}" onclick="w=window.open('{% url restricted_image filepath=ambit_image_location %}','image','height=600,width=1200');w.moveTo(500,400);"/>
-		{% endif %}
-	{% endif %}
-	{% if batchTable %}
-		{% load render_table from django_tables2 %}
-		<h2 class='entity_detail_title'>Batch Information:</h2>
-		{% render_table batchTable %}
-	{% endif %}
-	{% if smallmolecule_batch %}
-		<h2 class='entity_detail_title'>Batch Information:</h2>
-		{% include "db/detailListing.html" with object=smallmolecule_batch %}
-		{% if attached_files_batch %}
-			<h2 class='entity_detail_title'>Attached Files</h2>
-			{% load render_table from django_tables2 %}
-			{% render_table attached_files_batch %}
-		{% endif %}
-	{% endif %}
-	{% if datasets %}
-		{% load render_table from django_tables2 %}
-		<h2 class='entity_detail_title'>Datasets:</h2>
-		{% render_table datasets %}
-	{% endif %}
-	
+  {% if image_location %}
+    {% if not is_restricted %}
+      <form class='molfile_link' id='molform' action={% url smallMoleculeMolfile facility_salt_id=facility_salt_id %} method='get'><a href="javascript:submit_getmolfile();" >download molfile</a></form>
+      {# TODO: window.moveTo not working in chrome #}
+      {# TODO: create a template for the popup window; title, scaling #}
+      <img class='compound_image' src="{{ STATIC_URL }}{{image_location}}" onclick="w=window.open('{{ STATIC_URL }}{{image_location}}','image','height=500,width=500');w.moveTo(500,400);"/>
+    {% elif is_restricted and user.is_authenticated %}
+      <img class='compound_image' src="{% url restricted_image filepath=image_location %}" onclick="w=window.open('{% url restricted_image filepath=image_location %}','image','height=500,width=500');w.moveTo(500,400);"/>
+    {% endif %}
+  {% endif %}
+  {% include "db/detailTitle.html" with name=object.name type="Small Molecule" id=object.facility_salt %}
+  {% if is_restricted  and not user.is_authenticated %}
+    Detailed information for this Small Molecule is restricted at this time.
+  {% endif %}
+  {% include "db/detailListing.html" %}
+  {% if attached_files %}
+    {% if not is_restricted or user.is_authenticated %}
+      <h2 class='entity_detail_title'>Attached Files</h2>
+      {% load render_table from django_tables2 %}
+      {% render_table attached_files %}
+    {% endif %}
+  {% endif %}
+  {% if nominal_targets_table %}
+    {% load render_table from django_tables2 %}
+    <h2 class='entity_detail_title'>Nominal Targets:</h2>
+    {% render_table nominal_targets_table %}
+  {% endif %}
+  {% if other_targets_table %}
+    {% load render_table from django_tables2 %}
+    <h2 class='entity_detail_title' title='Other proteins effected'>Other Targets:</h2>
+    {% render_table other_targets_table %}
+  {% endif %}
+  {% if datasets and not smallmolecule_batch %}
+    {% load render_table from django_tables2 %}
+    <h2 class='entity_detail_title'>Datasets:</h2>
+    {% render_table datasets %}
+  {% endif %}
+  {% if ambit_image_location and not smallmolecule_batch %}
+    {% if not is_restricted %}
+      <h2 class='entity_detail_title'>KINOMEscan Image</h2>
+      <img src="{{ STATIC_URL }}{{ambit_image_location}} " onclick="w=window.open('{{ STATIC_URL }}{{ambit_image_location}}','image','height=600,width=1200');w.moveTo(500,400);" />
+    {% elif is_restricted and user.is_authenticated %}
+      <h2 class='entity_detail_title'>KINOMEscan Image</h2>
+      <img src="{% url restricted_image filepath=ambit_image_location %}" onclick="w=window.open('{% url restricted_image filepath=ambit_image_location %}','image','height=600,width=1200');w.moveTo(500,400);"/>
+    {% endif %}
+  {% endif %}
+  {% if batchTable %}
+    {% load render_table from django_tables2 %}
+    <h2 class='entity_detail_title'>Batch Information:</h2>
+    {% render_table batchTable %}
+  {% endif %}
+  {% if smallmolecule_batch %}
+    <a name='batchinfo'></a>
+    <h2 class='entity_detail_title'>Batch Information for HMSL{{ facility_salt_batch }}:</h2>
+    {% include "db/detailListing.html" with object=smallmolecule_batch %}
+    {% if qcTable %}
+      {% load render_table from django_tables2 %}
+      <h2 class='entity_detail_title'>HMS QC Testing Events for HMSL{{ facility_salt_batch }}:</h2>
+      {% render_table qcTable %}
+    {% endif %}
+    {% if attached_files_batch %}
+      <h2 class='entity_detail_title'>Attached Files for HMSL{{ facility_salt_batch }}:</h2>
+      {% load render_table from django_tables2 %}
+      {% render_table attached_files_batch %}
+    {% endif %}
+  {% endif %}
+  
 {% endblock %}

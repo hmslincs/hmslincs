@@ -67,6 +67,7 @@ urlpatterns = patterns('',
     url(r'^datasets/(?P<facility_id>\d+)/results_minimal$', 'db.views.datasetDetailResults_minimal', name="dataset_detail_results_minimal"),
     # TODO: if we install x-sendfile on the apache server, we can serve these files with an x-sendfile redirect
     url(r'^downloadattached/(?P<id>\d+)/$', 'db.views.download_attached_file', name='download_attached_file'),
+    url(r'^downloadqcattachedfile/(?P<id>\d+)/$', 'db.views.download_qc_attached_file', name='download_qc_attached_file'),
     # TODO: if we install x-sendfile on the apache server, we can serve these files with an x-sendfile redirect
      url(r'^restrictedimage/(?P<filepath>\S+)$', 'db.views.restricted_image', name="restricted_image"),
     
