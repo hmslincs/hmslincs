@@ -220,6 +220,10 @@ else
   python src/import_smallmolecule_batch.py -f $DATADIR/small_molecule_batch-HMS_LINCS-1.xls
   check_errs $? "import smallmolecule batch fails"
   
+  echo 'import small molecule batch qc reports...'
+  python src/import_qc_events_batch.py -f $DATADIR/qc_events_batch.xlsx -fd $DATADIR
+  check_errs $? "import_qc_events_batch fails"
+  
   echo 'import library mapping tables...'
   python src/import_libraries.py -f $DATADIR/libraries.xls
   check_errs $? "import library fails"
