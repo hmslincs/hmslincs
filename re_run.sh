@@ -220,6 +220,10 @@ else
   python src/import_smallmolecule_batch.py -f $DATADIR/small_molecule_batch-HMS_LINCS-1.xls
   check_errs $? "import smallmolecule batch fails"
   
+  echo 'import small molecule batch qc reports...'
+  python src/import_qc_events_batch.py -f $DATADIR/qc_events_batch.xlsx -fd $DATADIR
+  check_errs $? "import_qc_events_batch fails"
+  
   echo 'import library mapping tables...'
   python src/import_libraries.py -f $DATADIR/libraries.xls
   check_errs $? "import library fails"
@@ -1072,6 +1076,50 @@ else
   
   echo 'import screen results...'
   python src/import_dataset.py -f $DATADIR/Screen20219_PhosphoStateProteinLevels.xls
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset.py -f $DATADIR/kinomescan/Screen20220_HMSL10053_kinomescan.xls
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset.py -f $DATADIR/kinomescan/Screen20221_HMSL10105_kinomescan.xls
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset.py -f $DATADIR/kinomescan/Screen20222_HMSL10129_kinomescan.xls
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset.py -f $DATADIR/kinomescan/Screen20223_HMSL10171_kinomescan.xls
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset.py -f $DATADIR/kinomescan/Screen20224_HMSL10183_kinomescan.xls
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset.py -f $DATADIR/kinomescan/Screen20225_HMSL10212_kinomescan.xls
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset.py -f $DATADIR/kinomescan/Screen20227_HMSL10354_kinomescan.xls
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset.py -f $DATADIR/kinomescan/Screen20228_HMSL10364_kinomescan.xls
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset.py -f $DATADIR/Screen20229_PLSR_wpMEK-ERK.xls
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset.py -f $DATADIR/Screen20230_PLSR_wopMEK-ERK.xls
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset.py -f $DATADIR/Screen20231_VIP.xls
   check_errs $? "import dataset fails"
   
   echo 'import attached file...'      
