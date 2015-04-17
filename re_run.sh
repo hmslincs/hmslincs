@@ -1099,10 +1099,6 @@ else
   check_errs $? "import dataset fails"
   
   echo 'import screen results...'
-  python src/import_dataset.py -f $DATADIR/kinomescan/Screen20226_HMSL10350_kinomescan.xls
-  check_errs $? "import dataset fails"
-  
-  echo 'import screen results...'
   python src/import_dataset.py -f $DATADIR/kinomescan/Screen20227_HMSL10354_kinomescan.xls
   check_errs $? "import dataset fails"
   
