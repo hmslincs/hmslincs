@@ -3140,7 +3140,7 @@ def _download_file(request, file_obj):
             _path = os.path.join(_path,file_obj.relative_path)
         _path = os.path.join(_path,file_obj.filename)
         _file = file(_path)
-        logger.info(str(('download_attached_file',_path,_file)))
+        logger.info(str(('download_attached_file',request.user.username,_path,file_obj)))
         wrapper = FileWrapper(_file)
         # use the same type for all files
         response = HttpResponse(wrapper, content_type='application/octet-stream') 
