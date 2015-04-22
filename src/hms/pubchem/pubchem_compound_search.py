@@ -70,7 +70,7 @@ def identity_exact_search(smiles='', sdf='', timeout=DEFAULT_TIMEOUT):
         logger.error(str((
             'exception recorded while contacting pubchem server', e)))
         raise e
-    if(r.status_code != 200): 
+    if(r.status_code not in [200,202]): 
         raise PubchemError(json.dumps(r.json)) 
     logger.info(str(('recieved from pubchem: ', r.text)))
     results = json.loads(r.text)
@@ -99,7 +99,7 @@ def sid_search(sids='', timeout=DEFAULT_TIMEOUT):
             logger.error(str((
                 'exception recorded while contacting pubchem server', e)))
             raise e
-        if(r.status_code != 200): 
+        if(r.status_code not in [200,202]): 
             raise PubchemError(str((
                 'HTTP response', r.status_code, json.dumps(r.json) ))) 
 
@@ -180,7 +180,7 @@ def identity_similarity_substructure_search(smiles='',sdf='', type='identity',
         logger.info(str((os.getpid(), 'check after ', wait_s)))
 
         r = requests.post(url, timeout=timeout )
-        if(r.status_code != 200): 
+        if(r.status_code not in [200,202]): 
             raise PubchemError(str(('HTTP response', r.status_code, r)))
         results = json.loads(r.text)
         
@@ -196,7 +196,7 @@ def identity_similarity_substructure_search(smiles='',sdf='', type='identity',
                 'tries', tries, 
                 'elapsed', (datetime.now()-begin_time).seconds, 'seconds')))
             r = requests.post(url, timeout=timeout )
-            if(r.status_code != 200): 
+            if(r.status_code not in [200,202]): 
                 raise PubchemError(str((
                     'HTTP response', r.status_code, r.text)))
         
