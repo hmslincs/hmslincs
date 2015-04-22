@@ -611,14 +611,10 @@ def smallMoleculeDetail(request, facility_salt_id):
                 details['attached_files'] = AttachedFileTable(attachedFiles)
             
         # batch table
-        if smb == None:
+        if not smb:
             batches = SmallMoleculeBatch.objects.filter(smallmolecule=sm)
-            if(len(batches)>1):
-                details['batchTable']=SmallMoleculeBatchTable(batches)
-            elif(len(batches)==1):
-                # if there is only one batch, then show details for it
-                smb = batches[0]
-        if smb:
+            details['batchTable']=SmallMoleculeBatchTable(batches)
+        else:
             details['smallmolecule_batch']= get_detail(
                 smb,['smallmoleculebatch',''])
             details['facility_salt_batch'] = '%s-%s-%s' % (sm.facility_id,sm.salt_id,smb.facility_batch_id) 
