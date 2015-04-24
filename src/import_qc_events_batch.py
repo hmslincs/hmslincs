@@ -52,6 +52,7 @@ def main(import_file,file_directory,deploy_dir):
               'QC event date': ('date',True,None,util.date_converter),
               'outcome': ('outcome',True),
               'comment': 'comment',
+              'is_restricted':('is_restricted',False,False,util.bool_converter),
               'file1': 'file1',
               'file2': 'file2',
               'file3': 'file3',
@@ -160,6 +161,7 @@ def main(import_file,file_directory,deploy_dir):
                     'qc_event':qc_event,
                     'filename':filename,
                     'relative_path':relative_path,
+                    'is_restricted':_dict['is_restricted']
                     }
                 qc_attached_file = QCAttachedFile(**initializer)
                 qc_attached_file.save()
