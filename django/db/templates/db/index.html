@@ -25,34 +25,31 @@
 	{% else %}
 	<H2>Welcome to the HMS LINCS Database</H2>
 		<ul>
-      <li>This database is under development, improvements are ongoing.</li>
-      <li>The HMS LINCS Database currently contains information on experimental reagents (small molecule perturbagens, cells, and proteins) and HMS LINCS datasets. A list of the datasets available via the HMS LINCS Database can be found on the <a href="https://lincs.hms.harvard.edu/data/data-being-collected/">Data being collected</a> page of the <a target="_blank" href="http://lincs.hms.harvard.edu/">HMS LINCS website</a>.</li>
-      <li>A table summarizing all compounds for which KINOMEscan data are available in the HMS LINCS DB can be found <a href="http://lincs.hms.harvard.edu/data/kinomescan/">here</a>.</li>
-			<li>Image files of experimental data are available for the following datasets: <a href='datasets/20003'>Tang Mitosis/Apoptosis ver.II (PMID: 23788527)</a>, <a href='datasets/20004'>Tang Proliferation/Mitosis</a>, and <a href='datasets/20136', >Breast cell line dose response to target inhibition measured by high throughput microscopy (PMID: 24013279)</a>; the images are stored and served via the HMS LINCS OMERO Server (see <a target="_blank" href="http://lincs.hms.harvard.edu/resources/software/">Resources</a>)</li>
-			<li>Programmatic access to the HMS LINCS Database is detailed at the <a target="_blank" href='https://docs.google.com/document/d/1R_d_1UWO0C9y1TceXpKIUkhjk08DfvP1D19txi4Tbas/edit'>HMS LINCS Database URL Scheme and Access Guide</a>.</li>
-			<li>Metadata standards for the data in the HMS LINCS DB are currently being developed in collaboration with the LINCS centers.  Updated information about these standards can be found at the <a target="_blank" href="http://lincsproject.org/data-standards/">LINCS project website data standards page</a>.</li>
-			<li>Citing data from the HMS LINCS DB:</li>
-			<ul>
-			  <li>Published data: Datasets in the HMS LINCS DB that are published are indicated by PMID numbers in the dataset titles. The appropriate publication should be cited when the data are used.</li>
-        <li>Unpublished data:  Procedures for citing unpublished data produced by the LINCS Consortium are in development and will be posted on the lincsproject.org website.  Until this information is posted, please cite the HMS LINCS Database (<a href="http://lincs.hms.harvard.edu/db/">http://lincs.hms.harvard.edu/db/</a>) as the source of the data, include the relevant dataset ID number(s), and note the date that the dataset was downloaded or accessed from the HMS LINCS DB for use.</li>
-			</ul>
+      <li>This HMS LINCS Database is continuously being developed and expanded.</li>
+      <li>The Database currently contains information on experimental reagents (small molecule perturbagens, cells, and proteins) and HMS LINCS datasets. A list of the datasets available via the HMS LINCS Database can be found on the <a href="https://lincs.hms.harvard.edu/data/data-being-collected/">Data</a> page of the <a target="_blank" href="http://lincs.hms.harvard.edu/">HMS LINCS website</a>.</li>
+      <li>A table summarizing all compounds for which KINOMEscan data are available in the HMS LINCS Database can be found <a href="http://lincs.hms.harvard.edu/data/kinomescan/">here</a>.</li>
+      <li>Experimental image data are available for the following datasets: <a href='datasets/20003'>Tang Mitosis/Apoptosis ver.II (PMID: 23788527)</a>, <a href='datasets/20004'>Tang Proliferation/Mitosis</a>, and <a href='datasets/20136', >Breast cell line dose response to target inhibition measured by high throughput microscopy (PMID: 24013279)</a>; the images are stored and served via the HMS LINCS OMERO Server (see <a target="_blank" href="http://lincs.hms.harvard.edu/resources/software/">Resources</a>).</li>
+      <li>Programmatic access to the HMS LINCS Database is detailed in the <a target="_blank" href='https://docs.google.com/document/d/1R_d_1UWO0C9y1TceXpKIUkhjk08DfvP1D19txi4Tbas/edit'>HMS LINCS Database URL Scheme and Access Guide</a>.</li>
+      <li>Metadata standards for the data in the HMS LINCS Database are currently being developed in collaboration with the other LINCS Consortium members. Updated information about these standards can be found on the LINCS project website's <a target="_blank" href="http://lincsproject.org/data-standards/">data standards page</a>.</li>
+      <li>The LINCS data release and reuse policy that applies to all data in the HMS LINCS Database and available through the HMS LINCS website is described <a target="_blank" href="http://www.lincsproject.org/data/data-release-policy/">here</a>.</li>
    	</ul>
 
-    <p style="font-weight:bold; font-size:large; font-variant:small-caps">A quick guide to using the HMS LINCS Database (updated Nov. 2013):</p>
+    <H3>A quick guide to using the HMS LINCS Database:</H3>
     <ul>
-			<li>For detailed instructions, see the <a target="_blank"  href='https://docs.google.com/document/d/1IE9AqrF49sGgJwNvGxr0-f6gB8eG1AGguWbCdMgx2Qg/pub'>HMS LINCS DB Tutorial</a>.</li>
-      <li>To find <a href='datasets'>datasets</a> from <a href="http://lincs.hms.harvard.edu/about/publications/">LINCS publications</a>, type the relevant PMID in the "search all categories" search box, or the search box on the datasets page. To open a full-screen view of dataset Results, click on the "Full data table view" button at the top of the dataset Results page.</li>
-      <li>To search for <a href='sm'>small molecule reagents</a>, <a href='cells'>cells</a>, <a href='proteins'>proteins</a>, or specific <a href="datasets">datasets</a> in the repository, enter a search term in the search box on this page.</li>
-			<li>Note that all Dataset entries have multiple tabs describing the Details (experimental and analysis protocols), Reagents Studied (used to create the dataset), Data Column headings used to format the results, and the Results.</li>
-			<li>A list of all Datasets in HMS LINCS DB can be obtained by clicking on the <a href='datasets'>Datasets</a> menu item on the left side of this screen. The resulting list of HMS LINCS datasets appears initially sorted by Dataset ID#. It can be re-sorted by BioAssay Type by clicking on the "BioAssay" column heading in the table.</li>
-			<li>To filter the results of searches: select the down arrow icon at the right side of the search box: use the expanded section to select items on which to filter your search.</li>
-      <li>Searching within the results of a dataset: select the “filter results” option on the results tab, then select the appropriate items (e.g. small molecule name(s), cell line name(s), etc.).</li>
-			<li>Select <a href='structuresearch/'>Structure Search</a> to perform a chemical structure search for a small molecule reagent. The search will accept input in the format of SMILES or sdf file format.</li>
-			<li>To browse a specific entity type, select from the menu on the left.</li>
-			<li>Soon, this interface will support searches for lists of reagents.</li>
-			<li>QC information for specific small molecule compound batches is accessible through the "Attached Files" links on each small molecule	detail page, in the "Batch information" section (note that not all compounds have QC information available).</li>
-			<li>You can download the viewed data from any page as an Excel or CSV file by clicking the respective "Export" link.  Please note that the date and time of the download is included in the filename.</li>
-			<li>For questions or feedback, please contact: <a href="mailto:lincs-feedback@hms.harvard.edu">lincs-feedback@hms.harvard.edu</a>.</li>
+      <li>For detailed instructions, see the <a target="_blank"  href='https://docs.google.com/document/d/1IE9AqrF49sGgJwNvGxr0-f6gB8eG1AGguWbCdMgx2Qg/pub'>HMS LINCS Database Tutorial</a>.</li>
+      <li>A list of all datasets in the HMS LINCS Database can be obtained by clicking on the <a href='datasets'>Datasets</a> menu item on the left side of this page. This list by default is sorted by dataset ID #. It can be re-sorted by dataset type by clicking on the HMS Dataset Type column heading in the table.</li>
+      <li>To find datasets from <a href="http://lincs.hms.harvard.edu/about/publications/">LINCS publications</a>, type the relevant PMID in the "Search all categories" search box at the top of this page, or use the search box on the <a href='datasets'>Datasets</a> page.</li>
+      <li>Note that all dataset entries have multiple tabs describing the Details (experimental and analysis protocols), reagents studied (e.g. cells, small molecules), Data Columns (headings used to format the results), and Results.</li>
+      <li>To open a full-screen view of dataset results, click on the "Full screen view" button at the top of the dataset Results page.</li>
+      <li>To search within the results of a dataset: Select the "Filter results" option on the Results tab, and then select the appropriate items (e.g. small molecule name(s), cell line name(s), etc.).</li>
+      <li>To search for <a href='sm'>small molecule reagents</a>, <a href='cells'>cells</a>, <a href='proteins'>proteins</a>, or specific <a href="datasets">datasets</a> in the Database, enter a search term in the search box at the top of this page, or browse a specific entity type by selecting the menu item on the left side of this page.</li>
+</li>
+      <li>To filter the results of searches: Select the down arrow icon at the right side of the search box. Select items within the new view on which to filter your search.</li>
+      <li>Select <a href='sm/structuresearch/'>Structure Search</a> to perform a chemical structure search for a small molecule reagent. The search will accept input of SMILES or sdf-formatted files.</li>
+     <li>QC information for specific small molecule compound batches is accessible on each small molecule detail page in the "HMS QC Testing Events" section. (Note that not all compounds have QC files available.)</li>
+      <li>Soon, the search interface will support searches for lists of reagents.</li>
+      <li>You can download the data from any page as an Excel or CSV file by clicking the respective link. Please note that the date and time of the download is included in the filename.</li>
+      <li>For questions or feedback, please contact: <a href="mailto:lincs-feedback@hms.harvard.edu">lincs-feedback@hms.harvard.edu</a>.</li>
 		</ul>
 	{% endif %}
 {% endblock %}
