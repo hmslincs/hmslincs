@@ -199,8 +199,10 @@ if __name__ == '__main__':
     # read omnigraffle jpg output metadata
     pathway_image_path = op.join(data_dir, pathway_image_filename)
     pathway_image = PIL.Image.open(pathway_image_path)
-    # copy jpg to static dir, first removing destination to prevent permissions issues
-    os.remove(op.join(out_dir_image, pathway_image_filename))
+    # copy jpg to static dir, first removing destination (if they exist) to
+    # prevent permissions issues
+    if op.isfile(op.join(out_dir_image, pathway_image_filename)):
+        os.remove(op.join(out_dir_image, pathway_image_filename))
     shutil.copy(pathway_image_path, out_dir_image)
 
     # fix up <img> attribs
