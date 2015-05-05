@@ -2749,8 +2749,9 @@ class SearchManager(models.Manager):
             where=where,
             params=params,
             select_params=[searchProcessed,searchProcessed],
-            order_by=('-rank',)
             )  
+        queryset = queryset.order_by('-rank')
+
         return queryset     
 
 
