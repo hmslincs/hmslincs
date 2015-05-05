@@ -104,7 +104,7 @@ def cellIndex(request):
     if(search != ''):
         queryset = CellSearchManager().search(search, 
             is_authenticated=request.user.is_authenticated())
-        queryset = queryset.order_by('facility_id')
+        queryset.query.add_ordering('facility_id')
     else:
         where = []
         if(not request.user.is_authenticated()): 
@@ -241,7 +241,8 @@ def proteinIndex(request):
     if(search != ''):
         queryset = ProteinSearchManager().search(
             search, is_authenticated = request.user.is_authenticated())
-        queryset = queryset.order_by('lincs_id')
+        queryset.query.add_ordering('lincs_id')
+        
     else:
         where = []
         if(not request.user.is_authenticated()): 
@@ -339,7 +340,7 @@ def antibodyIndex(request):
     if(search != ''):
         queryset = AntibodySearchManager().search(
             search, is_authenticated = request.user.is_authenticated())
-        queryset = queryset.order_by('facility_id')
+        queryset.query.add_ordering('facility_id')
     else:
         where = []
         if(not request.user.is_authenticated()): 
@@ -393,7 +394,7 @@ def otherReagentIndex(request):
     if(search != ''):
         queryset = OtherReagentSearchManager().search(
             search, is_authenticated = request.user.is_authenticated())
-        queryset = queryset.order_by('facility_id')
+        queryset.query.add_ordering('facility_id')
     else:
         where = []
         if(not request.user.is_authenticated()): 
@@ -448,7 +449,7 @@ def smallMoleculeIndex(request, queryset=None, overrides=None):
     if(search != ''):
         queryset = SmallMoleculeSearchManager().search(
             queryset, search, is_authenticated=request.user.is_authenticated())
-        queryset = queryset.order_by('facility_id','salt_id')
+        queryset.query.add_ordering('facility_id','salt_id')
     else:
         where = []
         queryset = queryset.extra(
@@ -753,7 +754,7 @@ def datasetIndex(request): #, type='screen'):
             where=where,
             params=[searchProcessed],
             select_params=[searchProcessed,searchProcessed],
-            order_by=('facility_id',)
+            order_by=('-rank','facility_id',)
             )        
     else:
         if(not request.user.is_authenticated()): 
