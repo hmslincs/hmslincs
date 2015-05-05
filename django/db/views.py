@@ -2774,7 +2774,7 @@ WHERE search_vector @@ {query_number}
         oqs = OtherReagentSearchManager().search(
                 queryString, is_authenticated=is_authenticated)
         if len(oqs) > 0:
-            for obj in aqs:
+            for obj in oqs:
                 skip = False
                 for x in _data:
                     if x['facility_id'] == obj.facility_id: skip = True
