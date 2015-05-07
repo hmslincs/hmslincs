@@ -464,67 +464,36 @@ class SmallMoleculeBatch(models.Model):
     facility_salt_batch = property(_get_facility_salt_batch)    
 
 class Cell(models.Model):
-    # ----------------------------------------------------------------------------------------------------------------------
-    #                                                                          EXAMPLE VALUES:
-    # ----------------------------------------------------------------------------------------------------------------------
-    facility_id                    = _CHAR(max_length=_FACILITY_ID_LENGTH, unique=True, **_NOTNULLSTR)
-    name                           = _CHAR(max_length=35, unique=True, **_NOTNULLSTR)    # 5637
-    cl_id                          = _CHAR(max_length=35, **_NULLOKSTR)     # CLO_0003703
-    alternate_name                 = _CHAR(max_length=35, **_NULLOKSTR)     # CaSki
-    alternate_id                   = _CHAR(max_length=50, **_NULLOKSTR)     # COSMIC:687452
-    center_name                    = _CHAR(max_length=20, **_NOTNULLSTR)    # HMS
-    center_specific_id             = _CHAR(max_length=15, **_NOTNULLSTR)    # HMSL50001
-    mgh_id                         = _CHAR(max_length=15, **_NULLOKSTR)     # 6
-    assay                          = _TEXT(**_NULLOKSTR)                    # Mitchison Mitosis-apoptosis Img; Mitchison 
-                                                                            # Prolif-Mitosis Img; Mitchison 2-3 color apo
-                                                                            # pt Img
-    organism                       = _CHAR(max_length=35, **_NOTNULLSTR)    # Homo sapiens
-    organ                          = _CHAR(max_length=35, **_NOTNULLSTR)    # urinary bladder
-    tissue                         = _CHAR(max_length=35, **_NULLOKSTR)     #
-    cell_type                      = _CHAR(max_length=35, **_NULLOKSTR)     # epithelial
-    cell_type_detail               = _CHAR(max_length=35, **_NULLOKSTR)     # epithelial immortalized with hTERT
-    disease                        = _TEXT(**_NOTNULLSTR)                   # transitional cell carcinoma
-    disease_detail                 = _TEXT(**_NULLOKSTR)                    #
-    growth_properties              = _TEXT(**_NOTNULLSTR)                   # adherent
-    genetic_modification           = _CHAR(max_length=35, **_NULLOKSTR)     # none
-    related_projects               = _CHAR(max_length=35, **_NULLOKSTR)     #
-    recommended_culture_conditions = _TEXT(**_NULLOKSTR)                    # From MGH/CMT as specified by cell provider:
-                                                                               # RPMI 1640 medium with 2 mM L-glutamine adju
-                                                                               # sted to contain 1.5 g/L sodium bicarbonate,
-                                                                               #  4.5 g/L glucose, 10 mM HEPES, and 1.0 mM s
-                                                                               # odium pyruvate, 90%; fetal bovine serum, 10
-                                                                               # %. Protocol: Remove medium, and rinse with 
-                                                                               # 0.25% trypsin, 0.03% EDTA solution. Remove 
-                                                                               # the solution and add an additional 1 to 2 m
-                                                                               # l of trypsin-EDTA solution. Allow the flask
-                                                                               #  to sit at room temperature (or at 37C) unt
-                                                                               # il the cells detach. Add fresh culture medi
-                                                                               # um, aspirate and dispense into new culture 
-                                                                               # flasks.\012Subcultivation ratio: A subculti
-                                                                               # vation ratio of 1:4 to 1:8 is recommended
-                                                                               # \012\012
-    verification_reference_profile = _TEXT(**_NULLOKSTR)                    # DNA Profile (STR, source: ATCC):\012Ameloge
-                                                                               # nin: X,Y \012CSF1PO: 11 \012D13S317: 11 \01
-                                                                               # 2D16S539: 9 \012D5S818: 11,12 \012D7S820: 1
-                                                                               # 0,11 \012THO1: 7,9 \012TPOX: 8,9 \012vWA: 1
-                                                                               # 6,18
-    mutations_reference            = _TEXT(**_NULLOKSTR)                    # http://www.sanger.ac.uk/perl/genetics/CGP/c
-                                                                               # ore_line_viewer?action=sample&id=687452
-    mutations_explicit             = _TEXT(**_NULLOKSTR)                    # Mutation data source: Sanger, Catalogue Of 
-                                                                               # Somatic Mutations In Cancer: Gene: RB1, \012
-                                                                               # AA mutation: p.Y325* (Substitution - Nonsen
-                                                                               # se), \012CDS mutation: c.975T>A (Substituti
-                                                                               # on); \012\012Gene: TP53, \012AA mutation: p
-                                                                               # .R280T (Substitution - Missense), \012CDS m
-                                                                               # utation: c.839G>C (Substitution)
-    organism_gender                = _CHAR(max_length=35, **_NULLOKSTR)     # male
-    date_data_received      = models.DateField(null=True,blank=True)
-    date_loaded             = models.DateField(null=True,blank=True)
-    date_publicly_available = models.DateField(null=True,blank=True)
-    date_updated            = models.DateField(null=True,blank=True)
-    is_restricted                     = models.BooleanField()
+    facility_id = models.CharField(max_length=_FACILITY_ID_LENGTH, unique=True, null=False)
+    name = models.CharField(max_length=35, unique=True, null=False)
+    cl_id = models.CharField(max_length=35, null=True)
+    alternate_name = models.CharField(max_length=35, null=True)
+    alternate_id = models.CharField(max_length=50, null=True)
+    center_name = models.CharField(max_length=20, null=False)
+    center_specific_id = models.CharField(max_length=15, null=False)
+    mgh_id = models.CharField(max_length=15, null=True)
+    assay = models.TextField(null=True)
+    organism = models.CharField(max_length=35, null=False)
+    organ = models.CharField(max_length=35, null=False)
+    tissue = models.CharField(max_length=35, null=True)
+    cell_type = models.CharField(max_length=35, null=True)
+    cell_type_detail = models.CharField(max_length=35, null=True)
+    disease = models.TextField(null=False)
+    disease_detail = models.TextField(null=True)
+    growth_properties = models.TextField(null=False)
+    genetic_modification = models.CharField(max_length=35, null=True)
+    related_projects = models.CharField(max_length=35, null=True)
+    recommended_culture_conditions = models.TextField(null=True)
+    verification_reference_profile = models.TextField(null=True)
+    mutations_reference = models.TextField(null=True)
+    mutations_explicit = models.TextField(null=True)
+    organism_gender = models.CharField(max_length=35, null=True)
 
-    # ----------------------------------------------------------------------------------------------------------------------
+    date_data_received = models.DateField(null=True,blank=True)
+    date_loaded = models.DateField(null=True,blank=True)
+    date_publicly_available = models.DateField(null=True,blank=True)
+    date_updated = models.DateField(null=True,blank=True)
+    is_restricted = models.BooleanField()
     def __unicode__(self):
         return unicode(self.facility_id)
 
@@ -535,11 +504,11 @@ class Cell(models.Model):
 
 class CellBatch(models.Model):
     cell = models.ForeignKey('Cell')
-    batch_id = _CHAR(max_length=_BATCH_ID_LENGTH, **_NOTNULLSTR)
-    provider_name = _TEXT(**_NULLOKSTR)
-    provider_catalog_id = _CHAR(max_length=64, **_NULLOKSTR)
-    verification_profile = _TEXT(**_NULLOKSTR)
-
+    batch_id = models.CharField(max_length=_BATCH_ID_LENGTH, null=False)
+    provider_name = models.TextField(null=True)
+    provider_catalog_id = models.CharField(max_length=64, null=True)
+    verification_profile = models.TextField(null=True)
+    
     date_data_received = models.DateField(null=True,blank=True)
     date_loaded = models.DateField(null=True,blank=True)
     date_publicly_available = models.DateField(null=True,blank=True)
@@ -549,7 +518,6 @@ class CellBatch(models.Model):
         return unicode(str((self.cell,self.batch_id)))
     class Meta:
         unique_together = ('cell', 'batch_id',)    
-
 
 
 class Protein(models.Model):
