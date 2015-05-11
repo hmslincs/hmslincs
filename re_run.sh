@@ -121,7 +121,7 @@ check_errs $? "syncdb fails"
 # ============ import the field definition information =========================
 
 echo 'import dwg field definition tables ...'
-python src/import_fieldinformation.py -f sampledata/fieldinformation.xlsx
+python src/import_fieldinformation.py -f sampledata/fieldinformation.csv
 check_errs $? "import fieldinformation fails"
 
 if [[ "$SERVER" == "TEST" ]] || [[ "$SERVER" == "test" ]] \
@@ -132,7 +132,7 @@ then
   #============ Here is where the test data imports go =========================
   
   echo 'import cell tables ...'
-  python src/import_cell.py -f sampledata/LINCS_Cells_forLoading.xls
+  python src/import_cell.py -f sampledata/sample_cells.xlsx
   check_errs $? "import cell fails"
   
   echo 'import cell batch tables ...'
