@@ -691,6 +691,15 @@ class DataSet(models.Model):
     @classmethod
     def get_snippet_def(cls):
         return FieldInformation.manager.get_snippet_def(cls)
+    
+    @staticmethod
+    def get_dataset_types():
+        dataset_types = DataSet.objects.values_list('dataset_type',flat=True).distinct()
+        dataset_types = zip(dataset_types,dataset_types)
+        dataset_types.insert(0,('',''))
+        return dataset_types
+
+        
 
 LIBRARY_TYPE_PLATED = 'plated'
 LIBRARY_TYPE_NON_PLATED = 'non-plated'

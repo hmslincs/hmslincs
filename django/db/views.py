@@ -68,13 +68,6 @@ facility_salt_batch_id_2 = (
 def dump(obj):
     dumpObj(obj)
 
-
-# Cache the set of dataset types
-dataset_types = [(str(x['dataset_type']), str(x['dataset_type'])) for 
-        x in DataSet.objects.values('dataset_type').distinct()]
-dataset_types.insert(0,('',''))
-
-
 # --------------- View Functions -----------------------------------------------
 
 def main(request):
@@ -90,10 +83,12 @@ def main(request):
         else:
             table = None
         return render(request, 'db/index.html', 
-            {'table': table, 'search':search, 'dataset_types': json.dumps(dataset_types) })
+            {   'table': table, 
+                'search':search, 
+                'dataset_types': json.dumps(DataSet.get_dataset_types()) })
     else:
         return render(request, 'db/index.html', 
-            {'dataset_types': json.dumps(dataset_types) })
+            {'dataset_types': json.dumps(DataSet.get_dataset_types()) })
 
 def cellIndex(request):
     search = request.GET.get('search','')
@@ -122,7 +117,7 @@ def cellIndex(request):
         FieldInformation.manager.get_column_fieldinformation_by_priority('dataset_types', '')
     field_hash['dataset_types'] = fieldinformation
     form_field_overrides['dataset_types'] = forms.ChoiceField(
-        required=False, choices=dataset_types, 
+        required=False, choices=DataSet.get_dataset_types(), 
         label=field_hash['dataset_types'].get_verbose_name(), 
         help_text=field_hash['dataset_types'].get_column_detail())
 
@@ -258,7 +253,7 @@ def proteinIndex(request):
         FieldInformation.manager.get_column_fieldinformation_by_priority('dataset_types', '')
     field_hash['dataset_types'] = fieldinformation
     form_field_overrides['dataset_types'] = forms.ChoiceField(
-        required=False, choices=dataset_types, 
+        required=False, choices=DataSet.get_dataset_types(), 
         label=field_hash['dataset_types'].get_verbose_name(), 
         help_text=field_hash['dataset_types'].get_column_detail())
 
@@ -460,7 +455,7 @@ def smallMoleculeIndex(request, queryset=None, overrides=None):
         get_column_fieldinformation_by_priority('dataset_types', '')
     field_hash['dataset_types'] = fieldinformation
     form_field_overrides['dataset_types'] = forms.ChoiceField(
-        required=False, choices=dataset_types, 
+        required=False, choices=DataSet.get_dataset_types(), 
         label=field_hash['dataset_types'].get_verbose_name(), 
         help_text=field_hash['dataset_types'].get_column_detail())
     
@@ -765,7 +760,7 @@ def datasetIndex(request): #, type='screen'):
     # for the display matrix below
     form_field_overrides = {}
     form_field_overrides['dataset_type'] = forms.ChoiceField(
-        required=False, choices=dataset_types, 
+        required=False, choices=DataSet.get_dataset_types(), 
         label=field_hash['dataset_type'].get_verbose_name(), 
         help_text=field_hash['dataset_type'].get_column_detail())
     
