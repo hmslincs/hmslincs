@@ -1409,14 +1409,6 @@ class DataSetTable(PagedTable):
         
         set_table_column_info(self, ['dataset',''])  
 
-def set_field_information_to_table_column(fieldname,table_names,column):
-    try:
-        fi = FieldInformation.manager.get_column_fieldinformation_by_priority(
-            fieldname,table_names)
-        column.attrs['th']={'title':fi.get_column_detail()}
-        column.verbose_name = SafeString(fi.get_verbose_name())
-    except (Exception) as e:
-        raise Exception(str(('no fieldinformation found for field:', fieldname, table_names,e)))
     
 OMERO_IMAGE_TEMPLATE = '''
    <a href="#" onclick='window.open("https://lincs-omero.hms.harvard.edu/webclient/img_detail/{{ record.%s }}", "Image","height=700,width=800")' ><img src='https://lincs-omero.hms.harvard.edu/webgateway/render_thumbnail/{{ record.%s }}/32/' alt='image if available' ></a>
@@ -1430,88 +1422,41 @@ class DataSetResultTable(PagedTable):
     TODO: 
     the cursor is converted to a list of dicts, all in memory; implement pagination
     """
-    defined_base_columns = []
     id = tables.Column(visible=False)
-    defined_base_columns.append('id')
-    
     facility_salt_batch = \
         tables.LinkColumn('sm_detail', args=[A('facility_salt_batch')],visible=False)
     facility_salt_batch.attrs['td'] = {'nowrap': 'nowrap'}
-    defined_base_columns.append('facility_salt_batch')
-    set_field_information_to_table_column(
-        'facility_salt_batch', ['smallmoleculebatch'], facility_salt_batch)
-    
     sm_name = tables.LinkColumn('sm_detail', args=[A('facility_salt_batch')],
                                 visible=False)
-    defined_base_columns.append('sm_name')
-    set_field_information_to_table_column('name', ['smallmolecule'], sm_name)
-
     cell_name = \
         tables.LinkColumn('cell_detail',args=[A('cell_facility_batch')], 
                           visible=False,verbose_name='Cell Name') 
-    defined_base_columns.append('cell_name')
-    set_field_information_to_table_column('name', ['cell'], cell_name)
-    
     cell_facility_batch = \
         tables.LinkColumn('cell_detail',args=[A('cell_facility_batch')], 
                           visible=False,verbose_name='Cell Facility ID') 
-    defined_base_columns.append('cell_facility_batch')
-    set_field_information_to_table_column(
-        'facility_id', ['cell'], cell_facility_batch)
-    
     protein_name = \
         tables.LinkColumn('protein_detail',args=[A('protein_lincs_id')], 
                           visible=False, verbose_name='Protein Name') 
-    defined_base_columns.append('protein_name')
-    set_field_information_to_table_column('name', ['protein'], protein_name)
-    
     protein_lincs_id = \
         tables.LinkColumn('protein_detail',args=[A('protein_lincs_id')], 
                           visible=False, verbose_name='Protein LINCS ID') 
-    defined_base_columns.append('protein_lincs_id')
-    set_field_information_to_table_column('lincs_id', ['protein'], protein_lincs_id)
-    
     antibody_name = \
         tables.LinkColumn('antibody_detail',args=[A('antibody_facility_id')], 
                           visible=False, verbose_name='Antibody Name') 
-    defined_base_columns.append('antibody_name')
-    set_field_information_to_table_column('name', ['antibody'], antibody_name)
-    
     antibody_facility_id = \
         tables.LinkColumn('antibody_detail',args=[A('antibody_facility_id')], 
                           visible=False, verbose_name='Antibody Facility ID') 
-    defined_base_columns.append('antibody_facility_id')
-    set_field_information_to_table_column(
-        'facility_id', ['antibody'], antibody_facility_id)
-    
     otherreagent_name = \
         tables.LinkColumn('otherreagent_detail',
                           args=[A('otherreagent_facility_id')], visible=False, 
                           verbose_name='Other Reagent Name') 
-    defined_base_columns.append('otherreagent_name')
-    set_field_information_to_table_column(
-        'name', ['otherreagent'], otherreagent_name)
-    
     otherreagent_facility_id = \
         tables.LinkColumn('otherreagent_detail',
                           args=[A('otherreagent_facility_id')], visible=False, 
                           verbose_name='Other Reagent Facility ID') 
-    defined_base_columns.append('otherreagent_facility_id')
-    set_field_information_to_table_column(
-        'facility_id', ['otherreagent'], otherreagent_facility_id)
-    
     plate = tables.Column()
-    defined_base_columns.append('plate')
-    set_field_information_to_table_column('plate', ['datarecord'], plate)
-    
     well = tables.Column()
-    defined_base_columns.append('well')
-    set_field_information_to_table_column('well', ['datarecord'], well)
-    
     control_type = tables.Column()
-    defined_base_columns.append('control_type')
-    set_field_information_to_table_column(
-        'control_type', ['datarecord'], control_type)
         
     class Meta:
         orderable = True
@@ -1521,17 +1466,42 @@ class DataSetResultTable(PagedTable):
                  show_cells=False, show_proteins=False, 
                  show_antibodies=False, show_otherreagents=False, 
                  column_exclusion_overrides=None, *args, **kwargs):
-        # Follows is to deal with a bug - columns from one table appear to be 
-        # injecting into other tables!!
+        self.set_field_information_to_table_column(
+            'facility_salt_batch','facility_salt_batch', ['smallmoleculebatch'])
+        self.set_field_information_to_table_column('sm_name','name', ['smallmolecule'])
+        self.set_field_information_to_table_column('cell_name','name', ['cell'])
+        self.set_field_information_to_table_column(
+            'cell_facility_batch', 'facility_id', ['cell'])
+        self.set_field_information_to_table_column('protein_name', 'name', ['protein'])
+        self.set_field_information_to_table_column('protein_lincs_id', 'lincs_id', ['protein'])
+        self.set_field_information_to_table_column('antibody_name', 'name', ['antibody'])
+        self.set_field_information_to_table_column(
+            'antibody_facility_id', 'facility_id', ['antibody'])
+        self.set_field_information_to_table_column(
+            'otherreagent_name', 'name', ['otherreagent'])
+        self.set_field_information_to_table_column(
+            'otherreagent_facility_id','facility_id', ['otherreagent'])
+        self.set_field_information_to_table_column('plate','plate', ['datarecord'])
+        self.set_field_information_to_table_column('well', 'well', ['datarecord'])
+        self.set_field_information_to_table_column(
+            'control_type', 'control_type', ['datarecord'])
+
+        # Follows is to deal with a bug caused by dynamically changing the fields
+        # shown for in the Django tables2 table - columns from one table appear to be 
+        # injecting into other tables.
         # This indicates that we are doing something wrong here by defining 
         # columns dynamically on the class "base_columns" attribute
         # So, to fix, we should redefine all of the base_columns every time here.  
         # For now, what is done is the "defined_base_columns" are preserved, 
-        # then others are added.
+        # then others are added as needed.
+        defined_base_columns = [
+            'id','facility_salt_batch','sm_name','cell_name','cell_facility_batch',
+            'protein_name','protein_lincs_id','antibody_name','antibody_facility_id',
+            'otherreagent_name','otherreagent_facility_id','plate','well','control_type']
         for name in self.base_columns.keys():
-            if name not in self.defined_base_columns:
+            if name not in defined_base_columns:
                 logger.debug(str((
-                    'deleting column from the table', name,self.defined_base_columns)))
+                    'deleting column from the table', name,defined_base_columns)))
                 del self.base_columns[name]
 
         temp = []
@@ -1619,6 +1589,16 @@ class DataSetResultTable(PagedTable):
         else: self.exclude = tuple(column_exclusion_overrides)
         self.sequence = ordered_names
 
+    def set_field_information_to_table_column(self, column_name, fieldname, table_names):
+        try:
+            column = self.base_columns[column_name]
+            fi = FieldInformation.manager.get_column_fieldinformation_by_priority(
+                fieldname,table_names)
+            column.attrs['th']={'title':fi.get_column_detail()}
+            column.verbose_name = SafeString(fi.get_verbose_name())
+        except (Exception) as e:
+            raise Exception(str(('no fieldinformation found for field:', 
+                fieldname, table_names,e)))
 
 # TODO: this class has grown - 
 # needs refactoring to allow ability to filter in a less clumsy way
