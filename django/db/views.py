@@ -742,7 +742,7 @@ def datasetIndex(request): #, type='screen'):
         # postgres fulltext search with rank and snippets
         queryset = DataSet.objects.extra(
             select={
-                'snippet': "ts_headline(" + DataSetTable.snippet_def + ", to_tsquery(%s) )",
+                'snippet': "ts_headline(" + DataSet.get_snippet_def() + ", to_tsquery(%s) )",
                 'rank': "ts_rank_cd(search_vector, to_tsquery(%s), 32)",
                 },
             where=where,
@@ -1404,9 +1404,6 @@ class DataSetTable(PagedTable):
     references = tables.Column(visible=False)
     rank = tables.Column()
     snippet = DivWrappedColumn(verbose_name='matched text', classname='snippet')
-    snippet_def = (" || ' ' || ".join(map(
-        lambda x: "coalesce(db_dataset."+x.field+",'') ", 
-        FieldInformation.manager.get_search_fields(DataSet))))
     class Meta:
         model = DataSet
         orderable = True
@@ -2163,10 +2160,6 @@ class LibraryMappingTable(PagedTable):
     plate = tables.Column()
     display_concentration = tables.Column(order_by='concentration')
         
-    snippet_def = (" || ' ' || ".join(
-        map(lambda x: "coalesce(db_smallmolecule."+x.field+",'') ", 
-            FieldInformation.manager.get_search_fields(SmallMolecule)))) 
-    
     class Meta:
         #model = LibraryMapping
         orderable = True
@@ -2304,13 +2297,6 @@ class SmallMoleculeTable(PagedTable):
     lincs_id = tables.Column(order_by=('-lincs_id_null', 'lincs_id'))
     pubchem_cid = tables.Column(order_by=('-pubchem_cid_null', 'pubchem_cid'))
 
-    snippet_def =  (" || ' ' || ".join(
-        map(lambda x: "coalesce( " + x.field+",'') ", 
-            FieldInformation.manager.get_search_fields(SmallMolecule)))) 
-    snippet_def_localized =  (" || ' ' || ".join(
-        map(lambda x: "coalesce( db_smallmolecule." + x.field+",'') ", 
-            FieldInformation.manager.get_search_fields(SmallMolecule)))) 
-        
     class Meta:
         model = SmallMolecule #[SmallMolecule, SmallMoleculeBatch]
         orderable = True
@@ -2404,9 +2390,7 @@ class CellTable(PagedTable):
 #                   "coalesce(cell_type_detail,'') || ' ' || coalesce(disease,'') || ' ' || coalesce(disease_detail,'') || ' ' ||  " +
 #                   "coalesce(growth_properties,'') || ' ' || coalesce(genetic_modification,'') || ' ' || coalesce(related_projects,'') || ' ' || " + 
 #                   "coalesce(recommended_culture_conditions)")
-    snippet_def = (" || ' ' || ".join(
-        map(lambda x: "coalesce(db_cell."+x.field+",'') ", 
-            FieldInformation.manager.get_search_fields(Cell))))
+
     class Meta:
         model = Cell
         orderable = True
@@ -2423,9 +2407,6 @@ class ProteinTable(PagedTable):
     lincs_id = tables.LinkColumn("protein_detail", args=[A('lincs_id')])
     rank = tables.Column()
     snippet = DivWrappedColumn(verbose_name='matched text', classname='snippet')
-    snippet_def = (" || ' ' || ".join(
-        map(lambda x: "coalesce(db_protein."+x.field+",'') ", 
-            FieldInformation.manager.get_search_fields(Protein))))
     alternate_name = DivWrappedColumn(classname='fixed_width_column', visible=False)
     dataset_types = DivWrappedColumn(classname='fixed_width_column', visible=False)
 
@@ -2446,9 +2427,7 @@ class AntibodyTable(PagedTable):
     facility_id = tables.LinkColumn("antibody_detail", args=[A('facility_id')])
     rank = tables.Column()
     snippet = DivWrappedColumn(verbose_name='matched text', classname='snippet')
-    snippet_def = (" || ' ' || ".join(
-        map(lambda x: "coalesce(db_antibody."+x.field+",'') ", 
-            FieldInformation.manager.get_search_fields(Antibody))))
+
     class Meta:
         model = Antibody
         orderable = True
@@ -2463,9 +2442,7 @@ class OtherReagentTable(PagedTable):
     facility_id = tables.LinkColumn("otherreagent_detail", args=[A('facility_id')])
     rank = tables.Column()
     snippet = DivWrappedColumn(verbose_name='matched text', classname='snippet')
-    snippet_def = (" || ' ' || ".join(
-        map(lambda x: "coalesce(db_otherreagent."+x.field+",'') ", 
-            FieldInformation.manager.get_search_fields(OtherReagent))))
+
     class Meta:
         model = OtherReagent
         orderable = True
@@ -2523,9 +2500,6 @@ class LibraryTable(PagedTable):
     rank = tables.Column()
     snippet = DivWrappedColumn(verbose_name='matched text', classname='snippet')
     
-    snippet_def = (" || ' ' || ".join(map(
-        lambda x: "coalesce(db_library."+x.field+",'') ", 
-        FieldInformation.manager.get_search_fields(Library))))
     class Meta:
         orderable = True
         model = Library
@@ -2643,7 +2617,7 @@ WHERE search_vector @@ {query_number}
         RESTRICTION_SQL = " AND (not is_restricted or is_restricted is NULL)"
         sql = SEARCH_SQL.format(
             key_id='facility_id',
-            snippet_def=CellTable.snippet_def,
+            snippet_def=Cell.get_snippet_def(),
             detail_type='cell_detail',
             table_name='db_cell',
             query_number='query1')
@@ -2652,7 +2626,7 @@ WHERE search_vector @@ {query_number}
         sql += " UNION "
         sql += SEARCH_SQL.format(
             key_id= "facility_id || '-' || salt_id" ,
-            snippet_def=SmallMoleculeTable.snippet_def,
+            snippet_def=SmallMolecule.get_snippet_def(),
             detail_type='sm_detail',
             table_name='db_smallmolecule',
             query_number='query2')
@@ -2661,7 +2635,7 @@ WHERE search_vector @@ {query_number}
         sql += " UNION "
         sql += SEARCH_SQL.format(
             key_id='facility_id',
-            snippet_def=DataSetTable.snippet_def,
+            snippet_def=DataSet.get_snippet_def(),
             detail_type='dataset_detail',
             table_name='db_dataset',
             query_number='query3')
@@ -2670,7 +2644,7 @@ WHERE search_vector @@ {query_number}
         sql += " UNION "
         sql += SEARCH_SQL.format(
             key_id='lincs_id',
-            snippet_def=ProteinTable.snippet_def,
+            snippet_def=Protein.get_snippet_def(),
             detail_type='protein_detail',
             table_name='db_protein',
             query_number='query4')
@@ -2679,7 +2653,7 @@ WHERE search_vector @@ {query_number}
         sql += " UNION "
         sql += SEARCH_SQL.format(
             key_id='facility_id',
-            snippet_def=AntibodyTable.snippet_def,
+            snippet_def=Antibody.get_snippet_def(),
             detail_type='antibody_detail',
             table_name='db_antibody',
             query_number='query5')
@@ -2688,7 +2662,7 @@ WHERE search_vector @@ {query_number}
         sql += " UNION "
         sql += SEARCH_SQL.format(
             key_id='facility_id',
-            snippet_def=OtherReagentTable.snippet_def,
+            snippet_def=OtherReagent.get_snippet_def(),
             detail_type='otherreagent_detail',
             table_name='db_otherreagent',
             query_number='query6')
@@ -2838,7 +2812,7 @@ class CellSearchManager(SearchManager):
         id_fields = ['name', 'alternate_name', 'center_name']
         query =  super(CellSearchManager, self).search(
             base_query, 'db_cell', searchString, id_fields, 
-            CellTable.snippet_def, ids=cell_ids)
+            Cell.get_snippet_def(), ids=cell_ids)
         
         return query
 
@@ -2873,7 +2847,7 @@ class ProteinSearchManager(SearchManager):
              'provider_catalog_id']
         return super(ProteinSearchManager, self).search(
             Protein.objects, 'db_protein', searchString, id_fields, 
-            ProteinTable.snippet_def)        
+            Protein.get_snippet_def())        
     
     def join_query_to_dataset_type(self, queryset, dataset_type=None ):
         key = 'dataset_types'
@@ -2914,7 +2888,7 @@ class SmallMoleculeSearchManager(SearchManager):
         
         return super(SmallMoleculeSearchManager, self).search(
             queryset, 'db_smallmolecule', searchString, id_fields, 
-            SmallMoleculeTable.snippet_def_localized, ids=sm_ids )        
+            SmallMolecule.get_snippet_def(), ids=sm_ids )        
 
     def join_query_to_dataset_type(self, queryset, dataset_type=None ):
         key = 'dataset_types'
@@ -2945,7 +2919,7 @@ class AntibodySearchManager(SearchManager):
         id_fields = ['name', 'alternative_names', 'lincs_id']
         return super(AntibodySearchManager, self).search(
             Antibody.objects, 'db_antibody', searchString, id_fields, 
-            AntibodyTable.snippet_def)        
+            Antibody.get_snippet_def())        
 
 
 class OtherReagentSearchManager(SearchManager):
@@ -2955,7 +2929,7 @@ class OtherReagentSearchManager(SearchManager):
         id_fields = ['name', 'alternative_names', 'lincs_id']
         return super(OtherReagentSearchManager, self).search(
             OtherReagent.objects, 'db_otherreagent', searchString, id_fields, 
-            OtherReagentTable.snippet_def)        
+            OtherReagent.get_snippet_def())        
 
 
 class SiteSearchTable(PagedTable):

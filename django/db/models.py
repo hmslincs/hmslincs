@@ -170,19 +170,25 @@ class FieldsManager(models.Manager):
                     table=table_or_queryset, alias=field_or_alias)
             except (ObjectDoesNotExist,MultipleObjectsReturned) as e:
                 return None
-        
-    #TODO: link this in to the reindex process!
-    def get_search_fields(self,model):
+    
+    def get_snippet_def(self,model_class): 
+        db_table_name = model_class._meta.db_table   
+        return (" || ' ' || ".join(map(
+            lambda x: "coalesce(%s.%s,'') " % (db_table_name,x.field), 
+            self.get_search_fields(model_class))))        
+    
+    def get_search_fields(self,model_class):
         """
         For the full text search, return the text searchable fields.
         """
-        table = model._meta.module_name
         # Only text or char fields considered, must add numeric fields manually
-        fields = map(lambda x: x.column, filter(lambda x: isinstance(x, models.CharField) or isinstance(x, models.TextField), tuple(model._meta.fields)))
+        fields = map(lambda x: x.column, 
+            filter(lambda x: isinstance(x, models.CharField) 
+                or isinstance(x, models.TextField), tuple(model_class._meta.fields)))
         final_fields = []
-        for fi in self.get_table_fields(table):
+        for fi in self.get_table_fields(model_class._meta.module_name):
             if(fi.use_for_search_index and fi.field in fields):  final_fields.append(fi)
-        logger.debug(str(('get_search_fields for ',model,'returns',final_fields)))
+        logger.debug(str(('get_search_fields for ',model_class,'returns',final_fields)))
         return final_fields
 
 PUBCHEM_TYPE_IDENTITY = 'identity'
@@ -413,7 +419,10 @@ class SmallMolecule(models.Model):
         return self.name.split(';')[0]
     
     primary_name = property(_get_primary_name)   
-
+    
+    @classmethod
+    def get_snippet_def(cls):
+        return FieldInformation.manager.get_snippet_def(cls)
 
 CONCENTRATION_GL = 'g/L'
 CONCENTRATION_MGML = 'mg/mL'
@@ -519,6 +528,10 @@ class Cell(models.Model):
     def __unicode__(self):
         return unicode(self.facility_id)
 
+    @classmethod
+    def get_snippet_def(cls):
+        return FieldInformation.manager.get_snippet_def(cls)
+
 
 class CellBatch(models.Model):
     cell = models.ForeignKey('Cell')
@@ -571,6 +584,11 @@ class Protein(models.Model):
     def __unicode__(self):
         return unicode(self.lincs_id)
 
+    @classmethod
+    def get_snippet_def(cls):
+        return FieldInformation.manager.get_snippet_def(cls)
+
+
 class Antibody(models.Model):
     facility_id             = _CHAR(max_length=_FACILITY_ID_LENGTH, **_NOTNULLSTR)
     lincs_id                = _CHAR(max_length=15, **_NULLOKSTR)
@@ -597,6 +615,10 @@ class Antibody(models.Model):
     date_publicly_available = models.DateField(null=True,blank=True)
     date_updated            = models.DateField(null=True,blank=True)
     is_restricted           = models.BooleanField(default=False) # Note: default=False are not set at the db level, only at the Db-api level
+
+    @classmethod
+    def get_snippet_def(cls):
+        return FieldInformation.manager.get_snippet_def(cls)
     
 class AntibodyBatch(models.Model):
     antibody           = models.ForeignKey('Antibody')
@@ -617,6 +639,10 @@ class OtherReagent(models.Model):
     date_publicly_available = models.DateField(null=True,blank=True)
     date_updated            = models.DateField(null=True,blank=True)
     is_restricted           = models.BooleanField(default=False) # Note: default=False are not set at the db level, only at the Db-api level
+
+    @classmethod
+    def get_snippet_def(cls):
+        return FieldInformation.manager.get_snippet_def(cls)
 
 class OtherReagentBatch(models.Model):
     other_reagent           = models.ForeignKey('OtherReagent')
@@ -661,6 +687,10 @@ class DataSet(models.Model):
 
     def __unicode__(self):
         return unicode(self.facility_id)
+
+    @classmethod
+    def get_snippet_def(cls):
+        return FieldInformation.manager.get_snippet_def(cls)
 
 LIBRARY_TYPE_PLATED = 'plated'
 LIBRARY_TYPE_NON_PLATED = 'non-plated'
