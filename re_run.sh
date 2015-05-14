@@ -121,7 +121,7 @@ check_errs $? "syncdb fails"
 # ============ import the field definition information =========================
 
 echo 'import dwg field definition tables ...'
-python src/import_fieldinformation.py -f sampledata/fieldinformation.csv
+python src/import_fieldinformation.py -f django/db/fieldinformation.csv
 check_errs $? "import fieldinformation fails"
 
 if [[ "$SERVER" == "TEST" ]] || [[ "$SERVER" == "test" ]] \
