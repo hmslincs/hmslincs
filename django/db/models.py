@@ -466,7 +466,7 @@ class SmallMoleculeBatch(models.Model):
 class Cell(models.Model):
     facility_id = models.CharField(max_length=_FACILITY_ID_LENGTH, unique=True, null=False)
     name = models.CharField(max_length=35, unique=True, null=False)
-    cl_id = models.CharField(max_length=35, null=True)
+    lincs_id = models.CharField(max_length=35, null=True)
     alternate_name = models.CharField(max_length=35, null=True)
     alternate_id = models.CharField(max_length=50, null=True)
     center_name = models.CharField(max_length=20, null=False)
@@ -487,9 +487,15 @@ class Cell(models.Model):
     verification_reference_profile = models.TextField(null=True)
     mutations_reference = models.TextField(null=True)
     mutations_explicit = models.TextField(null=True)
-    organism_gender = models.CharField(max_length=35, null=True)
+    
     reference_source = models.TextField(null=True)
     reference_source_id = models.CharField(max_length=64, null=True)
+    donor_sex = models.CharField(max_length=16, null=True)
+    donor_age_years = models.IntegerField(null=True)
+    donor_ethnicity = models.CharField(max_length=128, null=True)
+    donor_health_status = models.TextField(null=True)
+    molecular_features = models.TextField(null=True)
+    relevant_citations = models.TextField(null=True)
 
     date_data_received = models.DateField(null=True,blank=True)
     date_loaded = models.DateField(null=True,blank=True)
