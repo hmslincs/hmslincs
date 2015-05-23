@@ -257,58 +257,6 @@ else
   python src/import_dataset.py -f $DATADIR/Screen20004_tang_ProMitosis.xls 
   check_errs $? "import dataset fails"
   
-  #echo 'import screen results...'
-  #python src/import_dataset.py -f $DATADIR/Screen20005_tang_MitoApop2.xls 
-  #check_errs $? "import dataset fails"
-  
-  echo 'import screen results...'
-  python src/import_dataset.py -f $DATADIR/Screen20006_CMT_GrowthInhibition-3dose.xls 
-  check_errs $? "import dataset fails"
-  
-  echo 'import screen results...'
-  python src/import_dataset.py -f $DATADIR/Screen20007_CMT_GrowthInhibition-3dose.xls 
-  check_errs $? "import dataset fails"
-  
-  echo 'import screen results...'
-  python src/import_dataset.py -f $DATADIR/Screen20008_CMT_9dose-1.xls 
-  check_errs $? "import dataset fails"
-  
-  echo 'import screen results...'
-  python src/import_dataset.py -f $DATADIR/Screen20009_CMT_9dose-2.xls 
-  check_errs $? "import dataset fails"
-  
-  echo 'import screen results...'
-  python src/import_dataset.py -f $DATADIR/Screen20010_CMT_9dose-3.xls 
-  check_errs $? "import dataset fails"
-  
-  echo 'import screen results...'
-  python src/import_dataset.py -f $DATADIR/Screen20011_CMT_9dose-4.xls 
-  check_errs $? "import dataset fails"
-  
-  echo 'import screen results...'
-  python src/import_dataset.py -f $DATADIR/Screen20012_CMT_9dose-5.xls 
-  check_errs $? "import dataset fails"
-  
-  echo 'import screen results...'
-  python src/import_dataset.py -f $DATADIR/Screen20013_CMT_9dose-6.xls 
-  check_errs $? "import dataset fails"
-  
-  echo 'import screen results...'
-  python src/import_dataset.py -f $DATADIR/Screen20014_CMT_9dose-7.xls 
-  check_errs $? "import dataset fails"
-  
-  echo 'import screen results...'
-  python src/import_dataset.py -f $DATADIR/Screen20015_CMT_9dose-8.xls 
-  check_errs $? "import dataset fails"
-  
-  echo 'import screen results...'
-  python src/import_dataset.py -f $DATADIR/Screen20016_CMT_9dose-9.xls 
-  check_errs $? "import dataset fails"
-  
-  echo 'import screen results...'
-  python src/import_dataset.py -f $DATADIR/Screen20017_CMT_9dose-10.xls 
-  check_errs $? "import dataset fails"
-  
   echo 'import screen results...'
   python src/import_dataset.py -f $DATADIR/kinomescan/Screen20020_HMSL10008_kinomescan.xls
   check_errs $? "import dataset fails"
