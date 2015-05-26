@@ -68,13 +68,6 @@ facility_salt_batch_id_2 = (
 def dump(obj):
     dumpObj(obj)
 
-
-# Cache the set of dataset types
-dataset_types = [(str(x['dataset_type']), str(x['dataset_type'])) for 
-        x in DataSet.objects.values('dataset_type').distinct()]
-dataset_types.insert(0,('',''))
-
-
 # --------------- View Functions -----------------------------------------------
 
 def main(request):
@@ -90,10 +83,12 @@ def main(request):
         else:
             table = None
         return render(request, 'db/index.html', 
-            {'table': table, 'search':search, 'dataset_types': json.dumps(dataset_types) })
+            {   'table': table, 
+                'search':search, 
+                'dataset_types': json.dumps(DataSet.get_dataset_types()) })
     else:
         return render(request, 'db/index.html', 
-            {'dataset_types': json.dumps(dataset_types) })
+            {'dataset_types': json.dumps(DataSet.get_dataset_types()) })
 
 def cellIndex(request):
     search = request.GET.get('search','')
@@ -122,7 +117,7 @@ def cellIndex(request):
         FieldInformation.manager.get_column_fieldinformation_by_priority('dataset_types', '')
     field_hash['dataset_types'] = fieldinformation
     form_field_overrides['dataset_types'] = forms.ChoiceField(
-        required=False, choices=dataset_types, 
+        required=False, choices=DataSet.get_dataset_types(), 
         label=field_hash['dataset_types'].get_verbose_name(), 
         help_text=field_hash['dataset_types'].get_column_detail())
 
@@ -258,7 +253,7 @@ def proteinIndex(request):
         FieldInformation.manager.get_column_fieldinformation_by_priority('dataset_types', '')
     field_hash['dataset_types'] = fieldinformation
     form_field_overrides['dataset_types'] = forms.ChoiceField(
-        required=False, choices=dataset_types, 
+        required=False, choices=DataSet.get_dataset_types(), 
         label=field_hash['dataset_types'].get_verbose_name(), 
         help_text=field_hash['dataset_types'].get_column_detail())
 
@@ -460,7 +455,7 @@ def smallMoleculeIndex(request, queryset=None, overrides=None):
         get_column_fieldinformation_by_priority('dataset_types', '')
     field_hash['dataset_types'] = fieldinformation
     form_field_overrides['dataset_types'] = forms.ChoiceField(
-        required=False, choices=dataset_types, 
+        required=False, choices=DataSet.get_dataset_types(), 
         label=field_hash['dataset_types'].get_verbose_name(), 
         help_text=field_hash['dataset_types'].get_column_detail())
     
@@ -742,7 +737,7 @@ def datasetIndex(request): #, type='screen'):
         # postgres fulltext search with rank and snippets
         queryset = DataSet.objects.extra(
             select={
-                'snippet': "ts_headline(" + DataSetTable.snippet_def + ", to_tsquery(%s) )",
+                'snippet': "ts_headline(" + DataSet.get_snippet_def() + ", to_tsquery(%s) )",
                 'rank': "ts_rank_cd(search_vector, to_tsquery(%s), 32)",
                 },
             where=where,
@@ -765,7 +760,7 @@ def datasetIndex(request): #, type='screen'):
     # for the display matrix below
     form_field_overrides = {}
     form_field_overrides['dataset_type'] = forms.ChoiceField(
-        required=False, choices=dataset_types, 
+        required=False, choices=DataSet.get_dataset_types(), 
         label=field_hash['dataset_type'].get_verbose_name(), 
         help_text=field_hash['dataset_type'].get_column_detail())
     
@@ -1404,9 +1399,6 @@ class DataSetTable(PagedTable):
     references = tables.Column(visible=False)
     rank = tables.Column()
     snippet = DivWrappedColumn(verbose_name='matched text', classname='snippet')
-    snippet_def = (" || ' ' || ".join(map(
-        lambda x: "coalesce(db_dataset."+x.field+",'') ", 
-        FieldInformation.manager.get_search_fields(DataSet))))
     class Meta:
         model = DataSet
         orderable = True
@@ -1417,14 +1409,6 @@ class DataSetTable(PagedTable):
         
         set_table_column_info(self, ['dataset',''])  
 
-def set_field_information_to_table_column(fieldname,table_names,column):
-    try:
-        fi = FieldInformation.manager.get_column_fieldinformation_by_priority(
-            fieldname,table_names)
-        column.attrs['th']={'title':fi.get_column_detail()}
-        column.verbose_name = SafeString(fi.get_verbose_name())
-    except (Exception) as e:
-        raise Exception(str(('no fieldinformation found for field:', fieldname, table_names,e)))
     
 OMERO_IMAGE_TEMPLATE = '''
    <a href="#" onclick='window.open("https://lincs-omero.hms.harvard.edu/webclient/img_detail/{{ record.%s }}", "Image","height=700,width=800")' ><img src='https://lincs-omero.hms.harvard.edu/webgateway/render_thumbnail/{{ record.%s }}/32/' alt='image if available' ></a>
@@ -1438,88 +1422,41 @@ class DataSetResultTable(PagedTable):
     TODO: 
     the cursor is converted to a list of dicts, all in memory; implement pagination
     """
-    defined_base_columns = []
     id = tables.Column(visible=False)
-    defined_base_columns.append('id')
-    
     facility_salt_batch = \
         tables.LinkColumn('sm_detail', args=[A('facility_salt_batch')],visible=False)
     facility_salt_batch.attrs['td'] = {'nowrap': 'nowrap'}
-    defined_base_columns.append('facility_salt_batch')
-    set_field_information_to_table_column(
-        'facility_salt_batch', ['smallmoleculebatch'], facility_salt_batch)
-    
     sm_name = tables.LinkColumn('sm_detail', args=[A('facility_salt_batch')],
                                 visible=False)
-    defined_base_columns.append('sm_name')
-    set_field_information_to_table_column('name', ['smallmolecule'], sm_name)
-
     cell_name = \
         tables.LinkColumn('cell_detail',args=[A('cell_facility_batch')], 
                           visible=False,verbose_name='Cell Name') 
-    defined_base_columns.append('cell_name')
-    set_field_information_to_table_column('name', ['cell'], cell_name)
-    
     cell_facility_batch = \
         tables.LinkColumn('cell_detail',args=[A('cell_facility_batch')], 
                           visible=False,verbose_name='Cell Facility ID') 
-    defined_base_columns.append('cell_facility_batch')
-    set_field_information_to_table_column(
-        'facility_id', ['cell'], cell_facility_batch)
-    
     protein_name = \
         tables.LinkColumn('protein_detail',args=[A('protein_lincs_id')], 
                           visible=False, verbose_name='Protein Name') 
-    defined_base_columns.append('protein_name')
-    set_field_information_to_table_column('name', ['protein'], protein_name)
-    
     protein_lincs_id = \
         tables.LinkColumn('protein_detail',args=[A('protein_lincs_id')], 
                           visible=False, verbose_name='Protein LINCS ID') 
-    defined_base_columns.append('protein_lincs_id')
-    set_field_information_to_table_column('lincs_id', ['protein'], protein_lincs_id)
-    
     antibody_name = \
         tables.LinkColumn('antibody_detail',args=[A('antibody_facility_id')], 
                           visible=False, verbose_name='Antibody Name') 
-    defined_base_columns.append('antibody_name')
-    set_field_information_to_table_column('name', ['antibody'], antibody_name)
-    
     antibody_facility_id = \
         tables.LinkColumn('antibody_detail',args=[A('antibody_facility_id')], 
                           visible=False, verbose_name='Antibody Facility ID') 
-    defined_base_columns.append('antibody_facility_id')
-    set_field_information_to_table_column(
-        'facility_id', ['antibody'], antibody_facility_id)
-    
     otherreagent_name = \
         tables.LinkColumn('otherreagent_detail',
                           args=[A('otherreagent_facility_id')], visible=False, 
                           verbose_name='Other Reagent Name') 
-    defined_base_columns.append('otherreagent_name')
-    set_field_information_to_table_column(
-        'name', ['otherreagent'], otherreagent_name)
-    
     otherreagent_facility_id = \
         tables.LinkColumn('otherreagent_detail',
                           args=[A('otherreagent_facility_id')], visible=False, 
                           verbose_name='Other Reagent Facility ID') 
-    defined_base_columns.append('otherreagent_facility_id')
-    set_field_information_to_table_column(
-        'facility_id', ['otherreagent'], otherreagent_facility_id)
-    
     plate = tables.Column()
-    defined_base_columns.append('plate')
-    set_field_information_to_table_column('plate', ['datarecord'], plate)
-    
     well = tables.Column()
-    defined_base_columns.append('well')
-    set_field_information_to_table_column('well', ['datarecord'], well)
-    
     control_type = tables.Column()
-    defined_base_columns.append('control_type')
-    set_field_information_to_table_column(
-        'control_type', ['datarecord'], control_type)
         
     class Meta:
         orderable = True
@@ -1529,17 +1466,42 @@ class DataSetResultTable(PagedTable):
                  show_cells=False, show_proteins=False, 
                  show_antibodies=False, show_otherreagents=False, 
                  column_exclusion_overrides=None, *args, **kwargs):
-        # Follows is to deal with a bug - columns from one table appear to be 
-        # injecting into other tables!!
+        self.set_field_information_to_table_column(
+            'facility_salt_batch','facility_salt_batch', ['smallmoleculebatch'])
+        self.set_field_information_to_table_column('sm_name','name', ['smallmolecule'])
+        self.set_field_information_to_table_column('cell_name','name', ['cell'])
+        self.set_field_information_to_table_column(
+            'cell_facility_batch', 'facility_id', ['cell'])
+        self.set_field_information_to_table_column('protein_name', 'name', ['protein'])
+        self.set_field_information_to_table_column('protein_lincs_id', 'lincs_id', ['protein'])
+        self.set_field_information_to_table_column('antibody_name', 'name', ['antibody'])
+        self.set_field_information_to_table_column(
+            'antibody_facility_id', 'facility_id', ['antibody'])
+        self.set_field_information_to_table_column(
+            'otherreagent_name', 'name', ['otherreagent'])
+        self.set_field_information_to_table_column(
+            'otherreagent_facility_id','facility_id', ['otherreagent'])
+        self.set_field_information_to_table_column('plate','plate', ['datarecord'])
+        self.set_field_information_to_table_column('well', 'well', ['datarecord'])
+        self.set_field_information_to_table_column(
+            'control_type', 'control_type', ['datarecord'])
+
+        # Follows is to deal with a bug caused by dynamically changing the fields
+        # shown for in the Django tables2 table - columns from one table appear to be 
+        # injecting into other tables.
         # This indicates that we are doing something wrong here by defining 
         # columns dynamically on the class "base_columns" attribute
         # So, to fix, we should redefine all of the base_columns every time here.  
         # For now, what is done is the "defined_base_columns" are preserved, 
-        # then others are added.
+        # then others are added as needed.
+        defined_base_columns = [
+            'id','facility_salt_batch','sm_name','cell_name','cell_facility_batch',
+            'protein_name','protein_lincs_id','antibody_name','antibody_facility_id',
+            'otherreagent_name','otherreagent_facility_id','plate','well','control_type']
         for name in self.base_columns.keys():
-            if name not in self.defined_base_columns:
+            if name not in defined_base_columns:
                 logger.debug(str((
-                    'deleting column from the table', name,self.defined_base_columns)))
+                    'deleting column from the table', name,defined_base_columns)))
                 del self.base_columns[name]
 
         temp = []
@@ -1627,6 +1589,16 @@ class DataSetResultTable(PagedTable):
         else: self.exclude = tuple(column_exclusion_overrides)
         self.sequence = ordered_names
 
+    def set_field_information_to_table_column(self, column_name, fieldname, table_names):
+        try:
+            column = self.base_columns[column_name]
+            fi = FieldInformation.manager.get_column_fieldinformation_by_priority(
+                fieldname,table_names)
+            column.attrs['th']={'title':fi.get_column_detail()}
+            column.verbose_name = SafeString(fi.get_verbose_name())
+        except (Exception) as e:
+            raise Exception(str(('no fieldinformation found for field:', 
+                fieldname, table_names,e)))
 
 # TODO: this class has grown - 
 # needs refactoring to allow ability to filter in a less clumsy way
@@ -2163,10 +2135,6 @@ class LibraryMappingTable(PagedTable):
     plate = tables.Column()
     display_concentration = tables.Column(order_by='concentration')
         
-    snippet_def = (" || ' ' || ".join(
-        map(lambda x: "coalesce(db_smallmolecule."+x.field+",'') ", 
-            FieldInformation.manager.get_search_fields(SmallMolecule)))) 
-    
     class Meta:
         #model = LibraryMapping
         orderable = True
@@ -2304,13 +2272,6 @@ class SmallMoleculeTable(PagedTable):
     lincs_id = tables.Column(order_by=('-lincs_id_null', 'lincs_id'))
     pubchem_cid = tables.Column(order_by=('-pubchem_cid_null', 'pubchem_cid'))
 
-    snippet_def =  (" || ' ' || ".join(
-        map(lambda x: "coalesce( " + x.field+",'') ", 
-            FieldInformation.manager.get_search_fields(SmallMolecule)))) 
-    snippet_def_localized =  (" || ' ' || ".join(
-        map(lambda x: "coalesce( db_smallmolecule." + x.field+",'') ", 
-            FieldInformation.manager.get_search_fields(SmallMolecule)))) 
-        
     class Meta:
         model = SmallMolecule #[SmallMolecule, SmallMoleculeBatch]
         orderable = True
@@ -2404,9 +2365,7 @@ class CellTable(PagedTable):
 #                   "coalesce(cell_type_detail,'') || ' ' || coalesce(disease,'') || ' ' || coalesce(disease_detail,'') || ' ' ||  " +
 #                   "coalesce(growth_properties,'') || ' ' || coalesce(genetic_modification,'') || ' ' || coalesce(related_projects,'') || ' ' || " + 
 #                   "coalesce(recommended_culture_conditions)")
-    snippet_def = (" || ' ' || ".join(
-        map(lambda x: "coalesce(db_cell."+x.field+",'') ", 
-            FieldInformation.manager.get_search_fields(Cell))))
+
     class Meta:
         model = Cell
         orderable = True
@@ -2423,9 +2382,6 @@ class ProteinTable(PagedTable):
     lincs_id = tables.LinkColumn("protein_detail", args=[A('lincs_id')])
     rank = tables.Column()
     snippet = DivWrappedColumn(verbose_name='matched text', classname='snippet')
-    snippet_def = (" || ' ' || ".join(
-        map(lambda x: "coalesce(db_protein."+x.field+",'') ", 
-            FieldInformation.manager.get_search_fields(Protein))))
     alternate_name = DivWrappedColumn(classname='fixed_width_column', visible=False)
     dataset_types = DivWrappedColumn(classname='fixed_width_column', visible=False)
 
@@ -2446,9 +2402,7 @@ class AntibodyTable(PagedTable):
     facility_id = tables.LinkColumn("antibody_detail", args=[A('facility_id')])
     rank = tables.Column()
     snippet = DivWrappedColumn(verbose_name='matched text', classname='snippet')
-    snippet_def = (" || ' ' || ".join(
-        map(lambda x: "coalesce(db_antibody."+x.field+",'') ", 
-            FieldInformation.manager.get_search_fields(Antibody))))
+
     class Meta:
         model = Antibody
         orderable = True
@@ -2463,9 +2417,7 @@ class OtherReagentTable(PagedTable):
     facility_id = tables.LinkColumn("otherreagent_detail", args=[A('facility_id')])
     rank = tables.Column()
     snippet = DivWrappedColumn(verbose_name='matched text', classname='snippet')
-    snippet_def = (" || ' ' || ".join(
-        map(lambda x: "coalesce(db_otherreagent."+x.field+",'') ", 
-            FieldInformation.manager.get_search_fields(OtherReagent))))
+
     class Meta:
         model = OtherReagent
         orderable = True
@@ -2523,9 +2475,6 @@ class LibraryTable(PagedTable):
     rank = tables.Column()
     snippet = DivWrappedColumn(verbose_name='matched text', classname='snippet')
     
-    snippet_def = (" || ' ' || ".join(map(
-        lambda x: "coalesce(db_library."+x.field+",'') ", 
-        FieldInformation.manager.get_search_fields(Library))))
     class Meta:
         orderable = True
         model = Library
@@ -2643,7 +2592,7 @@ WHERE search_vector @@ {query_number}
         RESTRICTION_SQL = " AND (not is_restricted or is_restricted is NULL)"
         sql = SEARCH_SQL.format(
             key_id='facility_id',
-            snippet_def=CellTable.snippet_def,
+            snippet_def=Cell.get_snippet_def(),
             detail_type='cell_detail',
             table_name='db_cell',
             query_number='query1')
@@ -2652,7 +2601,7 @@ WHERE search_vector @@ {query_number}
         sql += " UNION "
         sql += SEARCH_SQL.format(
             key_id= "facility_id || '-' || salt_id" ,
-            snippet_def=SmallMoleculeTable.snippet_def,
+            snippet_def=SmallMolecule.get_snippet_def(),
             detail_type='sm_detail',
             table_name='db_smallmolecule',
             query_number='query2')
@@ -2661,7 +2610,7 @@ WHERE search_vector @@ {query_number}
         sql += " UNION "
         sql += SEARCH_SQL.format(
             key_id='facility_id',
-            snippet_def=DataSetTable.snippet_def,
+            snippet_def=DataSet.get_snippet_def(),
             detail_type='dataset_detail',
             table_name='db_dataset',
             query_number='query3')
@@ -2670,7 +2619,7 @@ WHERE search_vector @@ {query_number}
         sql += " UNION "
         sql += SEARCH_SQL.format(
             key_id='lincs_id',
-            snippet_def=ProteinTable.snippet_def,
+            snippet_def=Protein.get_snippet_def(),
             detail_type='protein_detail',
             table_name='db_protein',
             query_number='query4')
@@ -2679,7 +2628,7 @@ WHERE search_vector @@ {query_number}
         sql += " UNION "
         sql += SEARCH_SQL.format(
             key_id='facility_id',
-            snippet_def=AntibodyTable.snippet_def,
+            snippet_def=Antibody.get_snippet_def(),
             detail_type='antibody_detail',
             table_name='db_antibody',
             query_number='query5')
@@ -2688,7 +2637,7 @@ WHERE search_vector @@ {query_number}
         sql += " UNION "
         sql += SEARCH_SQL.format(
             key_id='facility_id',
-            snippet_def=OtherReagentTable.snippet_def,
+            snippet_def=OtherReagent.get_snippet_def(),
             detail_type='otherreagent_detail',
             table_name='db_otherreagent',
             query_number='query6')
@@ -2838,7 +2787,7 @@ class CellSearchManager(SearchManager):
         id_fields = ['name', 'alternate_name', 'center_name']
         query =  super(CellSearchManager, self).search(
             base_query, 'db_cell', searchString, id_fields, 
-            CellTable.snippet_def, ids=cell_ids)
+            Cell.get_snippet_def(), ids=cell_ids)
         
         return query
 
@@ -2873,7 +2822,7 @@ class ProteinSearchManager(SearchManager):
              'provider_catalog_id']
         return super(ProteinSearchManager, self).search(
             Protein.objects, 'db_protein', searchString, id_fields, 
-            ProteinTable.snippet_def)        
+            Protein.get_snippet_def())        
     
     def join_query_to_dataset_type(self, queryset, dataset_type=None ):
         key = 'dataset_types'
@@ -2914,7 +2863,7 @@ class SmallMoleculeSearchManager(SearchManager):
         
         return super(SmallMoleculeSearchManager, self).search(
             queryset, 'db_smallmolecule', searchString, id_fields, 
-            SmallMoleculeTable.snippet_def_localized, ids=sm_ids )        
+            SmallMolecule.get_snippet_def(), ids=sm_ids )        
 
     def join_query_to_dataset_type(self, queryset, dataset_type=None ):
         key = 'dataset_types'
@@ -2945,7 +2894,7 @@ class AntibodySearchManager(SearchManager):
         id_fields = ['name', 'alternative_names', 'lincs_id']
         return super(AntibodySearchManager, self).search(
             Antibody.objects, 'db_antibody', searchString, id_fields, 
-            AntibodyTable.snippet_def)        
+            Antibody.get_snippet_def())        
 
 
 class OtherReagentSearchManager(SearchManager):
@@ -2955,7 +2904,7 @@ class OtherReagentSearchManager(SearchManager):
         id_fields = ['name', 'alternative_names', 'lincs_id']
         return super(OtherReagentSearchManager, self).search(
             OtherReagent.objects, 'db_otherreagent', searchString, id_fields, 
-            OtherReagentTable.snippet_def)        
+            OtherReagent.get_snippet_def())        
 
 
 class SiteSearchTable(PagedTable):
