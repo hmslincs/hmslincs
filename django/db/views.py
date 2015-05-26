@@ -1016,7 +1016,10 @@ def datasetDetailResults(request, facility_id, template='db/datasetDetailResults
         details['pop_out_link'] = request.get_full_path().replace('results','results_minimal')
 
         return render(request,template, details)
-    except Http401, _:
+        
+    except DataSet.DoesNotExist:
+        raise Http404    
+    except Http401:
         return HttpResponse('Unauthorized', status=401)
 
 def datasetDetail(request, facility_id, sub_page):
@@ -3288,6 +3291,8 @@ def export_as_csv(name,col_key_name_map, cursor=None, queryset=None,
     """
     Generic csv export admin action.
     """
+    assert not (cursor and queryset), 'must define either cursor or queryset, not both'
+
     response = HttpResponse(mimetype='text/csv')
     response['Content-Disposition'] = \
         'attachment; filename=%s.csv' % unicode(name).replace('.', '_')
@@ -3297,8 +3302,10 @@ def export_as_csv(name,col_key_name_map, cursor=None, queryset=None,
 
     debug_interval=1000
     row = 0
-    assert (cursor or queryset) \
-        and not (cursor and queryset), 'must define either cursor or queryset'
+    
+    if not (cursor or queryset):
+        return response
+    
     if cursor:
         obj=cursor.fetchone()
         keys = col_key_name_map.keys()
@@ -3338,6 +3345,8 @@ def export_as_xls(name,col_key_name_map, cursor=None, queryset=None,
     """
     Generic xls export admin action.
     """
+    assert not (cursor and queryset), 'must define either cursor or queryset, not both'
+
     logger.info(str(('------is auth:',is_authenticated)) )
     response = HttpResponse(mimetype='applicatxlwt.Workbookion/Excel')
     response['Content-Disposition'] = \
@@ -3350,8 +3359,10 @@ def export_as_xls(name,col_key_name_map, cursor=None, queryset=None,
             
     debug_interval=1000
     row = 0
-    assert (cursor or queryset) \
-        and not (cursor and queryset), 'must define either cursor or queryset'
+    
+    if not (cursor or queryset):
+        return response
+
     if cursor:
         obj=cursor.fetchone()
         keys = col_key_name_map.keys()
