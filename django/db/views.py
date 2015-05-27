@@ -1016,7 +1016,10 @@ def datasetDetailResults(request, facility_id, template='db/datasetDetailResults
         details['pop_out_link'] = request.get_full_path().replace('results','results_minimal')
 
         return render(request,template, details)
-    except Http401, _:
+        
+    except DataSet.DoesNotExist:
+        raise Http404    
+    except Http401:
         return HttpResponse('Unauthorized', status=401)
 
 def datasetDetail(request, facility_id, sub_page):
@@ -3131,6 +3134,8 @@ def send_to_file1(outputType, name, table_name, ordered_datacolumns, cursor,
     elif(outputType == '.xls'):
         return export_as_xls(name, col_key_name_map, cursor=cursor, 
                              is_authenticated=is_authenticated)
+    else:
+        raise Http404('Unknown output type: %s, must be one of [".xls",".csv"]' % outputType )
 
 def send_to_file(outputType, name, table, queryset, table_name, 
                  extra_columns = [], is_authenticated=False): 
@@ -3196,6 +3201,8 @@ def send_to_file(outputType, name, table, queryset, table_name,
         return export_as_xls(
             name, OrderedDict(columnsOrdered_filtered), queryset=queryset, 
             is_authenticated=is_authenticated)
+    else:
+        raise Http404('Unknown output type: %s, must be one of [".xls",".csv"]' % outputType )
 
 def get_cols_to_write(cursor, fieldinformation_tables=None, 
                       ordered_datacolumns=None):
@@ -3288,6 +3295,8 @@ def export_as_csv(name,col_key_name_map, cursor=None, queryset=None,
     """
     Generic csv export admin action.
     """
+    assert (bool(cursor) ^ bool(queryset)), 'must define either cursor or queryset, not both'
+
     response = HttpResponse(mimetype='text/csv')
     response['Content-Disposition'] = \
         'attachment; filename=%s.csv' % unicode(name).replace('.', '_')
@@ -3297,8 +3306,7 @@ def export_as_csv(name,col_key_name_map, cursor=None, queryset=None,
 
     debug_interval=1000
     row = 0
-    assert (cursor or queryset) \
-        and not (cursor and queryset), 'must define either cursor or queryset'
+    
     if cursor:
         obj=cursor.fetchone()
         keys = col_key_name_map.keys()
@@ -3338,6 +3346,8 @@ def export_as_xls(name,col_key_name_map, cursor=None, queryset=None,
     """
     Generic xls export admin action.
     """
+    assert (bool(cursor) ^ bool(queryset)), 'must define either cursor or queryset, not both'
+
     logger.info(str(('------is auth:',is_authenticated)) )
     response = HttpResponse(mimetype='applicatxlwt.Workbookion/Excel')
     response['Content-Disposition'] = \
@@ -3350,8 +3360,7 @@ def export_as_xls(name,col_key_name_map, cursor=None, queryset=None,
             
     debug_interval=1000
     row = 0
-    assert (cursor or queryset) \
-        and not (cursor and queryset), 'must define either cursor or queryset'
+    
     if cursor:
         obj=cursor.fetchone()
         keys = col_key_name_map.keys()
