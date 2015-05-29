@@ -3346,13 +3346,17 @@ def export_as_xls(name,col_key_name_map, cursor=None, queryset=None,
     """
     Generic xls export admin action.
     """
-    assert (bool(cursor) ^ bool(queryset)), 'must define either cursor or queryset, not both'
-
+    assert not (bool(cursor) and bool(queryset)), 'must define either cursor or queryset, not both'
+    
     logger.info(str(('------is auth:',is_authenticated)) )
     response = HttpResponse(mimetype='applicatxlwt.Workbookion/Excel')
     response['Content-Disposition'] = \
         'attachment; filename=%s.xls' % unicode(name).replace('.', '_')
 
+    if not (bool(cursor) or bool(queryset)):
+        logger.info(str(('empty result for', name)))
+        return response
+    
     wbk = xlwt.Workbook(encoding='utf8')
     sheet = wbk.add_sheet('sheet 1') # Write a first row with header information
     for i,name in enumerate(col_key_name_map.values()):
