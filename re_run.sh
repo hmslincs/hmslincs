@@ -136,7 +136,7 @@ then
   check_errs $? "import cell fails"
   
   echo 'import cell batch tables ...'
-  python src/import_cell_batch.py -f sampledata/cell_line_batch.xlsx
+  python src/import_cell_batch.py -f sampledata/sample_cell_line_batch.xlsx
   check_errs $? "import cell fails"
   
   echo 'import small molecule tables...'
