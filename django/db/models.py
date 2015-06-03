@@ -887,7 +887,7 @@ def get_fielddata(model_object, search_tables, field_information_filter=None, ex
                 logger.debug(str(('field not shown in this view: ', field,value)))
         except (FieldInformationLookupException) as e:
             logger.debug(str(('no field information defined for: ', field, value)))
-    ui_dict = OrderedDict(sorted(ui_dict.items(), key=lambda x: x[1]['fieldinformation'].order))
+    ui_dict = OrderedDict(sorted(ui_dict.items(), key=lambda x: x[1]['fieldinformation'].detail_order))
     if(logger.isEnabledFor(logging.DEBUG)): logger.debug(str(('ui_dict',ui_dict)))
     return ui_dict
     #return self.DatasetForm(data)

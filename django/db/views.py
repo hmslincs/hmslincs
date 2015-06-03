@@ -3017,7 +3017,7 @@ def set_table_column_info(table,table_names, sequence_override=None,
             logger.info(str(('no fieldinformation found for field:',fieldname)))
             if(fieldname not in exclude_list):
                 exclude_list.append(fieldname)
-    fields = OrderedDict(sorted(fields.items(), key=lambda x: x[1].order))
+    fields = OrderedDict(sorted(fields.items(), key=lambda x: x[1].list_order))
     sequence = filter(
         lambda x: x not in sequence_override and x not in visible_field_overrides, 
         [x for x in fields.keys()])
