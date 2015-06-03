@@ -2222,7 +2222,7 @@ class SmallMoleculeBatchTable(PagedTable):
 
 
 class CellBatchTable(PagedTable):
-    batch_id = tables.LinkColumn("cell_detail2", args=[A('cell.facility_id'),A('batch_id')])
+    batch_id = BatchInfoLinkColumn("cell_detail2", args=[A('cell.facility_id'),A('batch_id')])
     
     class Meta:
         model = CellBatch

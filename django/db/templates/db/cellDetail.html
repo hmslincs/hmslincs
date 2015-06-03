@@ -27,6 +27,7 @@
   {% endif %}
 
   {% if cell_batch %}
+    <a name='batchinfo'></a>
     <h2 class='entity_detail_title'>Batch Information:</h2>
     {% include "db/detailListing.html" with object=cell_batch %}
     {% if attached_files_batch %}
