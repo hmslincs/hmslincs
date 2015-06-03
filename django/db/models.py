@@ -233,7 +233,8 @@ class FieldInformation(models.Model):
     show_in_detail          = models.BooleanField(default=False, null=False) # Note: default=False are not set at the db level, only at the Db-api level
     show_in_list            = models.BooleanField(default=False, null=False) # Note: default=False are not set at the db level, only at the Db-api level
     show_as_extra_field     = models.BooleanField(default=False, null=False) # Note: default=False are not set at the db level, only at the Db-api level
-    order                   = _INTEGER(null=False)
+    list_order              = _INTEGER(null=False)
+    detail_order            = _INTEGER(null=False)
     is_lincs_field          = models.BooleanField(default=False, null=False) # Note: default=False are not set at the db level, only at the Db-api level
     use_for_search_index    = models.BooleanField(default=False) # Note: default=False are not set at the db level, only at the Db-api level
     dwg_version             = _CHAR(max_length=35,**_NULLOKSTR)
