@@ -11,7 +11,6 @@ logger = logging.getLogger(__name__)
 
 # *temporary* shorthand, to make the following declarations more visually
 # digestible
-_CHAR       = models.CharField
 _INTEGER    = models.IntegerField
 _TEXT       = models.TextField
 
@@ -203,9 +202,6 @@ class PubchemRequest(models.Model):
     type    = _TEXT( null=False)
     pubchem_error_message = _TEXT( **_NULLOKSTR )
     error_message = _TEXT( **_NULLOKSTR )
-#    type    = models.CharField(null=True, max_length=12,
-#                               choices=PUBCHEM_TYPES,
-#                               default=PUBCHEM_TYPE_IDENTITY)
     date_time_fullfilled = models.DateTimeField(null=True) 
     date_time_processing = models.DateTimeField(null=True) 
     date_time_requested = models.DateTimeField(null=False, default=timezone.now ) 
@@ -226,10 +222,10 @@ class FieldInformation(models.Model):
     manager                 = FieldsManager()
     objects                 = models.Manager() # default manager
     
-    table                   = _CHAR(max_length=35, **_NULLOKSTR)
-    field                   = _CHAR(max_length=35, **_NULLOKSTR)
-    alias                   = _CHAR(max_length=35, **_NULLOKSTR)
-    queryset                = _CHAR(max_length=35, **_NULLOKSTR)
+    table                   = _TEXT(**_NULLOKSTR)
+    field                   = _TEXT(**_NULLOKSTR)
+    alias                   = _TEXT(**_NULLOKSTR)
+    queryset                = _TEXT(**_NULLOKSTR)
     show_in_detail          = models.BooleanField(default=False, null=False) # Note: default=False are not set at the db level, only at the Db-api level
     show_in_list            = models.BooleanField(default=False, null=False) # Note: default=False are not set at the db level, only at the Db-api level
     show_as_extra_field     = models.BooleanField(default=False, null=False) # Note: default=False are not set at the db level, only at the Db-api level
@@ -237,8 +233,8 @@ class FieldInformation(models.Model):
     detail_order            = _INTEGER(null=False)
     is_lincs_field          = models.BooleanField(default=False, null=False) # Note: default=False are not set at the db level, only at the Db-api level
     use_for_search_index    = models.BooleanField(default=False) # Note: default=False are not set at the db level, only at the Db-api level
-    dwg_version             = _CHAR(max_length=35,**_NULLOKSTR)
-    unique_id               = _CHAR(max_length=35,null=False,unique=True)
+    dwg_version             = _TEXT(**_NULLOKSTR)
+    unique_id               = _TEXT(null=False,unique=True)
     dwg_field_name              = _TEXT(**_NULLOKSTR) # LINCS name for display
     hms_field_name              = _TEXT(**_NULLOKSTR) # override the LINCS name for display
     related_to              = _TEXT(**_NULLOKSTR)
@@ -315,10 +311,10 @@ class FieldInformation(models.Model):
 
 class QCEvent(models.Model):
     
-    facility_id_for = models.CharField(max_length=_FACILITY_ID_LENGTH, null=False)
-    salt_id_for = models.CharField(max_length=_SALT_ID_LENGTH, null=True)
-    batch_id_for =models.CharField(max_length=_BATCH_ID_LENGTH, null=True)
-    outcome = models.CharField(max_length=36, null=False)
+    facility_id_for = models.TextField(null=False)
+    salt_id_for = models.TextField(null=True)
+    batch_id_for =models.TextField(null=True)
+    outcome = models.TextField(null=False)
     date = models.DateField(null=False)
     comment = models.TextField(null=True)
     
@@ -350,16 +346,16 @@ class QCAttachedFile(models.Model):
 class SmallMolecule(models.Model):
     
     nominal_target          = models.ForeignKey('Protein', null=True)
-    facility_id             = _CHAR(max_length=_FACILITY_ID_LENGTH, **_NOTNULLSTR)
-    salt_id                 = _CHAR(max_length=_SALT_ID_LENGTH, **_NOTNULLSTR)
-    lincs_id                = _CHAR(max_length=15, **_NULLOKSTR)
+    facility_id             = _TEXT(max_length=_FACILITY_ID_LENGTH, **_NOTNULLSTR)
+    salt_id                 = _TEXT(max_length=_SALT_ID_LENGTH, **_NOTNULLSTR)
+    lincs_id                = _TEXT(**_NULLOKSTR)
     name                    = _TEXT(**_NOTNULLSTR) 
     alternative_names       = _TEXT(**_NULLOKSTR) 
     #facility_batch_id       = _INTEGER(null=True)
     molfile                 = _TEXT(**_NULLOKSTR)
-    pubchem_cid             = _CHAR(max_length=15, **_NULLOKSTR)
-    chembl_id               = _CHAR(max_length=15, **_NULLOKSTR)
-    chebi_id                = _CHAR(max_length=15, **_NULLOKSTR)
+    pubchem_cid             = _TEXT(**_NULLOKSTR)
+    chembl_id               = _TEXT(**_NULLOKSTR)
+    chebi_id                = _TEXT(**_NULLOKSTR)
     _inchi                   = _TEXT(db_column='inchi', **_NULLOKSTR)
     _inchi_key               = _TEXT(db_column='inchi_key', **_NULLOKSTR)
     _smiles                  = _TEXT( db_column='smiles', **_NULLOKSTR)
@@ -367,11 +363,11 @@ class SmallMolecule(models.Model):
     # Following fields not listed for the canonical information in the DWG, but per HMS policy will be - sde4
     _molecular_mass          = models.DecimalField(db_column='molecular_mass', max_digits=8, decimal_places=2, null=True) # Note: FloatField results in a (postgres) double precision datatype - 8 bytes; approx 15 digits of decimal precision
     _molecular_formula       = _TEXT(db_column='molecular_formula', **_NULLOKSTR)
-    # concentration          = _CHAR(max_length=35, **_NULLOKSTR)
+    # concentration          = _TEXT(**_NULLOKSTR)
     #plate                   = _INTEGER(null=True)
-    #row                     = _CHAR(max_length=1, **_NULLOKSTR)
+    #row                     = _TEXT(**_NULLOKSTR)
     #column                  = _INTEGER(null=True)
-    #well_type               = _CHAR(max_length=35, **_NULLOKSTR)
+    #well_type               = _TEXT(**_NULLOKSTR)
     is_restricted           = models.BooleanField(default=False) # Note: default=False are not set at the db level, only at the Db-api level
 
     class Meta:
@@ -432,18 +428,15 @@ CONCENTRATION_WEIGHT_VOLUME_CHOICES = ((CONCENTRATION_GL,CONCENTRATION_GL),
 
 class SmallMoleculeBatch(models.Model):
     smallmolecule           = models.ForeignKey('SmallMolecule')
-    facility_batch_id       = _CHAR(max_length=_BATCH_ID_LENGTH, **_NOTNULLSTR)
+    facility_batch_id       = _TEXT(max_length=_BATCH_ID_LENGTH, **_NOTNULLSTR)
     provider                = _TEXT(**_NULLOKSTR)
-    provider_catalog_id     = _CHAR(max_length=64, **_NULLOKSTR)
-    provider_sample_id      = _CHAR(max_length=35, **_NULLOKSTR)
+    provider_catalog_id     = _TEXT(**_NULLOKSTR)
+    provider_sample_id      = _TEXT(**_NULLOKSTR)
     chemical_synthesis_reference = _TEXT(**_NULLOKSTR)
     purity                  = _TEXT(**_NULLOKSTR)
     purity_method           = _TEXT(**_NULLOKSTR)
     aqueous_solubility      = models.DecimalField(max_digits=4, decimal_places=2, null=True)
-    aqueous_solubility_unit = models.CharField(null=True,
-                                               max_length=2,
-                                      choices=CONCENTRATION_WEIGHT_VOLUME_CHOICES,
-                                      default=CONCENTRATION_MGML)
+    aqueous_solubility_unit = models.TextField(null=True,default=CONCENTRATION_MGML)
     date_data_received      = models.DateField(null=True,blank=True)
     date_loaded             = models.DateField(null=True,blank=True)
     date_publicly_available = models.DateField(null=True,blank=True)
@@ -465,35 +458,35 @@ class SmallMoleculeBatch(models.Model):
     facility_salt_batch = property(_get_facility_salt_batch)    
 
 class Cell(models.Model):
-    facility_id = models.CharField(max_length=_FACILITY_ID_LENGTH, unique=True, null=False)
-    name = models.CharField(max_length=35, unique=True, null=False)
-    lincs_id = models.CharField(max_length=35, null=True)
-    alternate_name = models.CharField(max_length=35, null=True)
-    alternate_id = models.CharField(max_length=50, null=True)
-    center_name = models.CharField(max_length=20, null=False)
-    center_specific_id = models.CharField(max_length=15, null=False)
-    mgh_id = models.CharField(max_length=15, null=True)
+    facility_id = models.TextField(unique=True, null=False)
+    name = models.TextField(unique=True, null=False)
+    lincs_id = models.TextField(null=True)
+    alternate_name = models.TextField(null=True)
+    alternate_id = models.TextField(null=True)
+    center_name = models.TextField(null=False)
+    center_specific_id = models.TextField(null=False)
+    mgh_id = models.TextField(null=True)
     assay = models.TextField(null=True)
-    organism = models.CharField(max_length=35, null=True)
-    organ = models.CharField(max_length=35, null=True)
-    tissue = models.CharField(max_length=35, null=True)
-    cell_type = models.CharField(max_length=35, null=True)
-    cell_type_detail = models.CharField(max_length=35, null=True)
+    organism = models.TextField(null=True)
+    organ = models.TextField(null=True)
+    tissue = models.TextField(null=True)
+    cell_type = models.TextField(null=True)
+    cell_type_detail = models.TextField(null=True)
     disease = models.TextField(null=True)
     disease_detail = models.TextField(null=True)
     growth_properties = models.TextField(null=True)
-    genetic_modification = models.CharField(max_length=35, null=True)
-    related_projects = models.CharField(max_length=35, null=True)
+    genetic_modification = models.TextField(null=True)
+    related_projects = models.TextField(null=True)
     recommended_culture_conditions = models.TextField(null=True)
     verification_reference_profile = models.TextField(null=True)
     mutations_reference = models.TextField(null=True)
     mutations_explicit = models.TextField(null=True)
     
     reference_source = models.TextField(null=True)
-    reference_source_id = models.CharField(max_length=64, null=True)
-    donor_sex = models.CharField(max_length=16, null=True)
+    reference_source_id = models.TextField(null=True)
+    donor_sex = models.TextField(null=True)
     donor_age_years = models.IntegerField(null=True)
-    donor_ethnicity = models.CharField(max_length=128, null=True)
+    donor_ethnicity = models.TextField(null=True)
     donor_health_status = models.TextField(null=True)
     molecular_features = models.TextField(null=True)
     relevant_citations = models.TextField(null=True)
@@ -513,10 +506,10 @@ class Cell(models.Model):
 
 class CellBatch(models.Model):
     cell = models.ForeignKey('Cell')
-    batch_id = models.CharField(max_length=_BATCH_ID_LENGTH, null=False)
+    batch_id = models.TextField(max_length=_BATCH_ID_LENGTH, null=False)
     provider_name = models.TextField(null=True)
-    provider_batch_id = models.CharField(max_length=64, null=False)
-    provider_catalog_id = models.CharField(max_length=64, null=True)
+    provider_batch_id = models.TextField(null=False)
+    provider_catalog_id = models.TextField(null=True)
     verification_profile = models.TextField(null=True)
     transient_modification = models.TextField(null=True)
     
@@ -533,26 +526,26 @@ class CellBatch(models.Model):
 
 class Protein(models.Model):
     name                = _TEXT(**_NOTNULLSTR)
-    lincs_id            = _CHAR(max_length=_FACILITY_ID_LENGTH, unique=True, **_NOTNULLSTR)
-    uniprot_id          = _CHAR(max_length=13, **_NULLOKSTR) # Note: UNIPROT ID's are 6 chars long, but we have a record with two in it, see issue #74
+    lincs_id            = _TEXT(max_length=_FACILITY_ID_LENGTH, unique=True, **_NOTNULLSTR)
+    uniprot_id          = _TEXT(**_NULLOKSTR) # Note: UNIPROT ID's are 6 chars long, but we have a record with two in it, see issue #74
     alternate_name      = _TEXT(**_NULLOKSTR)
     alternate_name_2    = _TEXT(**_NULLOKSTR)
     provider            = _TEXT(**_NULLOKSTR)
     provider_catalog_id = _TEXT(**_NULLOKSTR)
-    batch_id            = _CHAR(max_length=10, **_NULLOKSTR)
+    batch_id            = _TEXT(**_NULLOKSTR)
     amino_acid_sequence = _TEXT(**_NULLOKSTR)
-    gene_symbol         = _CHAR(max_length=35, **_NULLOKSTR)
-    gene_id             = _CHAR(max_length=35, **_NULLOKSTR)
-    protein_source      = _CHAR(max_length=65, **_NULLOKSTR)
+    gene_symbol         = _TEXT(**_NULLOKSTR)
+    gene_id             = _TEXT(**_NULLOKSTR)
+    protein_source      = _TEXT(**_NULLOKSTR)
     protein_form        = _TEXT(**_NULLOKSTR) 
     protein_domain        = _TEXT(**_NULLOKSTR) 
     phosphlorylation    = _TEXT(**_NULLOKSTR) 
     mutation            = _TEXT(**_NULLOKSTR) 
     protein_purity      = _TEXT(**_NULLOKSTR)
     protein_complex     = _TEXT(**_NULLOKSTR)
-    isoform             = _CHAR(max_length=5, **_NULLOKSTR) #TODO: Shall this be boolean?
-    protein_type        = _CHAR(max_length=35, **_NULLOKSTR) #TODO: controlled vocabulary
-    source_organism     = _CHAR(max_length=35, **_NULLOKSTR) #TODO: controlled vocabulary
+    isoform             = _TEXT(**_NULLOKSTR) #TODO: Shall this be boolean?
+    protein_type        = _TEXT(**_NULLOKSTR) #TODO: controlled vocabulary
+    source_organism     = _TEXT(**_NULLOKSTR) #TODO: controlled vocabulary
     reference           = _TEXT(**_NULLOKSTR)
     date_data_received      = models.DateField(null=True,blank=True)
     date_loaded             = models.DateField(null=True,blank=True)
@@ -569,20 +562,20 @@ class Protein(models.Model):
 
 
 class Antibody(models.Model):
-    facility_id             = _CHAR(max_length=_FACILITY_ID_LENGTH, **_NOTNULLSTR)
-    lincs_id                = _CHAR(max_length=15, **_NULLOKSTR)
+    facility_id             = _TEXT(max_length=_FACILITY_ID_LENGTH, **_NOTNULLSTR)
+    lincs_id                = _TEXT(**_NULLOKSTR)
     name                    = _TEXT(**_NOTNULLSTR)
     alternative_names       = _TEXT(**_NULLOKSTR) 
     target_protein_name     = _TEXT(**_NULLOKSTR) 
-    target_protein_uniprot_id       = _CHAR(max_length=13, **_NULLOKSTR) # Note: UNIPROT ID's are 6 chars long, but we have a record with two in it, see issue #74
-    target_gene_name      = _CHAR(max_length=35, **_NULLOKSTR)
-    target_gene_id          = _CHAR(max_length=35, **_NULLOKSTR)
-    target_organism         = _CHAR(max_length=35, **_NULLOKSTR) #TODO: controlled vocabulary
+    target_protein_uniprot_id       = _TEXT(**_NULLOKSTR) # Note: UNIPROT ID's are 6 chars long, but we have a record with two in it, see issue #74
+    target_gene_name      = _TEXT(**_NULLOKSTR)
+    target_gene_id          = _TEXT(**_NULLOKSTR)
+    target_organism         = _TEXT(**_NULLOKSTR) #TODO: controlled vocabulary
     immunogen               = _TEXT(**_NULLOKSTR) 
     immunogen_sequence      = _TEXT(**_NULLOKSTR) 
     antibody_clonality      = _TEXT(**_NULLOKSTR) 
-    source_organism         = _CHAR(max_length=35, **_NULLOKSTR) #TODO: controlled vocabulary
-    antibody_isotype        = _CHAR(max_length=35, **_NULLOKSTR)
+    source_organism         = _TEXT(**_NULLOKSTR) #TODO: controlled vocabulary
+    antibody_isotype        = _TEXT(**_NULLOKSTR)
     engineering             = _TEXT(**_NULLOKSTR) 
     antibody_purity         = _TEXT(**_NULLOKSTR) 
     antibody_labeling       = _TEXT(**_NULLOKSTR) 
@@ -601,17 +594,17 @@ class Antibody(models.Model):
     
 class AntibodyBatch(models.Model):
     antibody           = models.ForeignKey('Antibody')
-    facility_batch_id       = _CHAR(max_length=_BATCH_ID_LENGTH, **_NOTNULLSTR)
+    facility_batch_id       = _TEXT(max_length=_BATCH_ID_LENGTH, **_NOTNULLSTR)
     provider                = _TEXT(**_NULLOKSTR)
-    provider_catalog_id     = _CHAR(max_length=64, **_NULLOKSTR)
+    provider_catalog_id     = _TEXT(**_NULLOKSTR)
     
 class OtherReagent(models.Model):
-    facility_id             = _CHAR(max_length=_FACILITY_ID_LENGTH, **_NOTNULLSTR)
-    lincs_id                = _CHAR(max_length=15, **_NULLOKSTR)
-    alternate_id            = _CHAR(max_length=15, **_NULLOKSTR)
+    facility_id             = _TEXT(max_length=_FACILITY_ID_LENGTH, **_NOTNULLSTR)
+    lincs_id                = _TEXT(**_NULLOKSTR)
+    alternate_id            = _TEXT(**_NULLOKSTR)
     name                    = _TEXT(**_NOTNULLSTR)
     alternative_names       = _TEXT(**_NULLOKSTR) 
-    role                    = _CHAR(max_length=35, **_NULLOKSTR)
+    role                    = _TEXT(**_NULLOKSTR)
     reference               = _TEXT(**_NULLOKSTR) 
     date_data_received      = models.DateField(null=True,blank=True)
     date_loaded             = models.DateField(null=True,blank=True)
@@ -625,13 +618,13 @@ class OtherReagent(models.Model):
 
 class OtherReagentBatch(models.Model):
     other_reagent           = models.ForeignKey('OtherReagent')
-    facility_batch_id       = _CHAR(max_length=_BATCH_ID_LENGTH, **_NOTNULLSTR)
+    facility_batch_id       = _TEXT(max_length=_BATCH_ID_LENGTH, **_NOTNULLSTR)
     provider                = _TEXT(**_NULLOKSTR)
-    provider_catalog_id     = _CHAR(max_length=64, **_NULLOKSTR)
+    provider_catalog_id     = _TEXT(**_NULLOKSTR)
     
 class DataSet(models.Model):
     #cells                   = models.ManyToManyField(Cell, verbose_name="Cells screened")
-    facility_id             = _CHAR(max_length=_FACILITY_ID_LENGTH, unique=True, **_NOTNULLSTR)
+    facility_id             = _TEXT(max_length=_FACILITY_ID_LENGTH, unique=True, **_NOTNULLSTR)
     title                   = _TEXT(unique=True, **_NOTNULLSTR)
     lead_screener_firstname = _TEXT(**_NULLOKSTR)
     lead_screener_lastname  = _TEXT(**_NULLOKSTR)
@@ -688,9 +681,8 @@ LIBRARY_TYPES = ((LIBRARY_TYPE_PLATED, LIBRARY_TYPE_PLATED),
                  (LIBRARY_TYPE_VIAL, LIBRARY_TYPE_VIAL),)
 class Library(models.Model):
     name                    = _TEXT(unique=True,**_NOTNULLSTR)
-    short_name              = _CHAR(max_length=35,unique=True, **_NOTNULLSTR)
-    type                    = models.CharField(null=True, max_length=24,
-                                      choices=LIBRARY_TYPES,
+    short_name              = _TEXT(unique=True, **_NOTNULLSTR)
+    type                    = models.TextField(null=True,                                       choices=LIBRARY_TYPES,
                                       default=LIBRARY_TYPE_NON_PLATED)
     date_first_plated       = models.DateField(null=True,blank=True)
     date_data_received      = models.DateField(null=True,blank=True)
@@ -715,10 +707,9 @@ class LibraryMapping(models.Model):
     smallmolecule_batch     = models.ForeignKey('SmallMoleculeBatch',null=True)
     is_control              = models.BooleanField()
     plate                   = _INTEGER(null=True)
-    well                    = _CHAR(max_length=4, **_NULLOKSTR) # AA99
+    well                    = _TEXT(**_NULLOKSTR) # AA99
     concentration           = models.DecimalField(max_digits=4, decimal_places=2, null=True)
-    concentration_unit      = models.CharField(null=True, max_length=2,
-                                      choices=CONCENTRATION_CHOICES,
+    concentration_unit      = models.TextField(null=True,                                       choices=CONCENTRATION_CHOICES,
                                       default=CONCENTRATION_UM)
     
     def _get_display_concentration(self):
@@ -756,8 +747,8 @@ class DataRecord(models.Model):
     dataset                 = models.ForeignKey('DataSet')
     smallmolecule           = models.ForeignKey('SmallMolecule', null=True)
     
-    sm_batch_id             = _CHAR(max_length=_BATCH_ID_LENGTH, **_NULLOKSTR) 
-    cell_batch_id           = _CHAR(max_length=_BATCH_ID_LENGTH, **_NULLOKSTR) 
+    sm_batch_id             = _TEXT(max_length=_BATCH_ID_LENGTH, **_NULLOKSTR) 
+    cell_batch_id           = _TEXT(max_length=_BATCH_ID_LENGTH, **_NULLOKSTR) 
     
     # NOTE: library_mapping: used in the case of control wells, if smallmolecule_batch is defined, then this must match the librarymapping to the smb
     library_mapping         = models.ForeignKey('LibraryMapping',null=True)  
@@ -766,8 +757,8 @@ class DataRecord(models.Model):
     antibody                = models.ForeignKey('Antibody', null=True)
     otherreagent            = models.ForeignKey('OtherReagent', null=True)
     plate                   = _INTEGER(null=True)
-    well                    = _CHAR(max_length=4, **_NULLOKSTR) # AA99
-    control_type            = _CHAR(max_length=35, **_NULLOKSTR) # TODO: controlled vocabulary
+    well                    = _TEXT(**_NULLOKSTR) # AA99
+    control_type            = _TEXT(**_NULLOKSTR) # TODO: controlled vocabulary
     def __unicode__(self):
         return unicode(str((self.dataset,self.smallmolecule,self.cell,self.protein,self.plate,self.well)))
     
@@ -788,9 +779,9 @@ class AttachedFile(models.Model):
     filename                = _TEXT(unique=True,**_NOTNULLSTR)
     description             = _TEXT(**_NULLOKSTR)
     relative_path           = _TEXT(**_NULLOKSTR)
-    facility_id_for         = _CHAR(max_length=_FACILITY_ID_LENGTH, **_NULLOKSTR)
-    salt_id_for             = _CHAR(max_length=_SALT_ID_LENGTH, **_NULLOKSTR)
-    batch_id_for            = _CHAR(max_length=_BATCH_ID_LENGTH, **_NULLOKSTR)
+    facility_id_for         = _TEXT(max_length=_FACILITY_ID_LENGTH, **_NULLOKSTR)
+    salt_id_for             = _TEXT(max_length=_SALT_ID_LENGTH, **_NULLOKSTR)
+    batch_id_for            = _TEXT(max_length=_BATCH_ID_LENGTH, **_NULLOKSTR)
     file_type               = _TEXT(**_NULLOKSTR)
     file_date               = models.DateField(null=True,blank=True)
     is_restricted           = models.BooleanField(default=False) # Note: default=False are not set at the db level, only at the Db-api level
@@ -804,7 +795,7 @@ class AttachedFile(models.Model):
     
     relative_path_to_file = property(_get_relative_path_to_file)
      
-del _CHAR, _TEXT, _INTEGER
+del _TEXT, _INTEGER
 del _NULLOKSTR, _NOTNULLSTR
 
 def get_properties(obj):
