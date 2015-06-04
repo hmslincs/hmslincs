@@ -176,12 +176,7 @@ def cellDetail(request, facility_batch, batch_id=None):
             return HttpResponse('Log in required.', status=401)
         details = {'object': get_detail(cell, ['cell',''])}
         
-        #Testing...
         details['facility_id'] = cell.facility_id
-        #
-        
-        
-        logger.info(str(('batch_id', _batch_id)))
         cell_batch = None
         if(_batch_id):
             cell_batch = CellBatch.objects.get(
@@ -198,6 +193,7 @@ def cellDetail(request, facility_batch, batch_id=None):
         if cell_batch:
             details['cell_batch']= get_detail(
                 cell_batch,['cellbatch',''])
+            details['facility_batch'] = '%s-%s' % (cell.facility_id,cell_batch.batch_id) 
             attachedFiles = get_attached_files(
                 cell.facility_id,batch_id=cell_batch.batch_id)
             if(len(attachedFiles)>0):
@@ -2222,7 +2218,7 @@ class SmallMoleculeBatchTable(PagedTable):
 
 
 class CellBatchTable(PagedTable):
-    batch_id = BatchInfoLinkColumn("cell_detail2", args=[A('cell.facility_id'),A('batch_id')])
+    facility_batch = BatchInfoLinkColumn("cell_detail", args=[A('facility_batch')])
     
     class Meta:
         model = CellBatch
@@ -2231,7 +2227,7 @@ class CellBatchTable(PagedTable):
 
     def __init__(self, table, *args, **kwargs):
         super(CellBatchTable, self).__init__(table, *args, **kwargs)
-        sequence_override = ['batch_id']
+        sequence_override = ['facility_batch']
         set_table_column_info(
             self, ['cell','cellbatch',''],sequence_override)  
 

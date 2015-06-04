@@ -518,11 +518,16 @@ class CellBatch(models.Model):
     date_publicly_available = models.DateField(null=True,blank=True)
     date_updated = models.DateField(null=True,blank=True)
 
+    def _get_facility_batch(self):
+        "Returns the 'facilty_id-batch_id'"
+        return '%s-%s' % (self.cell.facility_id, self.batch_id)
+    
+    facility_batch = property(_get_facility_batch)  
+
     def __unicode__(self):
         return unicode(str((self.cell,self.batch_id)))
     class Meta:
         unique_together = ('cell', 'batch_id',)    
-
 
 class Protein(models.Model):
     name                = _TEXT(**_NOTNULLSTR)
