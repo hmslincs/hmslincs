@@ -14,9 +14,10 @@ except DatabaseError, e:
 
 from db.DjangoTables2Serializer import DjangoTables2Serializer, \
     get_visible_columns
-from db.models import SmallMolecule, SmallMoleculeBatch, DataSet, Cell, Protein, Library, DataRecord, \
-    DataColumn, FieldInformation, get_fieldinformation, get_listing, \
-    get_detail_schema, get_detail, get_detail_bundle, get_fieldinformation, get_schema_fieldinformation,\
+from db.models import SmallMolecule, SmallMoleculeBatch, DataSet, Cell, \
+    CellBatch, Protein, Library, DataRecord, DataColumn, FieldInformation, \
+    get_fieldinformation, get_listing, get_detail_schema, get_detail, \
+    get_detail_bundle, get_fieldinformation, get_schema_fieldinformation,\
     Antibody, OtherReagent
 from django.conf.urls.defaults import url
 from django.core.serializers.json import DjangoJSONEncoder
@@ -134,8 +135,17 @@ class CellResource(ModelResource):
         
     def dehydrate(self, bundle):
         bundle.data = get_detail_bundle(bundle.obj, ['cell',''])
+        _filter = ( 
+            lambda field_information: 
+                ( not bundle.obj.is_restricted 
+                    or field_information.is_unrestricted ) )
+        batches = CellBatch.objects.filter(cell=bundle.obj)
+        bundle.data['batches'] = []
+        for batch in batches:
+            bundle.data['batches'].append(
+                get_detail_bundle(batch, ['cellbatch',''], _filter=_filter))
         return bundle
-
+    
     def build_schema(self):
         schema = super(CellResource,self).build_schema()
         schema['fields'] = get_detail_schema(Cell(),['cell'])

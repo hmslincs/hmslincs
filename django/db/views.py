@@ -181,24 +181,29 @@ def cellDetail(request, facility_batch, batch_id=None):
         if(_batch_id):
             cell_batch = CellBatch.objects.get(
                 cell=cell,batch_id=_batch_id) 
+
         # batch table
-        if(cell_batch == None):
+        if not cell_batch:
             batches = CellBatch.objects.filter(cell=cell)
-            logger.info(str(('batches', len(batches))))
-            
-            if len(batches)>1:
-                details['batchTable']=CellBatchTable(batches)
-            elif len(batches)==1:
-                cell_batch = batches[0]
-        if cell_batch:
+            details['batchTable']=CellBatchTable(batches)
+        else:
             details['cell_batch']= get_detail(
                 cell_batch,['cellbatch',''])
             details['facility_batch'] = '%s-%s' % (cell.facility_id,cell_batch.batch_id) 
-            attachedFiles = get_attached_files(
-                cell.facility_id,batch_id=cell_batch.batch_id)
-            if(len(attachedFiles)>0):
-                details['attached_files_batch'] = AttachedFileTable(attachedFiles)        
-        
+
+            # 20150413 - proposed "QC Outcome" field on batch info removed per group discussion
+            qcEvents = QCEvent.objects.filter(
+                facility_id_for=cell.facility_id,
+                batch_id_for=cell_batch.batch_id).order_by('-date')
+            if qcEvents:
+                details['qcTable'] = QCEventTable(qcEvents)
+            
+            if(not cell.is_restricted or request.user.is_authenticated()):
+                attachedFiles = get_attached_files(
+                    cell.facility_id,batch_id=cell_batch.batch_id)
+                if(len(attachedFiles)>0):
+                    details['attached_files_batch'] = AttachedFileTable(attachedFiles)        
+                
         dataset_ids = find_datasets_for_cell(cell.id)
         if(len(dataset_ids)>0):
             logger.debug(str(('dataset ids for cell',dataset_ids)))

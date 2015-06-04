@@ -47,7 +47,7 @@ def main(import_file,file_directory,deploy_dir):
     properties = ('model_field','required','default','converter')
     column_definitions = { 
               'facility_id': ('facility_id_for',True,None, lambda x: util.convertdata(x,int)),
-              'salt_id': ('salt_id_for',True,None, lambda x: util.convertdata(x,int)),
+              'salt_id': ('salt_id_for',False,None, lambda x: util.convertdata(x,int)),
               'batch_id':('batch_id_for',True,None, lambda x: util.convertdata(x,int)),
               'QC event date': ('date',True,None,util.date_converter),
               'outcome': ('outcome',True),
@@ -93,23 +93,6 @@ def main(import_file,file_directory,deploy_dir):
             _dict[model_field] = value
 
         logger.debug(str(('dict: ', _dict)))
-        sm_lookup = {'facility_id':_dict['facility_id_for'],
-                     'salt_id':_dict['salt_id_for'] }
-        sm = None
-        smb = None
-        try:
-            sm = SmallMolecule.objects.get(**sm_lookup)
-        except (ObjectDoesNotExist,MultipleObjectsReturned) as e:
-            logger.error(str(('Entity not found',sm_lookup,'row', rows+start_row, e)))
-            raise
-        try:
-            smb = SmallMoleculeBatch.objects.get(
-                smallmolecule=sm, 
-                facility_batch_id=_dict['batch_id_for'])
-        except (ObjectDoesNotExist,MultipleObjectsReturned) as e:
-            logger.error(str(('Batch Entity not found',sm_lookup,
-                _dict['facility_batch_id'],'row', rows+start_row, e)))
-            raise
         
         files_to_attach = []
         for i in range(10):
