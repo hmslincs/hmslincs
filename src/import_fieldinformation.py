@@ -119,7 +119,7 @@ def main(path):
                         value = default
                 if(value == None and  required == True):
                     raise Exception('Field is required: %s, record: %d' 
-                        % (properties['column_label'],actual_row))
+                        % (properties['column_label'],j+1))
                 logger.debug(str(('model_field: ' , model_field, ', value: ', value)))
                 initializer[model_field] = value
     

@@ -44,7 +44,7 @@ def main(path):
               'CL_Provider_Name':'provider_name',
               'CL_Provider_Batch_ID':'provider_batch_id',
               'CL_Provider_Catalog_ID':'provider_catalog_id',
-              'CL_Verification_Profile':'verification_profile',
+              'CL_Quality_Verification':'quality_verification',
               'CL_Transient_Modification': 'transient_modification',
               'Date Data Received':('date_data_received',False,None,util.date_converter),
               'Date Loaded': ('date_loaded',False,None,util.date_converter),
