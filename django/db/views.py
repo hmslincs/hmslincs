@@ -43,6 +43,7 @@ from db.models import PubchemRequest, SmallMolecule, SmallMoleculeBatch, Cell, \
     Protein, DataSet, Library, FieldInformation, AttachedFile, DataRecord, \
     DataColumn, get_detail, Antibody, OtherReagent, CellBatch, QCEvent,\
     QCAttachedFile
+from django.core.exceptions import ObjectDoesNotExist
 
 
 logger = logging.getLogger(__name__)
@@ -686,7 +687,7 @@ def smallMoleculeDetail(request, facility_salt_id):
         
         return render(request,'db/smallMoleculeDetail.html', details)
 
-    except SmallMolecule.DoesNotExist:
+    except ObjectDoesNotExist:
         raise Http404
 
 def libraryIndex(request):
