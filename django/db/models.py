@@ -509,7 +509,7 @@ class CellBatch(models.Model):
     cell = models.ForeignKey('Cell')
     batch_id = models.TextField(max_length=_BATCH_ID_LENGTH, null=False)
     provider_name = models.TextField(null=True)
-    provider_batch_id = models.TextField(null=False)
+    provider_batch_id = models.TextField(null=True)
     provider_catalog_id = models.TextField(null=True)
     quality_verification = models.TextField(null=True)
     transient_modification = models.TextField(null=True)
