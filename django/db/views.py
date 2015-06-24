@@ -177,6 +177,8 @@ def cellDetail(request, facility_batch, batch_id=None):
             return HttpResponse('Log in required.', status=401)
         details = {'object': get_detail(cell, ['cell',''])}
         
+        logger.info(str((details)))
+        
         details['facility_id'] = cell.facility_id
         cell_batch = None
         if(_batch_id):
@@ -2789,7 +2791,7 @@ class CellSearchManager(SearchManager):
             Q(provider_catalog_id__icontains=searchString)).\
                 values_list('cell__id').distinct('cell__id')]
         
-        id_fields = ['name', 'alternate_name', 'center_name']
+        id_fields = ['name', 'alternate_name']
         query =  super(CellSearchManager, self).search(
             base_query, 'db_cell', searchString, id_fields, 
             Cell.get_snippet_def(), ids=cell_ids)
