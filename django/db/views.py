@@ -3299,11 +3299,16 @@ def export_as_csv(name,col_key_name_map, cursor=None, queryset=None,
     """
     Generic csv export admin action.
     """
-    assert (bool(cursor) ^ bool(queryset)), 'must define either cursor or queryset, not both'
+    assert not (bool(cursor) and bool(queryset)), 'must define either cursor or queryset, not both'
 
     response = HttpResponse(mimetype='text/csv')
     response['Content-Disposition'] = \
         'attachment; filename=%s.csv' % unicode(name).replace('.', '_')
+
+    if not (bool(cursor) or bool(queryset)):
+        logger.info(str(('empty result for', name)))
+        return response
+
     writer = csv.writer(response)
     # Write a first row with header information
     writer.writerow(col_key_name_map.values())
