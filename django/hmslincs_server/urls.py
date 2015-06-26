@@ -15,7 +15,7 @@ urlpatterns = patterns('',
     (r'^db/login/$', 'django.contrib.auth.views.login', {'template_name': 'db/login.html'}),
     url(r'^db/logout/$', logout_page, name='logout'),
     url(r'^db/', include('db.urls')),
-    
+
     (r'^explore/pathway/$', 'django.views.static.serve',
      {'path': 'index.html',
       'document_root': op.join(_djangopath, 'pathway', 'static', 'pathway')}),
@@ -76,6 +76,18 @@ urlpatterns = patterns('',
     (r'^explore/responses/scatterplot_browser\.html$',
      'django.views.generic.simple.direct_to_template',
      {'template': 'responses/scatterplot_browser.html'}),
+
+    (r'^explore/adaptive_drug_resistance/$',
+     'django.views.generic.simple.direct_to_template',
+     {'template': 'adaptive_drug_resistance/index.html'}),
+
+    (r'^explore/adaptive_drug_resistance/plsr_loadings/$',
+     'django.views.generic.simple.direct_to_template',
+     {'template': 'adaptive_drug_resistance/plsr_loadings/index.html'}),
+
+    (r'^explore/adaptive_drug_resistance/vips/$',
+     'django.views.generic.simple.direct_to_template',
+     {'template': 'adaptive_drug_resistance/vips/index.html'}),
 
     # breast_cancer_signaling and single_cell_dynamics are currently served by
     # apache directly from STATIC_ROOT, so no url patterns are listed here.

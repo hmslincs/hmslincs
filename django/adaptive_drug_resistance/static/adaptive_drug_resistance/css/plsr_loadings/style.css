@@ -1,0 +1,229 @@
+.content > * {
+  display: inline-block;
+  vertical-align: top;
+}
+
+.left-panel {
+  width: 160px;
+  margin-left: -160px;
+}
+
+/* ************************************************************************** */
+
+.svg-wrapper {
+  display: inline-block;
+  vertical-align: top;
+}
+
+svg {
+  background-color:white;
+  font: 10px sans-serif;
+  outline: 1px solid #aaa;
+}
+
+.svg-title {
+  font: 13px sans-serif;
+}
+
+.scatterplot-title {
+  font: 8px sans-serif;
+}
+
+.axis path, .axis line {
+  fill: none;
+  stroke: black;
+  shape-rendering: crispEdges;
+}
+
+.svg-stage .null {
+  display: none;
+}
+
+/* -------------------------------------------------- */
+
+.list-container .cl-focus,
+.list-container .cl-picked {
+  background-color: #666;
+}
+
+/* -------------------------------------------------- */
+
+.point > path {
+  fill: none;
+  stroke: none;
+  pointer-events: none;
+}
+
+.point > path {
+  fill-opacity: 0.75;
+}
+
+.point > path {
+  stroke-width: 1px;
+  stroke-opacity: 1;
+}
+
+.target > path {
+  pointer-events: fill;
+}
+
+.target > path,
+.fg-focus .target > path:hover,
+.fg-picked .target > path:hover {
+  fill: black;
+  fill-opacity: 0.2;
+  stroke: none;
+  pointer-events: fill;
+}
+
+.fg-focus .target > path,
+.fg-picked .target > path {
+  stroke-opacity: 0;
+  fill-opacity: 0;
+}
+
+.fg-picked > path {
+  fill-opacity: 0.80;
+}
+
+.rppa-measurement .list-container li.li-picked {
+  opacity:0.80;
+}
+
+.fg-focus > path {
+  fill-opacity: 0.65;
+}
+
+.rppa-measurement .list-container li.li-focus {
+  opacity:0.65;
+}
+
+.list-container {
+  cursor: default;
+}
+
+.rppa-measurement li {
+  border-top-color: white;
+  border-top-style: solid;
+  border-bottom-color: white;
+  border-bottom-style: solid;
+}
+
+.rppa-measurement li.viability {
+  border-top-color: black;
+}
+
+.rppa-measurement li.perk-t202-y204 {
+  border-top-style: solid;
+  border-top-color: black;
+}
+
+.rppa-measurement li.perk-t202-y204,
+.rppa-measurement li.pmek-s217-221 {
+  font-style: italic;
+}
+
+g.viability.fg-focus > path,
+g.viability.fg-picked > path { fill: #e6001c; }
+.rppa-measurement li.li-focus.viability,
+.rppa-measurement li.li-picked.viability { background-color: #e6001c; }
+
+/* -------------------------------------------------- */
+
+.hidden {
+  visibility: hidden;
+}
+
+.xy-box, .md-box {
+  display: inline-block;
+  padding: 0px;
+}
+
+.md-box {
+  margin-left: 50px;
+}
+
+.xy-box > div, .md-box > div {
+  display: inline-block;
+  white-space:nowrap;
+}
+
+.xy {
+  width: 30px;
+}
+
+.numeric {
+  text-align: right;
+}
+
+.md-box .time {
+  width: 80px;
+}
+.md-box .feature-group {
+  text-align: right;
+  width: 130px;
+}
+
+.md-box .point-no, .md-box .rank {
+  width: 24px;
+  display: none;   /* comment-out for dev work/debugging */
+}
+
+/* -------------------------------------------------- */
+
+.off-stage {
+  top: -1000000px;
+  position: absolute;
+}
+
+/* -------------------------------------------------- */
+
+button {
+  margin: 5px;
+}
+
+.track-container:not(:last-child) {
+  margin-bottom: 10px;
+}
+
+/* -------------------------------------------------- */
+
+#scatterplots-main .right-panel {
+  line-height: 0;
+}
+
+#scatterplots-main .ground,
+#scatterplots-main .ground div {
+  display: inline-block;
+  line-height: 0;
+}
+
+#scatterplots-main .centered {
+  text-align: left;
+}
+
+/* -------------------------------------------------- */
+/* hand-tuned dimensions */
+
+#scatterplots-main {
+  width: 946px;  /* width of centered + margin-left of right-panel */
+}
+
+#scatterplots-main .right-panel {
+  margin-left: 10px;
+}
+
+#scatterplots-main .centered {
+  width: 936px;  /* envelope min-width + 2 * ( envelope padding + envelope border ) */
+}
+
+#scatterplots-main .limit {
+  width: 1536px;
+}
+
+#scatterplots-main .envelope {
+  min-width: 924px;
+  min-height: 642px;
+  padding: 2px;
+  border: 1px solid #aaa;
+}

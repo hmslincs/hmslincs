@@ -1,0 +1,147 @@
+.global,.global *{
+  -webkit-box-sizing:border-box;
+     -moz-box-sizing:border-box;
+          box-sizing:border-box;
+}
+.global :not(button){
+  padding:0;
+  border:0;
+}
+.global, .global *{
+  font-family:consolas,monaco,courier,monospace;
+}
+.global, .global *{
+  font-size:13px;
+}
+.global svg {
+  vertical-align: top;
+}
+
+/* -------------------------------------------------------------------------- */
+.global button {
+  text-decoration: none;
+  outline: none;
+
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+
+  -webkit-border-radius: 2;
+  border-radius: 2px;
+  border: 0;
+  padding: 3px 6px;
+  background: #eee;
+  color: #111;
+}
+.global button:hover:not([disabled]) {
+  background-image:-webkit-linear-gradient(top, #eee, #ddd);
+  background-image:-moz-linear-gradient(top, #eee, #ddd);
+  background-image:-ms-linear-gradient(top, #eee, #ddd);
+  background-image:-o-linear-gradient(top, #eee, #ddd);
+  background-image:linear-gradient(to bottom, #eee, #ddd);
+}
+.global button:active:not([disabled]) {
+  background-image:-webkit-linear-gradient(top, #ddd, #ccc);
+  background-image:-moz-linear-gradient(top, #ddd, #ccc);
+  background-image:-ms-linear-gradient(top, #ddd, #ccc);
+  background-image:-o-linear-gradient(top, #ddd, #ccc);
+  background-image:linear-gradient(to bottom, #ddd, #ccc);
+}
+.global button:disabled {
+  color: #aaa;
+}
+.global button:focus {
+  outline: none;
+}
+
+/* -------------------------------------------------------------------------- */
+
+.global button.info {
+  display: inline-block;
+}
+.global button.info {
+  width: 30px;
+  height: 30px;
+  border-radius: 15px;
+  font-size: 16px;
+  padding: 0px;
+}
+
+.global button.info {
+  color: black;
+  background-color: green;
+  font-family: consolas, monaco, courier, monospace;
+  font-weight: bold;
+}
+
+.global button.info {
+border-style: none;
+}
+.global button.info:focus {
+outline: none;
+}
+.global button.info {
+background-color: #eee;
+}
+.global button.info:hover {
+background-image: linear-gradient(to bottom, #eee, #ddd);
+}
+.global button.info:active {
+background-image: linear-gradient(to bottom, #ddd, #ccc);
+}
+
+.global button.hide.info {
+  display: none;
+}
+
+/* -------------------------------------------------- */
+
+.instructions {
+  overflow: hidden;
+}
+
+.instructions > div {
+  margin-top: -1000px;
+}
+
+/* -------------------------------------------------- */
+
+div.downloads {
+  width: 941px;
+  margin: 10px auto;
+}
+
+div.downloads > div {
+  padding: 25px;
+}
+
+div.downloads table {
+  border: 1px solid #e0e0e0;
+}
+
+div.downloads tr:nth-child(even) {
+  background-color: #fff9f0;
+}
+
+div.downloads td {
+  white-space: inherit;
+  border-right: 1px solid #e0e0e0;
+  padding: 0 0.5em;
+  vertical-align: top;
+}
+
+/* -------------------------------------------------- */
+
+#loading {
+  font-size:14px;
+  font-style: italic;
+  text-align: center;
+}
+#loading > div {
+  display: inline-block;
+}
+
+/* -------------------------------------------------- */

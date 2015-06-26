@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+
+{% block head_extra %}
+
+    <link href="{{ STATIC_URL }}adaptive_drug_resistance/css/override.css" rel="stylesheet">
+    <link href="{{ STATIC_URL }}adaptive_drug_resistance/css/global.css" rel="stylesheet">
+    <link href="{{ STATIC_URL }}adaptive_drug_resistance/css/picker.css" rel="stylesheet">
+    <link href="{{ STATIC_URL }}adaptive_drug_resistance/css/colors.css" rel="stylesheet">
+    <link href="{{ STATIC_URL }}adaptive_drug_resistance/css/plsr_loadings/style.css" rel="stylesheet">
+
+{% endblock %}
+
+{% block title %}PLSR loadings browser - {{ block.super }}{% endblock %}
+
+{% block contentclass %}fullwidth{% endblock %}
+
+{% block body %}
+
+
+      <!-- <h1>Lorem ipsum dolor sit amet</h1> -->
+    </div> <!-- close #content -->
+    <br style="clear:left">
+  </div> <!-- close #pagebody -->
+<!-- </div> --> <!-- close #pagebody-wrap -->
+
+<div id="override">
+
+<div class="override-content">
+
+<div class="title-and-authors">
+
+<h1><a href="../">Systematic analysis of BRAF<sup>V600E</sup> melanomas reveals a
+role for JNK/c-Jun pathways in adaptive resistance to drug-induced
+apoptosis</a></h1>
+
+<p>
+Mohammad Fallahi-Sichani<sup style="font-weight: normal;">1</sup><span style="font-size: 13px; font-weight: normal;">,
+Nathan J. Moerke</span><sup style="font-weight: normal;">1</sup><span style="font-size: 13px; font-weight: normal;">,
+Mario Niepel</span><sup style="font-weight: normal;">1</sup><span style="font-size: 13px; font-weight: normal;">,
+Tinghu Zhang</span><sup style="font-weight: normal;">2,3</sup><span style="font-size: 13px; font-weight: normal;">,
+Nathanael S. Gray</span><sup style="font-weight: normal;">2,3</sup><span style="font-size: 13px; font-weight: normal;">, and
+Peter K. Sorger</span><sup style="font-weight: normal;">1</sup>
+</p>
+
+<p>
+<sup>1</sup>HMS LINCS Center;
+<sup>2</sup>Department of Cancer Biology, Dana-Farber Cancer Institute;
+<sup>3</sup>Department of Biological Chemistry and Molecular Pharmacology, Harvard Medical School
+</p>
+
+<p>
+<a href="http://msb.embopress.org/content/11/3/797"><em>Mol Syst Biol</em> (2015) 11: 797</a>
+<br />
+doi: <a href="http://dx.doi.org/10.15252/msb.20145877">10.15252/msb.20145877</a>
+<br />
+PMID: <a href="http://www.ncbi.nlm.nih.gov/pubmed/25814555">25814555</a>
+</p>
+
+</div>
+
+<h2>PLSR loadings browser</h2>
+
+<p>
+The following data browsing tool allows you to explore across the full panel of
+cell lines studied the relative contribution to our partial least squares
+regression (PLSR) model of each molecular variable analyzed.  Two versions of
+the PLSR loading plots are shown: one that is derived from models including all
+21 molecular signals (top) and one that is derived from models including all
+molecular signals except pMEK and pERK (bottom).
+</p>
+
+<p>
+This browser displays paired scatterplots for each of the cell lines
+studied, similar to those shown in Figure 1E
+of <a href="http://dx.doi.org/10.15252/msb.20145877">Fallahi-Sichani
+et al.</a>  (The data shown in this figure is the same as appears in
+the top two scatterplots displayed when this page first loads.)
+</p>
+
+<p>
+Each scatterplot shows the relationship between the first and second
+PLSR model loadings from an analysis of the covariation of molecular
+signals with cell viability and apoptosis fraction in BRAF(V600E/D)
+melanoma cell lines.
+</p>
+
+<p>
+Each plotted point corresponds either to RPPA a measurement/time point
+combination, or to viability.
+</p>
+
+<p>
+The first and second scatterplots in the pair shown for each cell line
+correspond, respectively, to analyses in which pMEK and pERK were included or
+excluded.  Hence, the second scatterplot of each pair never contains points for
+pMEK or pERK.  Furthermore, data is not available for some combinations of
+factors.
+</p>
+
+<p>
+The corresponding axes over all scatterplots have the same range.
+</p>
+
+<div class="global">
+
+<button class="show info"><i>i</i></button>
+<button class="hide info">&#9167;</button>
+<!-- <button class="hide info">&#9652;</button> -->
+
+</div> <!-- <div class="global"> -->
+
+
+<div class="instructions">
+
+<div>
+<h3>Interactions</h3>
+<ul>
+
+<li>Clicking on a cell line on the <tt>Cell_line</tt> panel...
+  <ul>
+    <li>adds it to the set of selected cell lines; and</li>
+    <li>and brings up the scatterplot pair for that cell line.</li>
+  </ul>
+</li>
+<li>Hovering the cursor over a measurement in the <tt>RPPA_measurement</tt> panel...
+  <ul>
+    <li>highlights the datapoints in the scatterplots that correspond to it.</li>
+  </ul>
+</li>
+
+<li>Hovering the cursor over a scatterplot...
+  <ul>
+    <li> ...causes its plot coordinates to be displayed in the info strip along the top of the scatterplots;</li>
+    <li>if, in addition, the cursor is over some datapoint <i>P</i>, ...
+      <ul>
+
+        <li>the metadata for <i>P</i> is also displayed in the info
+        strip;</li>
+
+        <li>the measurement <i>M<sub>P</sub></i> that <i>P</i>
+        corresponds to will be highlighted in
+        the <tt>RPPA_measurement</tt> panel; and</li>
+
+        <li>datapoint <i>P</i>, and all the other datapoints in the
+        scatterplots corresponding to the same
+        measurement <i>M<sub>P</sub></i>, will also be
+        highlighted.</li>
+
+      </ul>
+    </li>
+  </ul>
+</li>
+
+<li>Clicking on a measurement on the <tt>RPPA_measurement</tt> panel...
+  <ul>
+    <li>...adds it to the set of selected measurements; and</li>
+    <li>fixes the highlighting for that measurement and all the associated datapoints.</li>
+  </ul>
+</li>
+
+<li>Clicking on the <tt>RPPA_measurement</tt> panel's <tt>reset</tt> button clears the set of selected measurements.
+<li>Clicking on the <tt>Cell_line</tt> panel's <tt>reset</tt> button fully resets the browser.
+
+</ul>
+</div>
+</div> <!-- <div class="instructions"> -->
+
+</div> <!-- <div class="override-content"> -->
+
+</div> <!-- <div id="override"> -->
+
+{% include "adaptive_drug_resistance/plsr_loadings/content.html" %}
+
+<div class="downloads">
+<div>
+<h2 id="downloads">Relevant signatures</h2>
+<table>
+<tbody>
+<tr>
+<td style="white-space: nowrap;">Signature</td>
+<td>PLSR model loadings (pMEK and pERK <b>included</b>) from analysis of the covariation of molecular signals with cell viability and apoptosis fraction in BRAF(V600E/D) melanoma cell lines</td>
+<td style="white-space: nowrap;"><a href="/db/datasets/20229/">Details</a></td>
+<td style="white-space: nowrap;"><a href="/db/datasets/20229/results?output_type=.xls">Download (.xls)</a></td>
+</tr>
+
+<tr>
+<td style="white-space: nowrap;">Signature</td>
+<td>PLSR model loadings (pMEK and pERK <b>excluded</b>) from analysis of the covariation of molecular signals with cell viability and apoptosis fraction in BRAF(V600E/D) melanoma cell lines</td>
+<td style="white-space: nowrap;"><a href="/db/datasets/20230/">Details</a></td>
+<td style="white-space: nowrap;"><a href="/db/datasets/20230/results?output_type=.xls">Download (.xls)</a></td>
+</tr>
+
+</tbody>
+</table>
+</div>
+</div>
+
+  <script>
+
+( function ( $ ) {
+    var _
+    ,   $info = $( '.instructions > div' )
+    ,   up = -$info.outerHeight()
+    ,   down = 0
+    ,   $show = $( '.global button.show.info' )
+    ,   $hide = $( '.global button.hide.info' )
+    ;
+
+    function showhide ( margin_top, on, off ) {
+        $info.animate( { 'margin-top': margin_top }, 50,
+                       function () {
+                           off.css( 'display', 'none' );
+                           on.css( 'display', 'inline-block' );
+                       } );
+    }
+
+    showhide( up, $show, $hide );
+
+    $show.on( 'click', function () { showhide( down, $hide, $show ); } )
+    $hide.on( 'click', function () { showhide( up, $show, $hide ); } )
+
+} )( jQuery );
+
+  </script>
+
+<!-- <div class="empty-div"> --> <!-- match the </div> for #pagebody-wrap -->
+  <div class="empty-div"> <!-- match the </div> for #pagebody -->
+    <div class="empty-div"> <!-- match the </div> for #content -->
+
+
+{% endblock %}

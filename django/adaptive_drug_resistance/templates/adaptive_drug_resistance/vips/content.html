@@ -1,0 +1,36 @@
+
+  <div id="pathways-main" class="main global">
+
+    <div id="loading"><div>loading...</div></div>
+
+    <div id="pathways-content" class="content hidden while-loading">
+
+      <div class="left-panel"></div>
+
+      <div class="middle-panel">
+        <div id="main-stage" class="svg-stage"></div>
+      </div>
+
+      <div class="right-panel">
+        <div class="heatmap">
+
+            <div class="rows"></div>
+
+            <div class="colh-wrapper">
+                <div class="spacer"></div>
+                <div class="colh-div"></div>
+            </div>
+        </div>
+
+      </div> <!-- <div class="right-panel"> -->
+
+    </div> <!-- <div id="pathways-content" class="content"> -->
+
+  </div> <!-- <div id="pathways-main" class="main global"> -->
+
+    <script>
+window.__STATIC_URL__ = '{{ STATIC_URL }}adaptive_drug_resistance/';
+    </script>
+
+  <script data-main="{{ STATIC_URL }}adaptive_drug_resistance/js/vips/main"
+          src="{{ STATIC_URL }}adaptive_drug_resistance/js/ext/require/require.js"></script>
