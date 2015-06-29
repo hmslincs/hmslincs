@@ -1,0 +1,97 @@
+/* Styles for the table. These require unusual specificity to override some
+unfortunate stuff from the base stylesheet. */
+
+#content .lookup-table {
+  border-collapse: separate;
+  border: 0;
+  margin-left: -4px;
+  margin-top: -1em;
+}
+
+/* Reset nth-child row coloring. */
+#content .lookup-table tr {
+  background-color: inherit;
+}
+
+#content .lookup-table tr.treatment-heading th {
+ border-bottom: 1px solid black;
+}
+
+#content .lookup-table tr.treatment:nth-child(2n) td.lookup-table-hotspot,
+#content .lookup-table tr.treatment:nth-child(2n) td:first-child {
+  background-color: hsl(36, 100%, 97%);
+}
+
+#content .lookup-table th, #content .lookup-table td {
+  border: 1px solid transparent;
+  padding: 0 4px;
+}
+
+#content .lookup-table h3 {
+  font-size: 120%;
+  margin: 1em 0 0;
+}
+
+.lookup-table-hotspot {
+  text-align: center;
+  cursor: pointer;
+}
+
+/* Need to be as specific as tr nth-child selector above. */
+#content .lookup-table tr.treatment td.lookup-table-hotspot:hover {
+  background-color: hsl(200, 100%, 90%);
+  border: 1px solid hsl(200, 100%, 46%);
+}
+
+.lookup-table-hotspot a, .lookup-table-hotspot a:hover {
+  text-decoration: none;
+}
+
+.lookup-table-popup {
+  display: none;
+}
+
+#content .lookup-table tr.treatment:nth-child(2n) td.padding {
+  background-color: inherit;
+}
+
+.schematic {
+  position: absolute;
+}
+
+.downloads td:nth-child(1), .downloads td:nth-child(3) {
+  white-space: nowrap;
+}
+
+
+td {
+  white-space: inherit;
+}
+
+
+
+/* Override some jquery theme items. */
+
+.ui-widget {
+  font-family: inherit;
+}
+
+.ui-dialog .ui-dialog-titlebar {
+  padding: 0 0.4em;
+}
+
+.ui-dialog .ui-dialog-titlebar-close {
+  right: 0.1em;
+}
+
+.ui-dialog .ui-widget-content {
+  padding: 0.2em 0 0;
+}
+
+.ui-dialog {
+  box-shadow: 10px 10px 10px rgba(0,0,0,0.7)
+}
+
+.ui-widget-content a {
+  color: hsl(200, 100%, 46%); /* main theme color */
+}

@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% load trail_threshold_variability %}
+
+{% block head_extra %}
+  <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}trail_threshold_variability/css/jquery-ui/jquery-ui-1.11.0-pre.min.css"/>
+  <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}trail_threshold_variability/css/style.css"/>
+  <script type="text/javascript" src="{{ STATIC_URL }}trail_threshold_variability/js/jquery-ui/jquery-ui-1.11.0-pre.min.js"></script>
+  <script type="text/javascript" src="{{ STATIC_URL }}trail_threshold_variability/js/main.js"></script>
+{% endblock %}
+
+{% block title %}
+  Fractional killing arises from cell-to-cell variability in overcoming a
+  caspase activity threshold - {{ block.super }}
+{% endblock %}
+
+{% block contentclass %}fullwidth{% endblock %}
+
+{% block body %}
+
+  <h1>Fractional killing arises from cell-to-cell variability in overcoming a
+  caspase activity threshold</h1>
+
+  <p>Jérémie Roux<sup>1,3</sup>, Marc Hafner<sup>1,3</sup>, Samuel
+    Bandara<sup>1</sup>, Joshua J. Sims<sup>1</sup>, Hannah Hudson<sup>2</sup>,
+    Diana Chai<sup>2</sup>, and Peter K. Sorger</span><sup>1</sup><br>
+    <span style="font-size: 80%;"><sup>1</sup>Department of Systems Biology, Harvard Medical School, Boston,
+      MA 02115; <sup>2</sup>Merrimack Pharmaceuticals, Cambridge, MA 02139;
+      <sup>3</sup>JR and MH contributed equally to this work.</span></p>
+
+  <p><em>Mol Syst Biol</em> (2015) 11: 803.<br> doi:
+    <a href="http://dx.doi.org/10.15252/msb.20145584">10.15252/msb.20145584</a> /
+    PMID: <a href="http://www.ncbi.nlm.nih.gov/pubmed/25953765">25953765</a></p>
+
+  <h2>Overview</h2>
+
+  <p>In the paper referenced above we identify a threshold in the rate and
+  timing of initiator caspase activation that distinguishes cells that live
+  after treatment with the death ligand TRAIL and its synthetic antibody mimics
+  from those that die. By mapping this threshold we can predict fractional
+  killing of cells exposed to natural and synthetic receptor agonists alone or
+  in combination with sensitizing drugs such as bortezomib. A phenomenological
+  model of the threshold also quantifies the contributions of two resistance
+  genes (c-FLIP and Bcl-2), providing new insight into the control of cell fate
+  by opposing pro-death and pro-survival proteins. The source data for the
+  following analyses were originally published in the Roux et al. paper. Please
+  cite this work when using any of the data or analyses presented here.</p>
+
+  <h2>Treatment/dose lookup table</h2>
+
+  <p>
+    Here, we have produced figures containing single-cell trajectories for the
+    FRET ratio (surviving cells in blue, dying in yellow) and the derivative of
+    the FRET ratio (dFR/dt, equivalent to caspase-8 activity) as well as
+    landscape plots (parameters <em>&tau;</em> and <em>k</em> computed from
+    single-cell trajectories) for all of our experiments. Click on any dose
+    entry in the following table to view the plots for the corresponding
+    experiment. For more details on these plots, see the description of Figure 1
+    panels A, B and D in <a href="http://dx.doi.org/10.15252/msb.20145584">Roux
+    et al</a>.</p>
+  <ul>
+    <li>The plots appear in pop-up windows. These windows can be moved around,
+      and multiple windows may be opened at once to compare experiments.</li>
+    <li>The treatments in the table are split into sections based on which one
+      of the three model parameters they perturb. To the right of each section
+      is a schematic figure depicting how a change in the corresponding
+      parameter would be reflected in the dFR/dt (caspase-8 activity) plot.</li>
+    <li>Where Bortezomib is used the concentration is always 100 nM; likewise
+      ABT-263 is used at 10 &mu;M.</li>
+    <li>Only one biological replicate is shown here for each experiment, but the
+      data and trajectory/landscape figures for all replicates are
+      <a href="#downloads">available for download</a> (see the bottom of this page).</li>
+  </ul>
+
+  <table class="lookup-table">
+    {% for section in table %}
+      <tr>
+        <th colspan="{{ section.num_columns }}"><h3>{{ section.name }}</h3></th>
+      </tr>
+      <tr class="treatment-heading">
+        <th>Treatment</th>
+        <th colspan="{{ section.num_dose_columns }}">Doses</th>
+      </tr>
+      {% for treatment in section.treatments %}
+        <tr class="treatment">
+          <td>
+            {{ treatment.name_main }} (<em>{{ treatment.unit }}</em>)
+            {% if treatment.name_other %}
+              + {{ treatment.name_other }}
+            {% endif %}
+          </td>
+          {% for dose in treatment.doses %}
+            <td class="lookup-table-hotspot cell-{{ dose.id }}">
+              <a href="img/popup/{{ dose.img_filename }}">{{ dose.amount }}</a>
+            </td>
+          {% endfor %}
+          {% if forloop.first %}
+            {% if section.num_padding_columns %}
+              <td class="padding" colspan="{{ section.num_padding_columns }}"></td>
+            {% endif %}
+            <td>
+              <img src="img/schematic/{{ section.schematic_page }}.jpg"
+                   class="schematic" width="250">
+            </td>
+          {% endif %}
+        </tr>
+      {% endfor %}
+    {% endfor %}
+  </table>
+
+  {% comment %}
+  div with margin pushes following content below the last schematic figure
+  in the table to avoid overlaps (this is a fragile solution but I don't have
+  a better idea right now...)
+  {% endcomment %}
+  <div style="margin-bottom: 5em;"></div>
+
+  {% for section in table %}
+    {% for treatment in section.treatments %}
+      {% for dose in treatment.doses %}
+        {% include "trail_threshold_variability/popup.html" %}
+      {% endfor %}
+    {% endfor %}
+  {% endfor %}
+
+  <h2 id="downloads">Available data, signatures and software</h2>
+
+  <table class="downloads">
+    <tr>
+      <td>Data and signatures</td>
+      <td>All single-cell raw data, smoothed trajectories, and fitted parameters
+      for each replicate for each treatment condition in HeLa cells.</td>
+      <td><a href="{{ data_rel_url}}/All_SingleCell_data.zip">Download (.zip)</a></td>
+    </tr>
+    <tr>
+      <td>Signatures</td>
+      <td>Well-by-well summary of the fitted parameters for each replicate for
+      each treatment condition.<em>These data also will be viewable and available for downloading soon through the HMS LINCS Database.</em></td>
+      <td><a href="{{ data_rel_url}}/Aggregate_SingleCell_results.tsv">Download (.tsv)</a></td>
+    </tr>
+    <tr>
+      <td>Data and signatures</td>
+      <td>Population-based viability and C8 activity results for Apomab, Apomab
+      + anti-Fc, and TRAIL treatments in several other cancer cell lines with
+      varying sensitivities to TRAIL.</td>
+      <td><a href="{{ data_rel_url}}/Results_other_lines.zip">Download (.zip)</a></td>
+    </tr>
+    <tr>
+      <td>Software</td>
+      <td>The MATLAB code for the image processing routines developed for this
+      project.</td>
+      <td><a href="{{ data_rel_url}}/scripts.zip">Download (.zip)</a></td>
+    </tr>
+  </table>
+
+{% endblock %}
