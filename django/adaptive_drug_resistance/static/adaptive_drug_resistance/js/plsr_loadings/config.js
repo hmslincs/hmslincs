@@ -10,8 +10,8 @@ function ( $ ) {
 
           , data_path: window.__STATIC_URL__ + 'data/plsr_loadings/input.json'
 
-          , x_axis_label: 'PC1_laodings'
-          , y_axis_label: 'PC2_laodings'
+          , x_axis_label: 'PC1_loadings'
+          , y_axis_label: 'PC2_loadings'
 
           , point_style: {}
           , point_shape: 'triangle-down'
