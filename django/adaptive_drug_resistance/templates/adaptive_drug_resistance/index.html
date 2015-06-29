@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% comment %}
+{% load trail_threshold_variability %}
+{% endcomment %}
+
+{% block head_extra %}
+  <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}adaptive_drug_resistance/css/style.css"/>
+{% endblock %}
+
+{% block title %}
+
+  Systematic analysisof BRAF<sup>V600E</sup> melanomas reveals a role
+  for JNK/c-Jun pathways in adaptive resistance to drug-induced
+  apoptosis - {{ block.super }}
+
+{% endblock %}
+
+{% block contentclass %}fullwidth{% endblock %}
+
+{% block body %}
+<div id="override">
+
+
+<h1>Systematic analysis of BRAF<sup>V600E</sup> melanomas reveals a
+role for JNK/c-Jun pathways in adaptive resistance to drug-induced
+apoptosis</h1>
+
+<p>
+Mohammad Fallahi-Sichani<sup style="font-weight: normal;">1</sup><span style="font-size: 13px; font-weight: normal;">,
+Nathan J. Moerke</span><sup style="font-weight: normal;">1</sup><span style="font-size: 13px; font-weight: normal;">,
+Mario Niepel</span><sup style="font-weight: normal;">1</sup><span style="font-size: 13px; font-weight: normal;">,
+Tinghu Zhang</span><sup style="font-weight: normal;">2,3</sup><span style="font-size: 13px; font-weight: normal;">,
+Nathanael S. Gray</span><sup style="font-weight: normal;">2,3</sup><span style="font-size: 13px; font-weight: normal;">, and
+Peter K. Sorger</span><sup style="font-weight: normal;">1</sup>
+</p>
+
+<p>
+<sup>1</sup>HMS LINCS Center;
+<sup>2</sup>Department of Cancer Biology, Dana-Farber Cancer Institute;
+<sup>3</sup>Department of Biological Chemistry and Molecular Pharmacology, Harvard Medical School
+</p>
+
+<p>
+<a href="http://msb.embopress.org/content/11/3/797"><em>Mol Syst Biol</em> (2015) 11: 797</a>
+<br />
+doi: <a href="http://dx.doi.org/10.15252/msb.20145877">10.15252/msb.20145877</a>
+<br />
+PMID: <a href="http://www.ncbi.nlm.nih.gov/pubmed/25814555">25814555</a>
+</p>
+
+  <h2>Overview</h2>
+
+  <p>
+
+In the paper referenced above, we systematically analyzed adaptive responses to
+RAF/MEK inhibitors across a panel of BRAF<sup>V600E</sup> melanoma lines and
+revealed a role for the JNK/c-Jun pathway and cell-to-cell variability in
+adaptive drug resistance. The findings demonstrate the breadth and diversity of
+adaptive responses to RAF/MEK inhibition and a means to identify which steps in
+a signaling cascade are most predictive of phenotypic response.
+</p>
+<p>
+Using the exploration tools and downloadable data below, we invite you to
+explore the data and computational approaches presented in this paper. Please
+cite this work when using any of the data or analyses presented here.
+</p>
+
+<div class="thumbnails" style="margin-top: 30px">
+  <div>
+    <table>
+      <tr>
+<td><div><a href="plsr_loadings"><img src="{{ STATIC_URL }}adaptive_drug_resistance/img/plsr_loadings/thumbnail.png" width="250px"/><div class="hover-overlay"></div></a></div></td>
+<td><div><h3>PLSR loadings browser</h3>
+Explore the findings of our partial least squares regression (PLSR) model
+through this interactive data browser. Shown across all 10 cell lines is the
+PLSR loadings for the first two model components (PC1 and PC2) representing
+relative contribution to the model of each of the 21 molecular signals analyzed
+over time relative to cell viability.
+</div>
+</td>
+
+</tr>
+      <tr>
+<td><div><a href="vips"><img src="{{ STATIC_URL }}adaptive_drug_resistance/img/vips/thumbnail.png" width="250px"/><div class="hover-overlay"></div></a></div></td>
+<td><div><h3>VIP scores browser</h3>
+
+Explore the variable importance in the projection (VIP) score of each model
+variable relative to cell viability across all time points studied. This data
+browser also allows you to visualize the relative importance of each variable in
+the context of the molecular pathways impinging upon drug-induced adaptive
+responses in these cell lines.</div>
+
+</td></tr>
+    </table>
+  </div>
+</div> <!-- <div class="thumbnails"> -->
+
+<div style="margin-top: 30px">
+<h2>Available Data and Signatures</h2>
+<table>
+<tbody>
+<tr>
+<td style="white-space: nowrap;">Data</td>
+<td>Viability and apoptosis in BRAF(V600E/D) melanoma cell lines monitored by imaging</td>
+<td style="white-space: nowrap;"><a href="/db/datasets/20217/">Details</a></td>
+<td style="white-space: nowrap;"><a href="/db/datasets/20217/results?output_type=.xls">Download (.xls)</a></td>
+</tr>
+<tr>
+<td style="white-space: nowrap;">Data</td>
+<td>Phosphorylation state and protein levels measured in BRAF(V600E/D) melanoma cell lines monitored by Reverse Phase Protein Arrays (RPPA)</td>
+<td style="white-space: nowrap;"><a href="/db/datasets/20218/">Details</a></td>
+<td style="white-space: nowrap;"><a href="/db/datasets/20218/results?output_type=.xls">Download (.xls)</a></td>
+</tr>
+<tr>
+<td style="white-space: nowrap;">Data</td>
+<td>Phosphorylation state and protein levels measured in BRAF(V600E/D) melanoma cell lines monitored by imaging</td>
+<td style="white-space: nowrap;"><a href="/db/datasets/20219/">Details</a></td>
+<td style="white-space: nowrap;"><a href="/db/datasets/20219/results?output_type=.xls">Download (.xls)</a></td>
+</tr>
+<tr>
+<td style="white-space: nowrap;">Signature</td>
+<td>PLSR model loadings (pMEK and pERK included) from analysis of the covariation of molecular signals with cell viability and apoptosis fraction in BRAF(V600E/D) melanoma cell lines</td>
+<td style="white-space: nowrap;"><a href="/db/datasets/20229/">Details</a></td>
+<td style="white-space: nowrap;"><a href="/db/datasets/20229/results?output_type=.xls">Download (.xls)</a></td>
+</tr>
+<tr>
+<td style="white-space: nowrap;">Signature</td>
+<td>PLSR model loadings (pMEK and pERK excluded) from analysis of the covariation of molecular signals with cell viability and apoptosis fraction in BRAF(V600E/D) melanoma cell lines</td>
+<td style="white-space: nowrap;"><a href="/db/datasets/20230/">Details</a></td>
+<td style="white-space: nowrap;"><a href="/db/datasets/20230/results?output_type=.xls">Download (.xls)</a></td>
+</tr>
+<tr>
+<td style="white-space: nowrap;">Signature</td>
+<td>Average variable importance in the projection (VIP) scores from the PLSR models analyzing the covariation of molecular signals with cell viability and apoptosis fraction in BRAF(V600E/D) melanoma cell lines</td>
+<td style="white-space: nowrap;"><a href="/db/datasets/20231/">Details</a></td>
+<td style="white-space: nowrap;"><a href="/db/datasets/20231/results?output_type=.xls">Download (.xls)</a></td>
+</tr>
+</tbody>
+</table>
+</div>
+
+
+</div> <!-- <div class="override"> -->
+
+{% endblock %}

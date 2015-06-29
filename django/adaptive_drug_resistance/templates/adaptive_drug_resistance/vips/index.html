@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+
+{% block head_extra %}
+
+    <link href="{{ STATIC_URL }}adaptive_drug_resistance/css/override.css" rel="stylesheet">
+    <link href="{{ STATIC_URL }}adaptive_drug_resistance/css/global.css" rel="stylesheet">
+    <link href="{{ STATIC_URL }}adaptive_drug_resistance/css/vips/style.css" rel="stylesheet">
+
+{% endblock %}
+
+{% block title %}VIP scores browser - {{ block.super }}{% endblock %}
+
+{% block contentclass %}fullwidth{% endblock %}
+
+{% block body %}
+
+      <!-- <h1>Lorem ipsum dolor sit amet</h1> -->
+    </div> <!-- close #content -->
+    <br style="clear:left">
+  </div> <!-- close #pagebody -->
+<!-- </div> --> <!-- close #pagebody-wrap -->
+
+<!-- <div id="override"> -->
+
+<!-- <div class="override-content"> -->
+
+<!-- <div class="title-and-authors"> -->
+
+<!-- <h1><a href="../">Systematic analysis of BRAF<sup>V600E</sup> melanomas reveals a -->
+<!-- role for JNK/c-Jun pathways in adaptive resistance to drug-induced -->
+<!-- apoptosis</a></h1> -->
+
+<!-- <p> -->
+<!-- Mohammad Fallahi-Sichani<sup style="font-weight: normal;">1</sup><span style="font-size: 13px; font-weight: normal;">, -->
+<!-- Nathan J. Moerke</span><sup style="font-weight: normal;">1</sup><span style="font-size: 13px; font-weight: normal;">, -->
+<!-- Mario Niepel</span><sup style="font-weight: normal;">1</sup><span style="font-size: 13px; font-weight: normal;">, -->
+<!-- Tinghu Zhang</span><sup style="font-weight: normal;">2,3</sup><span style="font-size: 13px; font-weight: normal;">, -->
+<!-- Nathanael S. Gray</span><sup style="font-weight: normal;">2,3</sup><span style="font-size: 13px; font-weight: normal;">, and -->
+<!-- Peter K. Sorger</span><sup style="font-weight: normal;">1</sup> -->
+<!-- </p> -->
+
+<!-- <p> -->
+<!-- <sup>1</sup>HMS LINCS Center; -->
+<!-- <sup>2</sup>Department of Cancer Biology, Dana-Farber Cancer Institute; -->
+<!-- <sup>3</sup>Department of Biological Chemistry and Molecular Pharmacology, Harvard Medical School -->
+<!-- </p> -->
+
+<!-- <p> -->
+<!-- <a href="http://msb.embopress.org/content/11/3/797"><em>Mol Syst Biol</em> (2015) 11: 797</a> -->
+<!-- <br /> -->
+<!-- doi: <a href="http://dx.doi.org/10.15252/msb.20145877">10.15252/msb.20145877</a> -->
+<!-- <br /> -->
+<!-- PMID: <a href="http://www.ncbi.nlm.nih.gov/pubmed/25814555">25814555</a> -->
+<!-- </p> -->
+
+<!-- </div> -->
+
+<!-- <div class="instructions"> -->
+<!-- <h2>VIP scores browser</h2> -->
+
+<!-- <p>Vestibulum dapibus ex suscipit turpis commodo, a accumsan lacus cursus. Praesent nec ipsum sed tellus varius dapibus sit amet in enim. Pellentesque finibus eu ipsum a luctus. Pellentesque eget malesuada urna, ac sollicitudin augue. Vestibulum porta accumsan risus, efficitur condimentum leo gravida at. Sed tempus neque sit amet purus egestas pellentesque. Cras pharetra interdum dolor, et lacinia massa iaculis quis. Duis consequat purus et arcu ornare auctor. -->
+
+<!-- <ul> -->
+<!-- <li>Suspendisse commodo pulvinar ex at facilisis. -->
+<!-- <li>Mauris eleifend ornare massa, sit amet lobortis arcu maximus id. In hac habitasse platea dictumst. -->
+<!-- <li>Aenean ac ultricies elit. Vestibulum ac leo varius, sagittis mi et, aliquet sem. Cras pretium mauris massa, vel lobortis augue blandit placerat. -->
+<!-- <li>Fusce tincidunt odio eget nulla pulvinar, eget ultrices risus euismod. Sed in est dui. Morbi eu ullamcorper quam. -->
+<!-- </ul> -->
+
+<!-- </div> <\!-- <div class="instructions"> -\-> -->
+
+<!-- </div> <\!-- <div class="override-content"> -\-> -->
+
+<!-- </div> <\!-- <div id="override"> -\-> -->
+
+
+
+<div id="override">
+
+<div class="override-content">
+
+<div class="title-and-authors">
+
+<h1><a href="../">Systematic analysis of BRAF<sup>V600E</sup> melanomas reveals a
+role for JNK/c-Jun pathways in adaptive resistance to drug-induced
+apoptosis</a></h1>
+
+<p>
+Mohammad Fallahi-Sichani<sup style="font-weight: normal;">1</sup><span style="font-size: 13px; font-weight: normal;">,
+Nathan J. Moerke</span><sup style="font-weight: normal;">1</sup><span style="font-size: 13px; font-weight: normal;">,
+Mario Niepel</span><sup style="font-weight: normal;">1</sup><span style="font-size: 13px; font-weight: normal;">,
+Tinghu Zhang</span><sup style="font-weight: normal;">2,3</sup><span style="font-size: 13px; font-weight: normal;">,
+Nathanael S. Gray</span><sup style="font-weight: normal;">2,3</sup><span style="font-size: 13px; font-weight: normal;">, and
+Peter K. Sorger</span><sup style="font-weight: normal;">1</sup>
+</p>
+
+<p>
+<sup>1</sup>HMS LINCS Center;
+<sup>2</sup>Department of Cancer Biology, Dana-Farber Cancer Institute;
+<sup>3</sup>Department of Biological Chemistry and Molecular Pharmacology, Harvard Medical School
+</p>
+
+<p>
+<a href="http://msb.embopress.org/content/11/3/797"><em>Mol Syst Biol</em> (2015) 11: 797</a>
+<br />
+doi: <a href="http://dx.doi.org/10.15252/msb.20145877">10.15252/msb.20145877</a>
+<br />
+PMID: <a href="http://www.ncbi.nlm.nih.gov/pubmed/25814555">25814555</a>
+</p>
+
+</div>
+
+<h2>VIP scores browser</h2>
+
+<p>
+The following browser tool allows you to explore the variable importance in the
+projection (VIP) score of each PLSR model variable relative to cell viability
+across all time points studied. This data browser also allows you to visualize
+the relative importance of each variable in the context of the molecular
+pathways impinging upon drug-induced adaptive responses in these cell lines.
+</p>
+
+<p>
+The graph on the left maps the VIP scores (as reported by
+<a href="http://dx.doi.org/10.15252/msb.20145877">Fallahi-Sichani et al.</a>)
+for any chosen combination of cell line and timepoint map onto a schematic
+diagram of processes (in italics) and factors involved in immediate-early
+signaling.  (See Figures 2 and 4 of <em>op cit</em>).
+</p>
+
+<p>
+The heatmap on the right gives a bird's-eye-view of the same data,
+which can be used as a guide to which cell-line/timepoint combinations
+to focus on.
+</p>
+
+<div class="global">
+
+<button class="show info"><i>i</i></button>
+<button class="hide info">&#9167;</button>
+<!-- <button class="hide info">&#9652;</button> -->
+
+</div> <!-- <div class="global"> -->
+
+<div class="instructions">
+  <div>
+    <h3>Interactions</h3>
+
+    <ul>
+
+      <li>The combination of cell line and timepoint may be changed by
+        clicking either on the desired values in the menus to the left
+        of the diagram; or on the appropriate row in the heatmap.</li>
+
+      <li>By holding down the Shift Key while by hovering the cursor,
+          either over the menus to the left, or over the rows of the
+          heatmap, it is possible to quickly scan over many
+          combinations of cell line and timepoint.
+
+        <ul>
+
+          <li>Doing this changes neither the selected entries in the
+          menus nor the selected row in the heatmap (they remain
+          indicated by a thin dark outline).  The display will revert
+          to these selected values once the Shift Key is released.
+          </li>
+        </ul>
+      </li>
+
+      <p>The colorbar at the bottom left of the page shows the mapping from
+      colors to VIP scores.  A striped background (on RPPA measurements in the
+      graph or on heatmap cells) indicates a "not available" status.</p>
+
+      <li>Also, hovering the cursor over any color-coded element, either on the
+      diagram or on the heatmap, reveals either the underlying numeric value or
+      the string "(na)" (for "not available").
+      </li>
+
+    </ul>
+  </div>
+</div> <!-- <div class="instructions"> -->
+
+</div> <!-- <div class="override-content"> -->
+
+</div> <!-- <div id="override"> -->
+
+
+{% include "adaptive_drug_resistance/vips/content.html" %}
+
+
+<div class="downloads">
+<div>
+
+<h2 id="downloads">Relevant signatures</h2>
+<table>
+<tbody>
+<tr>
+<td style="white-space: nowrap;">Signature</td>
+<td>Average variable importance in the projection (VIP) scores from the PLSR models analyzing the covariation of molecular signals with cell viability and apoptosis fraction in BRAF(V600E/D) melanoma cell lines</td>
+<td style="white-space: nowrap;"><a href="/db/datasets/20231/">Details</a></td>
+<td style="white-space: nowrap;"><a href="/db/datasets/20231/results?output_type=.xls">Download (.xls)</a></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+  <script>
+( function ( $ ) {
+    var _
+    ,   $info = $( '.instructions > div' )
+    ,   up = -$info.outerHeight()
+    ,   down = 0
+    ,   $show = $( '.global button.show.info' )
+    ,   $hide = $( '.global button.hide.info' )
+    ;
+
+    function showhide ( margin_top, on, off ) {
+        $info.animate( { 'margin-top': margin_top }, 50,
+                       function () {
+                           off.css( 'display', 'none' );
+                           on.css( 'display', 'inline-block' );
+                       } );
+    }
+
+    showhide( up, $show, $hide );
+
+    $show.on( 'click', function () { showhide( down, $hide, $show ); } )
+    $hide.on( 'click', function () { showhide( up, $show, $hide ); } )
+
+} )( jQuery );
+
+  </script>
+
+<!-- <div class="empty-div"> --> <!-- match the </div> for #pagebody-wrap -->
+  <div class="empty-div"> <!-- match the </div> for #pagebody -->
+    <div class="empty-div"> <!-- match the </div> for #content -->
+
+
+{% endblock %}

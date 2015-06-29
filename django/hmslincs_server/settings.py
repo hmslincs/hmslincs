@@ -224,6 +224,7 @@ INSTALLED_APPS = (
     '10_1038_nchembio_1337__fallahi_sichani_2013',
     'breast_cancer_signaling',
     'single_cell_dynamics',
+    'adaptive_drug_resistance',
     # # 'south', #for schema migrations
     # # 'fts', # for full text search
 )

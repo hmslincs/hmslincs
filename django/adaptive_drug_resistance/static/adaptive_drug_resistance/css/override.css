@@ -1,0 +1,80 @@
+/* cancel out hmslincs.css stuff ******************************************** */
+
+html body div#pagebody-wrap div#pagebody div#content {
+  min-height: 0px;
+}
+
+#content.fullwidth {
+  margin: 0;
+}
+
+body #pagebody {
+  line-height: 0;
+  padding-bottom: 0;
+  font-size: 0;
+}
+
+body #pagebody-wrap {
+  background-color: white;
+}
+
+/* ************************************************************************** */
+
+#override {
+  width: 941px;
+}
+
+#override {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#override .override-content {
+  padding: 25px;
+}
+
+#override .override-content h1 {
+  font-size: 20px;
+}
+
+#override .override-content h1 a {
+  color: inherit;
+  text-decoration: none;
+}
+
+#override .title-and-authors {
+  margin-bottom: 25px;
+}
+
+#override ul {
+  margin-left: 20px;
+}
+
+#override ul,
+#override li {
+  list-style-position: inside;
+}
+
+#override *:not(li) ul,
+#override *:not(li) ul > li {
+  list-style-type: disc;
+}
+
+#override *:not(li) ul > li > ul,
+#override *:not(li) ul > li > ul > li {
+  list-style-type: circle;
+}
+
+#override *:not(li) ul > li > ul > li > ul,
+#override *:not(li) ul > li > ul > li > ul > li {
+  list-style-type: square;
+}
+
+/* ************************************************************************** */
+
+.main {
+  margin-left: auto;
+  margin-right: auto;
+  position: relative;
+}
+
