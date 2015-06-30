@@ -77,15 +77,15 @@ urlpatterns = patterns('',
      'django.views.generic.simple.direct_to_template',
      {'template': 'responses/scatterplot_browser.html'}),
 
-    (r'^explore/adaptive_drug_resistance/$',
+    (r'^explore/adaptive-drug-resistance/$',
      'django.views.generic.simple.direct_to_template',
      {'template': 'adaptive_drug_resistance/index.html'}),
 
-    (r'^explore/adaptive_drug_resistance/plsr_loadings/$',
+    (r'^explore/adaptive-drug-resistance/plsr-loadings/$',
      'django.views.generic.simple.direct_to_template',
      {'template': 'adaptive_drug_resistance/plsr_loadings/index.html'}),
 
-    (r'^explore/adaptive_drug_resistance/vips/$',
+    (r'^explore/adaptive-drug-resistance/vips/$',
      'django.views.generic.simple.direct_to_template',
      {'template': 'adaptive_drug_resistance/vips/index.html'}),
 
