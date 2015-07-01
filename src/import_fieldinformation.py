@@ -90,10 +90,7 @@ def main(path):
         FieldInformation.objects.all().delete()
         
         for j,row in enumerate(reader):
-            
-            if(logger.isEnabledFor(logging.DEBUG)): 
-                logger.debug(str(('row', j, row)))
-            
+            logger.debug('row %d: %s', j, row)
             initializer = {}
             for i,value in enumerate(row):
     
