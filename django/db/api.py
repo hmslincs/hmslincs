@@ -53,10 +53,11 @@ class SmallMoleculeResource(ModelResource):
 #        authentication = MultiAuthentication(BasicAuthentication(), SessionAuthentication())
         
     def dehydrate(self, bundle):
-        _filter = ( 
-            lambda field_information: 
-                ( not bundle.obj.is_restricted 
-                    or field_information.is_unrestricted ) )
+        
+        def _filter(field_information):
+            return (not bundle.obj.is_restricted 
+                    or field_information.is_unrestricted )
+
         bundle.data = get_detail_bundle(bundle.obj, ['smallmolecule',''], _filter=_filter)
         
         smbs = SmallMoleculeBatch.objects.filter(smallmolecule=bundle.obj)
@@ -122,7 +123,6 @@ class SmallMoleculeResource(ModelResource):
 #                self._meta.resource_name, self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
 #        ]
         
-
 class CellResource(ModelResource):
     class Meta:
         # TODO: authorization
@@ -135,12 +135,13 @@ class CellResource(ModelResource):
         
     def dehydrate(self, bundle):
         bundle.data = get_detail_bundle(bundle.obj, ['cell',''])
-        _filter = ( 
-            lambda field_information: 
-                ( not bundle.obj.is_restricted 
-                    or field_information.is_unrestricted ) )
         batches = CellBatch.objects.filter(cell=bundle.obj)
         bundle.data['batches'] = []
+
+        def _filter(field_information):
+            return (not bundle.obj.is_restricted 
+                    or field_information.is_unrestricted )
+        
         for batch in batches:
             bundle.data['batches'].append(
                 get_detail_bundle(batch, ['cellbatch',''], _filter=_filter))
