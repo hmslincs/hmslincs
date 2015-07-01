@@ -134,14 +134,15 @@ class CellResource(ModelResource):
         filtering = {'date_loaded':ALL, 'date_publicly_available':ALL, 'date_data_received':ALL }
         
     def dehydrate(self, bundle):
-        bundle.data = get_detail_bundle(bundle.obj, ['cell',''])
-        batches = CellBatch.objects.filter(cell=bundle.obj)
-        bundle.data['batches'] = []
 
         def _filter(field_information):
             return (not bundle.obj.is_restricted 
                     or field_information.is_unrestricted )
         
+        bundle.data = get_detail_bundle(bundle.obj, ['cell',''], _filter=_filter)
+        batches = CellBatch.objects.filter(cell=bundle.obj)
+        bundle.data['batches'] = []
+
         for batch in batches:
             bundle.data['batches'].append(
                 get_detail_bundle(batch, ['cellbatch',''], _filter=_filter))
