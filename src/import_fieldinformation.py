@@ -107,14 +107,16 @@ def main(path):
     
                 # Todo, refactor to a method
                 logger.debug(str(('raw value', value)))
-                if(converter != None):
+                if converter:
                     logger.debug(str(('using converter',converter,value)))
                     value = converter(value)
                     logger.debug(str(('converted',value)))
-                if(value == None ):
-                    if( default != None ):
+                # Note: must check the value against None, as False is a valid value
+                if value is None:
+                    if default != None:
                         value = default
-                if(value == None and  required == True):
+                # Note: must check the value against None, as False is a valid value
+                if value is None and required is True:
                     raise Exception('Field is required: %s, record: %d' 
                         % (properties['column_label'],j+1))
                 logger.debug(str(('model_field: ' , model_field, ', value: ', value)))
@@ -122,17 +124,17 @@ def main(path):
     
             try:
                 logger.debug(str(('initializer: ', initializer)))
-                if(initializer['field'] == None):
+                if not initializer['field']:
                     logger.warn(str((
                         'Note: table entry has no field definition (will be skipped)', 
                         initializer, 'current row:', j+1)))
                     continue;
                 lfi = FieldInformation(**initializer)
                 # check if the table/field exists
-                if(lfi.table != None):
+                if lfi.table:
                     table = models.get_model(APPNAME, lfi.table)
-                    if( table != None):
-                        if(lfi.field not in map(lambda x: x.name,table._meta.fields) ):
+                    if table:
+                        if lfi.field not in map(lambda x: x.name,table._meta.fields):
                             raise Exception(str(('unknown field: ', lfi.field)))
                     else:
                         raise Exception(str(('unknown table', lfi.table )))
