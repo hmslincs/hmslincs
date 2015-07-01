@@ -186,10 +186,6 @@ class FieldsManager(models.Manager):
         logger.debug(str(('get_search_fields for ',model_class,'returns',final_fields)))
         return final_fields
 
-PUBCHEM_TYPE_IDENTITY = 'identity'
-PUBCHEM_TYPE_SUBSTRUCTURE = 'substructure'
-PUBCHEM_TYPES = ((PUBCHEM_TYPE_IDENTITY, PUBCHEM_TYPE_IDENTITY),
-                 (PUBCHEM_TYPE_SUBSTRUCTURE, PUBCHEM_TYPE_SUBSTRUCTURE),)
 
 class PubchemRequest(models.Model):
     sm_facility_ids = _TEXT(**_NULLOKSTR)
@@ -665,17 +661,10 @@ class DataSet(models.Model):
 
         
 
-LIBRARY_TYPE_PLATED = 'plated'
-LIBRARY_TYPE_NON_PLATED = 'non-plated'
-LIBRARY_TYPE_VIAL  = 'vial'
-LIBRARY_TYPES = ((LIBRARY_TYPE_PLATED, LIBRARY_TYPE_PLATED),
-                 (LIBRARY_TYPE_NON_PLATED, LIBRARY_TYPE_NON_PLATED),
-                 (LIBRARY_TYPE_VIAL, LIBRARY_TYPE_VIAL),)
 class Library(models.Model):
     name                    = _TEXT(unique=True,**_NOTNULLSTR)
     short_name              = _TEXT(unique=True, **_NOTNULLSTR)
-    type                    = models.TextField(null=True,                                       choices=LIBRARY_TYPES,
-                                      default=LIBRARY_TYPE_NON_PLATED)
+    type                    = models.TextField(null=True)
     date_first_plated       = models.DateField(null=True,blank=True)
     date_data_received      = models.DateField(null=True,blank=True)
     date_loaded             = models.DateField(null=True,blank=True)
@@ -686,13 +675,7 @@ class Library(models.Model):
     def __unicode__(self):
         return unicode(self.short_name)
     
-CONCENTRATION_NM = 'nM'
-CONCENTRATION_UM = 'uM'
-CONCENTRATION_MM = 'mM'    
-CONCENTRATION_CHOICES = ((CONCENTRATION_NM,CONCENTRATION_NM),
-                         (CONCENTRATION_UM,CONCENTRATION_UM),
-                         (CONCENTRATION_MM,CONCENTRATION_MM))
-
+    
 # LibraryMapping is equivalent to a "Well"; it details how the SmallMolecule is mapped in the Library
 class LibraryMapping(models.Model):
     library                 = models.ForeignKey('Library',null=True)
@@ -701,8 +684,7 @@ class LibraryMapping(models.Model):
     plate                   = _INTEGER(null=True)
     well                    = _TEXT(**_NULLOKSTR) # AA99
     concentration           = models.DecimalField(max_digits=4, decimal_places=2, null=True)
-    concentration_unit      = models.TextField(null=True,                                       choices=CONCENTRATION_CHOICES,
-                                      default=CONCENTRATION_UM)
+    concentration_unit      = models.TextField(null=True)
     
     @property
     def display_concentration(self):
