@@ -401,17 +401,15 @@ class SmallMolecule(models.Model):
         else:
             return 'restricted'
     
-    def _get_facility_salt(self):
+    @property
+    def facility_salt(self):
         "Returns the 'facilty_id-salt_id'"
         return '%s-%s' % (self.facility_id, self.salt_id)
     
-    facility_salt = property(_get_facility_salt) 
-    
-    def _get_primary_name(self):
+    @property
+    def primary_name(self):
         "Returns the 'primary name'"
         return self.name.split(';')[0]
-    
-    primary_name = property(_get_primary_name)   
     
     @classmethod
     def get_snippet_def(cls):
@@ -442,11 +440,11 @@ class SmallMoleculeBatch(models.Model):
     class Meta:
         unique_together = ('smallmolecule', 'facility_batch_id',)    
 
-    def _get_facility_salt_batch(self):
+    @property
+    def facility_salt_batch(self):
         "Returns the 'facilty_id-salt_id'"
         return '%s-%s' % (self.smallmolecule.facility_salt, self.facility_batch_id)
-    
-    facility_salt_batch = property(_get_facility_salt_batch)    
+
 
 class Cell(models.Model):
     facility_id = models.TextField(unique=True, null=False)
@@ -510,11 +508,10 @@ class CellBatch(models.Model):
     date_publicly_available = models.DateField(null=True,blank=True)
     date_updated = models.DateField(null=True,blank=True)
 
-    def _get_facility_batch(self):
+    @property
+    def facility_batch(self):
         "Returns the 'facilty_id-batch_id'"
         return '%s-%s' % (self.cell.facility_id, self.batch_id)
-    
-    facility_batch = property(_get_facility_batch)  
 
     def __unicode__(self):
         return unicode(str((self.cell,self.batch_id)))
@@ -642,17 +639,15 @@ class DataSet(models.Model):
     dataset_keywords        = _TEXT(**_NULLOKSTR)
     usage_message           = _TEXT(**_NULLOKSTR)
     
-    def _get_lead_screener(self):
+    @property
+    def lead_screener(self):
         "Returns the LS  full name."
         return '%s %s' % (self.lead_screener_firstname, self.lead_screener_lastname)
     
-    lead_screener = property(_get_lead_screener)    
-    
-    def _get_lab_head(self):
+    @property
+    def lab_head(self):
         "Returns the LH  full name."
         return '%s %s' % (self.lab_head_firstname, self.lab_head_lastname)
-    
-    lab_head = property(_get_lab_head)
 
     def __unicode__(self):
         return unicode(self.facility_id)
@@ -709,10 +704,9 @@ class LibraryMapping(models.Model):
     concentration_unit      = models.TextField(null=True,                                       choices=CONCENTRATION_CHOICES,
                                       default=CONCENTRATION_UM)
     
-    def _get_display_concentration(self):
+    @property
+    def display_concentration(self):
         return "%d %s" %(self.concentration,self.concentration_unit)
-
-    display_concentration = property(_get_display_concentration)
     
     def __unicode__(self):
         return unicode(str((self.library,self.smallmolecule_batch)))
@@ -786,11 +780,10 @@ class AttachedFile(models.Model):
     def __unicode__(self):
         return unicode(str((self.filename,self.relative_path,self.is_restricted, self.file_type,self.description,self.file_date)))
     
-    def _get_relative_path_to_file(self):
+    @property
+    def relative_path_to_file(self):
         "Returns the 'id string'"
         return '%s/%s' % (self.relative_path, self.filename)
-    
-    relative_path_to_file = property(_get_relative_path_to_file)
      
 del _TEXT, _INTEGER
 del _NULLOKSTR, _NOTNULLSTR
