@@ -14,10 +14,6 @@ logger = logging.getLogger(__name__)
 _INTEGER    = models.IntegerField
 _TEXT       = models.TextField
 
-_FACILITY_ID_LENGTH = 15
-_SALT_ID_LENGTH = 10
-_BATCH_ID_LENGTH = 5
-
 # the only purpose for the two temporary shorthand definitions
 # below is to make clear how we are translating the SQL NULL and
 # NOT NULL qualifiers to Django's representation (in fact, for
@@ -346,8 +342,8 @@ class QCAttachedFile(models.Model):
 class SmallMolecule(models.Model):
     
     nominal_target          = models.ForeignKey('Protein', null=True)
-    facility_id             = _TEXT(max_length=_FACILITY_ID_LENGTH, **_NOTNULLSTR)
-    salt_id                 = _TEXT(max_length=_SALT_ID_LENGTH, **_NOTNULLSTR)
+    facility_id             = _TEXT(**_NOTNULLSTR)
+    salt_id                 = _TEXT(**_NOTNULLSTR)
     lincs_id                = _TEXT(**_NULLOKSTR)
     name                    = _TEXT(**_NOTNULLSTR) 
     alternative_names       = _TEXT(**_NULLOKSTR) 
@@ -428,7 +424,7 @@ CONCENTRATION_WEIGHT_VOLUME_CHOICES = ((CONCENTRATION_GL,CONCENTRATION_GL),
 
 class SmallMoleculeBatch(models.Model):
     smallmolecule           = models.ForeignKey('SmallMolecule')
-    facility_batch_id       = _TEXT(max_length=_BATCH_ID_LENGTH, **_NOTNULLSTR)
+    facility_batch_id       = _TEXT(**_NOTNULLSTR)
     provider                = _TEXT(**_NULLOKSTR)
     provider_catalog_id     = _TEXT(**_NULLOKSTR)
     provider_sample_id      = _TEXT(**_NULLOKSTR)
@@ -507,7 +503,7 @@ class Cell(models.Model):
 
 class CellBatch(models.Model):
     cell = models.ForeignKey('Cell')
-    batch_id = models.TextField(max_length=_BATCH_ID_LENGTH, null=False)
+    batch_id = models.TextField(null=False)
     provider_name = models.TextField(null=True)
     provider_batch_id = models.TextField(null=True)
     provider_catalog_id = models.TextField(null=True)
@@ -532,7 +528,7 @@ class CellBatch(models.Model):
 
 class Protein(models.Model):
     name                = _TEXT(**_NOTNULLSTR)
-    lincs_id            = _TEXT(max_length=_FACILITY_ID_LENGTH, unique=True, **_NOTNULLSTR)
+    lincs_id            = _TEXT(unique=True, **_NOTNULLSTR)
     uniprot_id          = _TEXT(**_NULLOKSTR) # Note: UNIPROT ID's are 6 chars long, but we have a record with two in it, see issue #74
     alternate_name      = _TEXT(**_NULLOKSTR)
     alternate_name_2    = _TEXT(**_NULLOKSTR)
@@ -568,7 +564,7 @@ class Protein(models.Model):
 
 
 class Antibody(models.Model):
-    facility_id             = _TEXT(max_length=_FACILITY_ID_LENGTH, **_NOTNULLSTR)
+    facility_id             = _TEXT(**_NOTNULLSTR)
     lincs_id                = _TEXT(**_NULLOKSTR)
     name                    = _TEXT(**_NOTNULLSTR)
     alternative_names       = _TEXT(**_NULLOKSTR) 
@@ -600,12 +596,12 @@ class Antibody(models.Model):
     
 class AntibodyBatch(models.Model):
     antibody           = models.ForeignKey('Antibody')
-    facility_batch_id       = _TEXT(max_length=_BATCH_ID_LENGTH, **_NOTNULLSTR)
+    facility_batch_id       = _TEXT(**_NOTNULLSTR)
     provider                = _TEXT(**_NULLOKSTR)
     provider_catalog_id     = _TEXT(**_NULLOKSTR)
     
 class OtherReagent(models.Model):
-    facility_id             = _TEXT(max_length=_FACILITY_ID_LENGTH, **_NOTNULLSTR)
+    facility_id             = _TEXT(**_NOTNULLSTR)
     lincs_id                = _TEXT(**_NULLOKSTR)
     alternate_id            = _TEXT(**_NULLOKSTR)
     name                    = _TEXT(**_NOTNULLSTR)
@@ -624,13 +620,13 @@ class OtherReagent(models.Model):
 
 class OtherReagentBatch(models.Model):
     other_reagent           = models.ForeignKey('OtherReagent')
-    facility_batch_id       = _TEXT(max_length=_BATCH_ID_LENGTH, **_NOTNULLSTR)
+    facility_batch_id       = _TEXT(**_NOTNULLSTR)
     provider                = _TEXT(**_NULLOKSTR)
     provider_catalog_id     = _TEXT(**_NULLOKSTR)
     
 class DataSet(models.Model):
     #cells                   = models.ManyToManyField(Cell, verbose_name="Cells screened")
-    facility_id             = _TEXT(max_length=_FACILITY_ID_LENGTH, unique=True, **_NOTNULLSTR)
+    facility_id             = _TEXT(unique=True, **_NOTNULLSTR)
     title                   = _TEXT(unique=True, **_NOTNULLSTR)
     lead_screener_firstname = _TEXT(**_NULLOKSTR)
     lead_screener_lastname  = _TEXT(**_NULLOKSTR)
@@ -753,8 +749,8 @@ class DataRecord(models.Model):
     dataset                 = models.ForeignKey('DataSet')
     smallmolecule           = models.ForeignKey('SmallMolecule', null=True)
     
-    sm_batch_id             = _TEXT(max_length=_BATCH_ID_LENGTH, **_NULLOKSTR) 
-    cell_batch_id           = _TEXT(max_length=_BATCH_ID_LENGTH, **_NULLOKSTR) 
+    sm_batch_id             = _TEXT(**_NULLOKSTR) 
+    cell_batch_id           = _TEXT(**_NULLOKSTR) 
     
     # NOTE: library_mapping: used in the case of control wells, if smallmolecule_batch is defined, then this must match the librarymapping to the smb
     library_mapping         = models.ForeignKey('LibraryMapping',null=True)  
@@ -785,9 +781,9 @@ class AttachedFile(models.Model):
     filename                = _TEXT(unique=True,**_NOTNULLSTR)
     description             = _TEXT(**_NULLOKSTR)
     relative_path           = _TEXT(**_NULLOKSTR)
-    facility_id_for         = _TEXT(max_length=_FACILITY_ID_LENGTH, **_NULLOKSTR)
-    salt_id_for             = _TEXT(max_length=_SALT_ID_LENGTH, **_NULLOKSTR)
-    batch_id_for            = _TEXT(max_length=_BATCH_ID_LENGTH, **_NULLOKSTR)
+    facility_id_for         = _TEXT(**_NULLOKSTR)
+    salt_id_for             = _TEXT(**_NULLOKSTR)
+    batch_id_for            = _TEXT(**_NULLOKSTR)
     file_type               = _TEXT(**_NULLOKSTR)
     file_date               = models.DateField(null=True,blank=True)
     is_restricted           = models.BooleanField(default=False) # Note: default=False are not set at the db level, only at the Db-api level
