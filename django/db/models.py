@@ -417,11 +417,6 @@ class SmallMolecule(models.Model):
     def get_snippet_def(cls):
         return FieldInformation.manager.get_snippet_def(cls)
 
-CONCENTRATION_GL = 'g/L'
-CONCENTRATION_MGML = 'mg/mL'
-CONCENTRATION_WEIGHT_VOLUME_CHOICES = ((CONCENTRATION_GL,CONCENTRATION_GL),
-                                       (CONCENTRATION_MGML,CONCENTRATION_MGML))
-
 class SmallMoleculeBatch(models.Model):
     smallmolecule           = models.ForeignKey('SmallMolecule')
     facility_batch_id       = _TEXT(**_NOTNULLSTR)
@@ -432,7 +427,7 @@ class SmallMoleculeBatch(models.Model):
     purity                  = _TEXT(**_NULLOKSTR)
     purity_method           = _TEXT(**_NULLOKSTR)
     aqueous_solubility      = models.DecimalField(max_digits=4, decimal_places=2, null=True)
-    aqueous_solubility_unit = models.TextField(null=True,default=CONCENTRATION_MGML)
+    aqueous_solubility_unit = models.TextField(null=True)
     date_data_received      = models.DateField(null=True,blank=True)
     date_loaded             = models.DateField(null=True,blank=True)
     date_publicly_available = models.DateField(null=True,blank=True)
