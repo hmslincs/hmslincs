@@ -121,7 +121,7 @@ check_errs $? "syncdb fails"
 # ============ import the field definition information =========================
 
 echo 'import dwg field definition tables ...'
-python src/import_fieldinformation.py -f sampledata/fieldinformation.xlsx
+python src/import_fieldinformation.py -f django/db/fieldinformation.csv
 check_errs $? "import fieldinformation fails"
 
 if [[ "$SERVER" == "TEST" ]] || [[ "$SERVER" == "test" ]] \
@@ -132,11 +132,11 @@ then
   #============ Here is where the test data imports go =========================
   
   echo 'import cell tables ...'
-  python src/import_cell.py -f sampledata/LINCS_Cells_forLoading.xls
+  python src/import_cell.py -f sampledata/sample_cells.xlsx
   check_errs $? "import cell fails"
   
   echo 'import cell batch tables ...'
-  python src/import_cell_batch.py -f sampledata/cell_line_batch.xlsx
+  python src/import_cell_batch.py -f sampledata/sample_cell_line_batch.xlsx
   check_errs $? "import cell fails"
   
   echo 'import small molecule tables...'
@@ -188,13 +188,14 @@ then
   check_errs $? "import study dataset fails"
   
   # remove the attached file example, not needed with the qc event entity handling this
-  #echo 'import attached files...'
-  #python ./src/import_attachedfiles.py -f sampledata/HPLC_HMSL10001.101.01.pdf -rp upload_files -fi 10001 -si 101 -bi 1 -ft 'QC-NMR' -fd 2012-10-11
-  #check_errs $? "import attached file fails"
+  # echo 'import attached files...'
+  # python ./src/import_attachedfiles.py -f sampledata/HPLC_HMSL10001.101.01.pdf -rp upload_files -fi 10001 -si 101 -bi 1 -ft 'QC-NMR' -fd 2012-10-11
+  # check_errs $? "import attached file fails"
 
+  # remove the attached file example, not needed with the qc event entity handling this
   # try attaching the same file to a cell batch, to test
-  python ./src/import_attachedfiles.py -f sampledata/sample_attached_file_for_cell.txt -rp upload_files -fi 50001 -bi 1 -ft 'QC-NMR' -fd 2012-10-11
-  check_errs $? "import attached file fails"
+  # python ./src/import_attachedfiles.py -f sampledata/sample_attached_file_for_cell.txt -rp upload_files -fi 50001 -bi 1 -ft 'QC-NMR' -fd 2012-10-11
+  # check_errs $? "import attached file fails"
 
 else
   
@@ -254,58 +255,6 @@ else
 
   echo 'import screen results...'
   python src/import_dataset.py -f $DATADIR/Screen20004_tang_ProMitosis.xls 
-  check_errs $? "import dataset fails"
-  
-  #echo 'import screen results...'
-  #python src/import_dataset.py -f $DATADIR/Screen20005_tang_MitoApop2.xls 
-  #check_errs $? "import dataset fails"
-  
-  echo 'import screen results...'
-  python src/import_dataset.py -f $DATADIR/Screen20006_CMT_GrowthInhibition-3dose.xls 
-  check_errs $? "import dataset fails"
-  
-  echo 'import screen results...'
-  python src/import_dataset.py -f $DATADIR/Screen20007_CMT_GrowthInhibition-3dose.xls 
-  check_errs $? "import dataset fails"
-  
-  echo 'import screen results...'
-  python src/import_dataset.py -f $DATADIR/Screen20008_CMT_9dose-1.xls 
-  check_errs $? "import dataset fails"
-  
-  echo 'import screen results...'
-  python src/import_dataset.py -f $DATADIR/Screen20009_CMT_9dose-2.xls 
-  check_errs $? "import dataset fails"
-  
-  echo 'import screen results...'
-  python src/import_dataset.py -f $DATADIR/Screen20010_CMT_9dose-3.xls 
-  check_errs $? "import dataset fails"
-  
-  echo 'import screen results...'
-  python src/import_dataset.py -f $DATADIR/Screen20011_CMT_9dose-4.xls 
-  check_errs $? "import dataset fails"
-  
-  echo 'import screen results...'
-  python src/import_dataset.py -f $DATADIR/Screen20012_CMT_9dose-5.xls 
-  check_errs $? "import dataset fails"
-  
-  echo 'import screen results...'
-  python src/import_dataset.py -f $DATADIR/Screen20013_CMT_9dose-6.xls 
-  check_errs $? "import dataset fails"
-  
-  echo 'import screen results...'
-  python src/import_dataset.py -f $DATADIR/Screen20014_CMT_9dose-7.xls 
-  check_errs $? "import dataset fails"
-  
-  echo 'import screen results...'
-  python src/import_dataset.py -f $DATADIR/Screen20015_CMT_9dose-8.xls 
-  check_errs $? "import dataset fails"
-  
-  echo 'import screen results...'
-  python src/import_dataset.py -f $DATADIR/Screen20016_CMT_9dose-9.xls 
-  check_errs $? "import dataset fails"
-  
-  echo 'import screen results...'
-  python src/import_dataset.py -f $DATADIR/Screen20017_CMT_9dose-10.xls 
   check_errs $? "import dataset fails"
   
   echo 'import screen results...'

@@ -43,6 +43,7 @@ from db.models import PubchemRequest, SmallMolecule, SmallMoleculeBatch, Cell, \
     Protein, DataSet, Library, FieldInformation, AttachedFile, DataRecord, \
     DataColumn, get_detail, Antibody, OtherReagent, CellBatch, QCEvent,\
     QCAttachedFile
+from django.core.exceptions import ObjectDoesNotExist
 
 
 logger = logging.getLogger(__name__)
@@ -176,33 +177,36 @@ def cellDetail(request, facility_batch, batch_id=None):
             return HttpResponse('Log in required.', status=401)
         details = {'object': get_detail(cell, ['cell',''])}
         
-        #Testing...
+        logger.info(str((details)))
+        
         details['facility_id'] = cell.facility_id
-        #
-        
-        
-        logger.info(str(('batch_id', _batch_id)))
         cell_batch = None
         if(_batch_id):
             cell_batch = CellBatch.objects.get(
                 cell=cell,batch_id=_batch_id) 
+
         # batch table
-        if(cell_batch == None):
+        if not cell_batch:
             batches = CellBatch.objects.filter(cell=cell)
-            logger.info(str(('batches', len(batches))))
-            
-            if len(batches)>1:
-                details['batchTable']=CellBatchTable(batches)
-            elif len(batches)==1:
-                cell_batch = batches[0]
-        if cell_batch:
+            details['batchTable']=CellBatchTable(batches)
+        else:
             details['cell_batch']= get_detail(
                 cell_batch,['cellbatch',''])
-            attachedFiles = get_attached_files(
-                cell.facility_id,batch_id=cell_batch.batch_id)
-            if(len(attachedFiles)>0):
-                details['attached_files_batch'] = AttachedFileTable(attachedFiles)        
-        
+            details['facility_batch'] = '%s-%s' % (cell.facility_id,cell_batch.batch_id) 
+
+            # 20150413 - proposed "QC Outcome" field on batch info removed per group discussion
+            qcEvents = QCEvent.objects.filter(
+                facility_id_for=cell.facility_id,
+                batch_id_for=cell_batch.batch_id).order_by('-date')
+            if qcEvents:
+                details['qcTable'] = QCEventTable(qcEvents)
+            
+            if(not cell.is_restricted or request.user.is_authenticated()):
+                attachedFiles = get_attached_files(
+                    cell.facility_id,batch_id=cell_batch.batch_id)
+                if(len(attachedFiles)>0):
+                    details['attached_files_batch'] = AttachedFileTable(attachedFiles)        
+                
         dataset_ids = find_datasets_for_cell(cell.id)
         if(len(dataset_ids)>0):
             logger.debug(str(('dataset ids for cell',dataset_ids)))
@@ -685,7 +689,7 @@ def smallMoleculeDetail(request, facility_salt_id):
         
         return render(request,'db/smallMoleculeDetail.html', details)
 
-    except SmallMolecule.DoesNotExist:
+    except ObjectDoesNotExist:
         raise Http404
 
 def libraryIndex(request):
@@ -2222,7 +2226,7 @@ class SmallMoleculeBatchTable(PagedTable):
 
 
 class CellBatchTable(PagedTable):
-    batch_id = tables.LinkColumn("cell_detail2", args=[A('cell.facility_id'),A('batch_id')])
+    facility_batch = BatchInfoLinkColumn("cell_detail", args=[A('facility_batch')])
     
     class Meta:
         model = CellBatch
@@ -2231,7 +2235,7 @@ class CellBatchTable(PagedTable):
 
     def __init__(self, table, *args, **kwargs):
         super(CellBatchTable, self).__init__(table, *args, **kwargs)
-        sequence_override = ['batch_id']
+        sequence_override = ['facility_batch']
         set_table_column_info(
             self, ['cell','cellbatch',''],sequence_override)  
 
@@ -2787,7 +2791,7 @@ class CellSearchManager(SearchManager):
             Q(provider_catalog_id__icontains=searchString)).\
                 values_list('cell__id').distinct('cell__id')]
         
-        id_fields = ['name', 'alternate_name', 'center_name']
+        id_fields = ['name', 'alternate_name']
         query =  super(CellSearchManager, self).search(
             base_query, 'db_cell', searchString, id_fields, 
             Cell.get_snippet_def(), ids=cell_ids)
@@ -3017,7 +3021,7 @@ def set_table_column_info(table,table_names, sequence_override=None,
             logger.info(str(('no fieldinformation found for field:',fieldname)))
             if(fieldname not in exclude_list):
                 exclude_list.append(fieldname)
-    fields = OrderedDict(sorted(fields.items(), key=lambda x: x[1].order))
+    fields = OrderedDict(sorted(fields.items(), key=lambda x: x[1].list_order))
     sequence = filter(
         lambda x: x not in sequence_override and x not in visible_field_overrides, 
         [x for x in fields.keys()])
@@ -3295,11 +3299,16 @@ def export_as_csv(name,col_key_name_map, cursor=None, queryset=None,
     """
     Generic csv export admin action.
     """
-    assert (bool(cursor) ^ bool(queryset)), 'must define either cursor or queryset, not both'
+    assert not (bool(cursor) and bool(queryset)), 'must define either cursor or queryset, not both'
 
     response = HttpResponse(mimetype='text/csv')
     response['Content-Disposition'] = \
         'attachment; filename=%s.csv' % unicode(name).replace('.', '_')
+
+    if not (bool(cursor) or bool(queryset)):
+        logger.info(str(('empty result for', name)))
+        return response
+
     writer = csv.writer(response)
     # Write a first row with header information
     writer.writerow(col_key_name_map.values())
