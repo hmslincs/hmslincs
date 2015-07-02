@@ -719,14 +719,13 @@ class DataSetDataResource(Resource):
         
         return schema 
     
-    def obj_get_list(self, request=None, **kwargs):
-        logger.info('obj_get_list')
-        # Filtering disabled for brevity...
-        return self.get_object_list(request)
-    
-    def obj_get(self, request=None, **kwargs):
-        logger.info('obj_get')
-        return self.get_object_list(request)
+    def obj_get_list(self, bundle, **kwargs):
+        # override to disable filtering
+        return self.get_object_list(bundle.request)
+
+    def obj_get(self, bundle, **kwargs):    
+        # override to disable filtering
+        return self.get_object_list(bundle.request)
     
     def get_detail(self, request, **kwargs):
         logger.info('get_detail')
