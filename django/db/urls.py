@@ -7,11 +7,9 @@ from db.api import CellResource
 from db.api import AntibodyResource
 from db.api import OtherReagentResource
 from db.api import DataSetResource
-from db.api import DataSetDataFlattenedResource
 from db.api import DataSetDataResource
 from db.api import ProteinResource
 from db.api import LibraryResource
-from db.api import DataSetFlattenedResource
 from django.contrib import admin
 
 #smallmolecule_resource = SmallMoleculeResource()
@@ -19,9 +17,7 @@ v1_api = Api(api_name='v1')
 v1_api.register(SmallMoleculeResource())
 v1_api.register(CellResource())
 v1_api.register(DataSetResource())
-v1_api.register(DataSetFlattenedResource())
 v1_api.register(DataSetDataResource())
-v1_api.register(DataSetDataFlattenedResource())
 v1_api.register(ProteinResource())
 v1_api.register(LibraryResource())
 v1_api.register(AntibodyResource())
