@@ -285,7 +285,6 @@ class DataSetResource(ModelResource):
     This version of the database export shows the DatasetData columns serially, 
     as is specified for the SAF version 0.1 data interchange format for the LIFE system.
     """
-    absolute_uri = 'http://lincs.hms.harvard.edu/db/api/v1/datasetdata/'
     
     class Meta:
         queryset = DataSet.objects.all() #.filter(is_restricted==False)
@@ -293,14 +292,8 @@ class DataSetResource(ModelResource):
         allowed_methods = ['get']
         excludes = ['lead_screener_firstname','lead_screener_lastname','lead_screener_email']
         filtering = {'date_loaded':ALL, 'date_publicly_available':ALL, 'date_data_received':ALL }
-     
-    def dispatch(self, request_type, request, **kwargs):
-        """ override in order to be able to grab the request uri
-        """
-        
-        self.absolute_uri = request.build_absolute_uri()
-        return super(DataSetResource,self).dispatch(request_type, request, **kwargs)  
-         
+        detail_uri_name = 'facility_id'
+              
     def dehydrate(self, bundle):
         _facility_id =str(bundle.data['facility_id'])
         dataset_id = bundle.data['id']
@@ -309,8 +302,11 @@ class DataSetResource(ModelResource):
         bundle.data = get_detail_bundle(
             bundle.obj, ['dataset',''],
             _override_filter=lambda x: x.show_in_detail or x.field=='bioassay' )
-        saf_uri = self.absolute_uri.replace('dataset','datasetdata')
-        saf_uri = saf_uri.replace('json','csv');
+        
+        _uri = self.get_resource_uri(bundle)
+        saf_uri = _uri.replace('dataset','datasetdata')
+        saf_uri = saf_uri + '?format=csv'
+        saf_url = bundle.request.build_absolute_uri(saf_uri)
 
         datacolumns = list( DataColumn.objects.all().filter(dataset_id=dataset_id) )
         # TODO: drive the columns to show here from fieldinformation inputs
@@ -319,7 +315,7 @@ class DataSetResource(ModelResource):
         datapoints = [ dict(zip(dc_field_names, [ getattr(x,fi.field) for fi in dc_fieldinformation ] )) for x in datacolumns ]
 
         # Custom fields for SAF: TODO: generate the names here from the fieldinformation
-        bundle.data['datapointFile'] = {'uri': saf_uri,
+        bundle.data['datapointFile'] = {'uri': saf_url,
                                        'noCols':len(datasetDataColumns),
                                        'cols':datasetDataColumns,
                                        'noDatapoints': len(datapoints),
