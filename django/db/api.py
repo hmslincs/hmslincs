@@ -570,7 +570,6 @@ class DataSetDataResource(Resource):
                         'smallmolecule.lincs_id',
                         'smallmolecule.name',
                         'cell.name',
-                        'cell.cl_id',
                         'cell.facility_id',
                         'protein.name',
                         'protein.lincs_id',
