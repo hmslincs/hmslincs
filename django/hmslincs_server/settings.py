@@ -87,6 +87,11 @@ else:
         op.join(_djangopath, '..', 'sampledata', 'images' ),
     )   
 
+# Add the assets directory for cross-app dependancies
+STATICFILES_DIRS = STATICFILES_DIRS + (
+    op.normpath(op.join(_djangopath, 'assets')),
+)
+
 # add our custom hmslincs project library path
 import sys
 sys.path.append(op.join(_djangopath, '..','src'))
@@ -203,7 +208,7 @@ WEBTEMPLATES_HOST = (
     'dev.lincs.hms.harvard.edu')
 WEBTEMPLATES_BASE = 'http://%s/templates/' % WEBTEMPLATES_HOST
 WEBTEMPLATES = [
-    (WEBTEMPLATES_BASE + 'base/', 'base.html'),
+    (WEBTEMPLATES_BASE + 'base/', 'wordpress_base.html'),
 ]
 
 INSTALLED_APPS = (

@@ -1,122 +1,22 @@
-<!DOCTYPE html>
+{% extends "wordpress_base.html" %}
 
-<html dir="ltr" lang="en-US">
+{% block base_head_extra %}
 
-<head>
-	<meta charset="utf-8" />
-        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-	<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
-	
-	<link rel="stylesheet" href="//lincs.hms.harvard.edu/wordpress/wp-content/themes/lincs/style.css" type="text/css" />
-	<!--[if IE 6]>
-	<link rel="stylesheet" href="//lincs.hms.harvard.edu/wordpress/wp-content/themes/lincs/css/ie6.css" type="text/css" />
-	<![endif]-->
-	<link rel="stylesheet" href="//lincs.hms.harvard.edu/wordpress/wp-content/themes/lincs/css/print.css" type="text/css" media="print" />
-	
-        <script type='text/javascript' src='//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js'></script>
-        <script type='text/javascript' src='//lincs.hms.harvard.edu/wordpress/wp-content/themes/lincs/js/main.js'></script>
-        <script type='text/javascript' src='//lincs.hms.harvard.edu/wordpress/wp-content/plugins/google-analyticator/external-tracking.min.js?ver=6.2'></script>
-        <link rel='index' title='HMS LINCS Project' href='http://lincs.hms.harvard.edu/' />
+    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/hmslincs.css" />
 
-        <!-- Google Analytics Tracking by Google Analyticator 6.2: http://ronaldheft.com/code/analyticator/ -->
-        <script type="text/javascript">
-                var analyticsFileTypes = ['zip','xls','xlsx','csv'];
-                var analyticsEventTracking = 'enabled';
-        </script>
-        <script type="text/javascript">
-                var _gaq = _gaq || [];
-                _gaq.push(['_setAccount', 'UA-28987198-1']);
-                _gaq.push(['_trackPageview']);
-                _gaq.push(['_trackPageLoadTime']);
+    <script language="javascript" type="text/javascript">
+     var require = {
+         baseUrl: '{{ STATIC_URL }}/js',
+     };
+    </script>
+    <script src="{{ STATIC_URL }}/js/require-2.1.20.js"></script>
+    {# Monkey-patch jquery in so require.js will know about it. #}
+    <script language="javascript" type="text/javascript">
+     if (typeof jQuery === 'function') {
+         define('jquery', function () { return jQuery; });
+     }
+    </script>
 
-                (function() {
-                        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-                        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-                        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-                })();
-        </script>
+    {% block head_extra %}{% endblock %}
 
-        <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/hmslincs.css" />
-
-        {% block head_extra %}
-        {% endblock %}
-
-        <title>{% block title %}HMS LINCS Project{% endblock %}</title>
-</head>
-
-<body>
-	<div id="header-wrap">
-		<div id="header">
-			<h1><a href="http://lincs.hms.harvard.edu/">HMS LINCS Project</a></h1>
-			<span class="tagline">Library of Integrated Network-based Cellular Signatures</span>
-
-<div class="menu-mini-container">
-  <ul>
-    <li class="button" id="explore-link">
-      <a title="Explore" href="/explore/">Explore</a>
-    </li>
-    <li class="button" id="data-link">
-      <a title="Data" href="/data/">Data</a>
-    </li>
-  </ul>
-</div>
-
-
-		</div>
-	</div><!-- end header-wrap -->
-
-	<div id="pagebody-wrap">
-	
-		<div id="pagebody">
-		
-			<div id="content" class="{% block contentclass %}content{% endblock %}">
-
-                          {% block body %}{% endblock %}
-
-			</div><!-- end content -->
-		
-                        <ul id="sidebar" class="widget-area leftColumn">
-                          <li id="page-nav">
-                            {% block nav %}{% endblock %}
-                          </li><!-- end page-nav -->
-                        </ul><!-- end sidebar .widget-area -->			
-
-			<div class="clear-both"></div>
-		
-		</div><!-- end pagebody -->
-		
-	</div><!-- end pagebody-wrap -->
-
-
-	<div id="footer-wrap">
-
-	  <div id="footer">
-
-	    <div id="footer-decoration"></div>
-
-            <div class="menu-topnav-container"><ul><li class="page_item page-item-32 current_page_item"><a href="http://lincs.hms.harvard.edu/" title="Home">Home</a><ul class='children'><li class="page_item page-item-34"><a href="http://lincs.hms.harvard.edu/about/approach/" title="Approach">Approach</a></li><li class="page_item page-item-98"><a href="http://lincs.hms.harvard.edu/about/people/" title="People">People</a></li><li class="page_item page-item-78"><a href="http://lincs.hms.harvard.edu/about/publications/" title="Publications">Publications</a></li></ul></li><li class="page_item page-item-482"><a href="http://lincs.hms.harvard.edu/resources/" title="Resources">Resources</a><ul class='children'><li class="page_item page-item-88"><a href="http://lincs.hms.harvard.edu/resources/assays/" title="Assays">Assays</a></li><li class="page_item page-item-1725"><a href="http://lincs.hms.harvard.edu/resources/methods/" title="Methods">Methods</a></li><li class="page_item page-item-86"><a href="http://lincs.hms.harvard.edu/resources/reagents/" title="Reagents">Reagents</a></li><li class="page_item page-item-80"><a href="http://lincs.hms.harvard.edu/resources/software-tools/" title="Software and Tools">Software and Tools</a></li><li class="page_item page-item-1122"><a href="http://lincs.hms.harvard.edu/resources/tutorials-presentations/" title="Tutorials and Presentations">Tutorials and Presentations</a></li></ul></li><li class="page_item page-item-414"><a href="http://lincs.hms.harvard.edu/data/" title="Data">Data</a><ul class='children'><li class="page_item page-item-1688"><a href="http://lincs.hms.harvard.edu/data/bundles/" title="Data bundles">Data bundles</a></li><li class="page_item page-item-292"><a href="http://lincs.hms.harvard.edu/data/metadata-standards/" title="Metadata and standards">Metadata and standards</a></li><li class="page_item page-item-784"><a href="http://lincs.hms.harvard.edu/data/isa-tab/" title="ISA-Tab at HMS LINCS">ISA-Tab at HMS LINCS</a></li></ul></li><li class="page_item page-item-1603"><a href="http://lincs.hms.harvard.edu/terms/" title="Terms of use">Terms of use</a></li></ul></div>
-
-	    
-	    <div id="logo-hms"><a href="http://hms.harvard.edu/hms/home.asp">
-	      <span>Harvard Medical School</span>
-	    </a></div>
-	    <div id="logo-nihlincs"><a href="http://commonfund.nih.gov/lincs/">
-	      <span>NIH LINCS Program</span>
-	    </a></div>
-
-	    
-	    <div id="footer-misc">
-	      &copy;2015 HMS LINCS Project
-	      |
-	      <a href="http://lincs.hms.harvard.edu/feed/">RSS</a>
-	      |
-	      <a href="https://lincs.hms.harvard.edu/wordpress/wp-login.php">Log in</a>	    </div>
-	  
-	  </div>
-
-	</div><!-- end footer-wrap -->
-	
-	
-</body>
-
-</html>
+{% endblock %}
