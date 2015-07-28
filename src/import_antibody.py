@@ -41,7 +41,7 @@ def main(path):
               'AR_Name': ('name',True),
               'AR_LINCS_ID': 'lincs_id', 
               'AR_Alternative_Name': 'alternative_names',
-              'AR_Center_Specific_ID': ('facility_id', True),
+              'AR_Center_Specific_ID': ('facility_id',True,None, lambda x: x[x.index('HMSL')+4:]),
               'AR_Clone_Name': 'clone_name',
               'AR_RRID': 'rrid',
               'AR_Antibody_Type': 'type',

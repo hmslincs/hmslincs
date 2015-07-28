@@ -589,7 +589,7 @@ class Antibody(models.Model):
     
 class AntibodyBatch(models.Model):
     antibody                = models.ForeignKey('Antibody')
-    facility_batch_id       = _TEXT(**_NOTNULLSTR)
+    batch_id                = _TEXT(**_NOTNULLSTR)
     provider                = _TEXT(**_NULLOKSTR)
     provider_catalog_id     = _TEXT(**_NULLOKSTR)
     provider_batch_id       = _TEXT(**_NULLOKSTR)
@@ -600,12 +600,17 @@ class AntibodyBatch(models.Model):
     date_publicly_available = models.DateField(null=True,blank=True)
     date_updated            = models.DateField(null=True,blank=True)
 
+    @property
+    def facility_batch(self):
+        "Returns the 'facilty_id-batch_id'"
+        return '%s-%s' % (self.antibody.facility_id, self.batch_id)
+    
     class Meta:
-        unique_together = ('antibody', 'facility_batch_id',)    
+        unique_together = ('antibody', 'batch_id',)    
 
     def __unicode__(self):
         return ( u'Antibody: %s - %s, %s: %s - %s' 
-            % ( self.antibody,self.facility_batch_id,self.provider,
+            % ( self.antibody,self.batch_id,self.provider,
                 self.provider_catalog_id,self.provider_batch_id ) )
     
 class OtherReagent(models.Model):
@@ -742,6 +747,7 @@ class DataRecord(models.Model):
     
     sm_batch_id             = _TEXT(**_NULLOKSTR) 
     cell_batch_id           = _TEXT(**_NULLOKSTR) 
+    antibody_batch_id       = _TEXT(**_NULLOKSTR) 
     
     # NOTE: library_mapping: used in the case of control wells, if smallmolecule_batch is defined, then this must match the librarymapping to the smb
     library_mapping         = models.ForeignKey('LibraryMapping',null=True)  
