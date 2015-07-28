@@ -1,5 +1,5 @@
 'use strict';
-define(     [ 'd3', 'hmslincs/utils' ],
+define(     [ 'd3', 'utils' ],
     function ( d3 ,  u ) {
 
         function retval () {

@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block requirejs %}
+    <script>
+     require.config({
+         paths: {
+             adr: '../adaptive_drug_resistance/js',
+         },
+    });
+    </script>
+{% endblock %}

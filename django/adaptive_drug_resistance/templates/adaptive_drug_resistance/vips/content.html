@@ -32,5 +32,6 @@
 window.__STATIC_URL__ = '{{ STATIC_URL }}adaptive_drug_resistance/';
     </script>
 
-  <script data-main="{{ STATIC_URL }}adaptive_drug_resistance/js/vips/main"
-          src="{{ STATIC_URL }}adaptive_drug_resistance/js/ext/require/require.js"></script>
+    <script>
+     require( [ 'adr/vips/app' ], function ( app ) { app() } );
+    </script>

@@ -2,9 +2,9 @@
 
 define(
 
-        [ 'jquery', 'd3', 'config', 'add_pickers', 'hmslincs/utils', 'events', 'colors', 'hmslincs/colorbar' ],
+        [ 'jquery', 'd3', './config', './add_pickers', 'utils', './events', './colors', 'colorbar' ],
 
-function ( $      ,  d3 ,  cfg    ,  add_pickers ,  u              ,  events ,  colors,   colorbar ) {
+function ( $      ,  d3 ,  cfg    ,    add_pickers ,    u     ,  events ,    colors,     colorbar ) {
 
     var _
 

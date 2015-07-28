@@ -1,6 +1,6 @@
 'use strict';
-define(    [  'hmslincs/picker', 'hmslincs/utils', 'jquery', 'd3' ],
-    function ( picker          ,  u              ,  $      ,  d3 ) {
+define(    [  'picker', 'utils', 'jquery', 'd3' ],
+    function ( picker ,  u     ,  $      ,  d3 ) {
 
         return function ( levels ) {
 

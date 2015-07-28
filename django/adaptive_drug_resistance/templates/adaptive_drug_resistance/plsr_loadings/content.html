@@ -24,5 +24,6 @@
 window.__STATIC_URL__ = '{{ STATIC_URL }}adaptive_drug_resistance/';
     </script>
 
-  <script data-main="{{ STATIC_URL }}adaptive_drug_resistance/js/plsr_loadings/main"
-          src="{{ STATIC_URL }}adaptive_drug_resistance/js/ext/require/require.js"></script>
+    <script>
+        require( [ 'adr/plsr_loadings/app' ], function ( app ) { app() } );
+    </script>

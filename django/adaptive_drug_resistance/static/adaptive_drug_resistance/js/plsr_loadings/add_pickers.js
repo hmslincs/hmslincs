@@ -1,6 +1,6 @@
 'use strict';
-define(    [  'hmslincs/picker', 'hmslincs/utils', 'common', 'jquery', 'd3' ],
-    function ( picker          ,  u              ,  c      ,  $      ,  d3 ) {
+define(    [  'picker', 'utils', './common', 'jquery', 'd3' ],
+    function ( picker ,  u     ,  c        ,  $      ,  d3 ) {
 
         function _add_pickers ( flat_data ) {
 

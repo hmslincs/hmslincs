@@ -89,7 +89,8 @@ else:
 
 # Add the assets directory for cross-app dependancies
 STATICFILES_DIRS = STATICFILES_DIRS + (
-    op.normpath(op.join(_djangopath, 'assets')),
+    op.normpath(op.join(_djangopath, 'static')),
+    op.normpath(op.join(_djangopath, 'ext')),
 )
 
 # add our custom hmslincs project library path
