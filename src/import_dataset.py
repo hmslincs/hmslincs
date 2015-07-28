@@ -436,12 +436,15 @@ def _read_antibody(map_column,r,current_row, dr):
     @param r row
     @param dr dataRecord
     '''
-
     try:
         value = util.convertdata(r[map_column].strip())
         facility_id = None
         if(value != None and value != '' ):
-            dr.antibody = Antibody.objects.get(facility_id=value) 
+            value = value.split("-")
+            facility_id = util.convertdata(value[0],int) 
+            dr.antibody = Antibody.objects.get(facility_id=facility_id) 
+            if(len(value)>1):
+                dr.antibody_batch_id = util.convertdata(value[1],int)
     except Exception, e:
         logger.error(str((
             "Invalid Antibody facility id: ", facility_id,'row',current_row, e)))

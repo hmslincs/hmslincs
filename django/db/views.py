@@ -42,7 +42,7 @@ from PagedRawQuerySet import PagedRawQuerySet
 from db.models import PubchemRequest, SmallMolecule, SmallMoleculeBatch, Cell, \
     Protein, DataSet, Library, FieldInformation, AttachedFile, DataRecord, \
     DataColumn, get_detail, Antibody, OtherReagent, CellBatch, QCEvent,\
-    QCAttachedFile
+    QCAttachedFile, AntibodyBatch
 from django.core.exceptions import ObjectDoesNotExist
 
 
@@ -350,38 +350,77 @@ def antibodyIndex(request):
         return send_to_file(outputType, 'antibodies', table, queryset, 'antibody' )
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
     return render_list_index(request, table,search,'Antibody','Antibodies')
-    
-def antibodyDetail(request, facility_id):
+   
+def antibodyDetail(request, facility_batch, batch_id=None):
     try:
-        antibody = Antibody.objects.get(facility_id=facility_id) # todo: cell here
+        _batch_id = None
+        if not batch_id:
+            temp = facility_batch.split('-') 
+            logger.info('find antibody for %s' % temp)
+            _facility_id = temp[0]
+            if len(temp) > 1:
+                _batch_id = temp[1]
+        else:
+            _facility_id = facility_batch
+            _batch_id = batch_id        
+        
+        antibody = Antibody.objects.get(facility_id=_facility_id) 
         if(antibody.is_restricted and not request.user.is_authenticated()):
             return HttpResponse('Log in required.', status=401)
         details = {'object': get_detail(antibody, ['antibody',''])}
         
-        # datasets table
+        details['facility_id'] = antibody.facility_id
+        antibody_batch = None
+        if(_batch_id):
+            antibody_batch = AntibodyBatch.objects.get(
+                antibody=antibody,batch_id=_batch_id) 
+
+        # batch table
+        if not antibody_batch:
+            batches = AntibodyBatch.objects.filter(antibody=antibody)
+            details['batchTable']=AntibodyBatchTable(batches)
+        else:
+            details['antibody_batch']= get_detail(
+                antibody_batch,['antibodybatch',''])
+            details['facility_batch'] = '%s-%s' % (antibody.facility_id,antibody_batch.batch_id) 
+
+            qcEvents = QCEvent.objects.filter(
+                facility_id_for=antibody.facility_id,
+                batch_id_for=antibody_batch.batch_id).order_by('-date')
+            if qcEvents:
+                details['qcTable'] = QCEventTable(qcEvents)
+            
+            if(not antibody.is_restricted or request.user.is_authenticated()):
+                attachedFiles = get_attached_files(
+                    antibody.facility_id,batch_id=antibody_batch.batch_id)
+                if(len(attachedFiles)>0):
+                    details['attached_files_batch'] = AttachedFileTable(attachedFiles)        
+                
         dataset_ids = find_datasets_for_antibody(antibody.id)
         if(len(dataset_ids)>0):
-            logger.debug(str(('dataset ids for antibodies',dataset_ids)))
+            logger.debug('dataset ids for antibody %s' % dataset_ids)
             where = []
             if(not request.user.is_authenticated()): 
                 where.append("(not is_restricted or is_restricted is NULL)")
-            queryset = DataSet.objects.filter(pk__in=list(dataset_ids)).extra(where=where,
-                       order_by=('facility_id',))        
+            queryset = DataSet.objects.filter(pk__in=list(dataset_ids)).extra(
+                    where=where,
+                    order_by=('facility_id',))        
             details['datasets'] = DataSetTable(queryset)
 
         # add in the LIFE System link: TODO: put this into the fieldinformation
-        extralink = {   'title': 'LINCS Information Framework Page' ,
-                        'name': 'LIFE Antibody Information',
-                        'link': 'http://life.ccs.miami.edu/life/summary?mode=Antibody&input={ar_center_specific_id}&source=HMS'
-                                .format(ar_center_specific_id=antibody.facility_id), 
-                        'value': antibody.facility_id }
+        extralink = {   
+            'title': 'LINCS Information Framework Page' ,
+            'name': 'LIFE Antibody Information',
+            'link': ( 'http://life.ccs.miami.edu/life/summary?mode=Antibody'
+                      '&input={ar_center_specific_id}&source=HMS' )
+                    .format(ar_center_specific_id=antibody.facility_id), 
+            'value': antibody.facility_id }
         details['extralink'] = extralink
-                
+
         return render(request, 'db/antibodyDetail.html', details)
- 
     except Antibody.DoesNotExist:
         raise Http404
- 
+     
 def otherReagentIndex(request):
     search = request.GET.get('search','')
     search = re.sub(r'[\'"]','',search)
@@ -2238,6 +2277,21 @@ class CellBatchTable(PagedTable):
         sequence_override = ['facility_batch']
         set_table_column_info(
             self, ['cell','cellbatch',''],sequence_override)  
+
+
+class AntibodyBatchTable(PagedTable):
+    facility_batch = BatchInfoLinkColumn("antibody_detail", args=[A('facility_batch')])
+    
+    class Meta:
+        model = AntibodyBatch
+        orderable = True
+        attrs = {'class': 'paleblue'}
+
+    def __init__(self, table, *args, **kwargs):
+        super(AntibodyBatchTable, self).__init__(table, *args, **kwargs)
+        sequence_override = ['facility_batch']
+        set_table_column_info(
+            self, ['antibody','antibodybatch',''],sequence_override)  
 
 
 class SaltTable(PagedTable):
