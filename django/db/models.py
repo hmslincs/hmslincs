@@ -552,41 +552,61 @@ class Protein(models.Model):
 
 
 class Antibody(models.Model):
-    facility_id             = _TEXT(**_NOTNULLSTR)
+
+    facility_id             = _TEXT(unique=True, **_NOTNULLSTR)
     lincs_id                = _TEXT(**_NULLOKSTR)
     name                    = _TEXT(**_NOTNULLSTR)
     alternative_names       = _TEXT(**_NULLOKSTR) 
-    target_protein_name     = _TEXT(**_NULLOKSTR) 
-    target_protein_uniprot_id       = _TEXT(**_NULLOKSTR) # Note: UNIPROT ID's are 6 chars long, but we have a record with two in it, see issue #74
-    target_gene_name      = _TEXT(**_NULLOKSTR)
-    target_gene_id          = _TEXT(**_NULLOKSTR)
-    target_organism         = _TEXT(**_NULLOKSTR) #TODO: controlled vocabulary
+    clone_name              = _TEXT(**_NULLOKSTR)
+    rrid                    = _TEXT(**_NULLOKSTR)
+    type                    = _TEXT(**_NULLOKSTR)
+    target_protein          = models.ForeignKey('Protein',null=True)
+    non_protein_target_name = _TEXT(**_NULLOKSTR)
+    target_organism         = _TEXT(**_NULLOKSTR) 
     immunogen               = _TEXT(**_NULLOKSTR) 
     immunogen_sequence      = _TEXT(**_NULLOKSTR) 
-    antibody_clonality      = _TEXT(**_NULLOKSTR) 
-    source_organism         = _TEXT(**_NULLOKSTR) #TODO: controlled vocabulary
-    antibody_isotype        = _TEXT(**_NULLOKSTR)
-    engineering             = _TEXT(**_NULLOKSTR) 
-    antibody_purity         = _TEXT(**_NULLOKSTR) 
-    antibody_labeling       = _TEXT(**_NULLOKSTR) 
-    recommended_experiment_type     = _TEXT(**_NULLOKSTR) 
-    relevant_reference      = _TEXT(**_NULLOKSTR) 
-    specificity             = _TEXT(**_NULLOKSTR) 
+    species                 = _TEXT(**_NULLOKSTR)
+    clonality               = _TEXT(**_NULLOKSTR) 
+    isotype                 = _TEXT(**_NULLOKSTR)
+    source_organism         = _TEXT(**_NULLOKSTR) 
+    production_details      = _TEXT(**_NULLOKSTR)
+    labeling                = _TEXT(**_NULLOKSTR) 
+    labeling_details        = _TEXT(**_NULLOKSTR) 
+    relevant_citations      = _TEXT(**_NULLOKSTR) 
+    
     date_data_received      = models.DateField(null=True,blank=True)
     date_loaded             = models.DateField(null=True,blank=True)
     date_publicly_available = models.DateField(null=True,blank=True)
     date_updated            = models.DateField(null=True,blank=True)
-    is_restricted           = models.BooleanField(default=False) # Note: default=False are not set at the db level, only at the Db-api level
+    is_restricted           = models.BooleanField(default=False) 
 
     @classmethod
     def get_snippet_def(cls):
         return FieldInformation.manager.get_snippet_def(cls)
     
+    def __unicode__(self):
+        return u'%s, %s, %s' % (self.facility_id,self.lincs_id,self.name)
+    
 class AntibodyBatch(models.Model):
-    antibody           = models.ForeignKey('Antibody')
+    antibody                = models.ForeignKey('Antibody')
     facility_batch_id       = _TEXT(**_NOTNULLSTR)
     provider                = _TEXT(**_NULLOKSTR)
     provider_catalog_id     = _TEXT(**_NULLOKSTR)
+    provider_batch_id       = _TEXT(**_NULLOKSTR)
+    antibody_purity         = _TEXT(**_NULLOKSTR) 
+
+    date_data_received      = models.DateField(null=True,blank=True)
+    date_loaded             = models.DateField(null=True,blank=True)
+    date_publicly_available = models.DateField(null=True,blank=True)
+    date_updated            = models.DateField(null=True,blank=True)
+
+    class Meta:
+        unique_together = ('antibody', 'facility_batch_id',)    
+
+    def __unicode__(self):
+        return ( u'Antibody: %s - %s, %s: %s - %s' 
+            % ( self.antibody,self.facility_batch_id,self.provider,
+                self.provider_catalog_id,self.provider_batch_id ) )
     
 class OtherReagent(models.Model):
     facility_id             = _TEXT(**_NOTNULLSTR)

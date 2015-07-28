@@ -441,8 +441,7 @@ def _read_antibody(map_column,r,current_row, dr):
         value = util.convertdata(r[map_column].strip())
         facility_id = None
         if(value != None and value != '' ):
-            facility_id = util.convertdata(value,int) 
-            dr.antibody = Antibody.objects.get(facility_id=facility_id) 
+            dr.antibody = Antibody.objects.get(facility_id=value) 
     except Exception, e:
         logger.error(str((
             "Invalid Antibody facility id: ", facility_id,'row',current_row, e)))

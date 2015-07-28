@@ -164,8 +164,12 @@ then
   check_errs $? 'import kinases fails'
     
   echo 'import antibody tables...'
-  python src/import_antibody.py -f sampledata/HMS-LINCS_antibodies.xls
+  python src/import_antibody.py -f sampledata/sample_antibodies.xlsx
   check_errs $? 'import antibodies fails'
+
+  echo 'import antibody batches...'
+  python src/import_antibody_batch.py -f sampledata/sample_antibody_batches.xlsx
+  check_errs $? 'import antibody batches fails'
 
   echo 'import other reagent tables...'
   python src/import_other_reagent.py -f sampledata/HMS-LINCS_other_reagents.xls
