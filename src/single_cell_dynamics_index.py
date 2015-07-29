@@ -24,8 +24,8 @@ RESOURCE_PATH = os.environ.get(
      'sorger/data/NIC/Pat')
 )
 
-VIDEO_PATH = op.join(RESOURCE_PATH, '02-03-2013-videos')
-DATA_PATH = op.join(RESOURCE_PATH, '02-03-2013-dataanalysis')
+VIDEO_PATH = op.join(RESOURCE_PATH, '2013-02-03')
+DATA_PATH = op.join(RESOURCE_PATH, '2013-02-03-dataanalysis')
 
 PLATEMAP_FILENAME = op.join(VIDEO_PATH, 'Experiment 02-03-2013.xlsx')
 CELL_IMAGE_PREFIX = 'Individual_nolabel_'
@@ -186,7 +186,7 @@ def build_platemap(filename):
 
 def dataframe_for_range(worksheet, range):
     "Return a Pandas DataFrame from a given range in an openpyxl worksheet."
-    data = [[c.value for c in row] for row in worksheet.range(range)]
+    data = [[c.value for c in row] for row in worksheet.iter_rows(range)]
     return pd.DataFrame(data)
 
 

@@ -61,7 +61,7 @@ if not cellline_info:
     sheet = workbook.worksheets[0]
     sheet_iter = sheet.iter_rows()
     sheet_iter.next() # skip header row (iter_rows API for offsets is buggy)
-    cellline_info = [[cell.internal_value for cell in row] for row in sheet_iter]
+    cellline_info = [[cell.value for cell in row] for row in sheet_iter]
     stash_put('cellline_info', cellline_info)
 PASS_nl()
 

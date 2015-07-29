@@ -51,7 +51,7 @@ if not ligand_info:
     sheet = workbook.worksheets[0]
     sheet_iter = sheet.iter_rows()
     sheet_iter.next() # skip header row (iter_rows API for offsets is buggy)
-    ligand_info = [[cell.internal_value for cell in row] for row in sheet_iter]
+    ligand_info = [[cell.value for cell in row] for row in sheet_iter]
     stash_put('ligand_info', ligand_info)
 PASS_nl()
 
@@ -64,7 +64,7 @@ if not ligand_affinity:
     sheet = workbook.worksheets[0]
     sheet_iter = sheet.iter_rows()
     sheet_iter.next() # skip header row (iter_rows API for offsets is buggy)
-    ligand_affinity = [[cell.internal_value for cell in row]
+    ligand_affinity = [[cell.value for cell in row]
                        for row in sheet_iter]
     stash_put('ligand_affinity', ligand_affinity)
 PASS_nl()
