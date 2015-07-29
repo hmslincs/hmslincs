@@ -1,7 +1,6 @@
-# this file is for the tastypie REST api
-# db/api.py - tastypie resources
 from collections import OrderedDict
 from django.db import connection, DatabaseError
+from tastypie.utils.urls import trailing_slash
 try:
     from db import views
 except DatabaseError, e:
@@ -18,7 +17,7 @@ from db.models import SmallMolecule, SmallMoleculeBatch, DataSet, Cell, \
     CellBatch, Protein, Library, DataRecord, DataColumn, FieldInformation, \
     get_fieldinformation, get_listing, get_detail_schema, get_detail, \
     get_detail_bundle, get_fieldinformation, get_schema_fieldinformation,\
-    Antibody, OtherReagent
+    Antibody, OtherReagent, camel_case_dwg, AntibodyBatch, ProteinBatch
 from django.conf.urls.defaults import url
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import Http404, HttpResponse
@@ -41,16 +40,12 @@ logger = logging.getLogger(__name__)
 
 
 class SmallMoleculeResource(ModelResource):
-#    batches = fields.ToManyField('db.api.SmallMoleculeBatchResource', attribute='batches', related_name='batches')
        
     class Meta:
         queryset = SmallMolecule.objects.all()
-        # to override: resource_name = 'sm'
         excludes = ['column']
         allowed_methods = ['get']
         filtering = {'date_loaded':ALL, 'date_publicly_available':ALL, 'date_data_received':ALL }
-
-#        authentication = MultiAuthentication(BasicAuthentication(), SessionAuthentication())
         
     def dehydrate(self, bundle):
         
@@ -59,8 +54,9 @@ class SmallMoleculeResource(ModelResource):
                     or field_information.is_unrestricted )
 
         bundle.data = get_detail_bundle(bundle.obj, ['smallmolecule',''], _filter=_filter)
-        
-        smbs = SmallMoleculeBatch.objects.filter(smallmolecule=bundle.obj)
+
+        smbs = ( SmallMoleculeBatch.objects.filter(reagent=bundle.obj)
+            .exclude(batch_id=0) )
         bundle.data['batches'] = []
         for smb in smbs:
             bundle.data['batches'].append(
@@ -84,65 +80,25 @@ class SmallMoleculeResource(ModelResource):
                 self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
         ]
 
-# TODO: fix this after upgrading to Tastypie >= 0.9.14 (latest) - it should work but it doesn't find the smallMolecule resource
-#class SmallMoleculeBatchResource(ModelResource):
-##    smallMolecule  = fields.ForeignKey(SmallMolecule, 'smallMolecule')
-##    smallMolecule = fields.ToOneField(SmallMoleculeResource, 'smallMolecule')
-#
-#    smallMolecule = fields.ToOneField('api.SmallMoleculeResource', attribute = 'smallMolecule', related_name='smallMolecule', full=True) #, null=True)
-#    class Meta:
-#        resourceName = "batch"
-#        # TODO: authorization
-#        # TODO: it would be good to feed these from the view/tables2 code; or vice versa
-#        queryset = SmallMoleculeBatch.objects.all()
-#        # to override: resource_name = 'sm'
-#        excludes = []
-#        allowed_methods = ['get']
-#
-##        authentication = MultiAuthentication(BasicAuthentication(), SessionAuthentication())
-#        
-#    def dehydrate(self, bundle):
-#        _filter = lambda field_information: not bundle.obj.is_restricted or field_information.is_unrestricted # or is_authorized
-#        bundle.data = get_detail_bundle(bundle.obj, ['smallmoleculebatch',''], _filter=_filter)
-#        return bundle
-#
-#    def build_schema(self):
-#        schema = super(SmallMoleculeBatchResource,self).build_schema()
-#        schema['fields'] = get_detail_schema(SmallMoleculeBatch(),['smallmoleculebatch'])
-#        return schema 
-#    
-#    def override_urls(self):
-#        """ Note, will be deprecated in >0.9.12; delegate to new method, prepend_urls
-#        """
-#        return self.prepend_urls();
-#    
-#    def prepend_urls(self):
-#
-#        return [
-#            url(r"^(?P<resource_name>%s)/(?P<smallmolecule_id>\d+)\-(?P<facility_batch_id>\d+)/$" % 
-#                self._meta.resource_name, self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
-#        ]
         
 class CellResource(ModelResource):
+    
     class Meta:
-        # TODO: authorization
-        # TODO: it would be good to feed these from the view/tables2 code; or vice versa
         queryset = Cell.objects.all()
-        # to override: resource_name = 'sm'
         allowed_methods = ['get']
         excludes = []
         filtering = {'date_loaded':ALL, 'date_publicly_available':ALL, 'date_data_received':ALL }
         
     def dehydrate(self, bundle):
-
         def _filter(field_information):
             return (not bundle.obj.is_restricted 
                     or field_information.is_unrestricted )
-        
-        bundle.data = get_detail_bundle(bundle.obj, ['cell',''], _filter=_filter)
-        batches = CellBatch.objects.filter(cell=bundle.obj)
-        bundle.data['batches'] = []
 
+        bundle.data = get_detail_bundle(bundle.obj, ['cell',''], _filter=_filter)
+
+        batches = ( CellBatch.objects.filter(reagent=bundle.obj)
+            .exclude(batch_id=0) )
+        bundle.data['batches'] = []
         for batch in batches:
             bundle.data['batches'].append(
                 get_detail_bundle(batch, ['cellbatch',''], _filter=_filter))
@@ -164,17 +120,26 @@ class CellResource(ModelResource):
         ]
     
 class AntibodyResource(ModelResource):
+
     class Meta:
-        # TODO: authorization
-        # TODO: it would be good to feed these from the view/tables2 code; or vice versa
         queryset = Antibody.objects.all()
-        # to override: resource_name = 'sm'
         allowed_methods = ['get']
         excludes = []
         filtering = {'date_loaded':ALL, 'date_publicly_available':ALL, 'date_data_received':ALL }
         
     def dehydrate(self, bundle):
-        bundle.data = get_detail_bundle(bundle.obj, ['antibody',''])
+        def _filter(field_information):
+            return (not bundle.obj.is_restricted 
+                    or field_information.is_unrestricted )
+
+        bundle.data = get_detail_bundle(bundle.obj, ['antibody',''], _filter=_filter)
+
+        batches = ( AntibodyBatch.objects.filter(reagent=bundle.obj)
+            .exclude(batch_id=0) )
+        bundle.data['batches'] = []
+        for batch in batches:
+            bundle.data['batches'].append(
+                get_detail_bundle(batch, ['antibodybatch',''], _filter=_filter))
         return bundle
 
     def build_schema(self):
@@ -193,17 +158,26 @@ class AntibodyResource(ModelResource):
         ]
     
 class OtherReagentResource(ModelResource):
+    
     class Meta:
-        # TODO: authorization
-        # TODO: it would be good to feed these from the view/tables2 code; or vice versa
         queryset = OtherReagent.objects.all()
-        # to override: resource_name = 'sm'
         allowed_methods = ['get']
         excludes = []
         filtering = {'date_loaded':ALL, 'date_publicly_available':ALL, 'date_data_received':ALL }
         
     def dehydrate(self, bundle):
-        bundle.data = get_detail_bundle(bundle.obj, ['otherreagent',''])
+        def _filter(field_information):
+            return (not bundle.obj.is_restricted 
+                    or field_information.is_unrestricted )
+
+        bundle.data = get_detail_bundle(bundle.obj, ['otherreagent',''], _filter=_filter)
+
+        batches = ( OtherReagentBatch.objects.filter(reagent=bundle.obj)
+            .exclude(batch_id=0) )
+        bundle.data['batches'] = []
+        for batch in batches:
+            bundle.data['batches'].append(
+                get_detail_bundle(batch, ['otherreagentbatch',''], _filter=_filter))
         return bundle
 
     def build_schema(self):
@@ -222,17 +196,26 @@ class OtherReagentResource(ModelResource):
         ]
     
 class ProteinResource(ModelResource):
+
     class Meta:
-        # TODO: authorization
-        # TODO: it would be good to feed these from the view/tables2 code; or vice versa
         queryset = Protein.objects.all()
-        # to override: resource_name = 'sm'
         allowed_methods = ['get']
         excludes = []
         filtering = {'date_loaded':ALL, 'date_publicly_available':ALL, 'date_data_received':ALL }
             
     def dehydrate(self, bundle):
-        bundle.data = get_detail_bundle(bundle.obj, ['protein',''])
+        def _filter(field_information):
+            return (not bundle.obj.is_restricted 
+                    or field_information.is_unrestricted )
+
+        bundle.data = get_detail_bundle(bundle.obj, ['protein',''], _filter=_filter)
+
+        batches = ( ProteinBatch.objects.filter(reagent=bundle.obj)
+            .exclude(batch_id=0) )
+        bundle.data['batches'] = []
+        for batch in batches:
+            bundle.data['batches'].append(
+                get_detail_bundle(batch, ['proteinbatch',''], _filter=_filter))
         return bundle
 
     def build_schema(self):
@@ -251,11 +234,9 @@ class ProteinResource(ModelResource):
         ]
     
 class LibraryResource(ModelResource):
+
     class Meta:
-        # TODO: authorization
-        # TODO: it would be good to feed these from the view/tables2 code; or vice versa
         queryset = Library.objects.all()
-        # to override: resource_name = 'sm'
         allowed_methods = ['get']
         excludes = []
         filtering = {'date_loaded':ALL, 'date_publicly_available':ALL, 'date_data_received':ALL }
@@ -378,18 +359,6 @@ class DataSetResource(ModelResource):
         ]
 
 
-def camel_case(string):
-    
-    return string;
-
-#    field_name = re.sub(r'[_\s]+',' ',string)
-#    
-#    field_name = field_name.title()
-#    field_name = re.sub(r'[_\s]+','',field_name)
-#    temp = field_name[0].lower() + field_name[1:]
-#    logger.info(str(('camelcased:', string,temp)))
-#    return temp
-
 class CursorSerializer(Serializer):
     """
     A simple serializer that takes a cursor, queries it for its columns, and outputs 
@@ -405,29 +374,20 @@ class CursorSerializer(Serializer):
         'yaml': 'text/yaml',
         'csv': 'text/csv',
     }
-
-#    def get_saf_columns(self, query):
-#        return ['one','two', 'three']
     
     def to_csv(self, cursor, options=None):
-        logger.info(str(('typeof the object sent to_csv',type(cursor))))
+
         raw_data = StringIO.StringIO()
                 
-        # this is an unexpected way to get this error, look into tastypie sequence calls
         if(isinstance(cursor,dict) and 'error_message' in cursor):
             logger.info(str(('report error', cursor)))
             raw_data.writelines(('error_message\n',cursor['error_message'],'\n'))
             return raw_data.getvalue() 
         
-        # no response header needed?
-        #        response = HttpResponse(mimetype='text/csv')
-        #        response['Content-Disposition'] = 'attachment; filename=%s.csv' % unicode('test.output').replace('.', '_')
-        #        raw_data.write(response)
         writer = csv.writer(raw_data)
         i=0
         cols = [col[0] for col in cursor.description]
         
-        # TODO: grab the column names here
         writer.writerow(cols)
 
         for row in cursor.fetchall():
@@ -446,10 +406,8 @@ class CursorSerializer(Serializer):
     def to_json(self,cursor, options=None):
         
         logger.info(str(('typeof the object sent to_json',type(cursor))))
-#        logger.info(str(('to_csv for SAF for cursor', cursor)))
         raw_data = StringIO.StringIO()
                 
-        # this is an unexpected way to get this error, look into tastypie sequence calls
         if isinstance(cursor,dict) and 'error_message' in cursor :
             logger.info(str(('report error', cursor)))
             raw_data.writelines(('error_message\n',cursor['error_message'],'\n'))
@@ -467,7 +425,6 @@ class CursorSerializer(Serializer):
             if i!=0:
                 raw_data.write(',\n')
             raw_data.write(json.dumps(OrderedDict(zip(cols, row)),skipkeys=False,ensure_ascii=True,check_circular=True, allow_nan=True, cls=DjangoJSONEncoder))
-            #            raw_data.write(json.dumps(dict(zip(cols, row))))
             i += 1
         raw_data.write(']')
 
@@ -489,14 +446,7 @@ class CursorSerializer(Serializer):
         
     def from_csv(self, content):
         pass
-        #raw_data = StringIO.StringIO(content)
-        #data = []
-        # Untested, so this might not work exactly right.
-        #for item in csv.DictReader(raw_data):
-        #    data.append(item)
-        #return data
         
-
 
 class DataSetDataResource(Resource):
     """
@@ -739,6 +689,438 @@ class DataSetDataResource(Resource):
     def dehydrate(self, bundle):
         # TODO: for datasetdata, show the column information that was entered
         return bundle            
+
+class DataSetResource2(ModelResource):
+    '''
+    New version of the Dataset endpoint:
+    - support for multiple reagents associated with an assay well
+    '''
+    
+    class Meta:
+        queryset = DataSet.objects.all()
+        allowed_methods = ['get']
+        excludes = [
+            'lead_screener_firstname',
+            'lead_screener_lastname',
+            'lead_screener_email' ]
+        filtering = {
+            'date_loaded':ALL, 
+            'date_publicly_available':ALL, 
+            'date_data_received':ALL }
+        detail_uri_name = 'facility_id'
+        resource_name = 'dataset'
+              
+    def dehydrate(self, bundle):
+        
+        dataset_id = bundle.data['id']
+
+        bundle.data = get_detail_bundle(
+            bundle.obj, ['dataset',''],
+            _override_filter=lambda x: x.show_in_detail or x.field=='bioassay')
+        
+        datapointFileSchema = DataSetDataResource2.generate_schema(dataset_id)
+        _uri = self.get_resource_uri(bundle)
+        saf_uri = _uri.replace('dataset','datasetdata')
+        saf_uri = saf_uri + '?format=csv'
+        datapointFileSchema['uri'] = bundle.request.build_absolute_uri(saf_uri)
+        
+        bundle.data['datapointFile'] = datapointFileSchema
+        bundle.data['safVersion'] = '0.1'  
+        bundle.data['screeningFacility'] = 'HMS' 
+        return bundle
+    
+    def build_schema(self):
+        
+        fields = get_detail_schema(
+            DataSet(), 'dataset', lambda x: x.show_in_detail )
+
+        fields['datapointFile'] = get_schema_fieldinformation(
+            'datapoint_file','')
+        fields['safVersion'] = get_schema_fieldinformation('saf_version','')
+        fields['screeningFacility'] = get_schema_fieldinformation(
+            'screening_facility','')
+
+        schema['fields'] = OrderedDict(sorted(
+            fields.items(), key=lambda x: x[0])) 
+        return schema 
+    
+    def override_urls(self):
+        """ Note, will be deprecated in >0.9.12; delegate to prepend_urls
+        """
+        return self.prepend_urls();
+    
+    def prepend_urls(self):
+
+        return [
+            url(r"^(?P<resource_name>%s)/schema%s$" 
+                % ( self._meta.resource_name, trailing_slash()),
+                self.wrap_view('get_schema'), name="api_get_schema"),
+            url(r"^(?P<resource_name>%s)%s$" 
+                % ( self._meta.resource_name, trailing_slash()),
+                self.wrap_view('dispatch_list'), name="api_dispatch_list"),
+            url(r"^(?P<resource_name>%s)/(?P<facility_id>\d+)%s$" 
+                % ( self._meta.resource_name, trailing_slash()), 
+                self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
+        ]
+        
+
+class DataSetDataResource2(Resource):
+    '''
+    New version of the Dataset data endpoint:
+    - support for multiple reagents associated with an assay well
+    '''
+
+    class Meta:
+        fields = []
+        serializer = CursorSerializer()
+        allowed_methods = ['get']
+        resource_name = 'datasetdata'
+
+    def get_detail(self, request, **kwargs):
+        return self.create_response(
+            request,self.get_object_list(request, **kwargs))
+
+    def get_object_list(self, request, **kwargs):
+
+        facility_id = kwargs.pop('facility_id', None)
+        if not facility_id:
+            raise Http404(str(('no facility id given',request.path)))
+            
+        try:
+            dataset = DataSet.objects.get(facility_id=facility_id)
+            if(dataset.is_restricted and not request.user.is_authenticated()):
+                raise Http401
+            return self.get_datasetdata_cursor(dataset.id)
+        except DataSet.DoesNotExist, e:
+            logger.exception('no such facility id %r' % facility_id)
+            raise e
+
+    @staticmethod
+    def get_datasetdata_cursor(dataset_id):
+        
+        dataset = DataSet.objects.get(id=dataset_id)
+        
+        timepoint_columns = ( 
+            DataColumn.objects.all()
+                .filter(dataset_id=dataset_id)
+                .filter(unit__in=['day','hour','minute','second']) )
+        
+        reagent_columns = ( DataColumn.objects.filter(dataset_id=dataset_id)
+            .filter(data_type__in=[
+                'small_molecule','cell','protein','antibody','otherreagent']) )
+        
+        dc_ids_to_exclude = [dc.id for dc in timepoint_columns]
+        dc_ids_to_exclude.extend([dc.id for dc in reagent_columns])
+        
+        col_query_string = (
+            ', (SELECT '
+            ' {column_to_select} '
+            ' FROM db_datapoint as {alias} '
+            ' WHERE {alias}.datacolumn_id={dc_id} '
+            ' AND {alias}.datarecord_id=datarecord.id ) as "{column_name}" '
+            )
+        timepoint_unit_string = ',$${dc_unit}$$ as "{dc_name}_timepointUnit" '
+        timepoint_description_string = (
+            ',$${dc_description}$$ as "{dc_name}_timepointDescription" ')
+        
+        query_string = (
+            'SELECT '
+            'datarecord.id as "datarecordID"'
+            ', dataset.facility_id as "hmsDatasetID"'
+            ', datarecord.plate as "recordedPlate"'
+            ', datarecord.well as "recordedWell"'
+            ', datarecord.control_type as "controlType"'
+            )        
+        alias_count = 0
+        for dc in timepoint_columns:
+            column_to_select = None
+            alias_count += 1
+            alias = 'dp_%d'%alias_count
+            column_name = '%s_timepoint' % camel_case_dwg(dc.name)
+            if(dc.data_type == 'Numeric' or dc.data_type == 'omero_image'):
+                if dc.precision == 0 or dc.data_type == 'omero_image':
+                    column_to_select = "int_value"
+                else:
+                    column_to_select = "round( float_value::numeric, 2 )"
+            else:
+                column_to_select = "text_value"
+            query_string += col_query_string.format(
+                column_to_select=column_to_select,
+                alias=alias,dc_id=dc.id,column_name=column_name)
+            query_string += timepoint_unit_string.format(
+                dc_unit=dc.unit, dc_name=camel_case_dwg(dc.name))
+
+            if dc.description:
+                query_string += timepoint_description_string.format(
+                    dc_description=dc.description, 
+                    dc_name=camel_case_dwg(dc.name))
+
+        reagent_id_query = (
+             ', (SELECT r.facility_id '
+             ' FROM db_reagent r '
+             ' JOIN db_reagentbatch rb on rb.reagent_id=r.id '
+             ' JOIN db_datapoint {alias} on rb.id={alias}.reagent_batch_id '
+             ' WHERE {alias}.datarecord_id=datarecord.id '
+             ' AND {alias}.datacolumn_id={dc_id} ) as "{column_name}" '
+            )
+        sm_salt_query = (
+             ', (SELECT r.salt_id'
+             ' FROM db_reagent r '
+             ' JOIN db_reagentbatch rb on rb.reagent_id=r.id '
+             ' JOIN db_datapoint {alias} on rb.id={alias}.reagent_batch_id '
+             ' WHERE {alias}.datarecord_id=datarecord.id '
+             ' AND {alias}.datacolumn_id={dc_id} ) as "{column_name}" '
+            )
+        sm_lincs_id_query = (
+             ', (SELECT r.lincs_id'
+             ' FROM db_reagent r '
+             ' JOIN db_reagentbatch rb on rb.reagent_id=r.id '
+             ' JOIN db_datapoint {alias} on rb.id={alias}.reagent_batch_id '
+             ' WHERE {alias}.datarecord_id=datarecord.id '
+             ' AND {alias}.datacolumn_id={dc_id} ) as "{column_name}" '
+            )
+        reagent_batch_id_query = (
+             ', (SELECT '
+             " CASE WHEN rb.batch_id = '0' THEN '' ELSE rb.batch_id END"
+             ' FROM db_reagent r '
+             ' JOIN db_reagentbatch rb on rb.reagent_id=r.id '
+             ' JOIN db_datapoint {alias} on rb.id={alias}.reagent_batch_id '
+             ' WHERE {alias}.datarecord_id=datarecord.id '
+             ' AND {alias}.datacolumn_id={dc_id} ) as "{column_name}" '
+            )
+        reagent_name_query = (
+             ', ( SELECT r.name '
+             ' FROM db_reagent r '
+             ' JOIN db_reagentbatch rb on rb.reagent_id=r.id '
+             ' JOIN db_datapoint {alias} on rb.id={alias}.reagent_batch_id '
+             ' WHERE {alias}.datarecord_id=datarecord.id '
+             ' AND {alias}.datacolumn_id={dc_id}  ) as "{column_name}" '
+            )
+        
+        prefixes = { 'small_molecule': 'sm', 'protein': 'pp', 'antibody': 'ab',
+            'otherreagent': 'or', 'cell': 'cl'}
+        for dc in reagent_columns:
+            prefix = prefixes[dc.data_type]
+            if dc.data_type == 'small_molecule':
+                alias_count += 1
+                alias = 'dp_%d' % alias_count
+                query_string += sm_salt_query.format(
+                    alias=alias,
+                    dc_id=dc.id,
+                    column_name='%s_%s%s' 
+                        % (camel_case_dwg(dc.name),prefix,'Salt'))
+
+                alias_count += 1
+                alias = 'dp_%d' % alias_count
+                query_string += reagent_id_query.format(
+                    alias=alias,
+                    dc_id=dc.id,
+                    column_name='%s_%s%s' 
+                        % (camel_case_dwg(dc.name),prefix,'CenterCompoundID'))
+
+                alias_count += 1
+                alias = 'dp_%d' % alias_count
+                query_string += sm_lincs_id_query.format(
+                    alias=alias,
+                    dc_id=dc.id,
+                    column_name='%s_%s%s' 
+                        % (camel_case_dwg(dc.name),prefix,'LincsID'))
+            
+            else:
+                alias_count += 1
+                alias = 'dp_%d' % alias_count
+                query_string += reagent_id_query.format(
+                    alias=alias,
+                    dc_id=dc.id,
+                    column_name='%s_%s%s' 
+                        % (camel_case_dwg(dc.name),prefix,'CenterSpecificID'))
+            
+            alias_count += 1
+            alias = 'dp_%d' % alias_count
+            query_string += reagent_batch_id_query.format(
+                alias=alias,
+                dc_id=dc.id,
+                column_name='%s_%s%s' 
+                    % (camel_case_dwg(dc.name),prefix,'CenterSampleID'))
+                
+            alias_count += 1
+            alias = 'dp_%d' % alias_count
+            query_string += reagent_name_query.format(
+                alias=alias,
+                dc_id=dc.id,
+                column_name='%s_%s%s' 
+                    % (camel_case_dwg(dc.name),prefix,'Name'))
+                
+        query_string += (
+            ', coalesce(dp.int_value::TEXT, dp.float_value::TEXT, dp.text_value) as "%s" '
+                % 'datapointValue' )
+        query_string += ', dc.name as "datapointName" '
+        query_string += ', dc.unit as "datapointUnit" '
+        query_string += """
+            from db_dataset dataset 
+            join db_datarecord datarecord on(datarecord.dataset_id=dataset.id) 
+            , db_datapoint dp 
+            join db_datacolumn dc on (dp.datacolumn_id=dc.id) 
+            where dp.datarecord_id=datarecord.id  
+            and dataset.id = %s 
+            """
+        if dc_ids_to_exclude: 
+            query_string += ( 
+                " and dp.datacolumn_id not in (%s)" 
+                    % ','.join([str(x) for x in dc_ids_to_exclude]))    
+        query_string += " order by datarecord.id,dc.id "
+          
+        cursor = connection.cursor()
+        cursor.execute(query_string, [dataset_id])
+        return cursor
+        
+    @staticmethod
+    def get_datarecord_fields(dataset_id): 
+        
+        base_cols = [
+            "datarecordID",
+            "hmsDatasetID",
+            "recordedPlate",
+            "recordedWell",
+            "controlType",
+            "datapointName",
+            "datapointUnit",
+            "datapointValue"            
+            ]
+        datapoint_cols = {
+            'timepoint': [
+                "timepoint",
+                "timepointUnit",
+                "timepointDescription",
+                ],
+            'small_molecule': [
+                "smCenterCompoundID",
+                "smSalt",
+                "smCenterSampleID",
+                "smLincsID",
+                "smName",
+                ],
+            'protein': [
+                "ppName",
+                "ppLincsID",
+                "ppCenterSampleID",
+                ],
+            'cell': [
+                "clName",
+                "clCenterSpecificID",
+                "clCenterSampleID",
+                ],
+            'antibody': [
+                "abName",
+                "abCenterSpecificID",
+                "abCenterSampleID",
+                ],
+            'otherreagent': [
+                "orName",
+                "orCenterSpecificID",
+                "orCenterSampleID",
+                ]
+            }
+        
+        data_columns = DataColumn.objects.filter(dataset_id=dataset_id)
+        for dc in data_columns:
+            name = dc.name
+            if dc.unit in ['day','hour','minute','second']:
+                for colname in datapoint_cols['timepoint']:
+                    base_cols.append('%s_%s' % (name,colname))
+            elif dc.data_type in [
+                'small_molecule','cell','protein','antibody','otherreagent']:
+                for colname in datapoint_cols[dc.data_type]:
+                    base_cols.append('%s_%s' % (name,colname))
+        
+        return base_cols
+    
+    @staticmethod
+    def get_datapoint_fields(dataset_id):
+        
+        data_columns = ( DataColumn.objects.filter(dataset_id=dataset_id)
+            .exclude(data_type__in=[
+                'small_molecule','cell','protein','antibody','otherreagent',
+                'omero_image'])
+            .exclude(unit__in=['day','hour','minute','second']) )
+        
+        datapoint_fields = OrderedDict()
+        meta_field_info = get_listing(DataColumn(),['datacolumn'])
+        
+        for dc in data_columns.order_by('display_order'):
+            specific_name = dc.name
+            field_schema = {}
+            for item in meta_field_info.items():
+                meta_fi_attr = item[0]
+                meta_fi = item[1]['fieldinformation']
+                field_schema[meta_fi.get_camel_case_dwg_name()] = (
+                    getattr(dc,meta_fi_attr) )
+            datapoint_fields[specific_name] = field_schema
+        return datapoint_fields
+    
+    @staticmethod
+    def get_reagent_columns(dataset_id):
+        
+        data_columns = ( DataColumn.objects.filter(dataset_id=dataset_id)
+            .filter(data_type__in=[
+                'small_molecule','cell','protein','antibody','otherreagent']) )
+        reagent_fields = OrderedDict()
+        meta_field_info = get_listing(DataColumn(),['datacolumn'])
+        for dc in data_columns.order_by('display_order'):
+            specific_name = dc.name
+            field_schema = {}
+            for item in meta_field_info.items():
+                meta_fi_attr = item[0]
+                meta_fi = item[1]['fieldinformation']
+                field_schema[meta_fi.get_camel_case_dwg_name()] = (
+                    getattr(dc,meta_fi_attr) )
+            reagent_fields[specific_name] = field_schema
+        return reagent_fields
+        
+    def get_schema(self, request, **kwargs):
+        
+        bundle = self.build_bundle(request=request)
+        return self.create_response(request, self.build_schema(**kwargs))
+        
+    def build_schema(self,**kwargs):
+        
+        facility_id = kwargs.get('facility_id', None)
+        if not facility_id:
+            raise Http404(str(('no facility id given',request.path)))
+
+        try:
+            dataset = DataSet.objects.get(facility_id=facility_id)
+            if(dataset.is_restricted and not request.user.is_authenticated()):
+                raise Http401
+            return self.generate_schema(dataset.id)
+        except DataSet.DoesNotExist, e:
+            logger.error(str(('no such facility id', facility_id)))
+            raise e
+    
+    @staticmethod
+    def generate_schema(dataset_id):    
+        
+        schema = {}
+        cols = sorted(DataSetDataResource2.get_datarecord_fields(dataset_id))
+        schema['cols'] = cols
+        datapoints = DataSetDataResource2.get_datapoint_fields(dataset_id)
+        schema['datapoints'] = datapoints
+        schema['reagents'] = DataSetDataResource2.get_reagent_columns(dataset_id)
+        schema['noCols'] = len(cols)
+        schema['noDatapoints'] = len(datapoints)
+        return schema
+
+    def prepend_urls(self):
+        
+        return [
+            url(r"^(?P<resource_name>%s)/(?P<facility_id>\d+)/schema%s$" 
+                % ( self._meta.resource_name, trailing_slash()),
+                self.wrap_view('get_schema'), name="api_get_schema"),
+            url(r"^(?P<resource_name>%s)/(?P<facility_id>\d+)%s$" 
+                % ( self._meta.resource_name, trailing_slash()), 
+                self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
+        ]                     
+
 
 
 class Http401(Exception):

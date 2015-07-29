@@ -7,7 +7,7 @@ import logging
 
 import init_utils as iu
 import import_utils as util
-from db.models import Cell
+from db.models import Cell, CellBatch
 from django.db import transaction
 
 __version__ = "$Revision: 24d02504e664 $"
@@ -40,7 +40,7 @@ def main(path):
               'Facility ID':('facility_id',True,None, lambda x: x[x.index('HMSL')+4:]),
               'CL_Name':('name',True),
               'CL_LINCS_ID':'lincs_id',
-              'CL_Alternate_Name':'alternate_name',
+              'CL_Alternate_Name':'alternative_names',
               'CL_Alternate_ID':'alternate_id',
               'CL_Center_Specific_ID':'center_specific_id',
               'MGH_ID':('mgh_id',False,None,lambda x:util.convertdata(x,int)),
@@ -114,6 +114,10 @@ def main(path):
             cell.save()
             logger.info(str(('cell created:', cell)))
             rows += 1
+
+            # create a default batch - 0
+            CellBatch.objects.create(reagent=cell,batch_id=0)
+            
         except Exception, e:
             print "Invalid Cell, name: ", r[0]
             raise e

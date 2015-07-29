@@ -6,7 +6,7 @@ import logging
 
 import init_utils as iu
 import import_utils as util
-from db.models import SmallMolecule
+from db.models import SmallMolecule, SmallMoleculeBatch
 from django.db import transaction
 
 __version__ = "$Revision: 24d02504e664 $"
@@ -111,6 +111,10 @@ def main(path):
             sm.save()
             logger.info(str(('sm created:', sm)))
             count += 1
+            
+            # create a default batch - 0
+            SmallMoleculeBatch.objects.create(reagent=sm,batch_id=0)
+            
         except Exception, e:
             logger.error(str(('save failed for: ', initializer, 'error',e, 'count: ', count)))
             raise e

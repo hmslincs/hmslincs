@@ -86,7 +86,7 @@ def main(path):
             if model_field == 'facility_id':
                 try:
                     cell = Cell.objects.get(facility_id=value)
-                    initializer['cell'] = cell
+                    initializer['reagent'] = cell
                 except:
                     logger.error(str(("Cell not found", value, 'row',rows+start_row+2)))
                     raise

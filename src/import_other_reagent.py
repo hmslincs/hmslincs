@@ -7,7 +7,7 @@ import logging
 
 import init_utils as iu
 import import_utils as util
-from db.models import OtherReagent
+from db.models import OtherReagent, OtherReagentBatch
 from django.db import transaction
 
 __version__ = "$Revision: 24d02504e664 $"
@@ -91,6 +91,10 @@ def main(path):
             reagent.save()
             logger.info(str(('OtherReagent created: ', reagent)))
             rows += 1
+            
+            # create a default batch - 0
+            OtherReagentBatch.objects.create(reagent=reagent,batch_id=0)
+            
         except Exception, e:
             logger.error(str(( "Invalid OtherReagent initializer: ", initializer)))
             raise

@@ -169,12 +169,12 @@ if __name__ == "__main__":
             cell = Cell.objects.get(facility_id=facilityId)
             batchId = util.int_converter(args.batchId)
             if(batchId is not None):
-                logger.info('look for the batch Id: ' + str(batchId))
+                logger.info('look for the batch Id: %s' % batchId)
                 attachedFile.batch_id_for=batchId
                 try:
                     cb = CellBatch(cell=cell,batch_id=batchId)
                 except ObjectDoesNotExist,e:
-                    logger.error(str(('No such Cell batch found', facilityId, batchId, e)))
+                    logger.error('No such Cell batch found: %s:%s' % (facilityId, batchId) )
                     raise e
         except ObjectDoesNotExist,e:
             logger.error(str(('No such Cell found', facilityId, saltId, e)))

@@ -7,7 +7,7 @@ import logging
 
 import init_utils as iu
 import import_utils as util
-from db.models import Antibody, Protein
+from db.models import Antibody, Protein, AntibodyBatch
 from django.db import transaction
 
 __version__ = "$Revision: 24d02504e664 $"
@@ -116,6 +116,10 @@ def main(path):
             antibody.save()
             logger.info('antibody created: %s' % antibody)
             rows += 1
+
+            # create a default batch - 0
+            AntibodyBatch.objects.create(reagent=antibody,batch_id=0)
+            
         except Exception, e:
             logger.error("Invalid antibody initializer: %s" % initializer)
             raise

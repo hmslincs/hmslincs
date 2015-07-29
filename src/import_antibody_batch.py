@@ -40,7 +40,7 @@ def main(path):
     column_definitions = { 
               'AR_Center_Specific_ID': ('antibody_facility_id',True,None, lambda x: x[x.index('HMSL')+4:]),
               'AR_Batch_ID': 'batch_id',
-              'AR_Provider_Name': 'provider',
+              'AR_Provider_Name': 'provider_name',
               'AR_Provider_Catalog_ ID': 'provider_catalog_id',
               'AR_Provider_Batch_ID': 'provider_batch_id',
               'AR_Antibody_Purity': 'antibody_purity',
@@ -93,7 +93,7 @@ def main(path):
             if antibody_facility_id: 
                 try:
                     antibody = Antibody.objects.get(facility_id=antibody_facility_id)
-                    initializer['antibody'] = antibody
+                    initializer['reagent'] = antibody
                 except ObjectDoesNotExist, e:
                     logger.error('AR_Center_Specific_ID: "%s" does not exist, row: %d' 
                         % (antibody_facility_id,i))

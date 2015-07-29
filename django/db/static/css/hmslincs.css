@@ -151,6 +151,9 @@ div.fixed_width_column {
   white-space: normal;
   width: 200px;
 }
+div.reagent_column {
+  white-space: nowrap;
+}
 div.fixed_width_column_300 {
   white-space: normal;
   width: 300px;

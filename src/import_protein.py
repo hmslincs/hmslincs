@@ -3,7 +3,7 @@ import logging
 
 import init_utils as iu
 import import_utils as util
-from db.models import Protein
+from db.models import Protein, ProteinBatch
 from django.db import transaction
 
 __version__ = "$Revision: 24d02504e664 $"
@@ -36,9 +36,9 @@ def main(path):
     properties = ('model_field','required','default','converter')
     column_definitions = { 
             'PP_Name':('name',True), 
-            'PP_LINCS_ID':('lincs_id',True,None,lambda x: x[x.index('HMSL')+4:]), 
+            'PP_LINCS_ID':('facility_id',True,None,lambda x: x[x.index('HMSL')+4:]), 
             'PP_UniProt_ID':'uniprot_id', 
-            'PP_Alternate_Name':'alternate_name',
+            'PP_Alternate_Name':'alternative_names',
             'PP_Alternate_Name[2]':'alternate_name_2',
             'PP_Provider':'provider',
             'PP_Provider_Catalog_ID':'provider_catalog_id',
@@ -105,9 +105,17 @@ def main(path):
         try:
             logger.debug(str(('initializer: ', initializer)))
             protein = Protein(**initializer)
+            
+            # FIXME: LINCS IDS for Protein
+            protein.lincs_id = protein.facility_id
+            
             protein.save()
             logger.info(str(('protein created: ', protein)))
             rows += 1
+            
+            # create a default batch - 0
+            ProteinBatch.objects.create(reagent=protein,batch_id=0)
+            
         except Exception, e:
             logger.error(str(("Invalid protein initializer: ", initializer, e)))
             raise
