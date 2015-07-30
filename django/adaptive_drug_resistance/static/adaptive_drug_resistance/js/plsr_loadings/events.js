@@ -1,6 +1,6 @@
 'use strict';
-define( [ 'jquery', 'd3', 'utils', './common', 'colorserver' ],
-function ( $      ,  d3 ,  u     ,  c        ,  color_server ) {
+define( [ 'jquery', 'd3', 'lib/utils', './common', 'lib/colorserver' ],
+function ( $      ,  d3 ,  u         ,  c        ,  color_server ) {
 
     var fmtxy = d3.format( '.1f' )
 

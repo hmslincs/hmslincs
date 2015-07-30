@@ -1,6 +1,6 @@
 'use strict';
-define(    [  'picker', 'utils', 'jquery', 'd3' ],
-    function ( picker ,  u     ,  $      ,  d3 ) {
+define(    [  'lib/picker', 'lib/utils', 'jquery', 'd3' ],
+    function ( picker     ,  u         ,  $      ,  d3 ) {
 
         return function ( levels ) {
 

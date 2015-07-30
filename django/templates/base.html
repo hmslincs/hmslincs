@@ -6,17 +6,21 @@
 
     <script language="javascript" type="text/javascript">
      var require = {
-         baseUrl: '{{ STATIC_URL }}/js',
+         baseUrl: '{{ STATIC_URL }}',
          paths: {
-             d3: 'd3/d3',
-             underscore: 'lodash/lodash',
+             d3: 'ext/d3/3.3.10/d3.min',
+             underscore: 'ext/lodash/3.5.0/lodash.min',
+             jqueryui: 'ext/jquery-ui/1.11.4/jquery-ui.min',
+             mediaelement: 'ext/mediaelement/2.13.1/js/mediaelement-and-player.min',
+             lib: 'js',
          },
          shim: {
              d3: { exports: 'd3' },
+             mediaelement: [ 'jquery' ],
          },
      };
     </script>
-    <script src="{{ STATIC_URL }}/js/require-2.1.20.js"></script>
+    <script src="{{ STATIC_URL }}/ext/require/2.1.20/require.min.js"></script>
     {# Monkey-patch jquery in so require.js will know about it. #}
     <script language="javascript" type="text/javascript">
      if (typeof jQuery === 'function') {

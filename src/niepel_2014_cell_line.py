@@ -95,7 +95,7 @@ for row in cellline_info:
         if db_response.ok:
             PASS()
             data['db'] = db_response.json()
-            if data['db']['clAlternateID']:
+            if data['db'].get('clAlternateID', False):
                 cosmic_match = re.search(r'COSMIC:\s*(\d+)', data['db']['clAlternateID'])
                 if cosmic_match:
                     data['db']['cosmic_id'] = cosmic_match.group(1)

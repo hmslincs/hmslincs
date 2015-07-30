@@ -1,3 +1,5 @@
+define(['jquery'], function (jQuery) {
+
 jQuery(document).ready(function ($) {
 
     /*
@@ -106,5 +108,7 @@ jQuery(document).ready(function ($) {
             delete hide_timers[id];
         }
     }
+
+});
 
 });

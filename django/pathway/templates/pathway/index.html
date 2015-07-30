@@ -1,8 +1,18 @@
 {% extends "base.html" %}
 
+{% block requirejs %}
+    <script>
+     require.config({
+         paths: {
+             pathway: 'pathway/js',
+         },
+     });
+     require( [ 'pathway/pathway' ] );
+    </script>
+{% endblock %}
+
 {% block head_extra %}
   <link rel="stylesheet" href="{{ STATIC_URL }}pathway/css/pathway.css"/>
-  <script src="{{ STATIC_URL }}pathway/js/pathway.js"></script>
 {% endblock %}
 
 {% block title %}Kinase inhibitor pathways - {{ block.super }}{% endblock %}

@@ -1,12 +1,20 @@
 {% extends "base.html" %}
 
+{% block requirejs %}
+    <script>
+     require.config({
+         paths: {
+             scd: 'single_cell_dynamics/js',
+         },
+     });
+     require( [ 'scd/main' ] );
+    </script>
+{% endblock %}
+
 {% block head_extra %}
-  <link rel="stylesheet" type="text/css" href="http://cdnjs.cloudflare.com/ajax/libs/mediaelement/2.13.1/css/mediaelementplayer.min.css"/>
-  <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}single_cell_dynamics/css/jquery-ui/jquery-ui-1.11.0-pre.min.css"/>
+  <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}ext/mediaelement/2.13.1/css/mediaelementplayer.min.css"/>
+  <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}ext/jquery-ui/1.11.4/jquery-ui.css" />
   <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}single_cell_dynamics/css/style.css"/>
-  <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/mediaelement/2.13.1/js/mediaelement-and-player.min.js"></script>
-  <script type="text/javascript" src="{{ STATIC_URL }}single_cell_dynamics/js/jquery-ui/jquery-ui-1.11.0-pre.min.js"></script>
-  <script type="text/javascript" src="{{ STATIC_URL }}single_cell_dynamics/js/main.js"></script>
 {% endblock %}
 
 {% block title %}

@@ -1,6 +1,6 @@
 'use strict';
-define(    [  'jquery', 'd3', 'underscore', './config', './common', 'utils', 'scatterplot' ],
-    function ( $      ,  d3 ,  _          ,  cfg      ,  c        ,  u     ,  sp ) {
+define(    [  'jquery', 'd3', 'underscore', './config', './common', 'lib/utils', 'lib/scatterplot' ],
+    function ( $      ,  d3 ,  _          ,  cfg      ,  c        ,  u         ,  sp ) {
 
         function rank ( arr ) {
             return arr.map( function ( e, i ) { return [ e, i ] } )

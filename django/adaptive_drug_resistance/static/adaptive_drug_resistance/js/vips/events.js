@@ -1,8 +1,8 @@
 'use strict';
 
-define( [ 'jquery', 'd3', 'underscore', 'utils', './model', './colors' ],
+define( [ 'jquery', 'd3', 'underscore', 'lib/utils', './model', './colors' ],
 
-function ( $      ,  d3 ,  __         ,  u     ,  M       ,  colors    ) {
+function ( $      ,  d3 ,  __         ,  u         ,  M       ,  colors    ) {
 
     var _
     ,   $$ = {}

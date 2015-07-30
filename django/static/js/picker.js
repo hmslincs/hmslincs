@@ -1,5 +1,5 @@
 'use strict';
-define(     [ 'd3', 'utils' ],
+define(     [ 'd3', 'lib/utils' ],
     function ( d3 ,  u ) {
 
         function retval () {
