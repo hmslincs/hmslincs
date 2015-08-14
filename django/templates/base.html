@@ -16,7 +16,10 @@
          },
          shim: {
              d3: { exports: 'd3' },
-             mediaelement: [ 'jquery' ],
+             mediaelement: {
+                 deps: [ 'jquery' ],
+                 exports: 'window.mejs',
+             },
          },
      };
     </script>

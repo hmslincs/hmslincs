@@ -1,4 +1,5 @@
-define(['jquery'], function (jQuery) {
+define(['jquery', 'jqueryui', 'mediaelement'],
+       function (jQuery, jqueryui, mediaelement) {
 
 jQuery(document).ready(
     function ($) {
@@ -48,17 +49,12 @@ jQuery(document).ready(
                         // Delete the <a> entirely.
                         $link.remove();
                         // For video tags, create a mediaelement.js player.
-                        if ($media.prop('nodeName') === 'VIDEO') {
+                        if ($media.prop('nodeName').toUpperCase() === 'VIDEO') {
                             $media.mediaelementplayer({
                                 // Ensure the Flash fallback does antialiasing.
                                 enablePluginSmoothing: true,
                                 // Allow multiple videos playing at once.
                                 pauseOtherPlayers: false,
-                                // Use the CDN version of the fallback player so
-                                // that JS in our page is allowed to call into
-                                // it. (technically a security risk, but I don't
-                                // think it's too relevant here)
-                                flashName: 'flashmediaelement-cdn.swf',
                             });
                         }
                     });
