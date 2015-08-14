@@ -20,7 +20,7 @@ import shell_utils as su
 # Read RESOURCE_PATH from environ, or default to something that works for me.
 RESOURCE_PATH = os.environ.get(
     'RESOURCE_PATH',
-    ('/home/jmuhlich/Volumes/imstor on research.files.med.harvard.edu/'
+    ('/home/jmuhlich/Volumes/imstor on files.med.harvard.edu/'
      'sorger/data/NIC/Pat')
 )
 
