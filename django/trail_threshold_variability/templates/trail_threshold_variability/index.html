@@ -2,11 +2,20 @@
 
 {% load trail_threshold_variability %}
 
+{% block requirejs %}
+    <script>
+     require.config({
+         paths: {
+             ttv: 'trail_threshold_variability/js',
+         },
+     });
+     require( [ 'ttv/main' ] );
+    </script>
+{% endblock %}
+
 {% block head_extra %}
-  <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}trail_threshold_variability/css/jquery-ui/jquery-ui-1.11.0-pre.min.css"/>
+  <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}ext/jquery-ui/1.11.4/jquery-ui.min.css"/>
   <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}trail_threshold_variability/css/style.css"/>
-  <script type="text/javascript" src="{{ STATIC_URL }}trail_threshold_variability/js/jquery-ui/jquery-ui-1.11.0-pre.min.js"></script>
-  <script type="text/javascript" src="{{ STATIC_URL }}trail_threshold_variability/js/main.js"></script>
 {% endblock %}
 
 {% block title %}

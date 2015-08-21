@@ -1,3 +1,5 @@
+define(['jquery', 'jqueryui'], function (jQuery, jqueryui) {
+
 jQuery(document).ready(
     function ($) {
 
@@ -51,3 +53,5 @@ jQuery(document).ready(
 
     }
 );
+
+});
