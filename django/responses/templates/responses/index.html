@@ -1,5 +1,16 @@
 {% extends "base.html" %}
 
+{% block requirejs %}
+    <script>
+     require.config({
+         paths: {
+             responses: 'responses/js',
+         },
+     });
+     require( [ 'responses/scatterplot_browser' ] );
+    </script>
+{% endblock %}
+
 {% block head_extra %}
 
   <link rel="stylesheet" href="{{ STATIC_URL }}responses/css/scatterplot_browser.css"/>
@@ -132,18 +143,6 @@
 
     </div> <!-- .centered-track -->
   </div> <!-- #main .global -->
-
-    <script>
-(function (hmslincs) {
-  hmslincs.STATIC_URL = "{{ STATIC_URL }}";
-})(window.hmslincs = window.hmslincs || {});
-    </script>
-
-    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/jquery-ui.js"></script>
-    <!-- <script src="//cdnjs.cloudflare.com/ajax/libs/d3/3.3.10/d3.min.js"></script> -->
-    <script src="//cdnjs.cloudflare.com/ajax/libs/d3/3.3.10/d3.js"></script>
-    <script src="{{ STATIC_URL }}responses/js/scatterplot_browser.js"></script>
 
 <!-- <div class="empty-div"> --> <!-- match the </div> for <div id="pagebody-wrap"> -->
   <!-- <div class="empty-div"> <\!-- match the </div> for <div id="pagebody"> -\-> -->
