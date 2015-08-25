@@ -8,6 +8,10 @@
 	left: 10px;
 }
 
+.content-minimal .href-button.full-screen-view {
+    display: none;
+}
+
 .href-button {
 	font-size: 14px;
 }

@@ -20,6 +20,7 @@
 </style>
 
 <script language="javascript" type="text/javascript">
+require(['jquery'], function($) {
 
 var MAX_REQUESTS = 50;
 var TIMEOUT_BETWEEN_REQUESTS = 3000;
@@ -184,6 +185,8 @@ function stopImage(){
 	console.log('stop image');
 	$("#searching_image").removeClass("modal_search");
 }
+
+});
 </script>
 
 <div id="structure_search" class="structure_search_form">

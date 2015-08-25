@@ -1,83 +1,16 @@
-{% extends "db/datasetDetailBase_minimal.html" %}
-{% block datasetContent %}
-	{% if table %}
-        {% if object.usage_message.value %}
-            <div class='usage_message'>
-            {{ object.usage_message.value|safe}}
-            </div>
-            <br/>
-        {% endif %}
-        {% include "db/searchExportBox.html" %}
+{% extends "db/datasetDetailResults.html" %}
 
-    <a href="#" id='form_toggler1' onclick="form_toggle();">Filter results: &gt;&gt;&gt;&gt;</a>
-    <div id="search_div" style='display:none; ' >
-        <a href="#" id='form_untoggler1' onclick="form_toggle();">&lt;&lt;&lt;&lt;</a>
-        <div id="search" class='search'>
-        <span style='font-size: 12px; font-weight: bold;'>Select the entities to show:</span>
-        <form id='search_form' action="{{ request.get_full_path }}" method="get"> <!-- needed for post: {% csrf_token %}  -->
-            <table>
-                <tr>
-            {% for field in search_form %}
-                    <th>
-                        {{ field.label_tag }}
-                    </th>
-            {% endfor %}
-                </tr>
-                <tr>
-            {% for field in search_form %}
-                <td>
-                    {{ field.errors }}
-                    {{ field }}
-                </td>
-            {% endfor %}
-                </tr>
-            </table>
-            <p><button id='submit_button'>Search</button>
-
-                <button id="clear_form_button">Clear Form</button>
-            </p>
-        </form>
-        <span id='search_status' style='font-size: 12px; font-weight: bold;'>
-        </span>
-
-       <!-- <a href="/form?{{ search_form.as_url_args }}&format=csv">Download As CSV</a> -->
-       </div>
-   </div>
-<script>
-function form_toggle(){
-    $('#search_div').toggle();
-    $('#form_toggler1').toggle();
-};
-$(function() {
-    var clean_form_uri = "{% url dataset_detail_results  facility_id=facilityId%}"
-    $('#clear_form_button').click(function(evt){
-        evt.preventDefault();
-        console.log('clear form to ' + clean_form_uri);
-        // $('#search_form').attr('action',clean_form_uri);
-        window.location = clean_form_uri;
-        // $('#search_form').submit();
-    });
-    $('#submit_button').click(function(evt){
-      console.log('submit form');
-        evt.preventDefault();
-        $('#search_form').submit();
-    });
-    if(window.location.search && 
-        ( window.location.search.indexOf('small') > -1  
-          || window.location.search.indexOf('cell') > -1
-          || window.location.search.indexOf('protein') > -1 )){
-        form_toggle();
-        var new_uri = clean_form_uri + window.location.search;
-        $('#excel_export_link').attr('href', new_uri + '&output_type=.xlsx');
-        $('#csv_export_link').attr('href', new_uri + '&output_type=.csv');
-    }
-});
-</script>
-        {% load render_table from django_tables2 %}
-        {% render_table table %}
-	{% elif search %}
-	  No records were found for the search term: "{{search}}"
-	{% else %}
-	    <p>Screen Result not loaded.</p>
-	{% endif %}
+{% block head_extra %}
+    {{ block.super }}
+    {# Hide site skin with a little DOM shuffling. #}
+    <script>
+     require(['jquery'], function($) {
+         $(function() {
+             var $content = $('#content').detach();
+             $('body').empty().append($content);
+         });
+     });
+    </script>
 {% endblock %}
+
+{% block contentclass %}content-minimal{% endblock %}
