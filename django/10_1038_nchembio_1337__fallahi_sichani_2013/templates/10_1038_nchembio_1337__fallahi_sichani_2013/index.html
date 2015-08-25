@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "10_1038_nchembio_1337__fallahi_sichani_2013/base.html" %}
 
 {% block head_extra %}
 
@@ -100,17 +100,19 @@ body{
 <!-- ====================================================================== -->
 
     <script>
-(function (hmslincs) {
-  hmslincs.STATIC_URL = "{{ STATIC_URL }}";
-}(window.hmslincs = window.hmslincs || {}));
-
-(function ($) {
-  $(window).load(function () {
-    $('#intro-to-dose-response-curves').attr('src', 'intro_to_dose_response_curves_iframe.html');
-    $('#dose-response-grid').attr('src', 'dose_response_grid_iframe.html');
-    $('#scatterplot-browser').attr('src', 'scatterplot_browser_iframe.html');
-  });
-}(jQuery));
+     require(['jquery'], function (jquery) {
+         jquery(document).ready(function ($) {
+             $(window).load(function () {
+                 /* Lazy-load iframe content. This is how the "Loading..."
+                 indicator on the top iframe gets replaced, and also an attempt
+                 at isolating performance issues or errors in any of the three
+                 "sketches" from impacting the loading of the others. */
+                 $('#intro-to-dose-response-curves').attr('src', 'intro_to_dose_response_curves_iframe.html');
+                 $('#dose-response-grid').attr('src', 'dose_response_grid_iframe.html');
+                 $('#scatterplot-browser').attr('src', 'scatterplot_browser_iframe.html');
+             });
+         });
+     });
     </script>
 
 {% endblock %}

@@ -1,3 +1,6 @@
+define(['jquery', 'jqueryui', 'd3'],
+       function(jQuery, jqueryui, d3) {
+
 var margins = [20, 20, 75, 100];
 var width = 600 - margins[1] - margins[3];
 var height = 350 - margins[0] - margins[2];
@@ -487,5 +490,7 @@ jQuery(document).ready(function ($) {
             reset('__RESET__');
         }
     });
+
+});
 
 });

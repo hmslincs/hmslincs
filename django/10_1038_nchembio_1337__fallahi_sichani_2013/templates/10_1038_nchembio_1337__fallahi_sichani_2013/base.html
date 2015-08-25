@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block requirejs %}
+    <script>
+     require.config({
+         paths: {
+             fs: '10_1038_nchembio_1337__fallahi_sichani_2013/js',
+         },
+     });
+
+     window.hmslincs = window.hmslincs || {};
+     hmslincs.STATIC_URL = "{{ STATIC_URL }}";
+    </script>
+{% endblock %}

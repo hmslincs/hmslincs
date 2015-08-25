@@ -1,32 +1,13 @@
-<!DOCTYPE html>
+{% extends "10_1038_nchembio_1337__fallahi_sichani_2013/base.html" %}
 
-<html dir="ltr" lang="en-US">
-
-<head>
-        <meta charset="utf-8"/>
-        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-        <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
-        
-        <link rel="stylesheet" href="//lincs.hms.harvard.edu/wordpress/wp-content/themes/lincs/style.css" type="text/css" />
-        <!--[if IE 6]>
-        <link rel="stylesheet" href="//lincs.hms.harvard.edu/wordpress/wp-content/themes/lincs/css/ie6.css" type="text/css" />
-        <![endif]-->
-        <link rel="stylesheet" href="//lincs.hms.harvard.edu/wordpress/wp-content/themes/lincs/css/print.css" type="text/css" media="print" />
-        
-        <script type='text/javascript' src='//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js'></script>
-        <script type='text/javascript' src='//lincs.hms.harvard.edu/wordpress/wp-content/themes/lincs/js/main.js'></script>
-        <link rel='index' title='HMS LINCS Project' href='http://lincs.hms.harvard.edu/' />
-
-        <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/hmslincs.css" />
-
-        {% block head_extra %}{% endblock %}
-
-        <title>{% block title %}HMS LINCS Project{% endblock %}</title>
-</head>
-
-<body>
-
-{% block body %}{% endblock %}
-
-</body>
-</html>
+{% block head_extra %}
+    <script>
+     require(['jquery'], function(jquery) {
+         /* Replace all content in the body with children of #content. */
+         jquery(document).ready(function($) {
+             var $content = $('#content').children().detach();
+             $('body').empty().append($content);
+         });
+     });
+    </script>
+{% endblock %}

@@ -11,15 +11,14 @@
              d3: 'ext/d3/3.3.10/d3.min',
              underscore: 'ext/lodash/3.5.0/lodash.min',
              jqueryui: 'ext/jquery-ui/1.11.4/jquery-ui.min',
+             jquery_throttle_debounce: 'ext/jquery-throttle-debounce/1.1/jquery.ba-throttle-debounce.min',
              mediaelement: 'ext/mediaelement/2.13.1/js/mediaelement-and-player.min',
              lib: 'js',
          },
          shim: {
              d3: { exports: 'd3' },
-             mediaelement: {
-                 deps: [ 'jquery' ],
-                 exports: 'window.mejs',
-             },
+             jquery_throttle_debounce: [ 'jquery' ],
+             mediaelement: [ 'jquery' ],
          },
      };
     </script>
@@ -31,7 +30,7 @@
      }
     </script>
 
-    {% block head_extra %}{% endblock %}
     {% block requirejs %}{% endblock %}
+    {% block head_extra %}{% endblock %}
 
 {% endblock %}

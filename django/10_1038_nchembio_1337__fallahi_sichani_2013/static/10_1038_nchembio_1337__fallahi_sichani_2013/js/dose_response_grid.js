@@ -1,4 +1,7 @@
-(function ($) {
+define(['jquery', 'jquery_throttle_debounce', 'd3'],
+       function(jQuery, jquery_td, d3) {
+
+jQuery(document).ready(function ($) {
   function lineno () {
     return new Error().stack.split('\n')[2].split(':')[3];
   }
@@ -882,4 +885,6 @@
 
   // label_dom($('body').get(0));
 
-})(jQuery);
+});
+
+});

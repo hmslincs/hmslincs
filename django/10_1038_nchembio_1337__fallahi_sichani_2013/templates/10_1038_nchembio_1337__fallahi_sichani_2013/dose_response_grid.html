@@ -1,10 +1,9 @@
-{% extends "base.html" %}
+{% extends "10_1038_nchembio_1337__fallahi_sichani_2013/base.html" %}
 
 {% block head_extra %}
-
+  {{ block.super }}
   <link rel="stylesheet" href="{{ STATIC_URL }}10_1038_nchembio_1337__fallahi_sichani_2013/css/sensitivities.css"/>
   <link rel="stylesheet" href="{{ STATIC_URL }}10_1038_nchembio_1337__fallahi_sichani_2013/css/dose_response_grid.css"/>
-
 {% endblock %}
 
 {% block title %}An interactive global view of drug response - {{ block.super }}{% endblock %}
@@ -13,16 +12,6 @@
 
 {% block body %}
 
-      <!-- <h1>An interactive global view of drug response</h1> -->
-    </div> <!-- close #content -->
-    <br style="clear:left">
-  </div> <!-- close #pagebody -->
-<!-- </div> --> <!-- close #pagebody-wrap -->
-
 {% include "10_1038_nchembio_1337__fallahi_sichani_2013/dose_response_grid_content.html" %}
-
-<!-- <div class="empty-div"> --> <!-- match the </div> for #pagebody-wrap -->
-  <div class="empty-div"> <!-- match the </div> for #pagebody -->
-    <div class="empty-div"> <!-- match the </div> for #content -->
 
 {% endblock %}
