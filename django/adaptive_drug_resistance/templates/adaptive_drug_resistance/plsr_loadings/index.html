@@ -197,7 +197,8 @@ The corresponding axes over all scatterplots have the same range.
 
   <script>
 
-( function ( $ ) {
+require(['jquery'], function(jquery) {
+jquery(document).ready(function ( $ ) {
     var _
     ,   $info = $( '.instructions > div' )
     ,   up = -$info.outerHeight()
@@ -219,7 +220,8 @@ The corresponding axes over all scatterplots have the same range.
     $show.on( 'click', function () { showhide( down, $hide, $show ); } )
     $hide.on( 'click', function () { showhide( up, $show, $hide ); } )
 
-} )( jQuery );
+});
+});
 
   </script>
 

@@ -151,7 +151,8 @@ to focus on.
 </div>
 
   <script>
-( function ( $ ) {
+require(['jquery'], function(jquery) {
+jquery(document).ready(function ( $ ) {
     var _
     ,   $info = $( '.instructions > div' )
     ,   up = -$info.outerHeight()
@@ -173,7 +174,8 @@ to focus on.
     $show.on( 'click', function () { showhide( down, $hide, $show ); } )
     $hide.on( 'click', function () { showhide( up, $show, $hide ); } )
 
-} )( jQuery );
+});
+});
 
   </script>
 
