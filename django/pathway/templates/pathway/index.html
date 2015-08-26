@@ -1,26 +1,3 @@
-{% extends "base.html" %}
-
-{% block requirejs %}
-    <script>
-     require.config({
-         paths: {
-             pathway: 'pathway/js',
-         },
-     });
-     require( [ 'pathway/pathway' ] );
-    </script>
-{% endblock %}
-
-{% block head_extra %}
-  <link rel="stylesheet" href="{{ STATIC_URL }}pathway/css/pathway.css"/>
-{% endblock %}
-
-{% block title %}Kinase inhibitor pathways - {{ block.super }}{% endblock %}
-
-{% block contentclass %}fullwidth{% endblock %}
-
-{% block body %}
-
 <h1>Kinase inhibitor pathways</h1>
 
 <div id="pathway-container">
@@ -74,5 +51,3 @@ targets</a> by name or other attributes.
   anticancer compounds in breast cancer. PNAS 109, 2724-2729 (2012).
   doi:<a href="http://dx.doi.org/10.1073/pnas.1018854108">10.1073/pnas.1018854108</a>
 </ol>
-
-{% endblock %}

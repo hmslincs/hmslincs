@@ -1,5 +1,9 @@
 from django.template import Template, Context
 from django.template.loader import render_to_string
+from django.core.management.base import BaseCommand, CommandError
+from django.contrib.flatpages.models import FlatPage
+from django.contrib.sites.models import Site
+
 import django.conf
 import os
 import os.path as op
@@ -7,9 +11,10 @@ import lxml.etree
 import functools
 import math
 import PIL.Image
-import argparse
+from optparse import make_option
 import shutil
-import signature
+from unipath import Path
+import pathway.signature as signature
 
 
 # mapping from target names in signature.LATEST to names in the diagram
@@ -139,18 +144,38 @@ target_protein_ids = {
     }
 
 
-if __name__ == '__main__':
+class Command(BaseCommand):
+    help = 'Builds the static assets and html chunks'
+    option_list = BaseCommand.option_list + (
+        make_option('-n', '--no-signatures', action='store_true',
+                    default=False, help='Skip building signature images'),
+        )
 
-    parser = argparse.ArgumentParser(description='Build pathway app resources.')
-    parser.add_argument('-n', '--no-signatures', action='store_true', default=False,
-                        help='Skip building signature images')
-    args = parser.parse_args()
+    def handle(self, *args, **options):
+        #from django.core.files.storage import default_storage
+        #from django.core.files.base import ContentFile
+        #path = default_storage.save('foo.txt', ContentFile('new content'))
+        #self.stdout.write("the path to foo.txt is: %s\n" % path)
 
-    cur_dir = op.abspath(op.dirname(__file__))
-    data_dir = op.join(cur_dir, '..', 'nui-wip', 'pathway')
-    static_dir = op.join(cur_dir, '..', 'django', 'pathway', 'static', 'pathway')
-    out_dir_html = static_dir
-    out_dir_image = op.join(static_dir, 'img')
+        url = '/explore/pathway/'
+        content = generate_images_and_index(options)
+
+        page, created = FlatPage.objects.get_or_create(url=url)
+        page.title = 'Kinase inhibitor pathways'
+        page.content = content
+        page.template_name = 'pathway/base.html'
+        page.sites.clear()
+        page.sites.add(Site.objects.get_current())
+        page.save()
+
+
+def generate_images_and_index(options):
+
+    app_dir = Path(__file__).absolute().ancestor(3)
+    data_dir = app_dir.child('resources')
+    static_dir = app_dir.child('static', 'pathway')
+    out_dir_image = static_dir.child('generated')
+    out_dir_image.mkdir()
     pathway_image_filename = 'pathway.jpg'
 
     # tweak some target names
@@ -201,14 +226,13 @@ if __name__ == '__main__':
     pathway_image = PIL.Image.open(pathway_image_path)
     # copy jpg to static dir, first removing destination (if they exist) to
     # prevent permissions issues
-    if op.isfile(op.join(out_dir_image, pathway_image_filename)):
-        os.remove(op.join(out_dir_image, pathway_image_filename))
+    out_dir_image.child(pathway_image_filename).remove()
     shutil.copy(pathway_image_path, out_dir_image)
 
     # fix up <img> attribs
     del img.attrib['usemap']
     img.attrib['id'] = 'pathway-img'
-    img.attrib['src'] = '%spathway/img/%s' % (django.conf.settings.STATIC_URL,
+    img.attrib['src'] = '%spathway/generated/%s' % (django.conf.settings.STATIC_URL,
                                               pathway_image_filename)
     img.attrib['width'] = str(pathway_image.size[0])
     img.attrib['height'] = str(pathway_image.size[1])
@@ -224,7 +248,7 @@ if __name__ == '__main__':
     for target, compounds in old_signature_data.items():
         # filter signature_data down to targets that are actually in the map
         if target not in pathway_targets:
-            continue 
+            continue
         # sort compounds by name
         compounds = sorted(set(compounds), key=lambda c: c.drug)
         # strip "HMSL" prefix from drug_ids
@@ -257,14 +281,15 @@ if __name__ == '__main__':
         'pathway_source': pathway_source,
         'STATIC_URL': django.conf.settings.STATIC_URL,
         }
-    out_file = open(op.join(out_dir_html, 'index.html'), 'w')
-    out_file.write(render_to_string('pathway/index.html', ctx))
-    out_file.close()
+
+    page_content = render_to_string('pathway/index.html', ctx)
 
     # generate the signature images
-    if not args.no_signatures:
+    if not options['no_signatures']:
         for target, compounds in signature_data.items():
             signature.signature_images(target, compounds, out_dir_image)
 
     # generate images for the cell lines legend
     signature.cell_line_images(out_dir_image)
+
+    return page_content

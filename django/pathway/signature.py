@@ -7,8 +7,6 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.patches import RegularPolygon
 from matplotlib.gridspec import GridSpec
 from matplotlib.ticker import MultipleLocator, NullLocator
-from django.template import Template, Context
-from django.template.loader import render_to_string
 from django.template.defaultfilters import slugify
 import django.conf
 import numpy as np
@@ -41,7 +39,7 @@ def signature_images(target_name, compounds, target_dir):
         for compound in compounds:
             signature_image(target_name, compound, xlimits, target_dir)
         signature_image(target_name, None, xlimits, target_dir, scale_only=True)
-        
+
 
 def signature_image(target_name, compound, xlimits, target_dir, scale_only=False):
 
@@ -121,18 +119,6 @@ def cell_line_images(target_dir):
 
 
 if __name__ == '__main__':
-    if not django.conf.settings.configured:
-        django.conf.settings.configure(
-            TEMPLATE_LOADERS=(
-                'django.template.loaders.filesystem.Loader',
-                ),
-            TEMPLATE_DIRS=(
-                op.abspath(op.join(op.dirname(__file__), '../nui-wip/pathway')),
-                ),
-            DEBUG=True,
-            TEMPLATE_DEBUG=True,
-            )
-
     target_name = 'EGFR'
 
     compounds = (

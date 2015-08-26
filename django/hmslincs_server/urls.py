@@ -16,9 +16,7 @@ urlpatterns = patterns('',
     url(r'^db/logout/$', logout_page, name='logout'),
     url(r'^db/', include('db.urls')),
 
-    (r'^explore/pathway/$', 'django.views.static.serve',
-     {'path': 'index.html',
-      'document_root': op.join(_djangopath, 'pathway', 'static', 'pathway')}),
+    (r'^(?P<url>explore/pathway/)$', 'django.contrib.flatpages.views.flatpage'),
 
     (r'^explore/responses/$', 'django.views.generic.simple.direct_to_template',
      {'template': 'responses/index.html'}),
