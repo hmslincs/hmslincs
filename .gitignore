@@ -14,4 +14,4 @@ src/onetime/makepng
 src/onetime/makesvg
 data/networks/xgmml
 .deploy
-django/*/static/*/generated
+django/*/static/*/g

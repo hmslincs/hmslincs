@@ -11,28 +11,11 @@ import csv
 import wand.image
 import django.conf
 from django.template.loader import render_to_string
+from django.core.management.base import BaseCommand, CommandError
+from django.contrib.flatpages.models import FlatPage
+from django.contrib.sites.models import Site
+from optparse import make_option
 
-
-
-# Read RESOURCE_PATH from environ, or default to something that works for me.
-resource_path_s = os.environ.get(
-    'RESOURCE_PATH',
-    '/home/jmuhlich/Dropbox (HMS-LSP)/Roux Hafner TRAIL_DISC_paper/website/')
-resource_path = unipath.Path(resource_path_s)
-hmslincs_path = unipath.Path(__file__).ancestor(2)
-
-docroot_path = hmslincs_path.child(
-    'temp', 'docroot', 'explore', 'trail-threshold-variability')
-
-img_src_path = resource_path.child('figures')
-img_dest_path = docroot_path.child('img')
-popup_dest_path = img_dest_path.child('popup')
-schematic_dest_path = img_dest_path.child('schematic')
-
-data_src_path = resource_path.child('data')
-data_dest_path = docroot_path.child('data')
-
-base_url = '/explore/trail-threshold-variability/'
 
 table = [{'name': u'Modulation of DISC activity (k)',
           'schematic_page': 1,
@@ -71,11 +54,50 @@ popup_target_width = 939 * 2
 schematic_target_width = 230 * 2
 
 
-def main(argv):
+class Command(BaseCommand):
+    help = 'Builds the static assets and html chunks'
+    option_list = BaseCommand.option_list + (
+       make_option('-n', '--no-images', action='store_true', default=False,
+                   help='Skip building images'),
+       make_option('-d', '--no-data', action='store_true', default=False,
+                   help='Skip building data download files'),
+       make_option('-r', '--resource-path',
+                   default=('/home/jmuhlich/Dropbox (HMS-LSP)/'
+                            'Roux Hafner TRAIL_DISC_paper/website/'),
+                   help=('Path to resource files (contains "figures" and '
+                         '"data" directories)'))
+       )
 
-    argparser = argparse.ArgumentParser(
-        description='Build trail_threshold_variability app resources.')
-    args = argparser.parse_args()
+    def handle(self, *args, **options):
+
+        url = '/explore/trail-threshold-variability/'
+        content = build_static(options)
+
+        page, created = FlatPage.objects.get_or_create(url=url)
+        page.title = ('Fractional killing arises from cell-to-cell '
+                      'variability in overcoming a caspase activity threshold')
+        page.content = content
+        page.template_name = 'trail_threshold_variability/base.html'
+        page.sites.clear()
+        page.sites.add(Site.objects.get_current())
+        page.save()
+
+
+def build_static(options):
+
+    app_path = unipath.Path(__file__).absolute().ancestor(3)
+    static_path = app_path.child('static', 'trail_threshold_variability')
+    generated_path = static_path.child('g')
+    generated_path.mkdir()
+
+    resource_path = unipath.Path(options['resource_path'])
+
+    img_src_path = resource_path.child('figures')
+    popup_dest_path = generated_path.child('popup')
+    schematic_dest_path = generated_path.child('schematic')
+
+    data_src_path = resource_path.child('data')
+    data_dest_path = generated_path.child('data')
 
     treatment_reverse_map = {}
     for s_idx, section in enumerate(table):
@@ -131,54 +153,52 @@ def main(argv):
 
     # Assemble data for template and render html.
     data = {'table': table,
-            'data_rel_url': docroot_path.rel_path_to(data_dest_path),
             'STATIC_URL': django.conf.settings.STATIC_URL,
-            'BASE_URL': base_url,
             }
-    docroot_path.mkdir(parents=True)
-    render_template('trail_threshold_variability/index.html', data,
-                    docroot_path, 'index.html')
+    content = render_to_string('trail_threshold_variability/index.html', data)
 
-    # Resize and copy popup images.
-    popup_dest_path.mkdir(parents=True)
-    for dose in doses:
-        dest_path = popup_dest_path.child(dose['img_filename'])
-        with wand.image.Image(filename=dose['img_path']) as img, \
-                open(dest_path, 'w') as f:
-            scale = float(popup_target_width) / img.width
-            target_size = [int(round(d * scale)) for d in img.size]
-            img.resize(*target_size, blur=1.5)
-            img.compression_quality = 20
-            img.format = 'JPEG'
-            img.save(file=f)
-            dest_path.chmod(0o644)
-    # Extract and copy schematic images.
-    schematic_dest_path.mkdir(parents=True)
-    schematic_path = img_src_path.child('schematics', 'Trajectories_schematics.pdf')
-    with wand.image.Image(filename=schematic_path, resolution=500) as img:
-        for section in table:
-            page_number = section['schematic_page']
-            page = wand.image.Image(image=img.sequence[page_number])
-            page.alpha_channel = False
-            scale = float(schematic_target_width) / page.width
-            target_size = [int(round(d * scale)) for d in page.size]
-            page.resize(*target_size)
-            page.compression_quality = 100
-            page.format = 'JPEG'
-            filename = '{}.jpg'.format(page_number)
-            dest_path = schematic_dest_path.child(filename)
-            page.save(filename=dest_path)
-            dest_path.chmod(0o644)
-    # Copy data download files.
-    data_dest_path.mkdir(parents=True)
-    for filename in data_filenames:
-        src_path = data_src_path.child(filename)
-        dest_path = data_dest_path.child(filename)
-        src_path.copy(dest_path)
-        dest_path.chmod(0o644)
+    if not options['no_images']:
+        # Resize and copy popup images.
+        popup_dest_path.mkdir()
+        for dose in doses:
+            dest_path = popup_dest_path.child(dose['img_filename'])
+            with wand.image.Image(filename=dose['img_path']) as img, \
+                    open(dest_path, 'w') as f:
+                scale = float(popup_target_width) / img.width
+                target_size = [int(round(d * scale)) for d in img.size]
+                img.resize(*target_size, blur=1.5)
+                img.compression_quality = 20
+                img.format = 'JPEG'
+                img.save(file=f)
+                dest_path.chmod(0o644)
+        # Extract and copy schematic images.
+        schematic_dest_path.mkdir()
+        schematic_path = img_src_path.child('schematics', 'Trajectories_schematics.pdf')
+        with wand.image.Image(filename=schematic_path, resolution=500) as img:
+            for section in table:
+                page_number = section['schematic_page']
+                page = wand.image.Image(image=img.sequence[page_number])
+                page.alpha_channel = False
+                scale = float(schematic_target_width) / page.width
+                target_size = [int(round(d * scale)) for d in page.size]
+                page.resize(*target_size)
+                page.compression_quality = 100
+                page.format = 'JPEG'
+                filename = '{}.jpg'.format(page_number)
+                dest_path = schematic_dest_path.child(filename)
+                page.save(filename=dest_path)
+                dest_path.chmod(0o644)
 
-    globals().update(locals())
-    return 0
+    if not options['no_data']:
+        # Copy data download files.
+        data_dest_path.mkdir(parents=True)
+        for filename in data_filenames:
+            src_path = data_src_path.child(filename)
+            dest_path = data_dest_path.child(filename)
+            src_path.copy(dest_path)
+            dest_path.chmod(0o644)
+
+    return content
 
 
 def as_css_identifier(s):
@@ -190,15 +210,3 @@ def as_css_identifier(s):
     the values returned from this function to sidestep the issue entirely.
     """
     return re.sub(r'[^a-z0-9-]', '-', s, flags=re.IGNORECASE)
-
-
-def render_template(template_name, data, dirname, basename):
-    "Render a template with data to a file specified by dirname and basename."
-    out_filename = unipath.Path(dirname, basename)
-    content = render_to_string(template_name, data)
-    with codecs.open(out_filename, 'w', 'utf-8') as out_file:
-        out_file.write(content)
-
-
-if __name__ == '__main__':
-    sys.exit(main(sys.argv[1:]))

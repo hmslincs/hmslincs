@@ -174,7 +174,7 @@ def generate_images_and_index(options):
     app_dir = Path(__file__).absolute().ancestor(3)
     data_dir = app_dir.child('resources')
     static_dir = app_dir.child('static', 'pathway')
-    out_dir_image = static_dir.child('generated')
+    out_dir_image = static_dir.child('g')
     out_dir_image.mkdir()
     pathway_image_filename = 'pathway.jpg'
 
@@ -232,7 +232,7 @@ def generate_images_and_index(options):
     # fix up <img> attribs
     del img.attrib['usemap']
     img.attrib['id'] = 'pathway-img'
-    img.attrib['src'] = '%spathway/generated/%s' % (django.conf.settings.STATIC_URL,
+    img.attrib['src'] = '%spathway/g/%s' % (django.conf.settings.STATIC_URL,
                                               pathway_image_filename)
     img.attrib['width'] = str(pathway_image.size[0])
     img.attrib['height'] = str(pathway_image.size[1])
