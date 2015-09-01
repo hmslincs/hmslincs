@@ -279,7 +279,6 @@ def generate_images_and_index(options):
         'cell_lines': [cell_lines_ctx[:cut_idx],
                        cell_lines_ctx[cut_idx:]],
         'pathway_source': pathway_source,
-        'STATIC_URL': django.conf.settings.STATIC_URL,
         }
 
     page_content = render_to_string('pathway/index.html', ctx)

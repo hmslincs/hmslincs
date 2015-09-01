@@ -87,11 +87,6 @@ else:
         op.join(_djangopath, '..', 'sampledata', 'images' ),
     )   
 
-# Add the assets directory for cross-app dependancies
-STATICFILES_DIRS = STATICFILES_DIRS + (
-    op.normpath(op.join(_djangopath, 'static')),
-)
-
 # add our custom hmslincs project library path
 import sys
 sys.path.append(op.join(_djangopath, '..','src'))
@@ -198,7 +193,6 @@ TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    op.join(_djangopath, 'templates')
 )
 
 # For webtemplates, use the live WP instance if we are running on the live site,
@@ -224,6 +218,7 @@ INSTALLED_APPS = (
     'django_tables2', # for UI tabling
     'tastypie', # manual says this is "not necessary, but useful"
     'webtemplates',
+    'hmslincs',
     'db',
     'pathway',
     'responses',

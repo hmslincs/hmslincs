@@ -1,4 +1,5 @@
 {% load trail_threshold_variability %}
+{% load hmslincs %}
 
   <h1>Fractional killing arises from cell-to-cell variability in overcoming a
   caspase activity threshold</h1>
@@ -73,7 +74,7 @@
           </td>
           {% for dose in treatment.doses %}
             <td class="lookup-table-hotspot cell-{{ dose.id }}">
-              <a href="{{ STATIC_URL }}trail_threshold_variability/g/popup/{{ dose.img_filename }}">{{ dose.amount }}</a>
+              <a href="{% flatpage_static %}trail_threshold_variability/g/popup/{{ dose.img_filename }}">{{ dose.amount }}</a>
             </td>
           {% endfor %}
           {% if forloop.first %}
@@ -81,7 +82,7 @@
               <td class="padding" colspan="{{ section.num_padding_columns }}"></td>
             {% endif %}
             <td>
-              <img src="{{ STATIC_URL }}trail_threshold_variability/g/schematic/{{ section.schematic_page }}.jpg"
+              <img src="{% flatpage_static %}trail_threshold_variability/g/schematic/{{ section.schematic_page }}.jpg"
                    class="schematic" width="250">
             </td>
           {% endif %}
@@ -112,7 +113,7 @@
       <td>Data and signatures</td>
       <td>All single-cell raw data, smoothed trajectories, and fitted parameters
       for each replicate for each treatment condition in HeLa cells.</td>
-      <td><a href="{{ STATIC_URL }}trail_threshold_variability/g/data/All_SingleCell_data.zip">Download (.zip)</a></td>
+      <td><a href="{% flatpage_static %}trail_threshold_variability/g/data/All_SingleCell_data.zip">Download (.zip)</a></td>
     </tr>
     <tr>
       <td>Signatures</td>
@@ -121,19 +122,19 @@
       for download through the
       <a href="http://lincs.hms.harvard.edu/db/datasets/20232/">HMS LINCS Database</a>.
       </em></td>
-      <td><a href="{{ STATIC_URL }}trail_threshold_variability/g/data/Aggregate_SingleCell_results.tsv">Download (.tsv)</a></td>
+      <td><a href="{% flatpage_static %}trail_threshold_variability/g/data/Aggregate_SingleCell_results.tsv">Download (.tsv)</a></td>
     </tr>
     <tr>
       <td>Data and signatures</td>
       <td>Population-based viability and C8 activity results for Apomab, Apomab
       + anti-Fc, and TRAIL treatments in several other cancer cell lines with
       varying sensitivities to TRAIL.</td>
-      <td><a href="{{ STATIC_URL }}trail_threshold_variability/g/data/Results_other_lines.zip">Download (.zip)</a></td>
+      <td><a href="{% flatpage_static %}trail_threshold_variability/g/data/Results_other_lines.zip">Download (.zip)</a></td>
     </tr>
     <tr>
       <td>Software</td>
       <td>The MATLAB code for the image processing routines developed for this
       project.</td>
-      <td><a href="{{ STATIC_URL }}trail_threshold_variability/g/data/scripts.zip">Download (.zip)</a></td>
+      <td><a href="{% flatpage_static %}trail_threshold_variability/g/data/scripts.zip">Download (.zip)</a></td>
     </tr>
   </table>

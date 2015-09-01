@@ -152,9 +152,7 @@ def build_static(options):
     assert len(dose_ids) == len(set(dose_ids))
 
     # Assemble data for template and render html.
-    data = {'table': table,
-            'STATIC_URL': django.conf.settings.STATIC_URL,
-            }
+    data = {'table': table }
     content = render_to_string('trail_threshold_variability/index.html', data)
 
     if not options['no_images']:

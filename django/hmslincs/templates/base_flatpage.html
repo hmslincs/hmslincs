@@ -1,0 +1,4 @@
+{% extends "base.html" %}
+{% load hmslincs %}
+{% block title %}{{ flatpage.title }}{% endblock %}
+{% block body %}{{ flatpage.content|process_static_url }}{% endblock %}
