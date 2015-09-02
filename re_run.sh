@@ -1076,6 +1076,18 @@ else
   check_errs $? "import dataset fails"
   
   echo 'import screen results...'
+  python src/import_dataset.py -f $DATADIR/Screen20233_Jones_SF1.xls
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset.py -f $DATADIR/Screen20234_Jones_SF3-1.xls
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset.py -f $DATADIR/Screen20235_Jones_SF3-2.xls
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
   python src/import_dataset.py -f $DATADIR/Screen20237_LJP_processedData1.xls
   check_errs $? "import dataset fails"
   
