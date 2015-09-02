@@ -216,7 +216,11 @@ def read_datacolumns(book):
                         dc_dict['display_order'] = (
                             dc_dict['display_order'] + 10)
                     if recognized_label == 'name':
-                        dc_dict['name'] = camel_case_dwg(dc_dict['name'])
+                        # split on non-alphanumeric chars
+                        temp = re.split(r'[^a-zA-Z0-9]+',dc_dict['name'])
+                        # convert, if needed
+                        if len(temp) > 1:
+                            dc_dict['name'] = camel_case_dwg(dc_dict['name'])
                 else:
                     if recognized_label in required_labels:
                         raise Exception(

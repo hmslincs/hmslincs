@@ -300,10 +300,9 @@ def camel_case_dwg(value):
         return ''
     value = value.strip()
     array = re.split(r'[^a-zA-Z0-9]+',value)
-    if len(array) > 1:
-        # if the value has multiple words, then convert to title case,
-        value = ''.join(['ID' if x.lower()=='id' else x.title() for x in array])
-        value = value[0].lower() + value[1:];
+    # convert to title case, if name made of multiple words
+    value = ''.join(['ID' if x.lower()=='id' else x.title() for x in array])
+    value = value[0].lower() + value[1:];
     return value
 
 class QCEvent(models.Model):

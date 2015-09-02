@@ -13,11 +13,12 @@ except DatabaseError, e:
 
 from db.DjangoTables2Serializer import DjangoTables2Serializer, \
     get_visible_columns
-from db.models import SmallMolecule, SmallMoleculeBatch, DataSet, Cell, \
-    CellBatch, Protein, Library, DataRecord, DataColumn, FieldInformation, \
-    get_fieldinformation, get_listing, get_detail_schema, get_detail, \
+from db.models import SmallMolecule, SmallMoleculeBatch, Cell, \
+    CellBatch, Protein, ProteinBatch, \
+    Antibody, AntibodyBatch, OtherReagent, OtherReagentBatch, \
+    Library, DataSet, DataRecord, DataColumn, FieldInformation, \
     get_detail_bundle, get_fieldinformation, get_schema_fieldinformation,\
-    Antibody, OtherReagent, camel_case_dwg, AntibodyBatch, ProteinBatch
+    camel_case_dwg, get_fieldinformation, get_listing, get_detail_schema, get_detail
 from django.conf.urls.defaults import url
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import Http404, HttpResponse
@@ -366,7 +367,11 @@ class DataSetResource2(ModelResource):
         filtering = {
             'date_loaded':ALL, 
             'date_publicly_available':ALL, 
-            'date_data_received':ALL }
+            'date_data_received':ALL,
+            'date_updated': ALL,
+            'dataset_type': ALL,
+            'bioassay':ALL }
+        ordering = ['facility_id','date_updated']
         detail_uri_name = 'facility_id'
         resource_name = 'dataset'
               
@@ -682,12 +687,24 @@ class DataSetDataResource2(Resource):
                 ]
             }
         
+        timepoint_columns = ( 
+            DataColumn.objects.all()
+                .filter(dataset_id=dataset_id)
+                .filter(unit__in=['day','hour','minute','second']) )
+        timepoint_col_count = len(timepoint_columns)
+
         data_columns = DataColumn.objects.filter(dataset_id=dataset_id)
         for dc in data_columns:
             name = dc.name
             if dc.unit in ['day','hour','minute','second']:
                 for colname in datapoint_cols['timepoint']:
-                    base_cols.append('%s_%s' % (name,colname))
+                    # for legacy compatibility, omit the dc name if  
+                    # if there is only one timepoint column (which is the norm)
+                    if timepoint_col_count == 1:
+                        base_cols.append('%s' % colname)
+                    else:
+                        base_cols.append('%s_%s' % (name,colname))
+                        
             elif dc.data_type in [
                 'small_molecule','cell','protein','antibody','otherreagent']:
                 for colname in datapoint_cols[dc.data_type]:
