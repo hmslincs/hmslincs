@@ -16,12 +16,9 @@
 
 {% block body %}
 
-
-      <!-- <h1>Lorem ipsum dolor sit amet</h1> -->
     </div> <!-- close #content -->
     <br style="clear:left">
   </div> <!-- close #pagebody -->
-<!-- </div> --> <!-- close #pagebody-wrap -->
 
 <div id="override">
 
@@ -90,7 +87,6 @@ The corresponding axes over all scatterplots have the same range.
 
 <button class="show info"><i>i</i></button>
 <button class="hide info">&#9167;</button>
-<!-- <button class="hide info">&#9652;</button> -->
 
 </div> <!-- <div class="global"> -->
 
@@ -156,22 +152,22 @@ The corresponding axes over all scatterplots have the same range.
 
 {% include "adaptive_drug_resistance/plsr_loadings/content.html" %}
 
-<div class="downloads">
+<div class="downloads-wrapper">
 <div>
-<h2 id="downloads">Relevant signatures</h2>
-<table>
+<h2>Relevant signatures</h2>
+<table class="downloads">
 <tbody>
 <tr>
-<td style="white-space: nowrap;">Signature</td>
+<td>Signature</td>
 <td>PLSR model loadings (pMEK and pERK included) from analysis of the covariation of molecular signals with cell viability and apoptosis fraction in BRAF(V600E/D) melanoma cell lines (HMS Dataset #20229)</td>
-<td style="white-space: nowrap;"><a href="/db/datasets/20229/">Details</a></td>
-<td style="white-space: nowrap;"><a href="/db/datasets/20229/results?output_type=.xlsx">Download (.xlsx)</a></td>
+<td><a href="/db/datasets/20229/">Details</a></td>
+<td><a href="/db/datasets/20229/results?output_type=.xlsx">Download (.xlsx)</a></td>
 </tr>
 <tr>
-<td style="white-space: nowrap;">Signature</td>
+<td>Signature</td>
 <td>PLSR model loadings (pMEK and pERK excluded) from analysis of the covariation of molecular signals with cell viability and apoptosis fraction in BRAF(V600E/D) melanoma cell lines (HMS Dataset #20230)</td>
-<td style="white-space: nowrap;"><a href="/db/datasets/20230/">Details</a></td>
-<td style="white-space: nowrap;"><a href="/db/datasets/20230/results?output_type=.xlsx">Download (.xlsx)</a></td>
+<td><a href="/db/datasets/20230/">Details</a></td>
+<td><a href="/db/datasets/20230/results?output_type=.xlsx">Download (.xlsx)</a></td>
 </tr>
 </tbody>
 </table>
@@ -208,7 +204,6 @@ jquery(document).ready(function ( $ ) {
 
   </script>
 
-<!-- <div class="empty-div"> --> <!-- match the </div> for #pagebody-wrap -->
   <div class="empty-div"> <!-- match the </div> for #pagebody -->
     <div class="empty-div"> <!-- match the </div> for #content -->
 

@@ -14,7 +14,6 @@
 
 {% block body %}
 
-      <!-- <h1>Lorem ipsum dolor sit amet</h1> -->
     </div> <!-- close #content -->
     <br style="clear:left">
   </div> <!-- close #pagebody -->
@@ -68,7 +67,6 @@ to focus on.
 
 <button class="show info"><i>i</i></button>
 <button class="hide info">&#9167;</button>
-<!-- <button class="hide info">&#9652;</button> -->
 
 </div> <!-- <div class="global"> -->
 
@@ -118,17 +116,17 @@ to focus on.
 {% include "adaptive_drug_resistance/vips/content.html" %}
 
 
-<div class="downloads">
+<div class="downloads-wrapper">
 <div>
 
-<h2 id="downloads">Relevant signatures</h2>
-<table>
+<h2>Relevant signatures</h2>
+<table class="downloads">
 <tbody>
 <tr>
-<td style="white-space: nowrap;">Signature</td>
+<td>Signature</td>
 <td>Average variable importance in the projection (VIP) scores from the PLSR models analyzing the covariation of molecular signals with cell viability and apoptosis fraction in BRAF(V600E/D) melanoma cell lines (HMS Dataset #20231)</td>
-<td style="white-space: nowrap;"><a href="/db/datasets/20231/">Details</a></td>
-<td style="white-space: nowrap;"><a href="/db/datasets/20231/results?output_type=.xlsx">Download (.xlsx)</a></td>
+<td><a href="/db/datasets/20231/">Details</a></td>
+<td><a href="/db/datasets/20231/results?output_type=.xlsx">Download (.xlsx)</a></td>
 </tr>
 </tbody>
 </table>
@@ -164,7 +162,6 @@ jquery(document).ready(function ( $ ) {
 
   </script>
 
-<!-- <div class="empty-div"> --> <!-- match the </div> for #pagebody-wrap -->
   <div class="empty-div"> <!-- match the </div> for #pagebody -->
     <div class="empty-div"> <!-- match the </div> for #content -->
 

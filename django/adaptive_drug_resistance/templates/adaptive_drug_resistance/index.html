@@ -1,9 +1,5 @@
 {% extends "base.html" %}
 
-{% comment %}
-{% load trail_threshold_variability %}
-{% endcomment %}
-
 {% block head_extra %}
   <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}adaptive_drug_resistance/css/style.css"/>
 {% endblock %}
@@ -105,49 +101,49 @@ responses in these cell lines.</div>
 
 <div style="margin-top: 30px">
 <h2>Available Data and Signatures</h2>
-<table>
+<table class="downloads">
 <tbody>
 <tr>
-<td style="white-space: nowrap;">Data</td>
+<td>Data</td>
 <td>Viability and apoptosis in BRAF(V600E/D) melanoma cell lines monitored by imaging (HMS Dataset #20217)</td>
-<td style="white-space: nowrap;"><a href="/db/datasets/20217/">Details</a></td>
-<td style="white-space: nowrap;"><a href="/db/datasets/20217/results?output_type=.xlsx">Download (.xlsx)</a></td>
+<td><a href="/db/datasets/20217/">Details</a></td>
+<td><a href="/db/datasets/20217/results?output_type=.xlsx">Download (.xlsx)</a></td>
 </tr>
 <tr>
-<td style="white-space: nowrap;">Data</td>
+<td>Data</td>
 <td>Phosphorylation state and protein levels measured in BRAF(V600E/D) melanoma cell lines monitored by Reverse Phase Protein Arrays (RPPA)(HMS Dataset #20218)</td>
-<td style="white-space: nowrap;"><a href="/db/datasets/20218/">Details</a></td>
-<td style="white-space: nowrap;"><a href="/db/datasets/20218/results?output_type=.xlsx">Download (.xlsx)</a></td>
+<td><a href="/db/datasets/20218/">Details</a></td>
+<td><a href="/db/datasets/20218/results?output_type=.xlsx">Download (.xlsx)</a></td>
 </tr>
 <tr>
-<td style="white-space: nowrap;">Data</td>
+<td>Data</td>
 <td>Phosphorylation state and protein levels measured in BRAF(V600E/D) melanoma cell lines monitored by imaging (HMS Dataset #20219)</td>
-<td style="white-space: nowrap;"><a href="/db/datasets/20219/">Details</a></td>
-<td style="white-space: nowrap;"><a href="/db/datasets/20219/results?output_type=.xlsx">Download (.xlsx)</a></td>
+<td><a href="/db/datasets/20219/">Details</a></td>
+<td><a href="/db/datasets/20219/results?output_type=.xlsx">Download (.xlsx)</a></td>
 </tr>
 <tr>
-<td style="white-space: nowrap;">Signature</td>
+<td>Signature</td>
 <td>PLSR model loadings (pMEK and pERK included) from analysis of the covariation of molecular signals with cell viability and apoptosis fraction in BRAF(V600E/D) melanoma cell lines (HMS Dataset #20229)</td>
-<td style="white-space: nowrap;"><a href="/db/datasets/20229/">Details</a></td>
-<td style="white-space: nowrap;"><a href="/db/datasets/20229/results?output_type=.xlsx">Download (.xlsx)</a></td>
+<td><a href="/db/datasets/20229/">Details</a></td>
+<td><a href="/db/datasets/20229/results?output_type=.xlsx">Download (.xlsx)</a></td>
 </tr>
 <tr>
-<td style="white-space: nowrap;">Signature</td>
+<td>Signature</td>
 <td>PLSR model loadings (pMEK and pERK excluded) from analysis of the covariation of molecular signals with cell viability and apoptosis fraction in BRAF(V600E/D) melanoma cell lines (HMS Dataset #20230)</td>
-<td style="white-space: nowrap;"><a href="/db/datasets/20230/">Details</a></td>
-<td style="white-space: nowrap;"><a href="/db/datasets/20230/results?output_type=.xlsx">Download (.xlsx)</a></td>
+<td><a href="/db/datasets/20230/">Details</a></td>
+<td><a href="/db/datasets/20230/results?output_type=.xlsx">Download (.xlsx)</a></td>
 </tr>
 <tr>
-<td style="white-space: nowrap;">Signature</td>
+<td>Signature</td>
 <td>Average variable importance in the projection (VIP) scores from the PLSR models analyzing the covariation of molecular signals with cell viability and apoptosis fraction in BRAF(V600E/D) melanoma cell lines (HMS Dataset #20231)</td>
-<td style="white-space: nowrap;"><a href="/db/datasets/20231/">Details</a></td>
-<td style="white-space: nowrap;"><a href="/db/datasets/20231/results?output_type=.xlsx">Download (.xlsx)</a></td>
+<td><a href="/db/datasets/20231/">Details</a></td>
+<td><a href="/db/datasets/20231/results?output_type=.xlsx">Download (.xlsx)</a></td>
 </tr>
 <tr>
-<td style="white-space: nowrap;">Software</td>
+<td>Software</td>
 <td>A link to our HMS LINCS GitHub for access to the code for the data visualization tools presented on this project explorer website</a>.</td>
-<td style="white-space: nowrap;"></td>
-<td style="white-space: nowrap;"><a href="https://github.com/hmslincs/hmslincs/">hmslincs at GitHub</a></td>
+<td></td>
+<td><a href="https://github.com/hmslincs/hmslincs/">hmslincs at GitHub</a></td>
 </tr>
 </tbody>
 </table>
