@@ -435,6 +435,41 @@ class DataSetDataResource2(Resource):
     - support for multiple reagents associated with an assay well
     '''
 
+    datapoint_cols = {
+        'timepoint': [
+            "timepoint",
+            "timepointUnit",
+            "timepointDescription",
+            ],
+        'small_molecule': [
+            "smCenterCompoundID",
+            "smSalt",
+            "smCenterSampleID",
+            "smLincsID",
+            "smName",
+            ],
+        'protein': [
+            "ppName",
+            "ppLincsID",
+            "ppCenterSampleID",
+            ],
+        'cell': [
+            "clName",
+            "clCenterSpecificID",
+            "clCenterSampleID",
+            ],
+        'antibody': [
+            "abName",
+            "abCenterSpecificID",
+            "abCenterSampleID",
+            ],
+        'otherreagent': [
+            "orName",
+            "orCenterSpecificID",
+            "orCenterSampleID",
+            ]
+        }
+
     class Meta:
         fields = []
         serializer = CursorSerializer()
@@ -634,7 +669,7 @@ class DataSetDataResource2(Resource):
                 " and dp.datacolumn_id not in (%s)" 
                     % ','.join([str(x) for x in dc_ids_to_exclude]))    
         query_string += " order by datarecord.id,dc.id "
-          
+        logger.info('query_string: %s' % query_string)
         cursor = connection.cursor()
         cursor.execute(query_string, [dataset_id])
         return cursor
@@ -652,40 +687,6 @@ class DataSetDataResource2(Resource):
             "datapointUnit",
             "datapointValue"            
             ]
-        datapoint_cols = {
-            'timepoint': [
-                "timepoint",
-                "timepointUnit",
-                "timepointDescription",
-                ],
-            'small_molecule': [
-                "smCenterCompoundID",
-                "smSalt",
-                "smCenterSampleID",
-                "smLincsID",
-                "smName",
-                ],
-            'protein': [
-                "ppName",
-                "ppLincsID",
-                "ppCenterSampleID",
-                ],
-            'cell': [
-                "clName",
-                "clCenterSpecificID",
-                "clCenterSampleID",
-                ],
-            'antibody': [
-                "abName",
-                "abCenterSpecificID",
-                "abCenterSampleID",
-                ],
-            'otherreagent': [
-                "orName",
-                "orCenterSpecificID",
-                "orCenterSampleID",
-                ]
-            }
         
         timepoint_columns = ( 
             DataColumn.objects.all()
@@ -697,7 +698,7 @@ class DataSetDataResource2(Resource):
         for dc in data_columns:
             name = dc.name
             if dc.unit in ['day','hour','minute','second']:
-                for colname in datapoint_cols['timepoint']:
+                for colname in DataSetDataResource2.datapoint_cols['timepoint']:
                     # for legacy compatibility, omit the dc name if  
                     # if there is only one timepoint column (which is the norm)
                     if timepoint_col_count == 1:
@@ -707,7 +708,7 @@ class DataSetDataResource2(Resource):
                         
             elif dc.data_type in [
                 'small_molecule','cell','protein','antibody','otherreagent']:
-                for colname in datapoint_cols[dc.data_type]:
+                for colname in DataSetDataResource2.datapoint_cols[dc.data_type]:
                     base_cols.append('%s_%s' % (name,colname))
         
         return base_cols
@@ -738,6 +739,16 @@ class DataSetDataResource2(Resource):
     @staticmethod
     def get_reagent_columns(dataset_id):
         
+        col_field_info = {}
+        for fi in FieldInformation.objects.all().filter(
+            table__in=['smallmolecule','protein','cell','antibody','otherreagent',
+                'smallmoleculebatch','proteinbatch','cellbatch','antibodybatch','otherreagentbatch']):
+            col_field_info[fi.get_camel_case_dwg_name()] = {
+                'reagentType': fi.table,
+                'dwgName': fi.dwg_field_name,
+                'description': fi.description 
+                }
+        
         data_columns = ( DataColumn.objects.filter(dataset_id=dataset_id)
             .filter(data_type__in=[
                 'small_molecule','cell','protein','antibody','otherreagent']) )
@@ -752,6 +763,10 @@ class DataSetDataResource2(Resource):
                 field_schema[meta_fi.get_camel_case_dwg_name()] = (
                     getattr(dc,meta_fi_attr) )
             reagent_fields[specific_name] = field_schema
+            reagent_fields[specific_name]['columns'] = {}
+            for dwg_name in DataSetDataResource2.datapoint_cols[dc.data_type]:
+                col_name = '%s_%s' % (specific_name,dwg_name)
+                reagent_fields[specific_name]['columns'][col_name] = col_field_info.get(dwg_name, {})
         return reagent_fields
         
     def get_schema(self, request, **kwargs):
