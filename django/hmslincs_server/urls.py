@@ -25,55 +25,28 @@ urlpatterns = patterns('',
     (r'^explore/responses/$', 'django.views.generic.simple.direct_to_template',
      {'template': 'responses/index.html'}),
 
-    (r'^explore/(?:sensitivities|10.1038-nchembio.1337)/(?!fallahi-sichani-2013)(?P<suffix>.*)$',
-     'django.views.generic.simple.redirect_to',
-     {'url': '/explore/10.1038-nchembio.1337/fallahi-sichani-2013/%(suffix)s'}),
-
+    # Top-level index page.
     (r'^explore/10.1038-nchembio.1337/fallahi-sichani-2013/$',
      'django.views.generic.simple.direct_to_template',
      {'template': '10_1038_nchembio_1337__fallahi_sichani_2013/index.html'}),
-
-    (r'^explore/10.1038-nchembio.1337/fallahi-sichani-2013/tools_table\.html$',
-     'django.views.generic.simple.direct_to_template',
-     {'template': '10_1038_nchembio_1337__fallahi_sichani_2013/tools_table.html'}),
-
-    (r'^explore/10.1038-nchembio.1337/fallahi-sichani-2013/intro_to_dose_response_curves\.html$',
-     'django.views.generic.simple.direct_to_template',
-     {'template': '10_1038_nchembio_1337__fallahi_sichani_2013/intro_to_dose_response_curves.html'}),
-
-    (r'^explore/10.1038-nchembio.1337/fallahi-sichani-2013/dose_response_grid\.html$',
-     'django.views.generic.simple.direct_to_template',
-     {'template': '10_1038_nchembio_1337__fallahi_sichani_2013/dose_response_grid.html'}),
-
-    (r'^explore/10.1038-nchembio.1337/fallahi-sichani-2013/scatterplot_browser\.html$',
-     'django.views.generic.simple.direct_to_template',
-     {'template': '10_1038_nchembio_1337__fallahi_sichani_2013/scatterplot_browser.html'}),
-
-
+    # Iframe content pages.
     (r'^explore/10.1038-nchembio.1337/fallahi-sichani-2013/intro_to_dose_response_curves_iframe\.html$',
      'django.views.generic.simple.direct_to_template',
      {'template': '10_1038_nchembio_1337__fallahi_sichani_2013/intro_to_dose_response_curves_iframe.html'}),
-
     (r'^explore/10.1038-nchembio.1337/fallahi-sichani-2013/dose_response_grid_iframe\.html$',
      'django.views.generic.simple.direct_to_template',
      {'template': '10_1038_nchembio_1337__fallahi_sichani_2013/dose_response_grid_iframe.html'}),
-
     (r'^explore/10.1038-nchembio.1337/fallahi-sichani-2013/scatterplot_browser_iframe\.html$',
      'django.views.generic.simple.direct_to_template',
      {'template': '10_1038_nchembio_1337__fallahi_sichani_2013/scatterplot_browser_iframe.html'}),
-
-
-    (r'^explore/10.1038-nchembio.1337/fallahi-sichani-2013/intro_to_dose_response_curves_content\.html$',
-     'django.views.generic.simple.direct_to_template',
-     {'template': '10_1038_nchembio_1337__fallahi_sichani_2013/intro_to_dose_response_curves_content.html'}),
-
-    (r'^explore/10.1038-nchembio.1337/fallahi-sichani-2013/dose_response_grid_content\.html$',
-     'django.views.generic.simple.direct_to_template',
-     {'template': '10_1038_nchembio_1337__fallahi_sichani_2013/dose_response_grid_content.html'}),
-
-    (r'^explore/10.1038-nchembio.1337/fallahi-sichani-2013/scatterplot_browser_content\.html$',
-     'django.views.generic.simple.direct_to_template',
-     {'template': '10_1038_nchembio_1337__fallahi_sichani_2013/scatterplot_browser_content.html'}),
+    # Conversion from old URL schemes.
+    (r'^explore/(?:sensitivities|10.1038-nchembio.1337)/(?!fallahi-sichani-2013)(?P<suffix>.*)$',
+     'django.views.generic.simple.redirect_to',
+     {'url': '/explore/10.1038-nchembio.1337/fallahi-sichani-2013/%(suffix)s'}),
+    # Catch-all for old deprecated pages -- redirect to index.
+    (r'^explore/10.1038-nchembio.1337/fallahi-sichani-2013/',
+     'django.views.generic.simple.redirect_to',
+     {'url': '/explore/10.1038-nchembio.1337/fallahi-sichani-2013/'}),
 
     (r'^explore/responses/scatterplot_browser\.html$',
      'django.views.generic.simple.direct_to_template',

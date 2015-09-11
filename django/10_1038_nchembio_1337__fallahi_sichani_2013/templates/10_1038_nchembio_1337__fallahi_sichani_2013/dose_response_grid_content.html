@@ -1,25 +1,12 @@
     <div id="preamble">
-      <h1>An interactive global view of drug response</h1>
+      <h2>An interactive global view of drug response</h2>
       <p>The grid below shows dose-response curves grouped either by cell line or by drug.  (Click on the "Toggle view" button to alternate between these two options).</p>
       <p>Hovering the cursor over the identifiers in the panel to the left of the grid simultaneously highlights all the curves corresponding to that identifier.  (Note that when no data is available for a particular cell line-drug combination, no curve will be highlighted in the corresponding plot.)  Clicking on an identifier fixes the highlighted state of the associated curves.  Multiple sets of curves may be highlighted this way.</p>
     </div>
 
-  <div class="main global xDEBUG" id="dose-response-grid-main">
+  <div class="main global" id="dose-response-grid-main">
 
     <div class="slider" style="visibility:hidden">
-
-{% comment %}
-      <div class="pulldown">
-        <div class="pulldown-content">
-          <p>The grid below shows dose-response curves grouped either by cell line or by drug.  (Click on the "Toggle view" button to alternate between these two options).</p>
-          <p>Hovering the cursor over the identifiers in the panel to the left of the grid simultaneously highlights all the curves corresponding to that identifier.  (Note that when no data is available for a particular cell line-drug combination, no curve will be highlighted in the corresponding plot.)  Clicking on an identifier fixes the highlighted state of the associated curves.  Multiple sets of curves may be highlighted this way.</p>
-        </div> <!-- .pulldown-content -->
-      </div> <!-- .pulldown -->
-
-      <div class="show-hide">
-        <div class="corner-dingbat"><div><div><span>i</span></div></div></div>
-      </div>
-{% endcomment %}
 
       <div id="dose-response-grid-content" class="content main-content">
 
