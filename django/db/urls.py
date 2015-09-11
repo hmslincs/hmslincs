@@ -6,8 +6,8 @@ from db.api import SmallMoleculeResource
 from db.api import CellResource
 from db.api import AntibodyResource
 from db.api import OtherReagentResource
-from db.api import DataSetResource
-from db.api import DataSetDataResource
+from db.api import DataSetResource2
+from db.api import DataSetDataResource2
 from db.api import ProteinResource
 from db.api import LibraryResource
 from django.contrib import admin
@@ -16,8 +16,8 @@ from django.contrib import admin
 v1_api = Api(api_name='v1')
 v1_api.register(SmallMoleculeResource())
 v1_api.register(CellResource())
-v1_api.register(DataSetResource())
-v1_api.register(DataSetDataResource())
+v1_api.register(DataSetResource2())
+v1_api.register(DataSetDataResource2())
 v1_api.register(ProteinResource())
 v1_api.register(LibraryResource())
 v1_api.register(AntibodyResource())
@@ -42,7 +42,10 @@ urlpatterns = patterns('',
     url(r'^cells/(?P<facility_batch>[0-9\-]+)/$', 'db.views.cellDetail', name="cell_detail"),
     url(r'^cells/(?P<facility_batch>\d+)-(?P<batch_id>\d+)/$', 'db.views.cellDetail', name="cell_detail2"),    
     url(r'^antibodies/$','db.views.antibodyIndex', name="listAntibodies"),
-    url(r'^antibodies/(?P<facility_id>\d+)/$', 'db.views.antibodyDetail', name="antibody_detail"),
+    url(r'^antibodies/(?P<facility_batch>[\d-]+)/$', 
+        'db.views.antibodyDetail', name="antibody_detail"),
+    url(r'^antibodies/(?P<facility_batch>\d+)-(?P<batch_id>\d+)/$', 
+        'db.views.antibodyDetail', name="antibody_detail2"),    
     url(r'^otherreagents/$','db.views.otherReagentIndex', name="listOtherReagents"),
     url(r'^otherreagents/(?P<facility_id>\d+)/$', 'db.views.otherReagentDetail', name="otherreagent_detail"),
     url(r'^proteins/$','db.views.proteinIndex', name="listProteins"),

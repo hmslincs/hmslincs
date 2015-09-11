@@ -43,10 +43,10 @@ def main(path):
               # it is convenient to convert the read in values to INT to make sure they are not interpreted as float values
               'facility_id': ('facility_id',True,None, lambda x: util.convertdata(x,int)),
               'salt_id': ('salt_id',True,None, lambda x: util.convertdata(x,int)),
-              'facility_batch_id':('facility_batch_id',True,None, lambda x: util.convertdata(x,int)),
-              'provider': ('provider',True),
+              'facility_batch_id':('batch_id',True,None, lambda x: util.convertdata(x,int)),
+              'provider': ('provider_name',True),
               'provider_catalog_id':'provider_catalog_id',
-              'provider_sample_id':'provider_sample_id',
+              'provider_sample_id':'provider_batch_id',
               'chemical_synthesis_reference':'chemical_synthesis_reference',
               'purity':'purity',
               'purity_method':'purity_method',
@@ -98,7 +98,7 @@ def main(path):
                 if( None not in small_molecule_lookup.values()):
                     try:
                         sm = SmallMolecule.objects.get(**small_molecule_lookup)
-                        initializer['smallmolecule'] = sm
+                        initializer['reagent'] = sm
                     except Exception, e:
                         logger.error(str(('sm identifiers not found', small_molecule_lookup,'row',rows+start_row+2)))
                         raise

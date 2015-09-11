@@ -39,7 +39,7 @@ def main(path):
     date_parser = lambda x : util.convertdata(x,date)
     column_definitions = {'Facility':('facility_id',False,None, lambda x: util.convertdata(x,int)),
                           'Salt':('salt_id',False,None, lambda x: util.convertdata(x,int)),
-                          'Batch':('facility_batch_id',False,None, lambda x: util.convertdata(x,int)),
+                          'Batch':('batch_id',False,None, lambda x: util.convertdata(x,int)),
                           'Is Control':('is_control',False,False,util.bool_converter),
                           'Plate':('plate',False,None, lambda x: util.convertdata(x,int)),
                           'Well':'well',
@@ -53,7 +53,7 @@ def main(path):
     # create a dict mapping the column ordinal to the proper column definition dict
     cols = util.find_columns(column_definitions, sheet.labels)
     
-    small_molecule_batch_lookup = ('smallmolecule', 'facility_batch_id')
+    small_molecule_batch_lookup = ('reagent', 'batch_id')
     library_mapping_lookup = ('smallmolecule_batch','library','is_control','plate','well','concentration','concentration_unit')
     rows = 0    
     logger.debug(str(('cols: ' , cols)))
@@ -90,7 +90,7 @@ def main(path):
                 if( None not in small_molecule_lookup.values()):
                     try:
                         sm = SmallMolecule.objects.get(**small_molecule_lookup)
-                        initializer['smallmolecule'] = sm
+                        initializer['reagent'] = sm
                     except Exception, e:
                         raise Exception(str(('sm facility id not found', small_molecule_lookup,e,'row',current_row)))
             elif(model_field == 'short_name'):
@@ -102,10 +102,10 @@ def main(path):
 
         # Do some business logic checks
         if initializer['is_control'] is True:
-            if 'smallmolecule' in initializer and initializer['smallmolecule'] is not None:
+            if 'reagent' in initializer and initializer['reagent'] is not None:
                 raise Exception(str(('Must define either "is control", or the small molecule fields, not both', initializer, 'row',current_row)))
         else:
-            if initializer['smallmolecule'] is None:
+            if initializer['reagent'] is None:
                 raise Exception(str(('Must define either the Small Molecule, or as a control well', initializer, 'row', current_row)))
             try:
                 search = {}

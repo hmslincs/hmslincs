@@ -109,7 +109,7 @@ class FieldsManager(models.Manager):
             self.fieldinformation_map[table_or_queryset] = table_hash
         
         if not field_or_alias in table_hash or not table_hash[field_or_alias]:
-            logger.info(str(('finding', table_or_queryset,  field_or_alias)))
+            logger.debug(str(('finding', table_or_queryset,  field_or_alias)))
             val = self.get_column_fieldinformation_uncached(
                 field_or_alias, table_or_queryset)
             table_hash[field_or_alias] = val
@@ -240,7 +240,8 @@ class FieldInformation(models.Model):
     class Meta:
         unique_together = (('table', 'field','queryset'),('field','alias'))    
     def __unicode__(self):
-        return unicode(str((self.table, self.field, self.unique_id, self.dwg_field_name, self.hms_field_name)))
+        return unicode(str((self.table, self.field, self.unique_id, 
+            self.dwg_field_name, self.hms_field_name,self.detail_order)))
     
     def get_field_name(self):
         if(self.hms_field_name != None):
@@ -292,14 +293,17 @@ class FieldInformation(models.Model):
     def get_camel_case_dwg_name(self):
         logger.debug(str(('create a camelCase name for:', self)))
         field_name = self.get_dwg_name_hms_name()
-        field_name = field_name.strip().title()
-        # TODO: convert a trailing "Id" to "ID"
-        field_name = ''.join(['ID' if x.lower()=='id' else x for x in re.split(r'[_\s]+',field_name)])
-        
-        #field_name = re.sub(r'[_\s]+','',field_name)
-        field_name = field_name[0].lower() + field_name[1:];
-        #        logger.info(str(('created camel case name', field_name, 'for', self)))
-        return field_name
+        return camel_case_dwg(field_name)
+
+def camel_case_dwg(value):
+    if not value: 
+        return ''
+    value = value.strip()
+    array = re.split(r'[^a-zA-Z0-9]+',value)
+    # convert to title case, if name made of multiple words
+    value = ''.join(['ID' if x.lower()=='id' else x.title() for x in array])
+    value = value[0].lower() + value[1:];
+    return value
 
 class QCEvent(models.Model):
     
@@ -334,16 +338,81 @@ class QCAttachedFile(models.Model):
         return unicode(
             str((self.filename,self.relative_path,self.is_restricted, 
                 self.file_type,self.description,self.file_date)))
-        
-class SmallMolecule(models.Model):
+
+class Reagent(models.Model):
+
+    facility_id = models.TextField(null=False)
+    lincs_id = models.TextField(null=True)
+    name = models.TextField(null=False)
+    # Note: salt id is part of the composite key for the SmallMoleculeReagent
+    salt_id = _TEXT(**_NOTNULLSTR)
+    is_restricted = models.BooleanField(default=False) 
+    alternative_names = models.TextField(null=True)
+
+    date_data_received = models.DateField(null=True,blank=True)
+    date_loaded = models.DateField(null=True,blank=True)
+    date_publicly_available = models.DateField(null=True,blank=True)
+    date_updated = models.DateField(null=True,blank=True)
+
+    class Meta:
+        unique_together = ('facility_id', 'salt_id')    
+    
+    @property
+    def facility_salt(self):
+        "Returns the 'facilty_id-salt_id'"
+        return '%s-%s' % (self.facility_id, self.salt_id)
+
+    @property
+    def unrestricted_facility_salt(self):
+        "Returns the 'facilty_id-salt_id', only if unrestricted"
+        if self.is_restricted:
+            return ''
+        else: 
+            return '%s-%s' % (self.facility_id, self.salt_id)
+    
+    @classmethod
+    def get_snippet_def(cls):
+        return FieldInformation.manager.get_snippet_def(cls)
+
+    def __unicode__(self):
+        return u'%s' % self.facility_id
+
+class ReagentBatch(models.Model):        
+
+    reagent = models.ForeignKey('Reagent', null=False)
+    batch_id = models.TextField(null=False)
+    provider_name = models.TextField(null=True)
+    provider_catalog_id = models.TextField(null=True)
+    provider_batch_id = models.TextField(null=True)
+
+    date_data_received = models.DateField(null=True,blank=True)
+    date_loaded = models.DateField(null=True,blank=True)
+    date_publicly_available = models.DateField(null=True,blank=True)
+    date_updated = models.DateField(null=True,blank=True)
+
+    @property
+    def facility_batch(self):
+        "Returns the 'facilty_id-batch_id'"
+        return '%s-%s' % (self.reagent.facility_id, self.batch_id)
+
+    @property
+    def facility_salt_batch(self):
+        "Returns the 'facilty_id-salt_id'"
+        return '%s-%s' % (self.reagent.facility_salt, self.batch_id)
+
+    @classmethod
+    def get_snippet_def(cls):
+        return FieldInformation.manager.get_snippet_def(cls)
+
+    class Meta:
+        unique_together = ('reagent', 'batch_id')
+
+    def __unicode__(self):
+        return u'%s:%s' %(self.reagent, self.batch_id)
+    
+class SmallMolecule(Reagent):
     
     nominal_target          = models.ForeignKey('Protein', null=True)
-    facility_id             = _TEXT(**_NOTNULLSTR)
-    salt_id                 = _TEXT(**_NOTNULLSTR)
-    lincs_id                = _TEXT(**_NULLOKSTR)
-    name                    = _TEXT(**_NOTNULLSTR) 
-    alternative_names       = _TEXT(**_NULLOKSTR) 
-    #facility_batch_id       = _INTEGER(null=True)
     molfile                 = _TEXT(**_NULLOKSTR)
     pubchem_cid             = _TEXT(**_NULLOKSTR)
     chembl_id               = _TEXT(**_NULLOKSTR)
@@ -355,17 +424,6 @@ class SmallMolecule(models.Model):
     # Following fields not listed for the canonical information in the DWG, but per HMS policy will be - sde4
     _molecular_mass          = models.DecimalField(db_column='molecular_mass', max_digits=8, decimal_places=2, null=True) # Note: FloatField results in a (postgres) double precision datatype - 8 bytes; approx 15 digits of decimal precision
     _molecular_formula       = _TEXT(db_column='molecular_formula', **_NULLOKSTR)
-    # concentration          = _TEXT(**_NULLOKSTR)
-    #plate                   = _INTEGER(null=True)
-    #row                     = _TEXT(**_NULLOKSTR)
-    #column                  = _INTEGER(null=True)
-    #well_type               = _TEXT(**_NULLOKSTR)
-    is_restricted           = models.BooleanField(default=False) # Note: default=False are not set at the db level, only at the Db-api level
-
-    class Meta:
-        unique_together = ('facility_id', 'salt_id')    
-    def __unicode__(self):
-        return unicode(str((self.facility_id, self.salt_id)))
       
     def get_molecular_formula(self, is_authenticated=False):
         if(not self.is_restricted or is_authenticated):
@@ -398,11 +456,6 @@ class SmallMolecule(models.Model):
             return 'restricted'
     
     @property
-    def facility_salt(self):
-        "Returns the 'facilty_id-salt_id'"
-        return '%s-%s' % (self.facility_id, self.salt_id)
-    
-    @property
     def primary_name(self):
         "Returns the 'primary name'"
         return self.name.split(';')[0]
@@ -411,42 +464,19 @@ class SmallMolecule(models.Model):
     def get_snippet_def(cls):
         return FieldInformation.manager.get_snippet_def(cls)
 
-class SmallMoleculeBatch(models.Model):
-    smallmolecule           = models.ForeignKey('SmallMolecule')
-    facility_batch_id       = _TEXT(**_NOTNULLSTR)
-    provider                = _TEXT(**_NULLOKSTR)
-    provider_catalog_id     = _TEXT(**_NULLOKSTR)
-    provider_sample_id      = _TEXT(**_NULLOKSTR)
+class SmallMoleculeBatch(ReagentBatch):
+
     chemical_synthesis_reference = _TEXT(**_NULLOKSTR)
     purity                  = _TEXT(**_NULLOKSTR)
     purity_method           = _TEXT(**_NULLOKSTR)
     aqueous_solubility      = models.DecimalField(max_digits=4, decimal_places=2, null=True)
     aqueous_solubility_unit = models.TextField(null=True)
-    date_data_received      = models.DateField(null=True,blank=True)
-    date_loaded             = models.DateField(null=True,blank=True)
-    date_publicly_available = models.DateField(null=True,blank=True)
-    date_updated            = models.DateField(null=True,blank=True)
-    ## following fields probably not used with batch, per HMS policy - sde4
     inchi                   = _TEXT(**_NULLOKSTR)
     inchi_key               = _TEXT(**_NULLOKSTR)
     smiles                  = _TEXT(**_NULLOKSTR)
 
-    def __unicode__(self):
-        return unicode(str((self.smallmolecule,self.facility_batch_id)))
-    class Meta:
-        unique_together = ('smallmolecule', 'facility_batch_id',)    
+class Cell(Reagent):
 
-    @property
-    def facility_salt_batch(self):
-        "Returns the 'facilty_id-salt_id'"
-        return '%s-%s' % (self.smallmolecule.facility_salt, self.facility_batch_id)
-
-
-class Cell(models.Model):
-    facility_id = models.TextField(unique=True, null=False)
-    name = models.TextField(unique=True, null=False)
-    lincs_id = models.TextField(null=True)
-    alternate_name = models.TextField(null=True)
     alternate_id = models.TextField(null=True)
     center_specific_id = models.TextField(null=False)
     mgh_id = models.TextField(null=True)
@@ -476,49 +506,19 @@ class Cell(models.Model):
     molecular_features = models.TextField(null=True)
     relevant_citations = models.TextField(null=True)
     usage_note = models.TextField(null=True)
-    
-    date_data_received = models.DateField(null=True,blank=True)
-    date_loaded = models.DateField(null=True,blank=True)
-    date_publicly_available = models.DateField(null=True,blank=True)
-    date_updated = models.DateField(null=True,blank=True)
-    is_restricted = models.BooleanField()
-    def __unicode__(self):
-        return unicode(self.facility_id)
 
     @classmethod
     def get_snippet_def(cls):
         return FieldInformation.manager.get_snippet_def(cls)
 
+class CellBatch(ReagentBatch):
 
-class CellBatch(models.Model):
-    cell = models.ForeignKey('Cell')
-    batch_id = models.TextField(null=False)
-    provider_name = models.TextField(null=True)
-    provider_batch_id = models.TextField(null=True)
-    provider_catalog_id = models.TextField(null=True)
     quality_verification = models.TextField(null=True)
     transient_modification = models.TextField(null=True)
+
+class Protein(Reagent):
     
-    date_data_received = models.DateField(null=True,blank=True)
-    date_loaded = models.DateField(null=True,blank=True)
-    date_publicly_available = models.DateField(null=True,blank=True)
-    date_updated = models.DateField(null=True,blank=True)
-
-    @property
-    def facility_batch(self):
-        "Returns the 'facilty_id-batch_id'"
-        return '%s-%s' % (self.cell.facility_id, self.batch_id)
-
-    def __unicode__(self):
-        return unicode(str((self.cell,self.batch_id)))
-    class Meta:
-        unique_together = ('cell', 'batch_id',)    
-
-class Protein(models.Model):
-    name                = _TEXT(**_NOTNULLSTR)
-    lincs_id            = _TEXT(unique=True, **_NOTNULLSTR)
     uniprot_id          = _TEXT(**_NULLOKSTR) # Note: UNIPROT ID's are 6 chars long, but we have a record with two in it, see issue #74
-    alternate_name      = _TEXT(**_NULLOKSTR)
     alternate_name_2    = _TEXT(**_NULLOKSTR)
     provider            = _TEXT(**_NULLOKSTR)
     provider_catalog_id = _TEXT(**_NULLOKSTR)
@@ -537,83 +537,58 @@ class Protein(models.Model):
     protein_type        = _TEXT(**_NULLOKSTR) #TODO: controlled vocabulary
     source_organism     = _TEXT(**_NULLOKSTR) #TODO: controlled vocabulary
     reference           = _TEXT(**_NULLOKSTR)
-    date_data_received      = models.DateField(null=True,blank=True)
-    date_loaded             = models.DateField(null=True,blank=True)
-    date_publicly_available = models.DateField(null=True,blank=True)
-    date_updated            = models.DateField(null=True,blank=True)
-    is_restricted       = models.BooleanField()
-
-    def __unicode__(self):
-        return unicode(self.lincs_id)
 
     @classmethod
     def get_snippet_def(cls):
         return FieldInformation.manager.get_snippet_def(cls)
 
+class ProteinBatch(ReagentBatch):
+    
+    production_organism = models.TextField()
 
-class Antibody(models.Model):
-    facility_id             = _TEXT(**_NOTNULLSTR)
-    lincs_id                = _TEXT(**_NULLOKSTR)
-    name                    = _TEXT(**_NOTNULLSTR)
-    alternative_names       = _TEXT(**_NULLOKSTR) 
-    target_protein_name     = _TEXT(**_NULLOKSTR) 
-    target_protein_uniprot_id       = _TEXT(**_NULLOKSTR) # Note: UNIPROT ID's are 6 chars long, but we have a record with two in it, see issue #74
-    target_gene_name      = _TEXT(**_NULLOKSTR)
-    target_gene_id          = _TEXT(**_NULLOKSTR)
-    target_organism         = _TEXT(**_NULLOKSTR) #TODO: controlled vocabulary
+class Antibody(Reagent):
+
+    clone_name              = _TEXT(**_NULLOKSTR)
+    rrid                    = _TEXT(**_NULLOKSTR)
+    type                    = _TEXT(**_NULLOKSTR)
+    target_protein          = models.ForeignKey('Protein',null=True)
+    non_protein_target_name = _TEXT(**_NULLOKSTR)
+    target_organism         = _TEXT(**_NULLOKSTR) 
     immunogen               = _TEXT(**_NULLOKSTR) 
     immunogen_sequence      = _TEXT(**_NULLOKSTR) 
-    antibody_clonality      = _TEXT(**_NULLOKSTR) 
-    source_organism         = _TEXT(**_NULLOKSTR) #TODO: controlled vocabulary
-    antibody_isotype        = _TEXT(**_NULLOKSTR)
-    engineering             = _TEXT(**_NULLOKSTR) 
-    antibody_purity         = _TEXT(**_NULLOKSTR) 
-    antibody_labeling       = _TEXT(**_NULLOKSTR) 
-    recommended_experiment_type     = _TEXT(**_NULLOKSTR) 
-    relevant_reference      = _TEXT(**_NULLOKSTR) 
-    specificity             = _TEXT(**_NULLOKSTR) 
-    date_data_received      = models.DateField(null=True,blank=True)
-    date_loaded             = models.DateField(null=True,blank=True)
-    date_publicly_available = models.DateField(null=True,blank=True)
-    date_updated            = models.DateField(null=True,blank=True)
-    is_restricted           = models.BooleanField(default=False) # Note: default=False are not set at the db level, only at the Db-api level
-
+    species                 = _TEXT(**_NULLOKSTR)
+    clonality               = _TEXT(**_NULLOKSTR) 
+    isotype                 = _TEXT(**_NULLOKSTR)
+    source_organism         = _TEXT(**_NULLOKSTR) 
+    production_details      = _TEXT(**_NULLOKSTR)
+    labeling                = _TEXT(**_NULLOKSTR) 
+    labeling_details        = _TEXT(**_NULLOKSTR) 
+    relevant_citations      = _TEXT(**_NULLOKSTR) 
+    
     @classmethod
     def get_snippet_def(cls):
         return FieldInformation.manager.get_snippet_def(cls)
-    
-class AntibodyBatch(models.Model):
-    antibody           = models.ForeignKey('Antibody')
-    facility_batch_id       = _TEXT(**_NOTNULLSTR)
-    provider                = _TEXT(**_NULLOKSTR)
-    provider_catalog_id     = _TEXT(**_NULLOKSTR)
-    
-class OtherReagent(models.Model):
-    facility_id             = _TEXT(**_NOTNULLSTR)
-    lincs_id                = _TEXT(**_NULLOKSTR)
+        
+class AntibodyBatch(ReagentBatch):
+
+    antibody_purity         = _TEXT(**_NULLOKSTR) 
+
+class OtherReagent(Reagent):
+
     alternate_id            = _TEXT(**_NULLOKSTR)
-    name                    = _TEXT(**_NOTNULLSTR)
-    alternative_names       = _TEXT(**_NULLOKSTR) 
     role                    = _TEXT(**_NULLOKSTR)
     reference               = _TEXT(**_NULLOKSTR) 
-    date_data_received      = models.DateField(null=True,blank=True)
-    date_loaded             = models.DateField(null=True,blank=True)
-    date_publicly_available = models.DateField(null=True,blank=True)
-    date_updated            = models.DateField(null=True,blank=True)
-    is_restricted           = models.BooleanField(default=False) # Note: default=False are not set at the db level, only at the Db-api level
 
     @classmethod
     def get_snippet_def(cls):
         return FieldInformation.manager.get_snippet_def(cls)
 
-class OtherReagentBatch(models.Model):
-    other_reagent           = models.ForeignKey('OtherReagent')
-    facility_batch_id       = _TEXT(**_NOTNULLSTR)
-    provider                = _TEXT(**_NULLOKSTR)
-    provider_catalog_id     = _TEXT(**_NULLOKSTR)
+class OtherReagentBatch(ReagentBatch):
+    
+    def __unicode__(self):
+        return ReagentBatch.__unicode__(self)
     
 class DataSet(models.Model):
-    #cells                   = models.ManyToManyField(Cell, verbose_name="Cells screened")
     facility_id             = _TEXT(unique=True, **_NOTNULLSTR)
     title                   = _TEXT(unique=True, **_NOTNULLSTR)
     lead_screener_firstname = _TEXT(**_NULLOKSTR)
@@ -635,6 +610,12 @@ class DataSet(models.Model):
     dataset_keywords        = _TEXT(**_NULLOKSTR)
     usage_message           = _TEXT(**_NULLOKSTR)
     
+    small_molecules         = models.ManyToManyField('SmallMoleculeBatch')
+    cells                   = models.ManyToManyField('CellBatch')
+    antibodies              = models.ManyToManyField('AntibodyBatch')
+    proteins                = models.ManyToManyField('ProteinBatch')
+    other_reagents          = models.ManyToManyField('OtherReagentBatch')
+    
     @property
     def lead_screener(self):
         "Returns the LS  full name."
@@ -644,9 +625,6 @@ class DataSet(models.Model):
     def lab_head(self):
         "Returns the LH  full name."
         return '%s %s' % (self.lab_head_firstname, self.lab_head_lastname)
-
-    def __unicode__(self):
-        return unicode(self.facility_id)
 
     @classmethod
     def get_snippet_def(cls):
@@ -659,7 +637,8 @@ class DataSet(models.Model):
         dataset_types.insert(0,('',''))
         return dataset_types
 
-        
+    def __unicode__(self):
+        return u'%s' % self.facility_id
 
 class Library(models.Model):
     name                    = _TEXT(unique=True,**_NOTNULLSTR)
@@ -692,14 +671,12 @@ class LibraryMapping(models.Model):
     
     def __unicode__(self):
         return unicode(str((self.library,self.smallmolecule_batch)))
-    #class Meta:
-    #    unique_together = ('library', 'smallmolecule_batch',)    
     
 class DataColumn(models.Model):
     dataset                 = models.ForeignKey('DataSet')
-    worksheet_column        = _TEXT(**_NOTNULLSTR)
+    worksheet_column        = _TEXT(**_NULLOKSTR)
     name                    = _TEXT(**_NOTNULLSTR)
-    display_name                    = _TEXT(**_NOTNULLSTR)
+    display_name            = _TEXT(**_NOTNULLSTR)
     data_type               = _TEXT(**_NOTNULLSTR)
     precision               = _INTEGER(null=True)
     description             = _TEXT(**_NULLOKSTR)
@@ -707,44 +684,39 @@ class DataColumn(models.Model):
     unit                    = _TEXT(**_NULLOKSTR)
     readout_type            = _TEXT(**_NULLOKSTR)
     comments                = _TEXT(**_NULLOKSTR)
-    display_order           = _INTEGER(null=True) # an example of why fieldinformation may need to be combined with datacolumn
+    display_order           = _INTEGER(null=True)
 
-    #Note we also allow cells and proteins to be associated on a column granularity
-    cell                    = models.ForeignKey('Cell', null=True)
-    protein                 = models.ForeignKey('Protein', null=True)
+    class Meta:
+        unique_together = ('dataset', 'name',)    
 
     def __unicode__(self):
-        return unicode(str((self.dataset,self.name,self.data_type, self.unit)))
+        return u'%s: worksheet_column: %s, %s, %s' % (
+            self.dataset, self.worksheet_column, self.name, self.data_type)
 
 class DataRecord(models.Model):
     dataset                 = models.ForeignKey('DataSet')
-    smallmolecule           = models.ForeignKey('SmallMolecule', null=True)
-    
-    sm_batch_id             = _TEXT(**_NULLOKSTR) 
-    cell_batch_id           = _TEXT(**_NULLOKSTR) 
-    
-    # NOTE: library_mapping: used in the case of control wells, if smallmolecule_batch is defined, then this must match the librarymapping to the smb
     library_mapping         = models.ForeignKey('LibraryMapping',null=True)  
-    cell                    = models.ForeignKey('Cell', null=True)
-    protein                 = models.ForeignKey('Protein', null=True)
-    antibody                = models.ForeignKey('Antibody', null=True)
-    otherreagent            = models.ForeignKey('OtherReagent', null=True)
     plate                   = _INTEGER(null=True)
-    well                    = _TEXT(**_NULLOKSTR) # AA99
-    control_type            = _TEXT(**_NULLOKSTR) # TODO: controlled vocabulary
+    well                    = _TEXT(**_NULLOKSTR)
+    control_type            = _TEXT(**_NULLOKSTR)
+    
     def __unicode__(self):
-        return unicode(str((self.dataset,self.smallmolecule,self.cell,self.protein,self.plate,self.well)))
+        return u'%s: %r, plate: %r, well: %s' % (
+            self.dataset, self.id, self.plate, self.well)
     
 class DataPoint(models.Model):
     datacolumn              = models.ForeignKey('DataColumn')
-    dataset                 = models.ForeignKey('DataSet') # TODO: are we using this? Note, Screen is being included here for convenience
+    dataset                 = models.ForeignKey('DataSet') 
     datarecord              = models.ForeignKey('DataRecord') 
     int_value               = _INTEGER(null=True)
-    float_value             = models.FloatField(null=True) # Note: this results in a (postgres) double precision datatype - 8 bytes; approx 15 digits of decimal precision
+    float_value             = models.FloatField(null=True) 
     text_value              = _TEXT(**_NULLOKSTR)
-    
+    reagent_batch           = models.ForeignKey('ReagentBatch', null=True)
+
     def __unicode__(self):
-        return unicode(str((self.datarecord,self.datacolumn,self.int_value,self.float_value,self.text_value)))
+        return u'%s: %s: %r, %r, %s, %s' % (
+            self.datarecord, self.datacolumn, self.int_value, self.float_value, 
+            self.text_value, self.reagent_batch)
     class Meta:
         unique_together = ('datacolumn', 'datarecord',)    
 
@@ -804,8 +776,9 @@ def get_listing(model_object, search_tables):
     """
     return get_fielddata(model_object, search_tables, lambda x: x.show_in_list )
 
-def get_detail(model_object, search_tables, _filter=None, extra_properties=[],
-               _override_filter=None ):
+def get_detail(
+        model_object, search_tables, _filter=None, extra_properties=[],
+        _override_filter=None ):
     """
     returns an ordered dict of field_name->{value:value,fieldinformation:}
     to be used to display the item in the UI Detail views

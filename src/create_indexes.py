@@ -3,7 +3,7 @@ import sys
 import init_utils as iu
 
 from db.models import Cell, DataSet, SmallMolecule, Library, Protein, FieldInformation,\
-    Antibody, OtherReagent
+    Antibody, OtherReagent, Reagent,ReagentBatch
 from django.db import models
 
 # ---------------------------------------------------------------------------
@@ -19,6 +19,10 @@ del _sg, _params
 # ---------------------------------------------------------------------------
 
 def main():
+    print '/** creating index definitions for Reagent **/'
+    createTableIndex('db_reagent', Reagent)
+    print '/** creating index definitions for ReagentBatch **/'
+    createTableIndex('db_reagentbatch', ReagentBatch)
     print '/** creating index definitions for Cell **/'
     createTableIndex('db_cell', Cell)
     print '/** creating index definitions for Small Molecule **/'
@@ -52,7 +56,7 @@ def createTableIndex(tableName, model):
     createTableIndexUpdate(tableName, model)
     print ('drop index if exists %(index)s %(qualifier)s;' % kws)
     print ('create index %(index)s on %(tableName)s '
-           'using gin(search_vector);\n\n' % kws)
+           'using gin(search_vector);\n\n' % kws)   
 
 
 def textfields(model):
@@ -78,6 +82,7 @@ def createTableIndexTrigger(tableName, model):
 def createTableIndexUpdate(tableName, model):
     fields = " || ' ' || ".join(["coalesce(%s, '')" % f
                                  for f in textfields(model)])
+    
     kws = dict(locals())
 
     print ('update %(tableName)s set search_vector = '
