@@ -1284,7 +1284,7 @@ class PagedTable(tables.Table):
 class DataSetTable(PagedTable):
     id = tables.Column(visible=False)
     facility_id = tables.LinkColumn("dataset_detail", args=[A('facility_id')])
-    title = DivWrappedColumn(classname='fixed_width_column_300', visible=False)
+    title = DivWrappedColumn(classname='constrained_width_column_300', visible=False)
     protocol = tables.Column(visible=False) 
     references = tables.Column(visible=False)
     rank = tables.Column()
@@ -1452,8 +1452,8 @@ class SmallMoleculeTable(PagedTable):
     facility_salt.attrs['td'] = {'nowrap': 'nowrap'}
     rank = tables.Column()
     snippet = DivWrappedColumn(verbose_name='matched text', classname='snippet')
-    dataset_types = DivWrappedColumn(classname='fixed_width_column', visible=False)
-    alternative_names = DivWrappedColumn(classname='fixed_width_column')
+    dataset_types = DivWrappedColumn(classname='constrained_width_column', visible=False)
+    alternative_names = DivWrappedColumn(classname='constrained_width_column')
 
     image = ImageColumn(
         verbose_name='image', accessor=A('unrestricted_facility_salt'), 
@@ -1481,7 +1481,7 @@ class SmallMoleculeTable(PagedTable):
         logger.info('init done')
 
 class DataColumnTable(PagedTable):
-    description = DivWrappedColumn(classname='fixed_width_column', visible=True)
+    description = DivWrappedColumn(classname='constrained_width_column', visible=True)
     
     class Meta:
         model = DataColumn
@@ -1546,8 +1546,8 @@ class CellTable(PagedTable):
     rank = tables.Column()
     snippet = DivWrappedColumn(verbose_name='matched text', classname='snippet')
     id = tables.Column(verbose_name='CLO Id')
-    disease = DivWrappedColumn(classname='fixed_width_column')
-    dataset_types = DivWrappedColumn(classname='fixed_width_column', visible=False)
+    disease = DivWrappedColumn(classname='constrained_width_column')
+    dataset_types = DivWrappedColumn(classname='constrained_width_column', visible=False)
     
 #    snippet_def = ("coalesce(name,'') || ' ' || coalesce(id,'') || ' ' || coalesce(alternate_name,'') || ' ' || " +  
 #                   "coalesce(alternate_id,'') || ' ' || coalesce(center_name,'') || ' ' || coalesce(center_specific_id,'') || ' ' || " +  
@@ -1573,8 +1573,8 @@ class ProteinTable(PagedTable):
     lincs_id = tables.LinkColumn("protein_detail", args=[A('lincs_id')])
     rank = tables.Column()
     snippet = DivWrappedColumn(verbose_name='matched text', classname='snippet')
-    alternative_names = DivWrappedColumn(classname='fixed_width_column', visible=False)
-    dataset_types = DivWrappedColumn(classname='fixed_width_column', visible=False)
+    alternative_names = DivWrappedColumn(classname='constrained_width_column', visible=False)
+    dataset_types = DivWrappedColumn(classname='constrained_width_column', visible=False)
 
     class Meta:
         model = Protein
@@ -1911,7 +1911,7 @@ class SiteSearchTable(PagedTable):
     rank = tables.Column()
     snippet = DivWrappedColumn(verbose_name='matched text', classname='snippet')
     snippet2 = DivWrappedColumn(
-        verbose_name='alternate matched text', classname='fixed_width_column', 
+        verbose_name='alternate matched text', classname='constrained_width_column', 
         visible=False)
     class Meta:
         orderable = True
@@ -2574,7 +2574,7 @@ class DataSetResultTable2(PagedTable):
                     self.base_columns[col] = tables.BooleanColumn(verbose_name=display_name)
                 else:
                     self.base_columns[col] = DivWrappedColumn(
-                        classname='fixed_width_column',verbose_name=display_name)
+                        classname='constrained_width_column',verbose_name=display_name)
             if dc.description: 
                 self.base_columns[key_col].attrs['th'] = { 'title':dc.description }
 
