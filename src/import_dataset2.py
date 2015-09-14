@@ -114,6 +114,8 @@ def read_metadata(meta_sheet):
         'Bioassay':('bioassay', False),
         'Dataset Keywords':('dataset_keywords', False),
         'Usage Message':('usage_message', False),
+        'Associated Publication': ('associated_publication', False),
+        'Associated Project Summary': ('associated_project_summary', False),
     }
     
     sheet_labels = []
