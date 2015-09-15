@@ -1738,9 +1738,12 @@ class SearchManager(models.Manager):
             params.append(ids)
 
         criteria += ' ) '
+        # force join to the reagent table so that it is available in all orm use cases
+        criteria += ' AND db_reagent.id=%s.reagent_ptr_id' % tablename
         where = [criteria]
                 
         queryset = base_query.extra(
+            tables=['db_reagent'],
             select=extra_select,
             where=where,
             params=params,
