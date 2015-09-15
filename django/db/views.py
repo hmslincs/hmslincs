@@ -350,11 +350,18 @@ def antibodyDetail(request, facility_batch, batch_id=None):
             return HttpResponse('Log in required.', status=401)
         details = {'object': get_detail(antibody, ['antibody',''])}
         
+        if antibody.target_protein_name and antibody.target_protein_center_id:
+            details['object']['target_protein_name']['link'] = (
+                '/db/proteins/%s' % antibody.target_protein_center_id )
+        if antibody.target_protein_center_id:
+            details['object']['target_protein_center_id']['link'] = (
+                '/db/proteins/%s' % antibody.target_protein_center_id )
+        
         details['facility_id'] = antibody.facility_id
         antibody_batch = None
         if(_batch_id):
             antibody_batch = AntibodyBatch.objects.get(
-                antibody=antibody,batch_id=_batch_id) 
+                reagent=antibody,batch_id=_batch_id) 
 
         if not antibody_batch:
             batches = AntibodyBatch.objects.filter(reagent=antibody, batch_id__gt=0)
@@ -1594,7 +1601,8 @@ class AntibodyTable(PagedTable):
     facility_id = tables.LinkColumn("antibody_detail", args=[A('facility_id')])
     rank = tables.Column()
     snippet = DivWrappedColumn(verbose_name='matched text', classname='snippet')
-
+    target_protein_name = tables.LinkColumn("protein_detail", args=[A('target_protein_center_id')])
+    
     class Meta:
         model = Antibody
         orderable = True
@@ -2151,7 +2159,7 @@ def get_cols_to_write(cursor, fieldinformation_tables=None,
                 % (col.name, [x.name for x in ordered_datacolumns]))
             for dc in ordered_datacolumns:
                 if ( dc.data_type in 
-                    ['small_molecule', 'cell','protein','antibody','otherreagent']):
+                    ['small_molecule', 'cell','protein','antibody','other_reagent']):
                     if dc.name == col.name:
                         found = True
                         header_row[i] = dc.display_name + ' HMS LINCS ID'
@@ -2539,7 +2547,7 @@ class DataSetResultTable2(PagedTable):
 
         ordered_names = []
         for dc in ordered_datacolumns:
-            if dc.data_type in ['small_molecule', 'cell','protein','antibody','otherreagent']:
+            if dc.data_type in ['small_molecule', 'cell','protein','antibody','other_reagent']:
                 ordered_names.append(dc.name + "_name")
             else:
                 ordered_names.append(dc.name)
@@ -2571,7 +2579,7 @@ class DataSetResultTable2(PagedTable):
                 key_col = col+'_name'
                 self.base_columns[key_col] = tables.LinkColumn('antibody_detail',
                     args=[A(col)], verbose_name=display_name) 
-            elif dc.data_type.lower() == 'otherreagent':
+            elif dc.data_type.lower() == 'other_reagent':
                 key_col = col+'_name'
                 self.base_columns[key_col] = tables.LinkColumn('otherreagent_detail',
                     args=[A(col)], verbose_name=display_name) 
@@ -2779,7 +2787,7 @@ class DataSetManager2():
                 query_string += col_query_string.format( 
                     column_to_select=column_to_select, alias=alias,
                     column_name=column_name,dc_id=dc.id )
-            elif dc.data_type in ['small_molecule','cell','protein','antibody','otherreagent']:
+            elif dc.data_type in ['small_molecule','cell','protein','antibody','other_reagent']:
                 column_to_select = "text_value"
                 reagent_key_columns.append(column_name)
                 query_string += col_query_string.format( 

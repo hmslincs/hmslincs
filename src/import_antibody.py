@@ -46,7 +46,8 @@ def main(path):
               'AR_RRID': 'rrid',
               'AR_Antibody_Type': 'type',
               'target_protein_lincs_id': (
-                  'target_protein_lincs_id',False,None, lambda x: x[x.index('HMSL')+4:]),
+                  'target_protein_lincs_id',False,None, 
+                  lambda x: x[x.index('HMSL')+4:] if x else None ),
               'AR_Non-Protein_Target': 'non_protein_target_name',
               'AR_Target_Organism': 'target_organism',
               'AR_Immunogen': 'immunogen',
@@ -64,7 +65,7 @@ def main(path):
               'Date Loaded': ('date_loaded',False,None,util.date_converter),
               'Date Publicly Available': ('date_publicly_available',False,None,util.date_converter),
               'Most Recent Update': ('date_updated',False,None,util.date_converter),
-              'Is Restricted':('is_restricted',False,False)}
+              'Is Restricted':('is_restricted',False,False,util.bool_converter)}
               
     # convert the labels to fleshed out dict's, with strategies for optional, default and converter
     column_definitions = util.fill_in_column_definitions(properties,column_definitions)
@@ -75,6 +76,7 @@ def main(path):
     rows = 0    
     logger.debug('cols: %s' % cols)
     for row in sheet:
+        logger.debug('row %s - %s' %(rows,row))
         r = util.make_row(row)
         dict = {}
         initializer = {}
@@ -89,20 +91,21 @@ def main(path):
             model_field = properties['model_field']
 
             logger.debug('raw value %r' % value)
-            if(converter != None):
-                value = converter(value)
-            if(value == None ):
+            if(value == None or value == 'None'):
+                value = None
                 if( default != None ):
                     value = default
             if(value == None and  required == True):
                 raise Exception('Field is required: %s, record: %d' 
                     % (properties['column_label'],rows))
+            if(value and converter != None):
+                value = converter(value)
 
             logger.debug('model_field: %s, converted value %r'
                 % (model_field, value) )
             initializer[model_field] = value
         try:
-            logger.debug('initializer: %s' % initializer)
+            logger.debug('row: %s, initializer: %s' % (rows,initializer))
             
             target_protein_lincs_id = initializer.pop('target_protein_lincs_id',None)
             if target_protein_lincs_id: 
