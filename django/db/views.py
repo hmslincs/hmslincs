@@ -1700,11 +1700,20 @@ class SearchManager(models.Manager):
         if id_fields: 
             criteria += ' or '
             criteria += ' or '.join(['lower('+ x + ') like %s ' for x in id_fields]) 
-        criteria += ' ) '
         for x in id_fields: 
             params.append( '%' + searchString.lower() + '%')
 
+        # postgres fulltext search with rank and snippets
+        extra_select = {
+                'snippet': "ts_headline(" + snippet_def + ", to_tsquery(%s))",
+                'rank':"ts_rank_cd("+tablename+".search_vector,to_tsquery(%s),32)",
+                }
         if tablename in ['db_smallmolecule','db_cell','db_antibody','db_protein','db_otherreagent']:
+            criteria += ' or db_reagent.search_vector @@ to_tsquery(%s)'
+            extra_select['snippet'] += (
+                ' || ts_headline(' + Reagent.get_snippet_def() 
+                + ', to_tsquery(%s))' )
+            params.append(searchProcessed)
             extra_ids = [ id for id in ReagentBatch.objects.filter(
                 Q(provider_name__icontains=searchString) |
                 Q(provider_catalog_id__icontains=searchString) |
@@ -1728,29 +1737,25 @@ class SearchManager(models.Manager):
                 criteria += ' or {tablename}.id = ANY(%s)'.format(tablename=tablename)
             params.append(ids)
 
+        criteria += ' ) '
         where = [criteria]
                 
-        # postgres fulltext search with rank and snippets
-        extra_select = {
-                'snippet': "ts_headline(" + snippet_def + ", to_tsquery(%s))",
-                'rank':"ts_rank_cd("+tablename+".search_vector,to_tsquery(%s),32)",
-                }
         queryset = base_query.extra(
             select=extra_select,
             where=where,
             params=params,
-            select_params=[searchProcessed,searchProcessed],
+            select_params=[searchProcessed,searchProcessed,searchProcessed],
             order_by=('-rank',)
             )  
         
-        logger.info('queryset: %s' % queryset)
+        logger.info('queryset: %s' % queryset.query)
         return queryset     
 
 
 class CellSearchManager(SearchManager):
 
     def search(self, searchString, is_authenticated=False):
-        base_query = Cell.objects
+        base_query = Cell.objects.all()
         
         id_fields = []
         query =  super(CellSearchManager, self).search(
@@ -1787,7 +1792,7 @@ class ProteinSearchManager(SearchManager):
         id_fields = ['uniprot_id', 'alternate_name_2',
              'provider_catalog_id']
         return super(ProteinSearchManager, self).search(
-            Protein.objects, 'db_protein', searchString, id_fields, 
+            Protein.objects.all(), 'db_protein', searchString, id_fields, 
             Protein.get_snippet_def())        
     
     def join_query_to_dataset_type(self, queryset, dataset_type=None ):
@@ -1849,7 +1854,7 @@ class AntibodySearchManager(SearchManager):
 
         id_fields = []
         return super(AntibodySearchManager, self).search(
-            Antibody.objects, 'db_antibody', searchString, id_fields, 
+            Antibody.objects.all(), 'db_antibody', searchString, id_fields, 
             Antibody.get_snippet_def())        
 
     def join_query_to_dataset_type(self, queryset, dataset_type=None ):
@@ -1878,7 +1883,7 @@ class OtherReagentSearchManager(SearchManager):
 
         id_fields = []
         return super(OtherReagentSearchManager, self).search(
-            OtherReagent.objects, 'db_otherreagent', searchString, id_fields, 
+            OtherReagent.objects.all(), 'db_otherreagent', searchString, id_fields, 
             OtherReagent.get_snippet_def())        
 
     def join_query_to_dataset_type(self, queryset, dataset_type=None ):
@@ -2851,9 +2856,10 @@ class SiteSearchManager2(models.Manager):
 '''
 SELECT
   id, {key_id}::text,
-  ts_headline({snippet_def}, {query_number}, 'MaxFragments=10, MinWords=1, MaxWords=20, 
+  ts_headline({snippet_def} || {reagent_snippet_def}, {query_number}, 'MaxFragments=10, MinWords=1, MaxWords=20, 
               FragmentDelimiter=" | "') as snippet,
-  ts_rank_cd({table_name}.search_vector, {query_number}, 32) AS rank,
+  ( ts_rank_cd({table_name}.search_vector, {query_number}, 32) 
+      + ts_rank_cd(db_reagent.search_vector, {query_number}, 32) ) AS rank,
   '{detail_type}' as type 
 FROM  {table_name} join db_reagent on(reagent_ptr_id=db_reagent.id), to_tsquery(%s) as {query_number}
 WHERE {table_name}.search_vector @@ {query_number} 
@@ -2873,6 +2879,7 @@ WHERE search_vector @@ {query_number}
         RESTRICTION_SQL = " AND (not is_restricted or is_restricted is NULL)"
         sql = REAGENT_SEARCH_SQL.format(
             key_id='facility_id',
+            reagent_snippet_def=Reagent.get_snippet_def(),
             snippet_def=Cell.get_snippet_def(),
             detail_type='cell_detail',
             table_name='db_cell',
@@ -2882,6 +2889,7 @@ WHERE search_vector @@ {query_number}
         sql += " UNION "
         sql += REAGENT_SEARCH_SQL.format(
             key_id= "facility_id || '-' || salt_id" ,
+            reagent_snippet_def=Reagent.get_snippet_def(),
             snippet_def=SmallMolecule.get_snippet_def(),
             detail_type='sm_detail',
             table_name='db_smallmolecule',
@@ -2900,6 +2908,7 @@ WHERE search_vector @@ {query_number}
         sql += " UNION "
         sql += REAGENT_SEARCH_SQL.format(
             key_id='lincs_id',
+            reagent_snippet_def=Reagent.get_snippet_def(),
             snippet_def=Protein.get_snippet_def(),
             detail_type='protein_detail',
             table_name='db_protein',
@@ -2909,6 +2918,7 @@ WHERE search_vector @@ {query_number}
         sql += " UNION "
         sql += REAGENT_SEARCH_SQL.format(
             key_id='facility_id',
+            reagent_snippet_def=Reagent.get_snippet_def(),
             snippet_def=Antibody.get_snippet_def(),
             detail_type='antibody_detail',
             table_name='db_antibody',
@@ -2918,6 +2928,7 @@ WHERE search_vector @@ {query_number}
         sql += " UNION "
         sql += REAGENT_SEARCH_SQL.format(
             key_id='facility_id',
+            reagent_snippet_def=Reagent.get_snippet_def(),
             snippet_def=OtherReagent.get_snippet_def(),
             detail_type='otherreagent_detail',
             table_name='db_otherreagent',
@@ -2931,83 +2942,38 @@ WHERE search_vector @@ {query_number}
                         queryStringProcessed,queryStringProcessed,
                         queryStringProcessed,queryStringProcessed])
         _data = dictfetchall(cursor)
+
+        # perform (largely redundant) queries using the specific managers:
+        # - to execute any specific search logic implemented in each manager
+        # (e.g. batch fields)
+        def add_specific_search_matches(specific_search_match_query,type):
+            if len(specific_search_match_query) > 0:
+                for obj in specific_search_match_query:
+                    skip = False
+                    for x in _data:
+                        if x['facility_id'] == obj.facility_id: 
+                            skip=True
+                    if not skip:
+                        _data.append(
+                            {'id':obj.id,'facility_id':obj.facility_id, 
+                             'snippet': obj.snippet,
+                             'type':type, 'rank':1})
         
         smqs = SmallMoleculeSearchManager().search(
-                SmallMolecule.objects, 
-                queryString, is_authenticated=is_authenticated);
-        if len(smqs) > 0:
-            for obj in smqs:
-                skip = False
-                facility_id = obj.facility_id + '-'+ obj.salt_id
-                for x in _data:
-                    if x['facility_id'] == facility_id: 
-                        skip=True
-                if not skip:
-                    _data.append(
-                        {'id':obj.id,'facility_id':facility_id, 
-                         'snippet': ', '.join(
-                             [x for x in [obj.name, obj.alternative_names, 
-                                          obj.lincs_id ] if x and len(x) > 0]),
-                         'type':'sm_detail', 'rank':1})
-                    
-        cqs = CellSearchManager().search(queryString, 
-                                         is_authenticated=is_authenticated);
-        if len(cqs) > 0:
-            for obj in cqs:
-                skip = False
-                for x in _data:
-                    if x['facility_id'] == obj.facility_id: skip = True
-                if not skip:
-                    _data.append(
-                        {'id': obj.id, 'facility_id':obj.facility_id, 
-                         'snippet': ', '.join(
-                             [x for x in [obj.name, obj.alternative_names ] 
-                                 if x and len(x) > 0]),
-                         'type': 'cell_detail', 'rank': 1})
-    
-        pqs = ProteinSearchManager().search(queryString, 
-                                            is_authenticated=is_authenticated)
-        if len(pqs) > 0:
-            for obj in pqs:
-                skip = False
-                for x in _data:
-                    if x['facility_id'] == obj.lincs_id: skip = True
-                if not skip:
-                    _data.append(
-                        {'id': obj.id, 'facility_id': obj.lincs_id, 
-                         'snippet': ', '.join(
-                             [x for x in [obj.name,obj.uniprot_id,
-                                          obj.alternative_names] 
-                                 if x and len(x) > 0]),
-                         'type': 'protein_detail', 'rank': 1 })
-
-        aqs = AntibodySearchManager().search(queryString, 
-                                             is_authenticated=is_authenticated)
-        if len(aqs) > 0:
-            for obj in aqs:
-                skip = False
-                for x in _data:
-                    if x['facility_id'] == obj.facility_id: skip = True
-                if not skip:
-                    _data.append(
-                        {'id': obj.id, 'facility_id': obj.facility_id, 
-                         'snippet': ', '.join(
-                             [x for x in [obj.name, obj.alternative_names] 
-                                 if x and len(x) > 0]),
-                         'type': 'antibody_detail', 'rank': 1 })
-                    
+            SmallMolecule.objects.all(), queryString, 
+            is_authenticated=is_authenticated);
+        add_specific_search_matches(smqs,'sm_detail')
+        cqs = CellSearchManager().search(
+            queryString, is_authenticated=is_authenticated);
+        add_specific_search_matches(cqs,'cell_detail')
+        pqs = ProteinSearchManager().search(
+            queryString, is_authenticated=is_authenticated)
+        add_specific_search_matches(pqs,'protein_detail')
+        aqs = AntibodySearchManager().search(
+            queryString, is_authenticated=is_authenticated)
+        add_specific_search_matches(aqs,'antibody_detail')
         oqs = OtherReagentSearchManager().search(
-                queryString, is_authenticated=is_authenticated)
-        if len(oqs) > 0:
-            for obj in aqs:
-                skip = False
-                for x in _data:
-                    if x['facility_id'] == obj.facility_id: skip = True
-                if not skip:
-                    _data.append(
-                        {'id': obj.id, 'facility_id': obj.facility_id, 
-                         'snippet': ', '.join(
-                             [x for x in [obj.name, obj.alternative_names] 
-                                 if x and len(x) > 0]),
-                         'type': 'otherreagent_detail', 'rank': 1 })
+            queryString, is_authenticated=is_authenticated)
+        add_specific_search_matches(oqs,'otherreagent_detail')
+
         return _data
