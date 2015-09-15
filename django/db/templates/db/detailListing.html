@@ -1,5 +1,6 @@
 <table class="detail_table">
 {% for field,info in object.items %}
+{%   if not skip_blanks or info.value %}
 <tr>
     <td class="propertyLabelColumn propertyLabel" title="{{ info.fieldinformation.get_column_detail }}" ><b>{{ info.fieldinformation.get_verbose_name }}:</b>
     </td>
@@ -22,7 +23,8 @@
 	    	{% firstof info.value "" %}
 	    {% endif %}
 	  {% endif %}
-    </td></tr>
+</td></tr>
+{% endif %}
 {% endfor %}
 {# -- extralink is for the LIFE system links #}
 {% if extralink %}

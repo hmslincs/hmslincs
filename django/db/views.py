@@ -827,6 +827,7 @@ class Http401(Exception):
 def datasetDetailMain(request, facility_id):
     try:
         details = datasetDetail2(request,facility_id, 'main')
+        details['skip_blanks'] = True
         return render(request,'db/datasetDetailMain.html', details )
     except Http401, e:
         return HttpResponse('Unauthorized', status=401)

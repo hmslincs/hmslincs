@@ -609,7 +609,8 @@ class DataSet(models.Model):
     bioassay                = _TEXT(**_NULLOKSTR)
     dataset_keywords        = _TEXT(**_NULLOKSTR)
     usage_message           = _TEXT(**_NULLOKSTR)
-    
+    associated_publication     = _TEXT(**_NULLOKSTR)
+    associated_project_summary = _TEXT(**_NULLOKSTR)
     small_molecules         = models.ManyToManyField('SmallMoleculeBatch')
     cells                   = models.ManyToManyField('CellBatch')
     antibodies              = models.ManyToManyField('AntibodyBatch')
