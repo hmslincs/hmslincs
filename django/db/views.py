@@ -1137,7 +1137,8 @@ def render_list_index(request, table, search, name, name_plural, **requestArgs):
     if(form.is_valid()):
         if(form.cleaned_data['items_per_page']): 
             items_per_page = int(form.cleaned_data['items_per_page'])
-
+    else:
+        form = PaginationForm()
     
     if( not requestArgs):
         requestArgs = dict()
@@ -1272,11 +1273,11 @@ class PagedTable(tables.Table):
         
     def page_start(self):
         if(self.page):
-            return self.paginator.per_page * (self.page.number-1)
+            return self.paginator.per_page * (self.page.number-1) + 1
         
     def page_end(self):
         if(self.page):
-            temp = self.page_start()+self.paginator.per_page
+            temp = self.paginator.per_page * (self.page.number-1) + self.paginator.per_page
             logger.debug(str(('page_end:' , temp, self.paginator.count )))
             if(temp > self.paginator.count): return self.paginator.count
             return temp
