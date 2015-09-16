@@ -38,6 +38,16 @@
       <li><a href="{{ login_url }}" title="Login">Login</a></li>
     {% endif %}
   </ul>
+  <div id="search" class='search'>
+    <a>Search all categories:</a>
+    <form action="/db/" method="get"> <!-- needed for post: {% csrf_token %}  -->
+            <input type="submit" value="search" />
+            <span class="input-auto-width-wrapper">
+              <input id="id_search" type="text" name="search" value="{{ search }}" 
+                maxlength="100" tabindex="1" />
+            </span>
+    </form>
+  </div>    
 
 {% endblock %}
 
