@@ -2982,13 +2982,16 @@ WHERE search_vector @@ {query_number}
         def add_specific_search_matches(specific_search_match_query,type):
             if len(specific_search_match_query) > 0:
                 for obj in specific_search_match_query:
+                    id = obj.facility_id
+                    if type == 'sm_detail':
+                        id = obj.facility_salt
                     skip = False
                     for x in _data:
-                        if x['facility_id'] == obj.facility_id: 
+                        if x['facility_id'] == id: 
                             skip=True
                     if not skip:
                         _data.append(
-                            {'id':obj.id,'facility_id':obj.facility_id, 
+                            {'id':obj.id,'facility_id':id, 
                              'snippet': obj.snippet,
                              'type':type, 'rank':1})
         
