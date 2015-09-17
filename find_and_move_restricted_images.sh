@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 # find the restricted sm images and move them to the authenticated images
 # static file dir
@@ -77,7 +77,7 @@ function move_restricted {
     echo "Will connect with 'psql $DB -h $DBHOST -U $DBUSER'"
   fi
 
-  SQL='SELECT facility_id FROM db_smallmolecule WHERE is_restricted IS TRUE;'
+  SQL='SELECT facility_id FROM db_reagent r join db_smallmolecule on reagent_ptr_id=r.id WHERE is_restricted IS TRUE;'
 
   cd $DESTDIR
   count=0
