@@ -569,21 +569,29 @@ class Antibody(Reagent):
     def target_protein_name(self):
         if self.target_protein:
             return self.target_protein.name
-    
+        else:
+            return None
+
     @property
     def target_protein_uniprot_id(self):
         if self.target_protein:
             return self.target_protein.uniprot_id
+        else:
+            return None
     
     @property
     def target_protein_center_id(self):
         if self.target_protein:
             return self.target_protein.facility_id
+        else:
+            return None
 
     @property
     def target_protein_lincs_id(self):
         if self.target_protein:
             return self.target_protein.lincs_id
+        else:
+            return None
             
     @classmethod
     def get_snippet_def(cls):
