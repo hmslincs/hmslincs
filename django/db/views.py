@@ -2979,21 +2979,21 @@ WHERE search_vector @@ {query_number}
         # perform (largely redundant) queries using the specific managers:
         # - to execute any specific search logic implemented in each manager
         # (e.g. batch fields)
-        def add_specific_search_matches(specific_search_match_query,type):
+        def add_specific_search_matches(specific_search_match_query,query_type):
             if len(specific_search_match_query) > 0:
                 for obj in specific_search_match_query:
-                    id = obj.facility_id
-                    if type == 'sm_detail':
-                        id = obj.facility_salt
+                    facility_id = obj.facility_id
+                    if query_type == 'sm_detail':
+                        facility_id = obj.facility_salt
                     skip = False
                     for x in _data:
-                        if x['facility_id'] == id: 
+                        if x['facility_id'] == facility_id: 
                             skip=True
                     if not skip:
                         _data.append(
-                            {'id':obj.id,'facility_id':id, 
+                            {'id':obj.id,'facility_id':facility_id, 
                              'snippet': obj.snippet,
-                             'type':type, 'rank':1})
+                             'type':query_type, 'rank':1})
         
         smqs = SmallMoleculeSearchManager().search(
             SmallMolecule.objects.all(), queryString, 
