@@ -13,7 +13,6 @@ import os
 import re
 import sys
 import StringIO
-import xlwt
 import zipfile
 
 from django.conf import settings
@@ -36,6 +35,8 @@ from django.utils import timezone
 from django.utils.encoding import smart_str
 from django.utils.safestring import mark_safe, SafeString
 from django.utils.html import escape
+from openpyxl import Workbook
+from openpyxl.writer.excel import save_virtual_workbook
 
 from hms.pubchem import pubchem_database_cache_service
 from dump_obj import dumpObj
@@ -2137,11 +2138,11 @@ def send_to_file1(outputType, name, table_name, ordered_datacolumns, cursor,
     if(outputType == '.csv'):
         return export_as_csv(name,col_key_name_map, cursor=cursor, 
                              is_authenticated=is_authenticated)
-    elif(outputType == '.xls'):
-        return export_as_xls(name, col_key_name_map, cursor=cursor, 
+    elif(outputType in ['.xls','.xlsx']):
+        return export_as_xlsx(name, col_key_name_map, cursor=cursor, 
                              is_authenticated=is_authenticated)
     else:
-        raise Http404('Unknown output type: %s, must be one of [".xls",".csv"]' % outputType )
+        raise Http404('Unknown output type: "%s", must be one of [".xlsx",".csv"]' % outputType )
 
 
 def get_cols_to_write(cursor, fieldinformation_tables=None, 
@@ -2185,7 +2186,9 @@ def get_cols_to_write(cursor, fieldinformation_tables=None,
 
 def _write_val_safe(val, is_authenticated=False):
     # for #185, remove 'None' values
-    return smart_str(val, 'utf-8', errors='ignore') if val else ''
+    # also, for #386, trim leading spaces from strings for openpyxl
+    # see https://bitbucket.org/openpyxl/openpyxl/issues/280
+    return smart_str(val, 'utf-8', errors='ignore').strip() if val else ''
   
 def export_sm_images(queryset, is_authenticated=False, output_filename=None):
     '''
@@ -2298,7 +2301,7 @@ def export_as_csv(name,col_key_name_map, cursor=None, queryset=None,
             row += 1
     return response
 
-def export_as_xls(name,col_key_name_map, cursor=None, queryset=None, 
+def export_as_xlsx(name,col_key_name_map, cursor=None, queryset=None, 
                   is_authenticated=False):
     """
     Generic xls export admin action.
@@ -2306,19 +2309,14 @@ def export_as_xls(name,col_key_name_map, cursor=None, queryset=None,
     assert not (bool(cursor) and bool(queryset)), 'must define either cursor or queryset, not both'
     
     logger.info(str(('------is auth:',is_authenticated)) )
-    response = HttpResponse(mimetype='applicatxlwt.Workbookion/Excel')
-    response['Content-Disposition'] = \
-        'attachment; filename=%s.xls' % unicode(name).replace('.', '_')
 
     if not (bool(cursor) or bool(queryset)):
         logger.info(str(('empty result for', name)))
         return response
-    
-    wbk = xlwt.Workbook(encoding='utf8')
-    sheet = wbk.add_sheet('sheet 1') # Write a first row with header information
-    for i,name in enumerate(col_key_name_map.values()):
-        sheet.write(0, i, name)   
-            
+
+    wb = Workbook()
+    ws = wb.active
+    ws.append(col_key_name_map.values())
     debug_interval=1000
     row = 0
     
@@ -2327,8 +2325,7 @@ def export_as_xls(name,col_key_name_map, cursor=None, queryset=None,
         keys = col_key_name_map.keys()
         logger.debug(str(('keys',keys)))
         while obj:  # row in the dataset; a tuple to be indexed numerically
-            for i,key in enumerate(keys):
-                sheet.write(row+1,i,_write_val_safe(obj[key]))
+            ws.append([_write_val_safe(obj[key]) for key in keys])
             if(row % debug_interval == 0):
                 logger.info("row: " + str(row))
             row += 1
@@ -2336,27 +2333,29 @@ def export_as_xls(name,col_key_name_map, cursor=None, queryset=None,
     elif queryset:
         for obj in queryset:  
             if isinstance(obj, dict): # a ORM object as a dict
-                vals = [_write_val_safe(obj[field]) \
+                vals = [_write_val_safe(obj[field]) 
                             for field in col_key_name_map.keys()]
             else: # a ORM object
                 vals = [getattr(obj,field) for field in col_key_name_map.keys()]
             
-            for i,column in enumerate(vals):
+            temp = []
+            for column in vals:
                 # if the columnn is a method, we are referencing the method 
                 # wrapper for restricted columns
                 if(inspect.ismethod(column)):
-                    sheet.write(
-                        row+1,i, _write_val_safe(
-                            column(is_authenticated=is_authenticated)) )
+                    temp.append(_write_val_safe(
+                        column(is_authenticated=is_authenticated)) )
                 else:
-                    sheet.write(row+1, i, _write_val_safe(column) )
+                    temp.append(_write_val_safe(column))
+            ws.append(temp)
             if(row % debug_interval == 0):
                 logger.info("row: " + str(row))
             row += 1    
-    
-    wbk.save(response)
-    return response
 
+    response = HttpResponse(save_virtual_workbook(wb), content_type='application/vnd.ms-excel')
+    response['Content-Disposition'] = 'attachment; filename=%s.xlsx' % unicode(name).replace('.', '_')
+    return response
+    
 def send_to_file(outputType, name, table, queryset, lookup_tables, 
                  extra_columns = None, is_authenticated=False): 
     """
@@ -2404,12 +2403,12 @@ def send_to_file(outputType, name, table, queryset, lookup_tables,
         return export_as_csv(
             name,col_key_name_map, queryset=queryset, 
             is_authenticated=is_authenticated)
-    elif(outputType == '.xls'):
-        return export_as_xls(
+    elif(outputType in ['.xls','.xlsx']):
+        return export_as_xlsx(
             name, col_key_name_map, queryset=queryset, 
             is_authenticated=is_authenticated)
     else:
-        raise Http404('Unknown output type: %s, must be one of [".xls",".csv"]' % outputType )
+        raise Http404('Unknown output type: "%s", must be one of [".xlsx",".csv"]' % outputType )
 
 def datasetDetail2(request, facility_id, sub_page):
     try:
