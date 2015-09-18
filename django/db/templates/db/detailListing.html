@@ -17,6 +17,8 @@
 				<a target="_blank" href="http://www.uniprot.org/uniprot/{{ info.value }}">{{ info.value }}</a>
       {% elif info.value and info.fieldinformation.field == 'salt_id' %}
         <a target="_blank" href="/db/sm/salt/{{ info.value }}">{{ info.value }}</a>
+      {% elif info.value and info.link %}
+        <a target="_blank" href="{{ info.link }}">{{ info.value }}</a>
       {% elif info.value and info.fieldinformation.field == 'reference_source_url' %}
         <a target="_blank" href="{{ info.value }}">{{ info.value }}</a>
 		  {% else %}

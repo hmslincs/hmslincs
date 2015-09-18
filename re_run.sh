@@ -237,6 +237,14 @@ else
   python src/import_protein.py -f $DATADIR/HMS-LINCS_ProteinMetadata_forLoading.xls
   check_errs $? 'import kinases fails'
   
+  echo 'import antibody tables...'
+  python src/import_antibody.py -f $DATADIR/HMS-LINCS_antibodies.xlsx
+  check_errs $? 'import antibodies fails'
+  
+  echo 'import antibody batches...'
+  python src/import_antibody_batch.py -f $DATADIR/HMS-LINCS_antibodies_batches.xlsx
+  check_errs $? 'import antibody batches fails'
+  
   echo 'import other reagent tables...'
   python src/import_other_reagent.py -f $DATADIR/HMS-LINCS_other_reagents.xls
   check_errs $? 'import other reagents fails'
@@ -1089,6 +1097,10 @@ else
   
   echo 'import screen results...'
   python src/import_dataset2.py -f $DATADIR/Screen20235_Jones_SF3-2.xls
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20236_LinCycIF.xlsx
   check_errs $? "import dataset fails"
   
   echo 'import screen results...'

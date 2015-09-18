@@ -55,7 +55,7 @@ default_reagent_columns = {
         'display_order': 3,
         'name': 'otherReagent',
         'display_name': 'Other Reagent',
-        'data_type': 'otherreagent',
+        'data_type': 'other_reagent',
         'description': 'Other reagent',
         'comments': 'Other reagent'
     }
@@ -483,7 +483,7 @@ def _create_datapoint(datacolumn, dataset, datarecord, value):
             _read_protein(dataset, datapoint)
         elif datacolumn.data_type == 'antibody':
             _read_antibody(dataset, datapoint)
-        elif datacolumn.data_type == 'otherreagent':
+        elif datacolumn.data_type == 'other_reagent':
             _read_other_reagent(dataset, datapoint)
         elif datacolumn.data_type == 'cell':
             _read_cell_batch(dataset, datapoint)
