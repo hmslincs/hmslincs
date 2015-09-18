@@ -2106,7 +2106,7 @@ def _download_file(request, file_obj):
         # use the same type for all files
         response = HttpResponse(wrapper, content_type='application/octet-stream') 
         response['Content-Disposition'] = \
-            'attachment; filename=%s' % unicode(file_obj.filename)
+            'attachment; filename=%s' % file_obj.filename
         response['Content-Length'] = os.path.getsize(_path)
         return response
     except Exception,e:
@@ -2123,11 +2123,12 @@ def send_to_file1(outputType, name, table_name, ordered_datacolumns, cursor,
     Export the datasetdata cursor to the file type pointed to by outputType
     @param ordered_datacolumns the datacolumns for the datasetdata, in order, 
            so that they can be indexed by column number
-    @param outputType '.csv','.xls'
+    @param outputType '.csv','.xlsx'
     @param table a django-tables2 table
-    @param name name of the table - to be used for the output file name
-     
-    """   
+    @param name the filename to use, consisting of only word characters
+    """
+    assert not re.search(r'\W',name), '"name" parameter: "%s" must contain only word characters' % name
+
     logger.info(str(('send_to_file1', outputType, name, ordered_datacolumns)))
     col_key_name_map = get_cols_to_write(
         cursor, [table_name, ''],
@@ -2249,12 +2250,18 @@ def export_as_csv(name,col_key_name_map, cursor=None, queryset=None,
                   is_authenticated=False):
     """
     Generic csv export admin action.
+    @param cursor a django.db.connection.cursor; must define either cursor
+        or queryset, not both
+    @param queryset a django QuerySet or simple list; must define either cursor
+        or queryset, not both
+    @param name the filename to use, consisting of only word characters
     """
+    assert not re.search(r'\W',name), '"name" parameter: "%s" must contain only word characters' % name
     assert not (bool(cursor) and bool(queryset)), 'must define either cursor or queryset, not both'
-
+    
     response = HttpResponse(mimetype='text/csv')
     response['Content-Disposition'] = \
-        'attachment; filename=%s.csv' % unicode(name).replace('.', '_')
+        'attachment; filename=%s.csv' % name
 
     if not (bool(cursor) or bool(queryset)):
         logger.info(str(('empty result for', name)))
@@ -2305,7 +2312,13 @@ def export_as_xlsx(name,col_key_name_map, cursor=None, queryset=None,
                   is_authenticated=False):
     """
     Generic xls export admin action.
+    @param cursor a django.db.connection.cursor; must define either cursor
+        or queryset, not both
+    @param queryset a django QuerySet or simple list; must define either cursor
+        or queryset, not both
+    @param name the filename to use, consisting of only word characters
     """
+    assert not re.search(r'\W',name), '"name" parameter: "%s" must contain only word characters' % name
     assert not (bool(cursor) and bool(queryset)), 'must define either cursor or queryset, not both'
     
     logger.info(str(('------is auth:',is_authenticated)) )
@@ -2352,8 +2365,10 @@ def export_as_xlsx(name,col_key_name_map, cursor=None, queryset=None,
                 logger.info("row: " + str(row))
             row += 1    
 
-    response = HttpResponse(save_virtual_workbook(wb), content_type='application/vnd.ms-excel')
-    response['Content-Disposition'] = 'attachment; filename=%s.xlsx' % unicode(name).replace('.', '_')
+    response = HttpResponse(
+        save_virtual_workbook(wb), 
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename=%s.xlsx' % name
     return response
     
 def send_to_file(outputType, name, table, queryset, lookup_tables, 
@@ -2363,9 +2378,10 @@ def send_to_file(outputType, name, table, queryset, lookup_tables,
     Get the column header information from the django-tables2 table
     @param outputType '.csv','.xls'
     @param table a django-tables2 table
-    @param name name of the table - to be used for the output file name
-     
-    """       
+    @param name the filename to use, consisting of only word characters
+    """
+    assert not re.search(r'\W',name), '"name" parameter: "%s" must contain only word characters' % name
+    
     extra_columns = extra_columns or []
     # ordered list (field,verbose_name)
     columns = map(lambda (x,y): (x, y.verbose_name), 
