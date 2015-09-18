@@ -184,7 +184,7 @@ then
   check_errs $? "import dataset 2 fails"
   
   echo 'import targets_test_dataset.xls...'
-  python src/import_dataset2.py -f sampledata/targets_test_dataset.xls 
+  python src/import_dataset2.py -f sampledata/Study20000_NominalTargets_forLoading.xls 
   check_errs $? "import dataset fails"
   
   echo 'import studies...'
