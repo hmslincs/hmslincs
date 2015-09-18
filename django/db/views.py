@@ -657,7 +657,7 @@ def smallMoleculeDetail(request, facility_salt_id):
                 '''"isNominal" = '1' '''] 
             ntable = DataSetManager2(dataset).get_table(
                 metaWhereClause=metaWhereClause,
-                column_exclusion_overrides=['smallMolecule','keyReferences'])
+                column_exclusion_overrides=['isNominal'])
             logger.info(str(('ntable',ntable.data, len(ntable.data))))
             
             if ntable.data: 
@@ -668,7 +668,8 @@ def smallMoleculeDetail(request, facility_salt_id):
                 '''"isNominal" != '1' '''] 
             otable = DataSetManager2(dataset).get_table(
                 metaWhereClause=metaWhereClause,
-                column_exclusion_overrides=['smallMolecule','keyReferences','effectiveConcentration'])
+                column_exclusion_overrides=[
+                    'isNominal'])
             logger.debug(str(('otable',ntable.data, len(otable.data))))
             if(len(otable.data)>0): details['other_targets_table']=otable
         except DataSet.DoesNotExist:
@@ -2591,7 +2592,8 @@ class DataSetResultTable2(PagedTable):
         super(DataSetResultTable2, self).__init__(queryset, *args, **kwargs)
         if(self.exclude): 
             self.exclude = tuple(list(self.exclude).extend(column_exclusion_overrides))
-        else: self.exclude = tuple(column_exclusion_overrides)
+        else: 
+            self.exclude = tuple(column_exclusion_overrides)
         logger.info('base columns: %s' % self.base_columns )
         self.sequence = ordered_names
         
