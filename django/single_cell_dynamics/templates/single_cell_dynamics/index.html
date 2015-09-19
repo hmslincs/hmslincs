@@ -1,39 +1,24 @@
-{% extends "base.html" %}
+{% load hmslincs %}
 
-{% block requirejs %}
-    <script>
-     require.config({
-         paths: {
-             scd: 'single_cell_dynamics/js',
-         },
-     });
-     require( [ 'scd/main' ] );
-    </script>
-{% endblock %}
+  <h1>Dynamics of perturbagen responses in living single cells</h1>
 
-{% block head_extra %}
-  <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}ext/mediaelement/2.13.1/mediaelementplayer.min.css"/>
-  <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}ext/jquery-ui/1.11.4/jquery-ui.min.css" />
-  <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}single_cell_dynamics/css/style.css"/>
-{% endblock %}
-
-{% block title %}
-  Dynamics of perturbagen responses in living single cells -
-  {{ block.super }}
-{% endblock %}
-
-{% block contentclass %}fullwidth{% endblock %}
-
-{% block body %}
-
-  <h1>Dynamics of perturbagen responses in<br/>living single cells</h1>
-
-  <h2>Investigation of single-cell ERK response to four ErbB inhibitors</h2>
+  <div class="pseudo-button cta-button">
+    <a href="/sampattavanich-unpubl-2014/">View Project Summary</a>
+  </div>
 
   <p>
-    <strong><span style="text-decoration: underline;">This dataset is
-    unpublished</span></strong>&nbsp;- please read the&nbsp;<a href="/terms/">terms
-    of use</a>.
+    Somponnat Sampattavanich<sup>1,2</sup> and Peter K. Sorger<sup>1</sup>
+  </p>
+
+  <p style="font-size: 80%;"">
+    <sup>1</sup> HMS LINCS Center, Harvard Medical School, Boston, MA;
+    <sup>2</sup> Current address: Department of Pharmacology, Faculty of
+    Medicine Siriraj Hospital, Mahidol University, Bangkok, Thailand
+  </p>
+
+  <p>
+    <em>(This dataset is unpublished. Please see our <a href="/terms/">terms
+      of use</a>.)</em>
   </p>
 
   <p>
@@ -52,7 +37,7 @@
       expanded trajectory plot, a movie of the cells showing the ERK activity,
       and a ~4 MB .csv file of the position and ERK signal across time for each
       cell.</li>
-    <li><a href="{{ STATIC_URL }}single_cell_dynamics/data/HMS-LINCS-ekarev-processed-data.zip">Download
+    <li><a href="{% flatpage_static %}single_cell_dynamics/g/data/HMS-LINCS-ekarev-processed-data.zip">Download
       all computed ERK trajectories</a> with image segmentation information (2.5 GB,
       zip)</li>
     <li><a href="https://lincs-omero.hms.harvard.edu/webclient/?show=plate-1605">Access
@@ -178,5 +163,3 @@
     of FRET biosensors for kinases and GTPases. Mol. Biol. Cell 22, 4647-4656
     (2011). doi:<a href="http://dx.doi.org/10.1091/mbc.E11-01-0072">10.1091/mbc.E11-01-0072</a>
 </ol>
-
-{% endblock %}

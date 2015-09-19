@@ -64,7 +64,10 @@ urlpatterns = patterns('',
      'django.views.generic.simple.direct_to_template',
      {'template': 'adaptive_drug_resistance/vips/index.html'}),
 
-    # breast_cancer_signaling and single_cell_dynamics are currently served by
+    (r'^(?P<url>explore/single-cell-dynamics/)$',
+     'django.contrib.flatpages.views.flatpage'),
+
+    # breast_cancer_signaling is currently served by
     # apache directly from STATIC_ROOT, so no url patterns are listed here.
 )
 
