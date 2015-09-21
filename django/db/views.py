@@ -46,6 +46,7 @@ from db.models import PubchemRequest, SmallMolecule, SmallMoleculeBatch, Cell, \
     DataColumn, get_detail, Antibody, OtherReagent, CellBatch, QCEvent, \
     QCAttachedFile, AntibodyBatch, Reagent, ReagentBatch, get_listing
 from django_tables2.utils import AttributeDict
+from tempfile import SpooledTemporaryFile
 
 
 logger = logging.getLogger(__name__)
@@ -2365,12 +2366,16 @@ def export_as_xlsx(name,col_key_name_map, cursor=None, queryset=None,
             if(row % debug_interval == 0):
                 logger.info("row: " + str(row))
             row += 1 
-    logger.info('write file to response: %s ' % name)
-    response = HttpResponse(
-        save_virtual_workbook(wb), 
-        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    response['Content-Disposition'] = 'attachment; filename=%s.xlsx' % name
-    return response
+    logger.info('save temp file')
+    with SpooledTemporaryFile() as f:
+        wb.save(f)
+        f.seek(0)
+        logger.info('write file to response: %s ' % name)
+        response = HttpResponse(
+            f.read(), 
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = 'attachment; filename=%s.xlsx' % name
+        return response
     
 def send_to_file(outputType, name, table, queryset, lookup_tables, 
                  extra_columns = None, is_authenticated=False): 
