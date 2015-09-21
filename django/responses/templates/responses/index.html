@@ -29,9 +29,11 @@
 
 {% endblock %}
 
-{% block title %}Scatterplot browser - {{ block.super }}{% endblock %}
+{% block title %}Scatterplot browser{% endblock %}
 
 {% block contentclass %}fullwidth{% endblock %}
+
+{% block article_type %}Data Explorer{% endblock %}
 
 {% block body %}
     </div> <!-- close <div id="content"> -->
@@ -40,7 +42,36 @@
     <br class="clear-left"/>
 
     <div id="preamble">
-      <h1>Scatterplot browser</h1>
+
+      <h1>Profiles of Basal and Stimulated Receptor Signaling Networks
+      Predict Drug Response in Breast Cancer Lines</h1>
+
+      <div class="pseudo-button cta-button"><a href="/niepel_scisignal_2013/">View
+        Publication Summary</a>
+      </div>
+
+      <p>
+        Mario Niepel<sup>1*</sup>, Marc Hafner<sup>1*</sup>, Emily
+        A. Pace<sup>2*</sup>, Mirra Chung<sup>1</sup>, Diana H. Chai<sup>2</sup>,
+        Lili Zhou<sup>1</sup>, Birgit Schoeberl<sup>2</sup> and Peter
+        K. Sorger<sup>1</sup>
+      </p>
+
+      <p>
+        <span style="font-size: 80%;"><sup>1</sup> HMS LINCS Center,
+        Harvard Medical School, Boston, MA; <sup>2</sup> Merrimack
+        Pharmaceuticals, Cambridge, MA</span>
+      </p>
+
+      <p>
+        <em>Sci Signal</em> (2013) 6, ra84.<br>
+        doi:<a href="http://dx.doi.org/10.1126/scisignal.2004379">10.1126/scisignal.2004379</a> /
+        PMID:<a href="http://www.ncbi.nlm.nih.gov/pubmed/24065145">24065145</a> /
+        PMCID:<a href="http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3845839">PMC3845839</a>
+      </p>
+
+      <h2>Overview</h2>
+
       <p>This browser widget serves to explore the basal levels and activity of key receptor tyrosine kinases (RTKs) across the panel of 39 breast cancer cell lines studied in <a href="http://dx.doi.org/10.1126/scisignal.2004379">Niepel et al. (2013)</a>. The set of measurements comprises the abundance and basal phosphorylation of 22 receptors and 3 downstream kinases (ERK, Akt, and Src).  Hovering the cursor over the names in the Selection Panel gives a rapid scan over the available data; clicking on a name fixes the choice.  (For more info, click on the &#x24d8; icon.)</p>
     </div>
 
