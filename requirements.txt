@@ -16,5 +16,5 @@ requests #==0.14.1
 unipath==1.1
 xlrd #==0.8.0
 xlwt #==0.7.4
-openpyxl>=1.8
+openpyxl>=2.2,<2.3
 Wand #==0.3.5
