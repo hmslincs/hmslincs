@@ -20,10 +20,24 @@
 #sidebar{margin:0;}
 .empty-div{display:none;}
 
-#preamble{
-  max-width:900px;
+.text-content{
+  width:900px;
   margin:0 auto;
-}
+ }
+
+ /* The following duplicated from #content table styles -- the HTML here is so
+    distorted our downloads table can't even be inside div#content. */
+ .downloads-override table {
+     border: 1px solid #e0e0e0;
+ }
+ .downloads-override td {
+     padding: 0 0.5em;
+     vertical-align: top;
+     border-right: 1px solid #e0e0e0;
+ }
+ .downloads-override tr:nth-child(even) {
+     background-color: #FFF9F0;
+ }
 
 </style>
 
@@ -41,7 +55,7 @@
 <!-- </div> --> <!-- close <div id="pagebody-wrap"> -->
     <br class="clear-left"/>
 
-    <div id="preamble">
+    <div class="text-content">
 
       <h1>Profiles of Basal and Stimulated Receptor Signaling Networks
       Predict Drug Response in Breast Cancer Lines</h1>
@@ -174,6 +188,56 @@
 
     </div> <!-- .centered-track -->
   </div> <!-- #main .global -->
+
+  <div class="text-content downloads-override">
+    <h2>Available data and software</h2>
+    <table class="downloads">
+      <tbody>
+        <tr>
+          <td>Data</td>
+          <td>Basal profile of receptor tyrosine kinase signaling network measured by ELISA (HMS Dataset #20137).</td>
+          <td><a href="/db/datasets/20137/">Details</a></td>
+          <td><a href="/db/datasets/20137/results?output_type=.xlsx">Download (.xlsx)</a></td>
+        </tr>
+        <tr>
+          <td>Data</td>
+          <td>Cell signaling response to growth factors measured by high-throughput microscopy (HMS Dataset #20138).</td>
+          <td><a href="/db/datasets/20138/">Details</a></td>
+          <td><a href="/db/datasets/20138/results?output_type=.xlsx">Download (.xlsx)</a></td>
+        </tr>
+        <tr>
+          <td>Data</td>
+          <td>Cell signaling response to cytokines measured by high-throughput microscopy (HMS Dataset #20139).</td>
+          <td><a href="/db/datasets/20139/">Details</a></td>
+          <td><a href="/db/datasets/20139/results?output_type=.xlsx">Download (.xlsx)</a></td>
+        </tr>
+        <tr>
+          <td>Data</td>
+          <td>Cell signaling response to growth factors measured by ELISA (HMS Dataset #20140).</td>
+          <td><a href="/db/datasets/20140/">Details</a></td>
+          <td><a href="/db/datasets/20140/results?output_type=.xlsx">Download (.xlsx)</a></td>
+        </tr>
+        <tr>
+          <td>Data</td>
+          <td>Transformed datasets used for drug predictions.</td>
+          <td><a href="/wordpress/wp-content/uploads/2013/09/niepel_2013_data5_all_transformed_details.txt">Details</a></td>
+          <td><a href="/wordpress/wp-content/uploads/2013/09/niepel_2013_data5_all_transformed.xlsx">Download (.xlsx)</a></td>
+        </tr>
+        <tr>
+          <td>Data</td>
+          <td>Drug response data from Heiser et al. (2012) <em>PNAS</em> 109(8), 2724–2729. doi: <a href="http://dx.doi.org/10.1073%2Fpnas.1018854108">10.1073/pnas.1018854108</a></td>
+          <td></td>
+          <td><a href="http://www.pnas.org/content/suppl/2011/10/14/1018854108.DCSupplemental/sd02.xlsx">Download (.xlsx)</a></td>
+        </tr>
+        <tr>
+          <td>Software</td>
+          <td>A link to our HMS LINCS GitHub for access to the code underlying the interactive scatterplot browser available on this project exploration website</a>.</td>
+          <td></td>
+          <td><a href="https://github.com/hmslincs/hmslincs/">hmslincs at GitHub</a></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 
 <!-- <div class="empty-div"> --> <!-- match the </div> for <div id="pagebody-wrap"> -->
   <!-- <div class="empty-div"> <\!-- match the </div> for <div id="pagebody"> -\-> -->
