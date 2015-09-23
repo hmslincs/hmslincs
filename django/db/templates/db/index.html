@@ -25,30 +25,30 @@
 	{% else %}
 	<H2>Welcome to the HMS LINCS Database</H2>
 		<ul>
-      <li>This HMS LINCS Database is continuously being developed and expanded.</li>
-      <li>The Database currently contains information on experimental reagents (small molecule perturbagens, cells, and proteins) and HMS LINCS datasets. A list of the datasets available via the HMS LINCS Database can be found on the <a href="https://lincs.hms.harvard.edu/data/data-being-collected/">Data</a> page of the <a target="_blank" href="http://lincs.hms.harvard.edu/">HMS LINCS website</a>.</li>
-      <li>A table summarizing all compounds for which KINOMEscan data are available in the HMS LINCS Database can be found <a href="http://lincs.hms.harvard.edu/data/kinomescan/">here</a>.</li>
-      <li>Experimental image data are available for the following datasets: <a href='datasets/20003'>Tang Mitosis/Apoptosis ver.II (PMID: 23788527)</a>, <a href='datasets/20004'>Tang Proliferation/Mitosis</a>, and <a href='datasets/20136', >Breast cell line dose response to target inhibition measured by high throughput microscopy (PMID: 24013279)</a>; the images are stored and served via the HMS LINCS OMERO Server (see <a target="_blank" href="http://lincs.hms.harvard.edu/resources/software/">Resources</a>).</li>
+      <li>The HMS LINCS Database is continuously being developed and expanded.</li>
+      <li>The Database contains all publicly available HMS LINCS datasets and information about experimental reagents (small molecule perturbagens, cells, antibodies, and proteins), experimental and data analysis protocols, and additional resources available through the <a href="http://lincs.hms.harvard.edu/">HMS LINCS website</a> for each dataset.</li>
+      <li>A table summarizing all compounds for which KINOMEscan data are available in the HMS LINCS Database can be found <a href="http://lincs.hms.harvard.edu/kinomescan/">here</a>, and one for all KiNativ data can be found <a href="http://lincs.hms.harvard.edu/kinativ/">here</a></li>
+      <li>Experimental image data are available for many of the HMS LINCS Microscopy/Imaging datasets, such as <a href='datasets/20003'>Dataset #20003 (associated with PMID: 23788527)</a>, <a href='datasets/20136'>Dataset #20136 (associated with PMID: 24013279)</a>, and Dataset #20219 (associated with PMID: 25814555). All images are stored and served via the HMS LINCS OMERO Server. (Please see our <a target="_blank" href="http://lincs.hms.harvard.edu/resources/software/">Software page</a> for details.)</li>
       <li>Programmatic access to the HMS LINCS Database is detailed in the <a target="_blank" href='https://docs.google.com/document/d/1R_d_1UWO0C9y1TceXpKIUkhjk08DfvP1D19txi4Tbas/edit'>HMS LINCS Database URL Scheme and Access Guide</a>.</li>
       <li>Metadata standards for the data in the HMS LINCS Database are currently being developed in collaboration with the other LINCS Consortium members. Updated information about these standards can be found on the LINCS project website's <a target="_blank" href="http://lincsproject.org/data-standards/">data standards page</a>.</li>
-      <li>The LINCS data release and reuse policy that applies to all data in the HMS LINCS Database and available through the HMS LINCS website is described <a target="_blank" href="http://www.lincsproject.org/data/data-release-policy/">here</a>.</li>
+      <li>The LINCS data release and reuse policy that applies to all data in the HMS LINCS Database and to data available through the HMS LINCS website is described <a target="_blank" href="http://www.lincsproject.org/data/data-release-policy/">here</a>.</li>
    	</ul>
 
     <H3>A quick guide to using the HMS LINCS Database:</H3>
     <ul>
       <li>For detailed instructions, see the <a target="_blank"  href='https://docs.google.com/document/d/1IE9AqrF49sGgJwNvGxr0-f6gB8eG1AGguWbCdMgx2Qg/pub'>HMS LINCS Database Tutorial</a>.</li>
       <li>A list of all datasets in the HMS LINCS Database can be obtained by clicking on the <a href='datasets'>Datasets</a> menu item on the left side of this page. This list by default is sorted by dataset ID #. It can be re-sorted by dataset type by clicking on the HMS Dataset Type column heading in the table.</li>
-      <li>To find datasets from <a href="http://lincs.hms.harvard.edu/about/publications/">LINCS publications</a>, type the relevant PMID in the "Search all categories" search box at the top of this page, or use the search box on the <a href='datasets'>Datasets</a> page.</li>
+      <li>To find datasets associated with a specific <a href="http://lincs.hms.harvard.edu/about/publications/">HMS LINCS publication</a>, type the relevant PMID in the "Search all categories" search box at the top of this page, or use the search box on the <a href='datasets'>Datasets</a> page.</li>
       <li>Note that all dataset entries have multiple tabs describing the Details (experimental and analysis protocols), reagents studied (e.g. cells, small molecules), Data Columns (headings used to format the results), and Results.</li>
-      <li>To open a full-screen view of dataset results, click on the "Full screen view" button at the top of the dataset Results page.</li>
-      <li>To search within the results of a dataset: Select the "Filter results" option on the Results tab, and then select the appropriate items (e.g. small molecule name(s), cell line name(s), etc.).</li>
-      <li>To search for <a href='sm'>small molecule reagents</a>, <a href='cells'>cells</a>, <a href='proteins'>proteins</a>, or specific <a href="datasets">datasets</a> in the Database, enter a search term in the search box at the top of this page, or browse a specific entity type by selecting the menu item on the left side of this page.</li>
+      <li>To open a full-screen view of dataset results, click on the "Full screen view" button at the top of the dataset Results tab.</li>
+      <li>To search within the results of a dataset, select the "Filter results" option on the Results tab, and then select the appropriate items (e.g. small molecule name(s), cell line name(s), etc.).</li>
+      <li>To search for <a href='sm'>small molecule reagents</a>, <a href='cells'>cells</a>, <a href='antibodies'>antibodies</a>, <a href='proteins'>proteins</a>, or specific <a href="datasets">datasets</a> in the Database, enter a search term in the search box at the top of this page, or browse a specific entity type by selecting the menu item on the left side of this page.</li>
 </li>
-      <li>To filter the results of searches: Select the down arrow icon at the right side of the search box. Select items within the new view on which to filter your search.</li>
+      <li>To filter the results of searches, select the down arrow icon at the right side of the search box. Select items within the new view on which to filter your search.</li>
       <li>Select <a href='sm/structuresearch/'>Structure Search</a> to perform a chemical structure search for a small molecule reagent. The search will accept input of SMILES or sdf-formatted files.</li>
      <li>QC information for specific small molecule compound batches is accessible on each small molecule detail page in the "HMS QC Testing Events" section. (Note that not all compounds have QC files available.)</li>
       <li>Soon, the search interface will support searches for lists of reagents.</li>
-      <li>You can download the data from any page as an Excel or CSV file by clicking the respective link. Please note that the date and time of the download is included in the filename.</li>
+      <li>You can download the data from any entity index page or dataset page as an Excel or CSV file by clicking the respective link. Please note that the date and time of the download is included in the filename.</li>
       <li>For questions or feedback, please contact: <a href="mailto:lincs-feedback@hms.harvard.edu">lincs-feedback@hms.harvard.edu</a>.</li>
 		</ul>
 	{% endif %}
