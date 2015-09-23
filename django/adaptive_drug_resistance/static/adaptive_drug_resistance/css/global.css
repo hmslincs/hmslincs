@@ -109,28 +109,28 @@ background-image: linear-gradient(to bottom, #ddd, #ccc);
 
 /* -------------------------------------------------- */
 
-div.downloads {
+div.downloads-wrapper {
   width: 941px;
   margin: 10px auto;
 }
 
-div.downloads > div {
+div.downloads-wrapper > div {
   padding: 25px;
 }
 
-div.downloads table {
-  border: 1px solid #e0e0e0;
+/* The following duplicated from #content table styles -- the HTML
+   here is so distorted our downloads table can't even be inside
+   div#content. */
+.downloads-wrapper table {
+    border: 1px solid #e0e0e0;
 }
-
-div.downloads tr:nth-child(even) {
-  background-color: #fff9f0;
+.downloads-wrapper td {
+    padding: 0 0.5em;
+    vertical-align: top;
+    border-right: 1px solid #e0e0e0;
 }
-
-div.downloads td {
-  white-space: inherit;
-  border-right: 1px solid #e0e0e0;
-  padding: 0 0.5em;
-  vertical-align: top;
+.downloads-wrapper tr:nth-child(even) {
+    background-color: #FFF9F0;
 }
 
 /* -------------------------------------------------- */
@@ -145,3 +145,7 @@ div.downloads td {
 }
 
 /* -------------------------------------------------- */
+
+td {
+  white-space: inherit;
+}

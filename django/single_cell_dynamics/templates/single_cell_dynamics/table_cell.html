@@ -1,3 +1,5 @@
+{% load hmslincs %}
+
 <td class="cell-{{ cell.rc_address }}
     {% if cell.inhibitor == 'Gefitinib' %}
     col-separator
@@ -5,7 +7,7 @@
     ">
   <a href="#popup-cell-{{ cell.rc_address }}">
     <img
-    src="img/cell/{{ cell.rc_address }}.png"
+    src="{% flatpage_static %}single_cell_dynamics/g/img/cell/{{ cell.rc_address }}.png"
     width="80" height="80" alt="{% include "single_cell_dynamics/cell_title.html" %}"/>
   </a>
 </td>

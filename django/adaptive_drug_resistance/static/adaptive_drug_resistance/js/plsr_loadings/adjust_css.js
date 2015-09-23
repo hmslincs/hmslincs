@@ -1,5 +1,5 @@
 'use strict';
-define(    [  'jquery', 'config' ],
+define(    [  'jquery', './config' ],
     function ( $      ,  cfg ) {
 
         var $left_panel = $( '#scatterplots-content .left-panel' )

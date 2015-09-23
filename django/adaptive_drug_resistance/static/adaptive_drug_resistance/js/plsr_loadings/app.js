@@ -2,9 +2,9 @@
 
 define(
 
-        [ 'jquery', 'd3', 'config', 'common', 'adjust_css', 'add_pickers', 'load_plots', 'events' ],
+        [ 'jquery', 'd3', './config', './common', './adjust_css', './add_pickers', './load_plots', './events' ],
 
-function ( $      ,  d3 ,  cfg    ,  c      ,  adjust_css ,  add_pickers ,  load_plots ,  events ) {
+function ( $      ,  d3 ,  cfg      ,  c        ,  adjust_css   ,  add_pickers   ,  load_plots   ,  events ) {
 
     function load_json ( path, handler ) {
         d3.json( path, function ( error, json ) {

@@ -1,22 +1,20 @@
 {% extends "base.html" %}
 
-{% comment %}
-{% load trail_threshold_variability %}
-{% endcomment %}
-
 {% block head_extra %}
   <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}adaptive_drug_resistance/css/style.css"/>
 {% endblock %}
 
 {% block title %}
 
-  Systematic analysisof BRAF<sup>V600E</sup> melanomas reveals a role
+  Systematic analysis of BRAFV600E melanomas reveals a role
   for JNK/c-Jun pathway in adaptive resistance to drug-induced
-  apoptosis - {{ block.super }}
+  apoptosis
 
 {% endblock %}
 
 {% block contentclass %}fullwidth{% endblock %}
+
+{% block article_type %}Project Explorer{% endblock %}
 
 {% block body %}
 <div id="override">
@@ -25,6 +23,10 @@
 <h1>Systematic analysis of BRAF<sup>V600E</sup> melanomas reveals a
 role for JNK/c-Jun pathway in adaptive resistance to drug-induced
 apoptosis</h1>
+
+<div class="pseudo-button cta-button"><a href="/fallahi-sichani-molsystbiol-2015/">View
+  Publication Summary</a>
+</div>
 
 <p>
 Mohammad Fallahi-Sichani<sup style="font-weight: normal;">1</sup><span style="font-size: 13px; font-weight: normal;">,
@@ -35,18 +37,19 @@ Nathanael S. Gray</span><sup style="font-weight: normal;">2,3</sup><span style="
 Peter K. Sorger</span><sup style="font-weight: normal;">1</sup>
 </p>
 
-<p>
-<sup>1</sup>HMS LINCS Center;
-<sup>2</sup>Department of Cancer Biology, Dana-Farber Cancer Institute;
-<sup>3</sup>Department of Biological Chemistry and Molecular Pharmacology, Harvard Medical School
+<p style="font-size: 80%;">
+  <sup>1</sup> HMS LINCS Center, Harvard Medical School, Boston, MA;
+  <sup>2</sup> Department of Cancer Biology, Dana-Farber Cancer Institute, Boston, MA;
+  <sup>3</sup> Department of Biological Chemistry and Molecular Pharmacology, Harvard
+  Medical School, Boston, MA
 </p>
 
 <p>
-<a href="http://msb.embopress.org/content/11/3/797"><em>Mol Syst Biol</em> (2015) 11: 797</a>
-<br />
-doi: <a href="http://dx.doi.org/10.15252/msb.20145877">10.15252/msb.20145877</a>
-<br />
-PMID: <a href="http://www.ncbi.nlm.nih.gov/pubmed/25814555">25814555</a>
+  <a href="http://msb.embopress.org/content/11/3/797"><em>Mol Syst Biol</em> (2015) 11: 797</a>
+  <br />
+  doi:<a href="http://dx.doi.org/10.15252/msb.20145877">10.15252/msb.20145877</a> /
+  PMID:<a href="http://www.ncbi.nlm.nih.gov/pubmed/25814555">25814555</a> /
+  PMCID:<a href="http://www.ncbi.nlm.nih.gov/pmc/articles/PMC4380931">PMC4380931</a>
 </p>
 
   <h2>Overview</h2>
@@ -70,7 +73,7 @@ cite this work when using any of the data or analyses presented here.
   <div>
     <table>
       <tr>
-<td><div><a href="plsr-loadings"><img src="{{ STATIC_URL }}adaptive_drug_resistance/img/plsr_loadings/thumbnail.png" width="250px"/><div class="hover-overlay"></div></a></div></td>
+<td><div><a href="plsr-loadings/"><img src="{{ STATIC_URL }}adaptive_drug_resistance/img/plsr_loadings/thumbnail.png" width="250px"/><div class="hover-overlay"></div></a></div></td>
 <td><div><h3>PLSR loadings browser</h3>
 Explore the findings of our partial least squares regression (PLSR) model
 through this interactive data browser. Shown across all 10 cell lines are the
@@ -82,7 +85,7 @@ over time relative to cell viability.
 
 </tr>
       <tr>
-<td><div><a href="vips"><img src="{{ STATIC_URL }}adaptive_drug_resistance/img/vips/thumbnail.png" width="250px"/><div class="hover-overlay"></div></a></div></td>
+<td><div><a href="vips/"><img src="{{ STATIC_URL }}adaptive_drug_resistance/img/vips/thumbnail.png" width="250px"/><div class="hover-overlay"></div></a></div></td>
 <td><div><h3>VIP scores browser</h3>
 
 Explore the variable importance in the projection (VIP) score of each model
@@ -98,43 +101,49 @@ responses in these cell lines.</div>
 
 <div style="margin-top: 30px">
 <h2>Available Data and Signatures</h2>
-<table>
+<table class="downloads">
 <tbody>
 <tr>
-<td style="white-space: nowrap;">Data</td>
-<td>Viability and apoptosis in BRAF(V600E/D) melanoma cell lines monitored by imaging</td>
-<td style="white-space: nowrap;"><a href="/db/datasets/20217/">Details</a></td>
-<td style="white-space: nowrap;"><a href="/db/datasets/20217/results?output_type=.xls">Download (.xls)</a></td>
+<td>Data</td>
+<td>Viability and apoptosis in BRAF(V600E/D) melanoma cell lines monitored by imaging (HMS Dataset #20217)</td>
+<td><a href="/db/datasets/20217/">Details</a></td>
+<td><a href="/db/datasets/20217/results?output_type=.xlsx">Download (.xlsx)</a></td>
 </tr>
 <tr>
-<td style="white-space: nowrap;">Data</td>
-<td>Phosphorylation state and protein levels measured in BRAF(V600E/D) melanoma cell lines monitored by Reverse Phase Protein Arrays (RPPA)</td>
-<td style="white-space: nowrap;"><a href="/db/datasets/20218/">Details</a></td>
-<td style="white-space: nowrap;"><a href="/db/datasets/20218/results?output_type=.xls">Download (.xls)</a></td>
+<td>Data</td>
+<td>Phosphorylation state and protein levels measured in BRAF(V600E/D) melanoma cell lines monitored by Reverse Phase Protein Arrays (RPPA)(HMS Dataset #20218)</td>
+<td><a href="/db/datasets/20218/">Details</a></td>
+<td><a href="/db/datasets/20218/results?output_type=.xlsx">Download (.xlsx)</a></td>
 </tr>
 <tr>
-<td style="white-space: nowrap;">Data</td>
-<td>Phosphorylation state and protein levels measured in BRAF(V600E/D) melanoma cell lines monitored by imaging</td>
-<td style="white-space: nowrap;"><a href="/db/datasets/20219/">Details</a></td>
-<td style="white-space: nowrap;"><a href="/db/datasets/20219/results?output_type=.xls">Download (.xls)</a></td>
+<td>Data</td>
+<td>Phosphorylation state and protein levels measured in BRAF(V600E/D) melanoma cell lines monitored by imaging (HMS Dataset #20219)</td>
+<td><a href="/db/datasets/20219/">Details</a></td>
+<td><a href="/db/datasets/20219/results?output_type=.xlsx">Download (.xlsx)</a></td>
 </tr>
 <tr>
-<td style="white-space: nowrap;">Signature</td>
-<td>PLSR model loadings (pMEK and pERK included) from analysis of the covariation of molecular signals with cell viability and apoptosis fraction in BRAF(V600E/D) melanoma cell lines</td>
-<td style="white-space: nowrap;"><a href="/db/datasets/20229/">Details</a></td>
-<td style="white-space: nowrap;"><a href="/db/datasets/20229/results?output_type=.xls">Download (.xls)</a></td>
+<td>Signature</td>
+<td>PLSR model loadings (pMEK and pERK included) from analysis of the covariation of molecular signals with cell viability and apoptosis fraction in BRAF(V600E/D) melanoma cell lines (HMS Dataset #20229)</td>
+<td><a href="/db/datasets/20229/">Details</a></td>
+<td><a href="/db/datasets/20229/results?output_type=.xlsx">Download (.xlsx)</a></td>
 </tr>
 <tr>
-<td style="white-space: nowrap;">Signature</td>
-<td>PLSR model loadings (pMEK and pERK excluded) from analysis of the covariation of molecular signals with cell viability and apoptosis fraction in BRAF(V600E/D) melanoma cell lines</td>
-<td style="white-space: nowrap;"><a href="/db/datasets/20230/">Details</a></td>
-<td style="white-space: nowrap;"><a href="/db/datasets/20230/results?output_type=.xls">Download (.xls)</a></td>
+<td>Signature</td>
+<td>PLSR model loadings (pMEK and pERK excluded) from analysis of the covariation of molecular signals with cell viability and apoptosis fraction in BRAF(V600E/D) melanoma cell lines (HMS Dataset #20230)</td>
+<td><a href="/db/datasets/20230/">Details</a></td>
+<td><a href="/db/datasets/20230/results?output_type=.xlsx">Download (.xlsx)</a></td>
 </tr>
 <tr>
-<td style="white-space: nowrap;">Signature</td>
-<td>Average variable importance in the projection (VIP) scores from the PLSR models analyzing the covariation of molecular signals with cell viability and apoptosis fraction in BRAF(V600E/D) melanoma cell lines</td>
-<td style="white-space: nowrap;"><a href="/db/datasets/20231/">Details</a></td>
-<td style="white-space: nowrap;"><a href="/db/datasets/20231/results?output_type=.xls">Download (.xls)</a></td>
+<td>Signature</td>
+<td>Average variable importance in the projection (VIP) scores from the PLSR models analyzing the covariation of molecular signals with cell viability and apoptosis fraction in BRAF(V600E/D) melanoma cell lines (HMS Dataset #20231)</td>
+<td><a href="/db/datasets/20231/">Details</a></td>
+<td><a href="/db/datasets/20231/results?output_type=.xlsx">Download (.xlsx)</a></td>
+</tr>
+<tr>
+<td>Software</td>
+<td>A link to our HMS LINCS GitHub for access to the code for the data visualization tools presented on this project explorer website</a>.</td>
+<td></td>
+<td><a href="https://github.com/hmslincs/hmslincs/">hmslincs at GitHub</a></td>
 </tr>
 </tbody>
 </table>

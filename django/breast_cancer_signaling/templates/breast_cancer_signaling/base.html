@@ -1,27 +1,21 @@
-{% extends "base.html" %}
+{% extends "base_flatpage.html" %}
 
-{% block title %}
-  Breast Cancer Signaling Responses - {{ block.super }}
+{% block requirejs %}
+    <script>
+     require.config({
+         paths: {
+             bcs: 'breast_cancer_signaling/js',
+         },
+     });
+     require( [ 'bcs/main' ] );
+    </script>
 {% endblock %}
 
 {% block head_extra %}
-  <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
-  <script type="text/javascript" src="{{ STATIC_URL }}breast_cancer_signaling/js/main.js"></script>
-  <link rel="stylesheet" type="text/css" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
+  <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}ext/jquery-ui/1.11.4/jquery-ui.min.css" />
   <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}breast_cancer_signaling/css/main.css" />
-  <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}breast_cancer_signaling/css/sibling_browser.css" />
-  <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}breast_cancer_signaling/css/thumbnail_box.css" />
 {% endblock %}        
 
 {% block contentclass %}fullwidth{% endblock %}
 
-{% block body %}
-
-  {% block content %}{% endblock content %}
-
-  <p id="citation-notice">When using any of the data or analysis presented here,
-    please cite <strong>Niepel et al., BMC Biology, 2014</strong>. For more
-    information, contact <a href="mailto:mario_niepel@hms.harvard.edu?subject=HMS%20LINCS%20breast%20cancer%20signaling%20page">
-    Mario Niepel (mario_niepel@hms.harvard.edu)</a>.</p>
-
-{% endblock %}
+{% block article_type %}Project Explorer{% endblock %}

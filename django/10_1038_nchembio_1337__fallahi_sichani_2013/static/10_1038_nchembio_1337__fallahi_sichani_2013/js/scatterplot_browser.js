@@ -10,7 +10,10 @@
 // (function () {
 // }());
 
-(function ($) {
+define(['jquery', 'jqueryui', 'd3'],
+       function (jQuery, jqueryui, d3) {
+
+jQuery(function ($) {
   'use strict';
   /*global window,document,console,debugger,jQuery,d3,Error,Math */
 
@@ -1077,4 +1080,6 @@
      });
   }());
 
-}(jQuery));
+});
+
+});

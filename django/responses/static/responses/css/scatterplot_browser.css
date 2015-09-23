@@ -1,8 +1,6 @@
 /* ******************************************** */
 /* assorted hacks to disable site-wide settings */
 #content{min-height:0;}
-#content{margin-top:15px;}
-#content > h1{margin-bottom:10px;}
 .empty-div{display:none;}
 /* ******************************************** */
 /* ******************************************** */

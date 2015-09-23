@@ -193,7 +193,6 @@ TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    op.join(_djangopath, 'templates')
 )
 
 # For webtemplates, use the live WP instance if we are running on the live site,
@@ -203,7 +202,7 @@ WEBTEMPLATES_HOST = (
     'dev.lincs.hms.harvard.edu')
 WEBTEMPLATES_BASE = 'http://%s/templates/' % WEBTEMPLATES_HOST
 WEBTEMPLATES = [
-    (WEBTEMPLATES_BASE + 'base/', 'base.html'),
+    (WEBTEMPLATES_BASE + 'base/', 'wordpress_base.html'),
 ]
 
 INSTALLED_APPS = (
@@ -211,6 +210,7 @@ INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.sites',
+    'django.contrib.flatpages',
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.admin',
@@ -218,6 +218,7 @@ INSTALLED_APPS = (
     'django_tables2', # for UI tabling
     'tastypie', # manual says this is "not necessary, but useful"
     'webtemplates',
+    'hmslincs',
     'db',
     'pathway',
     'responses',

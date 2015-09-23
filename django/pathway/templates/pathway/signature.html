@@ -1,3 +1,5 @@
+{% load hmslincs %}
+
 <div class="signature-popup" id="signature-{{ signature.target_name }}">
 
 <table class="plain">
@@ -42,7 +44,7 @@
     <td colspan="3"></td>
     <td class="signature">
       {% if signature.show_scale %}
-        <img src="{{ STATIC_URL }}pathway/img/scale-{{ signature.target_name|slugify }}.png" width="250" height="20">
+        <img src="{% flatpage_static %}pathway/g/scale-{{ signature.target_name|slugify }}.png" width="250" height="20">
       {% endif %}
     </td>
   </tr>
@@ -57,7 +59,7 @@
             <tr>
               {% for index, cell_line in row %}
                 <td>
-                  <img src="{{ STATIC_URL }}pathway/img/legend-cell-line-{{ index }}.png" width="14" height="14">
+                  <img src="{% flatpage_static %}pathway/g/legend-cell-line-{{ index }}.png" width="14" height="14">
                   <a href="/db/cells/{{ cell_line.cell_id }}/">{{ cell_line.name }}</a>
                 </td>
               {% endfor %}

@@ -1,6 +1,6 @@
 import logging
 from django.contrib.auth.models import User
-from hmslincs.auth import authenticate
+from hmslincs_auth import authenticate
 
 logger = logging.getLogger(__name__)
 

@@ -59,11 +59,6 @@ unfortunate stuff from the base stylesheet. */
   position: absolute;
 }
 
-.downloads td:nth-child(1), .downloads td:nth-child(3) {
-  white-space: nowrap;
-}
-
-
 td {
   white-space: inherit;
 }

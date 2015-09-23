@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "adaptive_drug_resistance/base.html" %}
 
 {% block head_extra %}
 
@@ -14,7 +14,6 @@
 
 {% block body %}
 
-      <!-- <h1>Lorem ipsum dolor sit amet</h1> -->
     </div> <!-- close #content -->
     <br style="clear:left">
   </div> <!-- close #pagebody -->
@@ -25,32 +24,17 @@
 
 <div class="title-and-authors">
 
-<h1><a href="../">Systematic analysis of BRAF<sup>V600E</sup> melanomas reveals a
-role for JNK/c-Jun pathway in adaptive resistance to drug-induced
-apoptosis</a></h1>
+  <h1>
+    Systematic analysis of BRAF<sup>V600E</sup> melanomas reveals a
+    role for JNK/c-Jun pathway in adaptive resistance to drug-induced
+    apoptosis
+  </h1>
 
-<p>
-Mohammad Fallahi-Sichani<sup style="font-weight: normal;">1</sup><span style="font-size: 13px; font-weight: normal;">,
-Nathan J. Moerke</span><sup style="font-weight: normal;">1</sup><span style="font-size: 13px; font-weight: normal;">,
-Mario Niepel</span><sup style="font-weight: normal;">1</sup><span style="font-size: 13px; font-weight: normal;">,
-Tinghu Zhang</span><sup style="font-weight: normal;">2,3</sup><span style="font-size: 13px; font-weight: normal;">,
-Nathanael S. Gray</span><sup style="font-weight: normal;">2,3</sup><span style="font-size: 13px; font-weight: normal;">, and
-Peter K. Sorger</span><sup style="font-weight: normal;">1</sup>
-</p>
-
-<p>
-<sup>1</sup>HMS LINCS Center;
-<sup>2</sup>Department of Cancer Biology, Dana-Farber Cancer Institute;
-<sup>3</sup>Department of Biological Chemistry and Molecular Pharmacology, Harvard Medical School
-</p>
-
-<p>
-<a href="http://msb.embopress.org/content/11/3/797"><em>Mol Syst Biol</em> (2015) 11: 797</a>
-<br />
-doi: <a href="http://dx.doi.org/10.15252/msb.20145877">10.15252/msb.20145877</a>
-<br />
-PMID: <a href="http://www.ncbi.nlm.nih.gov/pubmed/25814555">25814555</a>
-</p>
+  <div class="breadcrumbs">
+    <a href="..">Project explorer home</a>
+    &nbsp;»&nbsp;
+    <a href="">VIP scores</a>
+  </div>
 
 </div>
 
@@ -83,7 +67,6 @@ to focus on.
 
 <button class="show info"><i>i</i></button>
 <button class="hide info">&#9167;</button>
-<!-- <button class="hide info">&#9652;</button> -->
 
 </div> <!-- <div class="global"> -->
 
@@ -133,17 +116,17 @@ to focus on.
 {% include "adaptive_drug_resistance/vips/content.html" %}
 
 
-<div class="downloads">
+<div class="downloads-wrapper">
 <div>
 
-<h2 id="downloads">Relevant signatures</h2>
-<table>
+<h2>Relevant signatures</h2>
+<table class="downloads">
 <tbody>
 <tr>
-<td style="white-space: nowrap;">Signature</td>
-<td>Average variable importance in the projection (VIP) scores from the PLSR models analyzing the covariation of molecular signals with cell viability and apoptosis fraction in BRAF(V600E/D) melanoma cell lines</td>
-<td style="white-space: nowrap;"><a href="/db/datasets/20231/">Details</a></td>
-<td style="white-space: nowrap;"><a href="/db/datasets/20231/results?output_type=.xls">Download (.xls)</a></td>
+<td>Signature</td>
+<td>Average variable importance in the projection (VIP) scores from the PLSR models analyzing the covariation of molecular signals with cell viability and apoptosis fraction in BRAF(V600E/D) melanoma cell lines (HMS Dataset #20231)</td>
+<td><a href="/db/datasets/20231/">Details</a></td>
+<td><a href="/db/datasets/20231/results?output_type=.xlsx">Download (.xlsx)</a></td>
 </tr>
 </tbody>
 </table>
@@ -151,7 +134,8 @@ to focus on.
 </div>
 
   <script>
-( function ( $ ) {
+require(['jquery'], function(jquery) {
+jquery(document).ready(function ( $ ) {
     var _
     ,   $info = $( '.instructions > div' )
     ,   up = -$info.outerHeight()
@@ -173,11 +157,11 @@ to focus on.
     $show.on( 'click', function () { showhide( down, $hide, $show ); } )
     $hide.on( 'click', function () { showhide( up, $show, $hide ); } )
 
-} )( jQuery );
+});
+});
 
   </script>
 
-<!-- <div class="empty-div"> --> <!-- match the </div> for #pagebody-wrap -->
   <div class="empty-div"> <!-- match the </div> for #pagebody -->
     <div class="empty-div"> <!-- match the </div> for #content -->
 

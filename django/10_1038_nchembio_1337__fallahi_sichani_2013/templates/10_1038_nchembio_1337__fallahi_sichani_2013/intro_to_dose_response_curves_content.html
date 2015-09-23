@@ -1,7 +1,4 @@
-<h1>Parametrizing perturbagen dose-response relationships</h1>
-
-<p class="normal"><span>&nbsp;</span></p>
-<!-- <p class="normal"><b><span>Dose-response curves</span></b></p> -->
+<h2>Parametrizing perturbagen dose-response relationships</h2>
 
 <p class="normal"><span>Dose-response curves are the basis for the most widespread measures of cellular response to perturbing agents and drugs ("perturbagens", for short).  Such curves measure the magnitude of an effect (for example, cell viability) across a range of drug concentrations, and are typically represented graphically with log-linear plots.  They are obtained by fitting experimentally measured values to a logistic sigmoidal function:</span></p>
 
@@ -29,14 +26,6 @@ and exported to PNG.
 
 
 <p class="normal">&nbsp;</p>
-
-{% comment %}
-<p class="normal"><span>The most common parameter derived from this relationship is IC<sub>50</sub>, the point at which half-maximal effect is achieved (this is often referred to as the “potency” of a perturbagen). However, variation in maximum effect at the highest doses (<i>E<sub>max</sub></i>) is also common. Capturing these sources of variation requires a multi-parametric description involving variables such as IC<sub>50</sub>, <i>E</i><sub>max</sub> and the slope of the curve. The underlying logistic equation is shown below, as are the relationships of various parameters to a typical dose response curve.</span></p>
-
-<p class="normal"><span>Dose-response curves are typically fitted to a logistical sigmoidal function characterized by four parameters: <i>E</i><sub>0</sub> and <i>E</i><sub>&infin;</sub> are the top and bottom asymptotes of the response; EC<sub>50</sub> is the concentration at half-maximal effect (hme) of the drug, and <i>HS</i> (for "<i>H</i>ill <i>S</i>lope") is a slope parameter mathematically analogous to the Hill coefficient, a conventional measure of cooperative interactions:</span></p> 
-
-<p class="normal">&nbsp;</p>
-{% endcomment %}
 
 <p class="normal"><span>The widget below illustrates all these parameters.  More specifically, it shows how the values of <i>EC</i><sub>50</sub>, <i>E</i><sub>&infin;</sub>/<i>E</i><sub>0</sub>, and <i>HS</i> affect the shape of a normalized dose-response sigmoid (i.e. one corresponding to the equation obtained by dividing both sides of equation 1 by <i>E</i><sub>0</sub>).  The shaded region corresponds to the AUC.  The three preset buttons for <a href="http://pubchem.ncbi.nlm.nih.gov/summary/summary.cgi?cid=23582824">GSK1059615</a>, <a href="http://pubchem.ncbi.nlm.nih.gov/summary/summary.cgi?cid=24905147">PP242</a>, and <a href="http://pubchem.ncbi.nlm.nih.gov/summary/summary.cgi?sid=26746658">Dactolisib</a> give typical examples of cell viability dose response curves for HCC1954 breast cancer cells exposed to inhibitors of the PI3K/Akt pathway.</span></p>
  
@@ -66,7 +55,6 @@ and exported to PNG.
   </div> <!-- #controls -->
 </div> <!-- #control-panel -->
 
-<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
-<script src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/jquery-ui.js"></script>
-<script src="//cdnjs.cloudflare.com/ajax/libs/d3/3.3.10/d3.min.js"></script>
-<script src="{{ STATIC_URL }}10_1038_nchembio_1337__fallahi_sichani_2013/js/sensitivities.js"></script>
+<script>
+ require(['fs/sensitivities']);
+</script>

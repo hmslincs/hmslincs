@@ -1,4 +1,45 @@
 {% extends "db/datasetDetailBase.html" %}
+
+{% block head_extra %}
+    {{ block.super }}
+    {% comment %} Needed to put this in head so DOM rearrangement in _minimal
+    template doesn't re-execute the require call! {% endcomment %}
+    <script>
+    require(['jquery'], function($) {
+
+    function form_toggle(event){
+        $('#search_div').toggle();
+        $('#form_toggler1').toggle();
+    };
+    $(function() {
+        var clean_form_uri = "{% url dataset_detail_results  facility_id=facilityId%}"
+        $('#clear_form_button').click(function(evt){
+            evt.preventDefault();
+            console.log('clear form to ' + clean_form_uri);
+            // $('#search_form').attr('action',clean_form_uri);
+            window.location = clean_form_uri;
+            // $('#search_form').submit();
+        });
+        $('#submit_button').click(function(evt){
+            evt.preventDefault();
+            $('#search_form').submit();
+        });
+        if(window.location.search &&
+            ( window.location.search.indexOf('small') > -1
+              || window.location.search.indexOf('cell') > -1
+              || window.location.search.indexOf('protein') > -1 )){
+            form_toggle();
+            var new_uri = clean_form_uri + window.location.search;
+            $('#excel_export_link').attr('href', new_uri + '&output_type=.xlsx');
+            $('#csv_export_link').attr('href', new_uri + '&output_type=.csv');
+        }
+        $('#form_toggler1, #form_untoggler1').click(form_toggle);
+    });
+
+    });
+    </script>
+{% endblock %}
+
 {% block datasetContent %}
 	{% if table %}
         {% if object.usage_message.value %}
@@ -14,14 +55,14 @@
         </a>
         </div>
       {% endcomment %}
-        <div style="float: left;" class="href-button" >
+        <div style="float: left;" class="href-button full-screen-view" >
           <a title="(open table in a new window)" href="{{ pop_out_link }}"  target="_blank">&nbsp;Full screen view</a>
         </div>
         {% include "db/searchExportBox.html" %}
 
-    <a href="#" id='form_toggler1' onclick="form_toggle();">Filter results: &gt;&gt;&gt;&gt;</a>
+    <a href="#" id='form_toggler1'">Filter results: &gt;&gt;&gt;&gt;</a>
     <div id="search_div" style='display:none; ' >
-        <a href="#" id='form_untoggler1' onclick="form_toggle();">&lt;&lt;&lt;&lt;</a>
+        <a href="#" id='form_untoggler1'">&lt;&lt;&lt;&lt;</a>
         <div id="search" class='search'>
         <span style='font-size: 12px; font-weight: bold;'>Select the entities to show:</span>
         <form id='search_form' action="{{ request.get_full_path }}" method="get"> <!-- needed for post: {% csrf_token %}  -->
@@ -53,35 +94,6 @@
        <!-- <a href="/form?{{ search_form.as_url_args }}&format=csv">Download As CSV</a> -->
        </div>
    </div>
-<script>
-function form_toggle(){
-    $('#search_div').toggle();
-    $('#form_toggler1').toggle();
-};
-$(function() {
-    var clean_form_uri = "{% url dataset_detail_results  facility_id=facilityId%}"
-    $('#clear_form_button').click(function(evt){
-        evt.preventDefault();
-        console.log('clear form to ' + clean_form_uri);
-        // $('#search_form').attr('action',clean_form_uri);
-        window.location = clean_form_uri;
-        // $('#search_form').submit();
-    });
-    $('#submit_button').click(function(evt){
-        evt.preventDefault();
-        $('#search_form').submit();
-    });
-    if(window.location.search && 
-        ( window.location.search.indexOf('small') > -1  
-          || window.location.search.indexOf('cell') > -1
-          || window.location.search.indexOf('protein') > -1 )){
-        form_toggle();
-        var new_uri = clean_form_uri + window.location.search;
-        $('#excel_export_link').attr('href', new_uri + '&output_type=.xlsx');
-        $('#csv_export_link').attr('href', new_uri + '&output_type=.csv');
-    }
-});
-</script>
         {% load render_table from django_tables2 %}
         {% render_table table %}
 	{% elif search %}

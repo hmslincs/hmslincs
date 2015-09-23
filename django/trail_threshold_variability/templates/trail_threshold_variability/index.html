@@ -1,36 +1,26 @@
-{% extends "base.html" %}
-
 {% load trail_threshold_variability %}
-
-{% block head_extra %}
-  <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}trail_threshold_variability/css/jquery-ui/jquery-ui-1.11.0-pre.min.css"/>
-  <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}trail_threshold_variability/css/style.css"/>
-  <script type="text/javascript" src="{{ STATIC_URL }}trail_threshold_variability/js/jquery-ui/jquery-ui-1.11.0-pre.min.js"></script>
-  <script type="text/javascript" src="{{ STATIC_URL }}trail_threshold_variability/js/main.js"></script>
-{% endblock %}
-
-{% block title %}
-  Fractional killing arises from cell-to-cell variability in overcoming a
-  caspase activity threshold - {{ block.super }}
-{% endblock %}
-
-{% block contentclass %}fullwidth{% endblock %}
-
-{% block body %}
+{% load hmslincs %}
 
   <h1>Fractional killing arises from cell-to-cell variability in overcoming a
   caspase activity threshold</h1>
 
+  <div class="pseudo-button cta-button"><a href="/roux-molsystbiol-2015/">View
+    Publication Summary</a>
+  </div>
+
   <p>Jérémie Roux<sup>1,3</sup>, Marc Hafner<sup>1,3</sup>, Samuel
     Bandara<sup>1</sup>, Joshua J. Sims<sup>1</sup>, Hannah Hudson<sup>2</sup>,
     Diana Chai<sup>2</sup>, and Peter K. Sorger</span><sup>1</sup><br>
-    <span style="font-size: 80%;"><sup>1</sup>Department of Systems Biology, Harvard Medical School, Boston,
-      MA 02115; <sup>2</sup>Merrimack Pharmaceuticals, Cambridge, MA 02139;
-      <sup>3</sup>JR and MH contributed equally to this work.</span></p>
+    <span style="font-size: 80%;"><sup>1</sup> Department of Systems Biology,
+    Harvard Medical School, Boston, MA; <sup>2</sup> Merrimack Pharmaceuticals,
+    Cambridge, MA; <sup>3</sup> JR and MH contributed equally to this work.</span>
+  </p>
 
-  <p><em>Mol Syst Biol</em> (2015) 11: 803.<br> doi:
-    <a href="http://dx.doi.org/10.15252/msb.20145584">10.15252/msb.20145584</a> /
-    PMID: <a href="http://www.ncbi.nlm.nih.gov/pubmed/25953765">25953765</a></p>
+  <p><em>Mol Syst Biol</em> (2015) 11: 803.<br>
+    doi:<a href="http://dx.doi.org/10.15252/msb.20145584">10.15252/msb.20145584</a> /
+    PMID:<a href="http://www.ncbi.nlm.nih.gov/pubmed/25953765">25953765</a> /
+    PMCID:<a href="http://www.ncbi.nlm.nih.gov/pmc/articles/PMC4461398">PMC4461398</a>
+  </p>
 
   <h2>Overview</h2>
 
@@ -91,7 +81,7 @@
           </td>
           {% for dose in treatment.doses %}
             <td class="lookup-table-hotspot cell-{{ dose.id }}">
-              <a href="img/popup/{{ dose.img_filename }}">{{ dose.amount }}</a>
+              <a href="{% flatpage_static %}trail_threshold_variability/g/popup/{{ dose.img_filename }}">{{ dose.amount }}</a>
             </td>
           {% endfor %}
           {% if forloop.first %}
@@ -99,7 +89,7 @@
               <td class="padding" colspan="{{ section.num_padding_columns }}"></td>
             {% endif %}
             <td>
-              <img src="img/schematic/{{ section.schematic_page }}.jpg"
+              <img src="{% flatpage_static %}trail_threshold_variability/g/schematic/{{ section.schematic_page }}.jpg"
                    class="schematic" width="250">
             </td>
           {% endif %}
@@ -129,31 +119,30 @@
     <tr>
       <td>Data and signatures</td>
       <td>All single-cell raw data, smoothed trajectories, and fitted parameters
-      for each replicate for each treatment condition in HeLa cells.</td>
-      <td><a href="{{ data_rel_url}}/All_SingleCell_data.zip">Download (.zip)</a></td>
+      for each replicate for each treatment condition.</td>
+      <td></td>
+      <td><a href="{% flatpage_static %}trail_threshold_variability/g/data/All_SingleCell_data.zip">Download (.zip)</a></td>
     </tr>
     <tr>
       <td>Signatures</td>
       <td>Well-by-well summary of the fitted parameters for each replicate for
-      each treatment condition. <em>These data also are viewable and available
-      for download through the
-      <a href="http://lincs.hms.harvard.edu/db/datasets/20232/">HMS LINCS Database</a>.
+      each treatment condition (HMS Dataset #20232).
       </em></td>
-      <td><a href="{{ data_rel_url}}/Aggregate_SingleCell_results.tsv">Download (.tsv)</a></td>
+      <td><a href="/db/datasets/20232/">Details</a></td>
+      <td><a href="{% flatpage_static %}trail_threshold_variability/g/data/Aggregate_SingleCell_results.tsv">Download (.tsv)</a></td>
     </tr>
     <tr>
       <td>Data and signatures</td>
       <td>Population-based viability and C8 activity results for Apomab, Apomab
-      + anti-Fc, and TRAIL treatments in several other cancer cell lines with
-      varying sensitivities to TRAIL.</td>
-      <td><a href="{{ data_rel_url}}/Results_other_lines.zip">Download (.zip)</a></td>
+      + anti-Fc, and TRAIL treatments in multiple cell lines.</td>
+      <td></td>
+      <td><a href="{% flatpage_static %}trail_threshold_variability/g/data/Results_other_lines.zip">Download (.zip)</a></td>
     </tr>
     <tr>
       <td>Software</td>
       <td>The MATLAB code for the image processing routines developed for this
       project.</td>
-      <td><a href="{{ data_rel_url}}/scripts.zip">Download (.zip)</a></td>
+      <td></td>
+      <td><a href="{% flatpage_static %}trail_threshold_variability/g/data/scripts.zip">Download (.zip)</a></td>
     </tr>
   </table>
-
-{% endblock %}

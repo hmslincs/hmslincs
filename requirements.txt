@@ -5,11 +5,12 @@ django-tables2 #==0.13.0
 django-tastypie<0.10.0 #==0.9.15
 django-webtemplates #==0.1.2
 flup #==1.0.3.dev-20110405
+h5py>=2.5,<2.6
 ipython #==0.13
 Jinja2 #==2.7.2
 lxml>=3.3.0
-matplotlib #==1.2.0
-# pandas  # this is too big, and only needed for single-cell-dynamics at build time anyway
+matplotlib==1.1.1 # newer versions don't render pixel-precise (in the pathway app at least)
+pandas>=0.16,<0.17
 psycopg2 #==2.4.5
 requests #==0.14.1
 unipath==1.1

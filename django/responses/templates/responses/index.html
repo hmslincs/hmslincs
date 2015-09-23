@@ -1,5 +1,16 @@
 {% extends "base.html" %}
 
+{% block requirejs %}
+    <script>
+     require.config({
+         paths: {
+             responses: 'responses/js',
+         },
+     });
+     require( [ 'responses/scatterplot_browser' ] );
+    </script>
+{% endblock %}
+
 {% block head_extra %}
 
   <link rel="stylesheet" href="{{ STATIC_URL }}responses/css/scatterplot_browser.css"/>
@@ -9,18 +20,34 @@
 #sidebar{margin:0;}
 .empty-div{display:none;}
 
-#preamble{
-  max-width:900px;
+.text-content{
+  width:900px;
   margin:0 auto;
-}
+ }
+
+ /* The following duplicated from #content table styles -- the HTML here is so
+    distorted our downloads table can't even be inside div#content. */
+ .downloads-override table {
+     border: 1px solid #e0e0e0;
+ }
+ .downloads-override td {
+     padding: 0 0.5em;
+     vertical-align: top;
+     border-right: 1px solid #e0e0e0;
+ }
+ .downloads-override tr:nth-child(even) {
+     background-color: #FFF9F0;
+ }
 
 </style>
 
 {% endblock %}
 
-{% block title %}Scatterplot browser - {{ block.super }}{% endblock %}
+{% block title %}Scatterplot browser{% endblock %}
 
 {% block contentclass %}fullwidth{% endblock %}
+
+{% block article_type %}Project Explorer{% endblock %}
 
 {% block body %}
     </div> <!-- close <div id="content"> -->
@@ -28,8 +55,37 @@
 <!-- </div> --> <!-- close <div id="pagebody-wrap"> -->
     <br class="clear-left"/>
 
-    <div id="preamble">
-      <h1>Scatterplot browser</h1>
+    <div class="text-content">
+
+      <h1>Profiles of Basal and Stimulated Receptor Signaling Networks
+      Predict Drug Response in Breast Cancer Lines</h1>
+
+      <div class="pseudo-button cta-button"><a href="/niepel_scisignal_2013/">View
+        Publication Summary</a>
+      </div>
+
+      <p>
+        Mario Niepel<sup>1*</sup>, Marc Hafner<sup>1*</sup>, Emily
+        A. Pace<sup>2*</sup>, Mirra Chung<sup>1</sup>, Diana H. Chai<sup>2</sup>,
+        Lili Zhou<sup>1</sup>, Birgit Schoeberl<sup>2</sup> and Peter
+        K. Sorger<sup>1</sup>
+      </p>
+
+      <p>
+        <span style="font-size: 80%;"><sup>1</sup> HMS LINCS Center,
+        Harvard Medical School, Boston, MA; <sup>2</sup> Merrimack
+        Pharmaceuticals, Cambridge, MA</span>
+      </p>
+
+      <p>
+        <em>Sci Signal</em> (2013) 6, ra84.<br>
+        doi:<a href="http://dx.doi.org/10.1126/scisignal.2004379">10.1126/scisignal.2004379</a> /
+        PMID:<a href="http://www.ncbi.nlm.nih.gov/pubmed/24065145">24065145</a> /
+        PMCID:<a href="http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3845839">PMC3845839</a>
+      </p>
+
+      <h2>Overview</h2>
+
       <p>This browser widget serves to explore the basal levels and activity of key receptor tyrosine kinases (RTKs) across the panel of 39 breast cancer cell lines studied in <a href="http://dx.doi.org/10.1126/scisignal.2004379">Niepel et al. (2013)</a>. The set of measurements comprises the abundance and basal phosphorylation of 22 receptors and 3 downstream kinases (ERK, Akt, and Src).  Hovering the cursor over the names in the Selection Panel gives a rapid scan over the available data; clicking on a name fixes the choice.  (For more info, click on the &#x24d8; icon.)</p>
     </div>
 
@@ -133,17 +189,55 @@
     </div> <!-- .centered-track -->
   </div> <!-- #main .global -->
 
-    <script>
-(function (hmslincs) {
-  hmslincs.STATIC_URL = "{{ STATIC_URL }}";
-})(window.hmslincs = window.hmslincs || {});
-    </script>
-
-    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/jquery-ui.js"></script>
-    <!-- <script src="//cdnjs.cloudflare.com/ajax/libs/d3/3.3.10/d3.min.js"></script> -->
-    <script src="//cdnjs.cloudflare.com/ajax/libs/d3/3.3.10/d3.js"></script>
-    <script src="{{ STATIC_URL }}responses/js/scatterplot_browser.js"></script>
+  <div class="text-content downloads-override">
+    <h2>Available data and software</h2>
+    <table class="downloads">
+      <tbody>
+        <tr>
+          <td>Data</td>
+          <td>Basal profile of receptor tyrosine kinase signaling network measured by ELISA (HMS Dataset #20137).</td>
+          <td><a href="/db/datasets/20137/">Details</a></td>
+          <td><a href="/db/datasets/20137/results?output_type=.xlsx">Download (.xlsx)</a></td>
+        </tr>
+        <tr>
+          <td>Data</td>
+          <td>Cell signaling response to growth factors measured by high-throughput microscopy (HMS Dataset #20138).</td>
+          <td><a href="/db/datasets/20138/">Details</a></td>
+          <td><a href="/db/datasets/20138/results?output_type=.xlsx">Download (.xlsx)</a></td>
+        </tr>
+        <tr>
+          <td>Data</td>
+          <td>Cell signaling response to cytokines measured by high-throughput microscopy (HMS Dataset #20139).</td>
+          <td><a href="/db/datasets/20139/">Details</a></td>
+          <td><a href="/db/datasets/20139/results?output_type=.xlsx">Download (.xlsx)</a></td>
+        </tr>
+        <tr>
+          <td>Data</td>
+          <td>Cell signaling response to growth factors measured by ELISA (HMS Dataset #20140).</td>
+          <td><a href="/db/datasets/20140/">Details</a></td>
+          <td><a href="/db/datasets/20140/results?output_type=.xlsx">Download (.xlsx)</a></td>
+        </tr>
+        <tr>
+          <td>Data</td>
+          <td>Transformed datasets used for drug predictions.</td>
+          <td><a href="/wordpress/wp-content/uploads/2013/09/niepel_2013_data5_all_transformed_details.txt">Details</a></td>
+          <td><a href="/wordpress/wp-content/uploads/2013/09/niepel_2013_data5_all_transformed.xlsx">Download (.xlsx)</a></td>
+        </tr>
+        <tr>
+          <td>Data</td>
+          <td>Drug response data from Heiser et al. (2012) <em>PNAS</em> 109(8), 2724–2729. doi: <a href="http://dx.doi.org/10.1073%2Fpnas.1018854108">10.1073/pnas.1018854108</a></td>
+          <td></td>
+          <td><a href="http://www.pnas.org/content/suppl/2011/10/14/1018854108.DCSupplemental/sd02.xlsx">Download (.xlsx)</a></td>
+        </tr>
+        <tr>
+          <td>Software</td>
+          <td>A link to our HMS LINCS GitHub for access to the code underlying the interactive scatterplot browser available on this project exploration website</a>.</td>
+          <td></td>
+          <td><a href="https://github.com/hmslincs/hmslincs/">hmslincs at GitHub</a></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 
 <!-- <div class="empty-div"> --> <!-- match the </div> for <div id="pagebody-wrap"> -->
   <!-- <div class="empty-div"> <\!-- match the </div> for <div id="pagebody"> -\-> -->

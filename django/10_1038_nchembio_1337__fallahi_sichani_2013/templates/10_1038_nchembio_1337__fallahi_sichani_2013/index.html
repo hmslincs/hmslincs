@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "10_1038_nchembio_1337__fallahi_sichani_2013/base.html" %}
 
 {% block head_extra %}
 
@@ -23,10 +23,15 @@ body{
   background-color:white;
 }
 #pagebody {
-  padding-top:45px;
   padding-bottom:0;
+  border-right-color: white;
+  border-left-color: white;
 }
-#content { display:none; }
+
+#content {
+  min-height: 0;
+}
+
 .empty-div{display:none;}
 
 .center-track{
@@ -34,29 +39,40 @@ body{
   margin:0 auto;
 }
 
-#title-wrap{
-  padding-top:14px;padding-bottom:12px;
-  border-right:#ffefe2 1px solid;border-bottom:#ffefe2 1px solid;border-left:#ffefe2 1px solid;
-}
-
-#title-wrap,#subtitle-wrap{
+#title-wrap,#subtitle-wrap, .downloads-override {
   max-width:940px;
-  margin-left:auto;margin-right:auto;margin-bottom:15px;
+  margin-left:auto;margin-right:auto;margin-bottom:25px;
   padding-right:20px;padding-left:20px;
 }
 
 .center-track iframe{
   margin:0 auto;
   display:table;
-  border-top:10px solid #E6941E;
 }
 
+   /* The following duplicated from #content table styles -- the HTML
+      here is so distorted our downloads table can't even be inside
+      div#content. */
+   .downloads-override table {
+       border: 1px solid #e0e0e0;
+   }
+   .downloads-override td {
+       padding: 0 0.5em;
+       vertical-align: top;
+       border-right: 1px solid #e0e0e0;
+   }
+   .downloads-override tr:nth-child(even) {
+       background-color: #FFF9F0;
+   }
+   
   </style>
 {% endblock %}
 
-{% block title %}Quantifying variability in cancer drug response - {{ block.super }}{% endblock %}
+{% block title %}Quantifying variability in cancer drug response{% endblock %}
 
 {% block contentclass %}fullwidth{% endblock %}
+
+{% block article_type %}Project Explorer{% endblock %}
 
 {% block body %}
 
@@ -70,21 +86,24 @@ body{
 <div class="center-track">
 
   <div id="title-wrap">
-    <h1 id="main-title">Quantifying variability in cancer drug response</h1>
+    <h1 id="main-title">Metrics other than potency reveal systematic variation
+    in responses to cancer drugs</h1>
+  </div>
+
+  <div class="pseudo-button cta-button"><a href="/fallahi-sichani-nchembio-2013/">View
+    Publication Summary</a>
   </div>
 
   <div id="subtitle-wrap">
-    <h2>Metrics other than potency reveal systematic variation in responses to cancer drugs</h2>
-    <p>
-     Mohammad Fallahi-Sichani<sup>1</sup>, Saman Honarnejad<sup>1</sup>, Laura M.
-     Heiser<sup>2</sup>, Joe W. Gray<sup>2</sup> and Peter K. Sorger<sup>1</sup>
-    </p>
-    <p>
-      <sup>1</sup>HMS LINCS Center; <sup>2</sup>Department of Biomedical
-      Engineering, Oregon Health and Science University
-    </p>
-    <p>doi:<a
-    href="http://dx.doi.org/10.1038/nchembio.1337">10.1038/nchembio.1337</a></p>
+    <p>Mohammad Fallahi-Sichani<sup>1</sup>, Saman Honarnejad<sup>1</sup>, Laura
+      M. Heiser<sup>2</sup>, Joe W. Gray<sup>2</sup> and Peter K. Sorger<sup>1</sup></p>
+    <p><span style="font-size: 80%;"><sup>1</sup> HMS LINCS Center, Harvard
+      Medical School, Boston, MA; <sup>2</sup> Department of Biomedical
+      Engineering, Oregon Health and Science University, Portland, OR</span></p>
+    <p><em>Nat Chem Biol</em> (2013) 9, 708-714.<br>
+      doi:<a href="http://dx.doi.org/10.1038/nchembio.1337">10.1038/nchembio.1337</a> /
+      PMID:<a href="http://www.ncbi.nlm.nih.gov/pubmed/24013279">24013279</a> /
+      PMCID:<a href="http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3947796">PMC3947796</a></p>
   </div>
 
   <iframe id="dose-response-grid" src="{{ STATIC_URL }}10_1038_nchembio_1337__fallahi_sichani_2013/html/loading.html"           marginwidth="0" marginheight="0" scrolling="no" style="width:1200px;height:1070px;"></iframe>
@@ -93,6 +112,32 @@ body{
 
 </div> <!-- .center-track -->
 
+<div class="downloads-override">
+  <h2>Available data and software</h2>
+  <table class="downloads">
+    <tbody>
+      <tr>
+        <td>Data</td>
+        <td>All raw imaging data and calculated fluorescence intensities across dose for 6 drugs in 4 breast cell lines at 2 timepoints (HMS Dataset #20136).</td>
+        <td><a href="/db/datasets/20136/">Details</a></td>
+        <td><a href="/db/datasets/20136/results?output_type=.xlsx">Download (.xlsx)</a></td>
+      </tr>
+      <tr>
+        <td>Signatures</td>
+        <td>The results of multi-parametric analysis of dose-response data for 2789 drug-cell line combinations (HMS Dataset #20120).</td>
+        <td><a href="/db/datasets/20120/">Details</a></td>
+        <td><a href="/db/datasets/20120/results?output_type=.xlsx">Download (.xlsx)</a></td>
+      </tr>
+      <tr>
+        <td>Software</td>
+        <td>A link to our HMS LINCS GitHub for access to the code underlying the interactive data browsers available on this project exploration website.</td>
+        <td></td>
+        <td><a href="https://github.com/hmslincs/hmslincs/">hmslincs at GitHub</a></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
 <!-- ====================================================================== -->
 <!-- <div class="empty-div"> --> <!-- match the </div> for #pagebody-wrap -->
   <div class="empty-div"> <!-- match the </div> for #pagebody -->
@@ -100,17 +145,19 @@ body{
 <!-- ====================================================================== -->
 
     <script>
-(function (hmslincs) {
-  hmslincs.STATIC_URL = "{{ STATIC_URL }}";
-}(window.hmslincs = window.hmslincs || {}));
-
-(function ($) {
-  $(window).load(function () {
-    $('#intro-to-dose-response-curves').attr('src', 'intro_to_dose_response_curves_iframe.html');
-    $('#dose-response-grid').attr('src', 'dose_response_grid_iframe.html');
-    $('#scatterplot-browser').attr('src', 'scatterplot_browser_iframe.html');
-  });
-}(jQuery));
+     require(['jquery'], function (jquery) {
+         jquery(document).ready(function ($) {
+             $(window).load(function () {
+                 /* Lazy-load iframe content. This is how the "Loading..."
+                 indicator on the top iframe gets replaced, and also an attempt
+                 at isolating performance issues or errors in any of the three
+                 "sketches" from impacting the loading of the others. */
+                 $('#intro-to-dose-response-curves').attr('src', 'intro_to_dose_response_curves_iframe.html');
+                 $('#dose-response-grid').attr('src', 'dose_response_grid_iframe.html');
+                 $('#scatterplot-browser').attr('src', 'scatterplot_browser_iframe.html');
+             });
+         });
+     });
     </script>
 
 {% endblock %}

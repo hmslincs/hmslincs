@@ -1,5 +1,7 @@
+{% load hmslincs %}
+
 <div class="lookup-table-popup cell-{{ dose.id }}">
-  <a class="media-ondemand" href="img/popup/{{ dose.img_filename }}">Single-cell
+  <a class="media-ondemand" href="{% flatpage_static %}trail_threshold_variability/g/popup/{{ dose.img_filename }}">Single-cell
     data summary for {{ treatment.name_main }}
     @ {{ dose.amount }} {{ treatment.unit }}
     {% if treatment.name_other %}

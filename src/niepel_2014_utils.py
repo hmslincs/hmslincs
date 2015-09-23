@@ -7,6 +7,7 @@ import codecs
 import cPickle as pickle
 import shutil
 import shell_utils as su
+import unipath
 from PIL import Image
 from django.template.loader import render_to_string
 
@@ -21,6 +22,9 @@ DOCROOT = op.abspath(op.join(
         op.dirname(__file__), os.pardir,
         'temp', 'docroot', 'explore', 'breast-cancer-signaling'))
 BASE_URL = '/explore/breast-cancer-signaling/'
+GENERATED_PATH = unipath.Path(__file__).ancestor(2).child(
+    'django', 'breast_cancer_signaling', 'static',
+    'breast_cancer_signaling', 'g')
 
 def resource_path(*elements):
     "Canonicalize a path relative to the resource library."
@@ -34,9 +38,9 @@ def resource_path(*elements):
     return op.abspath(op.join(root_path, *elements))
 
 def create_output_path(*elements):
-    "Create and canonicalize a path relative to the output directory."
-    path = op.join(DOCROOT, *elements)
-    su.mkdirp(path)
+    "Create and canonicalize a path relative to the static 'g' directory."
+    path = GENERATED_PATH.child(*elements)
+    path.mkdir(parents=True)
     return path
 
 def print_status_accessible(*elements):

@@ -1,6 +1,6 @@
 'use strict';
 
-// define( [ 'jquery', 'd3', 'hmslincs/utils' ],
+// define( [ 'jquery', 'd3', 'lib/utils' ],
 // function ( $      ,  d3 ,  u ) {
 
 define( [],

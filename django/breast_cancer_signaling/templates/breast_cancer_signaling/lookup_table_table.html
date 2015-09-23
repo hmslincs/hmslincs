@@ -1,3 +1,5 @@
+{% load hmslincs %}
+
 <div class="lookup-table-container">
 
   <h2>p{{ table.name|capfirst }} responses</h2>
@@ -27,7 +29,7 @@
       </div>
     {% endfor %}
 
-    <img src="{{ table.image_path }}" id="" border="0" 
+    <img src="{% flatpage_static %}breast_cancer_signaling/g/matrix/{{ table.image_path }}" id="" border="0" 
          width="{{ table.image_width }}" height="{{ table.image_height }}" />
 
   </div>

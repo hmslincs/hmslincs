@@ -7,6 +7,9 @@ import re
 import shutil
 import argparse
 from django.conf import settings
+from django.template.loader import render_to_string
+from django.contrib.flatpages.models import FlatPage
+from django.contrib.sites.models import Site
 
 
 ligand_path = resource_path('SignalingPage', 'LigandPage')
@@ -34,7 +37,7 @@ image_sizes_large = dict((name, (width * 2, height * 2))
 html_path_elements = ['ligand']
 img_path_elements = html_path_elements + ['img']
 data_path_elements = html_path_elements + ['data']
-html_path = create_output_path(*html_path_elements)
+html_path = '/'.join(html_path_elements) + '/'
 data_path = create_output_path(*data_path_elements)
 
 parser = argparse.ArgumentParser(
@@ -51,7 +54,7 @@ if not ligand_info:
     sheet = workbook.worksheets[0]
     sheet_iter = sheet.iter_rows()
     sheet_iter.next() # skip header row (iter_rows API for offsets is buggy)
-    ligand_info = [[cell.internal_value for cell in row] for row in sheet_iter]
+    ligand_info = [[cell.value for cell in row] for row in sheet_iter]
     stash_put('ligand_info', ligand_info)
 PASS_nl()
 
@@ -64,7 +67,7 @@ if not ligand_affinity:
     sheet = workbook.worksheets[0]
     sheet_iter = sheet.iter_rows()
     sheet_iter.next() # skip header row (iter_rows API for offsets is buggy)
-    ligand_affinity = [[cell.internal_value for cell in row]
+    ligand_affinity = [[cell.value for cell in row]
                        for row in sheet_iter]
     stash_put('ligand_affinity', ligand_affinity)
 PASS_nl()
@@ -157,7 +160,7 @@ common = {
     'BASE_URL': BASE_URL,
 }
 breadcrumb_base = [
-    {'url': BASE_URL, 'text': 'Start'},
+    {'url': BASE_URL, 'text': 'Project explorer home'},
     {'url': None, 'text': 'Ligands'},
 ]
 
@@ -169,8 +172,19 @@ for i, data in enumerate(all_data):
     data.update(common)
     data['breadcrumbs'] = breadcrumb_base + [{'url': '', 'text': data['name']}]
     html_filename = data['name'] + '.html'        
-    render_template('breast_cancer_signaling/ligand.html', data,
-                    html_path, html_filename)
+    
+    url = BASE_URL + html_path + html_filename
+    content = render_to_string('breast_cancer_signaling/ligand.html', data)
+
+    page, created = FlatPage.objects.get_or_create(url=url)
+    page.title = ('Ligand %s - Analysis of growth factor signaling in genetically '
+                  'diverse breast cancer lines' % data['name'])
+    page.content = content
+    page.template_name = 'breast_cancer_signaling/base.html'
+    page.sites.clear()
+    page.sites.add(Site.objects.get_current())
+    page.save()
+
     data_filename = '%s_data.csv' % data['name']
     data_src_path = os.path.join(ligand_path, 'Ligand_data', data_filename)
     data_dest_path = os.path.join(data_path, data_filename)

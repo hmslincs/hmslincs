@@ -1,0 +1,37 @@
+{% extends "wordpress_base.html" %}
+
+{% block base_head_extra %}
+
+    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/hmslincs.css" />
+
+    <script language="javascript" type="text/javascript">
+     var require = {
+         baseUrl: '{{ STATIC_URL }}',
+         paths: {
+             cytoscape: 'ext/cytoscape/2.3.4/cytoscape.min',
+             d3: 'ext/d3/3.3.10/d3.min',
+             underscore: 'ext/lodash/3.5.0/lodash.min',
+             jqueryui: 'ext/jquery-ui/1.11.4/jquery-ui.min',
+             jquery_throttle_debounce: 'ext/jquery-throttle-debounce/1.1/jquery.ba-throttle-debounce.min',
+             mediaelement: 'ext/mediaelement/2.13.1/js/mediaelement-and-player.min',
+             lib: 'js',
+         },
+         shim: {
+             d3: { exports: 'd3' },
+             jquery_throttle_debounce: [ 'jquery' ],
+             mediaelement: [ 'jquery' ],
+         },
+     };
+    </script>
+    <script src="{{ STATIC_URL }}ext/require/2.1.20/require.min.js"></script>
+    {# Monkey-patch jquery in so require.js will know about it. #}
+    <script language="javascript" type="text/javascript">
+     if (typeof jQuery === 'function') {
+         define('jquery', function () { return jQuery; });
+     }
+    </script>
+
+    {% block requirejs %}{% endblock %}
+    {% block head_extra %}{% endblock %}
+
+{% endblock %}

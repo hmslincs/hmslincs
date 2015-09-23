@@ -1,16 +1,3 @@
-{% extends "base.html" %}
-
-{% block head_extra %}
-  <link rel="stylesheet" href="{{ STATIC_URL }}pathway/css/pathway.css"/>
-  <script src="{{ STATIC_URL }}pathway/js/pathway.js"></script>
-{% endblock %}
-
-{% block title %}Kinase inhibitor pathways - {{ block.super }}{% endblock %}
-
-{% block contentclass %}fullwidth{% endblock %}
-
-{% block body %}
-
 <h1>Kinase inhibitor pathways</h1>
 
 <div id="pathway-container">
@@ -60,9 +47,12 @@ targets</a> by name or other attributes.
 <h2>References</h2>
 
 <ol>
-  <li id="ref1">Heiser, L. M. et al. Subtype and pathway specific responses to
-  anticancer compounds in breast cancer. PNAS 109, 2724-2729 (2012).
-  doi:<a href="http://dx.doi.org/10.1073/pnas.1018854108">10.1073/pnas.1018854108</a>
+  <li id="ref1">
+    Heiser, L. et al. (2012) Subtype and pathway specific responses
+    to anticancer compounds in breast cancer. <em>Proc Natl Acad Sci</em>.
+    109(8), 2724-9.
+    doi:<a href="http://dx.doi.org/10.1073/pnas.1018854108">10.1073/pnas.1018854108</a>
+    PMID:<a href="http://www.ncbi.nlm.nih.gov/pubmed/22003129">22003129</a>
+    PMCID:<a href="http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3286973">PMC3286973</a>
+  </li>
 </ol>
-
-{% endblock %}
