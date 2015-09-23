@@ -1,6 +1,5 @@
 from __future__ import print_function, division
 from niepel_2014_utils import *
-import wand.image, wand.color
 import math
 import os
 import re
@@ -35,33 +34,54 @@ parser.add_argument('-n', '--no-images', action='store_true', default=False,
                     help='Skip building images')
 args = parser.parse_args()
 
-print_partial('determine PDF resolution')
-img_tmp = wand.image.Image(filename=akt_pdf_filename)
-# Use img_tmp height because the source image is rotated 90 degrees.
-height_inches = img_tmp.height / img_tmp.resolution[1]
-resolution = int(math.floor(DESIRED_WIDTH_PX / height_inches))
-img_tmp.close()
-PASS_nl()
+# Pre-calculated table image dimensions for verification against actual images
+# (see the comment above the wand import below for an explanation).
+table_img_width = 1732
+table_img_height = 1002
 
-print_partial(os.path.basename(akt_pdf_filename))
-img_akt = wand.image.Image(filename=akt_pdf_filename, resolution=resolution)
-img_akt.rotate(-90)
 if not args.no_images:
+
+    # NOTE: This import is here because wand is broken on orchestra debian
+    # (binary libMagickWand.so is too old) and won't even import. We can run
+    # the image generation elsewhere and copy the images in, but the HTML
+    # generation needs to run here since it writes to the DB. Putting the
+    # import here allows the -n option to prevent the crash on import.
+    # However we still need the image dimensions for the HTML generation, so
+    # we store some pre-calculated numbers in the code and at least we verify
+    # them when the image generation code does get run.
+    import wand.image, wand.color
+
+    print_partial('determine PDF resolution')
+    img_tmp = wand.image.Image(filename=akt_pdf_filename)
+    # Use img_tmp height because the source image is rotated 90 degrees.
+    height_inches = img_tmp.height / img_tmp.resolution[1]
+    resolution = int(math.floor(DESIRED_WIDTH_PX / height_inches))
+    img_tmp.close()
+    PASS_nl()
+
+    print_partial(os.path.basename(akt_pdf_filename))
+    img_akt = wand.image.Image(filename=akt_pdf_filename, resolution=resolution)
+    img_akt.rotate(-90)
+    if img_akt.width != table_img_width or img_akt.height != table_img_height:
+        raise RuntimeError("AKT pdf image (%s) does not have the expected "
+                           "dimensions" % akt_pdf_filename)
     with wand.image.Image(width=img_akt.width, height=img_akt.height,
                           background=wand.color.Color('white')) as img_out:
         img_out.composite(image=img_akt, left=0, top=0)
         img_out.save(filename=img_path.child('table_akt.png'))
-PASS_nl()
+    PASS_nl()
 
-print_partial(os.path.basename(erk_pdf_filename))
-img_erk = wand.image.Image(filename=erk_pdf_filename, resolution=resolution)
-img_erk.rotate(-90)
-if not args.no_images:
+    print_partial(os.path.basename(erk_pdf_filename))
+    img_erk = wand.image.Image(filename=erk_pdf_filename, resolution=resolution)
+    img_erk.rotate(-90)
+    if img_erk.width != table_img_width or img_erk.height != table_img_height:
+        raise RuntimeError("ERK pdf image (%s) does not have the expected "
+                           "dimensions" % erk_pdf_filename)
     with wand.image.Image(width=img_erk.width, height=img_erk.height,
                           background=wand.color.Color('white')) as img_out:
         img_out.composite(image=img_erk, left=0, top=0)
         img_out.save(filename=img_path.child('table_erk.png'))
-PASS_nl()
+    PASS_nl()
 
 # Constants determined empirically by inspecting the output images (and tweaking
 # a bit after looking at the output html). All values in CSS px.
@@ -130,14 +150,14 @@ data = {
         {
             'name': 'akt',
             'image_path': 'img/table_akt.png',
-            'image_width': img_akt.width / 2,
-            'image_height': img_akt.height / 2,
+            'image_width': table_img_width / 2,
+            'image_height': table_img_height / 2,
             },
         {
             'name': 'erk',
             'image_path': 'img/table_erk.png',
-            'image_width': img_erk.width / 2,
-            'image_height': img_erk.height / 2,
+            'image_width': table_img_width / 2,
+            'image_height': table_img_height / 2,
             },
         ],
     'plot_dimensions': PLOT_DIMENSIONS,

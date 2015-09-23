@@ -8,7 +8,6 @@ import argparse
 import itertools
 import unipath
 import csv
-import wand.image
 import django.conf
 from django.template.loader import render_to_string
 from django.core.management.base import BaseCommand, CommandError
@@ -157,6 +156,12 @@ def build_static(options):
 
     if not options['no_images']:
         # Resize and copy popup images.
+        # NOTE: This import is here because wand is broken on orchestra debian
+        # (binary libMagickWand.so is too old) and won't even import. We can run
+        # the image generation elsewhere and copy the images in, but the HTML
+        # generation needs to run here since it writes to the DB. Putting the
+        # import here allows the -n option to prevent the crash on import.
+        import wand.image
         popup_dest_path.mkdir()
         for dose in doses:
             dest_path = popup_dest_path.child(dose['img_filename'])
