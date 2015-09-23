@@ -30,7 +30,7 @@ body #pagebody-wrap {
 }
 
 #override .override-content {
-  padding: 25px;
+  padding: 0 23px;
 }
 
 #override .override-content h1 {
