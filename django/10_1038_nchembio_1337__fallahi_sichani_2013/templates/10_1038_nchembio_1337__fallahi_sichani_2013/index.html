@@ -39,7 +39,7 @@ body{
   margin:0 auto;
 }
 
-#title-wrap,#subtitle-wrap{
+#title-wrap,#subtitle-wrap, .downloads-override {
   max-width:940px;
   margin-left:auto;margin-right:auto;margin-bottom:25px;
   padding-right:20px;padding-left:20px;
@@ -50,6 +50,21 @@ body{
   display:table;
 }
 
+   /* The following duplicated from #content table styles -- the HTML
+      here is so distorted our downloads table can't even be inside
+      div#content. */
+   .downloads-override table {
+       border: 1px solid #e0e0e0;
+   }
+   .downloads-override td {
+       padding: 0 0.5em;
+       vertical-align: top;
+       border-right: 1px solid #e0e0e0;
+   }
+   .downloads-override tr:nth-child(even) {
+       background-color: #FFF9F0;
+   }
+   
   </style>
 {% endblock %}
 
@@ -96,6 +111,32 @@ body{
   <iframe id="intro-to-dose-response-curves" marginwidth="0" marginheight="0" scrolling="no" style="width: 900px;height:1100px;"></iframe> 
 
 </div> <!-- .center-track -->
+
+<div class="downloads-override">
+  <h2>Available data and software</h2>
+  <table class="downloads">
+    <tbody>
+      <tr>
+        <td>Data</td>
+        <td>All raw imaging data and calculated fluorescence intensities across dose for 6 drugs in 4 breast cell lines at 2 timepoints (HMS Dataset #20136).</td>
+        <td><a href="/db/datasets/20136/">Details</a></td>
+        <td><a href="/db/datasets/20136/results?output_type=.xlsx">Download (.xlsx)</a></td>
+      </tr>
+      <tr>
+        <td>Signatures</td>
+        <td>The results of multi-parametric analysis of dose-response data for 2789 drug-cell line combinations (HMS Dataset #20120).</td>
+        <td><a href="/db/datasets/20120/">Details</a></td>
+        <td><a href="/db/datasets/20120/results?output_type=.xlsx">Download (.xlsx)</a></td>
+      </tr>
+      <tr>
+        <td>Software</td>
+        <td>A link to our HMS LINCS GitHub for access to the code underlying the interactive data browsers available on this project exploration website.</td>
+        <td></td>
+        <td><a href="https://github.com/hmslincs/hmslincs/">hmslincs at GitHub</a></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
 
 <!-- ====================================================================== -->
 <!-- <div class="empty-div"> --> <!-- match the </div> for #pagebody-wrap -->
