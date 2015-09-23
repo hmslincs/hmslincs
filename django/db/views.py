@@ -2367,7 +2367,7 @@ def export_as_xlsx(name,col_key_name_map, cursor=None, queryset=None,
                 logger.info("row: " + str(row))
             row += 1 
     logger.info('save temp file')
-    with SpooledTemporaryFile() as f:
+    with SpooledTemporaryFile(max_size=8*1024) as f:
         wb.save(f)
         f.seek(0)
         logger.info('write file to response: %s ' % name)
