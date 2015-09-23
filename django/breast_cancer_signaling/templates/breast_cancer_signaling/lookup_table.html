@@ -1,8 +1,5 @@
-{% extends "breast_cancer_signaling/base.html" %}
-
-{% block title %}
-  Signaling Response Matrix - {{ block.super }}
-{% endblock %}
+{% extends "breast_cancer_signaling/base_content.html" %}
+{% load hmslincs %}
 
 {% block content %}
 
@@ -13,7 +10,7 @@
 <h1>Signaling Response Matrix</h1>
 
 <img id="legend-smallbox-lookuptables"
-     src="{{ STATIC_URL }}breast_cancer_signaling/img/legend_smallbox_lookuptables.png"/>
+     src="{% flatpage_static %}breast_cancer_signaling/img/legend_smallbox_lookuptables.png"/>
 
 <p>The two matrices summarize the signaling responses for all cell lines and
 ligands. Each small subplot shows the results by ligand and cell line: the upper
@@ -32,7 +29,7 @@ selections.</p>
 {% for cell in cells %}
   <div class="lookup-table-popup cell-{{ cell.name }}"
        title="{{ cell.cell_line }} responses to {{ cell.ligand }}">
-    <a href="img/{{ cell.name }}.jpg" class="media-ondemand">{{ cell.name }}</a>
+    <a href="{% flatpage_static %}breast_cancer_signaling/g/matrix/img/{{ cell.name }}.jpg" class="media-ondemand">{{ cell.name }}</a>
     <img width="{{ plot_dimensions.0 }}" height="{{ plot_dimensions.1 }}" />
   </div>
 {% endfor %}

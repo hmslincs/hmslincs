@@ -63,8 +63,8 @@ urlpatterns = patterns('',
     (r'^(?P<url>explore/single-cell-dynamics/)$',
      'django.contrib.flatpages.views.flatpage'),
 
-    # breast_cancer_signaling is currently served by
-    # apache directly from STATIC_ROOT, so no url patterns are listed here.
+    (r'^(?P<url>explore/breast-cancer-signaling/.*)$',
+     'django.contrib.flatpages.views.flatpage'),
 )
 
 # For DEBUG mode only (development) serving of static files

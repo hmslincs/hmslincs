@@ -7,6 +7,9 @@ import re
 import shutil
 import argparse
 from django.conf import settings
+from django.template.loader import render_to_string
+from django.contrib.flatpages.models import FlatPage
+from django.contrib.sites.models import Site
 
 
 cellline_path = resource_path('SignalingPage', 'CellLinePage')
@@ -39,7 +42,7 @@ topmeasures_large_suffix = '_allRTKs'
 html_path_elements = ['cell-line']
 img_path_elements = html_path_elements + ['img']
 data_path_elements = html_path_elements + ['data']
-html_path = create_output_path(*html_path_elements)
+html_path = '/'.join(html_path_elements) + '/'
 data_path = create_output_path(*data_path_elements)
 
 parser = argparse.ArgumentParser(
@@ -119,7 +122,7 @@ common = {
     'BASE_URL': BASE_URL,
 }
 breadcrumb_base = [
-    {'url': BASE_URL, 'text': 'Start'},
+    {'url': BASE_URL, 'text': 'Project explorer home'},
     {'url': None, 'text': 'Cell lines'},
 ]
 
@@ -131,8 +134,19 @@ for i, data in enumerate(all_data):
     data.update(common)
     data['breadcrumbs'] = breadcrumb_base + [{'url': '', 'text': data['name']}]
     html_filename = data['name'] + '.html'
-    render_template('breast_cancer_signaling/cell_line.html', data,
-                    html_path, html_filename)
+
+    url = BASE_URL + html_path + html_filename
+    content = render_to_string('breast_cancer_signaling/cell_line.html', data)
+
+    page, created = FlatPage.objects.get_or_create(url=url)
+    page.title = ('Cell line %s - Analysis of growth factor signaling in genetically '
+                  'diverse breast cancer lines' % data['name'])
+    page.content = content
+    page.template_name = 'breast_cancer_signaling/base.html'
+    page.sites.clear()
+    page.sites.add(Site.objects.get_current())
+    page.save()
+
     data_filename = '%s_data.csv' % data['name']
     data_src_path = os.path.join(cellline_path, 'CellLine_data', data_filename)
     data_dest_path = os.path.join(data_path, data_filename)

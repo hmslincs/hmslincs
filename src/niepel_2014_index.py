@@ -2,6 +2,9 @@ from niepel_2014_utils import *
 import os
 from collections import namedtuple
 from django.conf import settings
+from django.template.loader import render_to_string
+from django.contrib.flatpages.models import FlatPage
+from django.contrib.sites.models import Site
 import shutil
 
 # Pattern to create a namedtuple-based class with optional args.
@@ -55,12 +58,21 @@ data = {
         'ligand_pathwaybias': FigArgs('ligand', 'pathwaybias', ['EGF'],
                                       (700, 292)),
     },
-    'STATIC_URL': settings.STATIC_URL,
     'BASE_URL': BASE_URL,
 }
 
-render_template('breast_cancer_signaling/index.html', data,
-                html_path, 'index.html')
+url = BASE_URL
+content = render_to_string('breast_cancer_signaling/index.html', data)
+
+page, created = FlatPage.objects.get_or_create(url=url)
+page.title = ('Analysis of growth factor signaling in genetically '
+              'diverse breast cancer lines')
+page.content = content
+page.template_name = 'breast_cancer_signaling/base.html'
+page.sites.clear()
+page.sites.add(Site.objects.get_current())
+page.save()
+
 data_filename = 'all_data.csv'
 data_src_path = os.path.join(source_path, data_filename)
 data_dest_path = os.path.join(html_path, data_filename)

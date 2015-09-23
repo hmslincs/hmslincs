@@ -6,6 +6,9 @@ import os
 import re
 import argparse
 from django.conf import settings
+from django.template.loader import render_to_string
+from django.contrib.flatpages.models import FlatPage
+from django.contrib.sites.models import Site
 
 # Table image - 870px wide, 2x resolution.
 TABLE_WIDTH = 870
@@ -18,8 +21,10 @@ lookup_path = resource_path('SignalingPage', 'LookupTablesPage')
 
 panel_path = os.path.join(lookup_path, 'subfigures')
 
-img_path_elements = ('matrix', 'img')
-html_path = os.path.dirname(create_output_path(*img_path_elements))
+html_path_elements = ['matrix']
+img_path_elements = html_path_elements + ['img']
+html_path = '/'.join(html_path_elements) + '/'
+img_path = create_output_path(*img_path_elements)
 
 akt_pdf_filename = os.path.join(lookup_path, 'lookup table pAKT.pdf')
 erk_pdf_filename = os.path.join(lookup_path, 'lookup table pERK.pdf')
@@ -45,7 +50,7 @@ if not args.no_images:
     with wand.image.Image(width=img_akt.width, height=img_akt.height,
                           background=wand.color.Color('white')) as img_out:
         img_out.composite(image=img_akt, left=0, top=0)
-        img_out.save(filename=os.path.join(html_path, 'img', 'table_akt.png'))
+        img_out.save(filename=img_path.child('table_akt.png'))
 PASS_nl()
 
 print_partial(os.path.basename(erk_pdf_filename))
@@ -55,7 +60,7 @@ if not args.no_images:
     with wand.image.Image(width=img_erk.width, height=img_erk.height,
                           background=wand.color.Color('white')) as img_out:
         img_out.composite(image=img_erk, left=0, top=0)
-        img_out.save(filename=os.path.join(html_path, 'img', 'table_erk.png'))
+        img_out.save(filename=img_path.child('table_erk.png'))
 PASS_nl()
 
 # Constants determined empirically by inspecting the output images (and tweaking
@@ -115,7 +120,7 @@ for column, cell_line in enumerate(cell_line_names):
 
 data = {
     'breadcrumbs': [
-        {'url': BASE_URL, 'text': 'Start'},
+        {'url': BASE_URL, 'text': 'Project explorer home'},
         {'url': '', 'text': 'Response matrix'},
     ],
     'ligand_links': ligand_links,
@@ -136,12 +141,20 @@ data = {
             },
         ],
     'plot_dimensions': PLOT_DIMENSIONS,
-    'STATIC_URL': settings.STATIC_URL,
     'BASE_URL': BASE_URL,
 }
 
-render_template('breast_cancer_signaling/lookup_table.html', data,
-                html_path, 'index.html')
+url = BASE_URL + html_path
+content = render_to_string('breast_cancer_signaling/lookup_table.html', data)
+
+page, created = FlatPage.objects.get_or_create(url=url)
+page.title = ('Signaling Response Matrix - Analysis of growth factor signaling in '
+              'genetically diverse breast cancer lines')
+page.content = content
+page.template_name = 'breast_cancer_signaling/base.html'
+page.sites.clear()
+page.sites.add(Site.objects.get_current())
+page.save()
 
 if not args.no_images:
     print()

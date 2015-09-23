@@ -1,3 +1,5 @@
+{% load hmslincs %}
+
 <div class="titled-figure-wrapper">
   {% for name in a.names %}
     <p class="titled-figure">
@@ -5,7 +7,7 @@
         <a href="{{ BASE_URL }}{{ a.category }}/{{ name }}.html">
       {% endif %}
       {{ name }}<br />
-      <img src="{{ BASE_URL }}{{ a.category }}/img/{{ a.img_type }}/{{ a.fname_prefix }}{{ name }}.jpg"
+      <img src="{% flatpage_static %}breast_cancer_signaling/g/{{ a.category }}/img/{{ a.img_type }}/{{ a.fname_prefix }}{{ name }}.jpg"
            width="{{ a.dimensions.0 }}" height="{{ a.dimensions.1 }}" />
       {% if a.link %}
         </a>

@@ -1,4 +1,5 @@
-{% extends "breast_cancer_signaling/base.html" %}
+{% extends "breast_cancer_signaling/base_content.html" %}
+{% load hmslincs %}
 
 {% block content %}
 
@@ -23,8 +24,9 @@
 
 <h2>Description of the dataset and downloads</h2>
 
-<p>This dataset describes the responsiveness of a canonical collection of 39
-  breast cancer cell lines of the <a href="cell-line/data/cell_line_info.xlsx">NCI-ICBP43
+<p>This dataset describes the responsiveness of a canonical collection
+  of 39 breast cancer cell lines of the
+  <a href="{% flatpage_static %}breast_cancer_signaling/g/cell-line/data/cell_line_info.xlsx">NCI-ICBP43
   set</a>, whose genotypes span many of the mutations observed in primary
   disease <a class="ref" href="#ref-1-neve">1</a>. The data comprises the
   phosphorylation levels of ERK (MAPK1/3) and Akt (Akt/1/2/3) kinases following
@@ -39,13 +41,16 @@
 
 <ul>
   <li>
-    <a href="all_data.csv">Download raw data and signaling profiles (.csv)</a>
+    <a href="{% flatpage_static %}breast_cancer_signaling/g/all_data.csv">Download
+    raw data and signaling profiles (.csv)</a>
   </li>
   <li>
-    <a href="cell-line/data/cell_line_info.xlsx">Download cell line details (.xlsx)</a>
+    <a href="{% flatpage_static %}breast_cancer_signaling/g/cell-line/data/cell_line_info.xlsx">Download
+    cell line details (.xlsx)</a>
   </li>
   <li>
-    <a href="cell-line/data/cell_line_pten_pi3k_mutations.xlsx">Download cell line mutation data (.xlsx)</a>
+    <a href="{% flatpage_static %}breast_cancer_signaling/g/cell-line/data/cell_line_pten_pi3k_mutations.xlsx">Download
+    cell line mutation data (.xlsx)</a>
   </li>
 </ul>
 
@@ -96,10 +101,10 @@ displayed.</p>
     <a href="{{ BASE_URL }}matrix/">
       View full response matrix<br/>
       <img
-      src="{{ STATIC_URL }}breast_cancer_signaling/img/table_akt_10.gif"
+      src="{% flatpage_static %}breast_cancer_signaling/img/table_akt_10.gif"
       width="173" height="100"
       /><img
-      src="{{ STATIC_URL }}breast_cancer_signaling/img/table_erk_10.gif"
+      src="{% flatpage_static %}breast_cancer_signaling/img/table_erk_10.gif"
       width="173" height="100"
       />
     </a>
@@ -207,6 +212,36 @@ to the remaining ligands. When browsing individual ligands we highlight it in bl
 it stands out in contrast to the other ligands.</p>
 
 {% include "breast_cancer_signaling/titled_figures.html" with a=fig_args.ligand_pathwaybias %}
+
+<h2>Available data and software</h2>
+<table class="downloads">
+  <tbody>
+    <tr>
+      <td>Data</td>
+      <td>All basal levels (HMS Dataset #20137 from Niepel et al (2013). <em>Sci Signal</em>. 6, ra84).</td>
+      <td><a href="/db/datasets/20137/">Details</a></td>
+      <td><a href="/db/datasets/20137/results?output_type=.xlsx">Download (.xlsx)</a></td>
+    </tr>
+    <tr>
+      <td>Data</td>
+      <td>All ligand responses (HMS Dataset #20140 from Niepel et al (2013). <em>Sci Signal</em>. 6, ra84).</td>
+      <td><a href="/db/datasets/20140/">Details</a></td>
+      <td><a href="/db/datasets/20140/results?output_type=.xlsx">Download (.xlsx)</a></td>
+    </tr>
+    <tr>
+      <td>Signatures</td>
+      <td>Results of kinetic clustering and dose-dependence classification.</td>
+      <td><a href="/wordpress/wp-content/uploads/2014/02/niepel_bmcbiol_2014_s5_details.txt">Details</a></td>
+      <td><a href="/wordpress/wp-content/uploads/2014/02/niepel_bmcbiol_2014_s5.xlsx">Download (.xlsx)</a></td>
+    </tr>
+    <tr>
+      <td>Software</td>
+      <td>A link to our HMS LINCS GitHub for access to the code for the signaling data matrix presented on this project exploration website</a>.</td>
+      <td></td>
+      <td><a href="https://github.com/hmslincs/hmslincs/">hmslincs at GitHub</a></td>
+    </tr>
+  </tbody>
+</table>
 
 <h2>References</h2>
 <ol>
