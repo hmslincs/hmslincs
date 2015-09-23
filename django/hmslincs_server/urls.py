@@ -48,10 +48,6 @@ urlpatterns = patterns('',
      'django.views.generic.simple.redirect_to',
      {'url': '/explore/10.1038-nchembio.1337/fallahi-sichani-2013/'}),
 
-    (r'^explore/responses/scatterplot_browser\.html$',
-     'django.views.generic.simple.direct_to_template',
-     {'template': 'responses/scatterplot_browser.html'}),
-
     (r'^explore/adaptive-drug-resistance/$',
      'django.views.generic.simple.direct_to_template',
      {'template': 'adaptive_drug_resistance/index.html'}),
