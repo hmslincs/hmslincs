@@ -490,24 +490,49 @@ def _create_datapoint(datacolumn, dataset, datarecord, value):
 
     return datapoint
 
+def _parse_reagent_batch(text_value):
+    ''' 
+    Split text_value on the dash character, convert each element to an integer
+    '''
+    vals = [ util.convertdata(x,int) for x in text_value.split('-')]
+    if len(vals) > 2:
+        raise Exception(
+            'invalid reagent-batch ID value, to many identifiers: %r' 
+            % text_value)
+    facility_id = vals[0]
+    batch_id = 0
+    if len(vals) == 2:
+        batch_id = vals[1]
+    parsed_text = '-'.join([str(x) for x in vals])
+    return (facility_id,batch_id,parsed_text)
+    
+def _parse_reagent_salt_batch(text_value):
+    ''' 
+    Split text_value on the dash character, convert each element to an integer
+    '''
+    vals = [ util.convertdata(x,int) for x in text_value.split('-')]
+    if len(vals) not in [2,3]:
+        raise Exception(
+            'invalid facility-salt-batch ID value, to many identifiers: %r' 
+            % text_value)
+    facility_id = vals[0]
+    salt_id = vals[1]
+    batch_id = 0
+    if len(vals) == 3:
+        batch_id = vals[2]
+    parsed_text = '-'.join([str(x) for x in vals])
+    return (facility_id,salt_id,batch_id,parsed_text)
+    
 def _read_protein(dataset, datapoint):
 
     try:
-        text_value = datapoint.text_value
-        if '-' not in text_value:
-            # TODO: convert ID to "HMSL####", this int conversion unneeded then 
-            text_value = str(util.convertdata(text_value, int))
-            datapoint.text_value = text_value
-
+        (facility_id,batch_id,text_value) = (
+            _parse_reagent_batch(datapoint.text_value))
+        datapoint.text_value = text_value
         if text_value in reagents_read_hash:
             datapoint.reagent_batch = reagents_read_hash[text_value]
-            logger.debug('already read in the reagent %r' % text_value)
+            logger.debug('reagent already read: %r' % text_value)
             return
-        value = text_value.split("-")
-        facility_id = util.convertdata(value[0], int) 
-        batch_id = 0
-        if len(value)>1:
-            batch_id = util.convertdata(value[1], int)
         reagentbatch = ProteinBatch.objects.get(
             reagent__facility_id=facility_id,
             batch_id = batch_id ) 
@@ -515,27 +540,19 @@ def _read_protein(dataset, datapoint):
         datapoint.reagent_batch = reagentbatch
         reagents_read_hash[text_value] = reagentbatch
     except Exception, e:
-        logger.exception("Invalid Protein identifiers: %r" % text_value)
+        logger.exception("Invalid Protein identifier: %r" % datapoint)
         raise    
 
 def _read_other_reagent(dataset, datapoint):
 
     try:
-        text_value = datapoint.text_value
-        if '-' not in text_value:
-            # TODO: convert ID to "HMSL####", this int conversion unneeded then 
-            text_value = str(util.convertdata(text_value, int))
-            datapoint.text_value = text_value
-
+        (facility_id,batch_id,text_value) = (
+            _parse_reagent_batch(datapoint.text_value))
+        datapoint.text_value = text_value
         if text_value in reagents_read_hash:
             datapoint.reagent_batch = reagents_read_hash[text_value]
-            logger.debug('already read in the reagent %r' % text_value)
+            logger.debug('reagent already read: %r' % text_value)
             return
-        value = text_value.split("-")
-        facility_id = util.convertdata(value[0], int) 
-        batch_id = 0
-        if len(value)>1:
-            batch_id = util.convertdata(value[1], int)
         reagentbatch = OtherReagentBatch.objects.get(
             reagent__facility_id=facility_id,
             batch_id=batch_id) 
@@ -543,27 +560,19 @@ def _read_other_reagent(dataset, datapoint):
         datapoint.reagent_batch = reagentbatch
         reagents_read_hash[text_value] = reagentbatch
     except Exception, e:
-        logger.exception("Invalid OtherReagent identifiers: %r" % text_value)
+        logger.exception("Invalid OtherReagent identifier: %r" % datapoint)
         raise    
 
 def _read_antibody(dataset, datapoint):
 
     try:
-        text_value = datapoint.text_value
-        if '-' not in text_value:
-            # TODO: convert ID to "HMSL####", this int conversion unneeded then 
-            text_value = str(util.convertdata(text_value, int))
-            datapoint.text_value = text_value
-
+        (facility_id,batch_id,text_value) = (
+            _parse_reagent_batch(datapoint.text_value))
+        datapoint.text_value = text_value
         if text_value in reagents_read_hash:
             datapoint.reagent_batch = reagents_read_hash[text_value]
-            logger.debug('already read in the reagent %r' % text_value)
+            logger.debug('reagent already read: %r' % text_value)
             return
-        value = text_value.split("-")
-        facility_id = util.convertdata(value[0], int) 
-        batch_id = 0
-        if len(value)>1:
-            batch_id = util.convertdata(value[1], int)
         reagentbatch = AntibodyBatch.objects.get(
             reagent__facility_id=facility_id,
             batch_id=batch_id) 
@@ -571,28 +580,19 @@ def _read_antibody(dataset, datapoint):
         datapoint.reagent_batch = reagentbatch
         reagents_read_hash[text_value] = reagentbatch
     except Exception, e:
-        logger.exception("Invalid Antibody identifiers: %r" % text_value)
+        logger.exception("Invalid Antibody identifier: %r" % datapoint)
         raise    
 
 def _read_cell_batch(dataset, datapoint):
 
     try:
-        text_value = datapoint.text_value
-        if '-' not in text_value:
-            # TODO: convert ID to "HMSL####", this int conversion unneeded then 
-            text_value = str(util.convertdata(text_value, int))
-            datapoint.text_value = text_value
-
+        (facility_id,batch_id,text_value) = (
+            _parse_reagent_batch(datapoint.text_value))
+        datapoint.text_value = text_value
         if text_value in reagents_read_hash:
             datapoint.reagent_batch = reagents_read_hash[text_value]
-            logger.debug('already read in the reagent %r' % text_value)
+            logger.debug('reagent already read: %r' % text_value)
             return
-        value = text_value.split("-")
-        facility_id = util.convertdata(value[0], int) 
-        batch_id = 0
-        if len(value)>1:
-            batch_id = util.convertdata(value[1], int)
-            # TODO: validate that the batch exists? 
         reagentbatch = CellBatch.objects.get(
             reagent__facility_id=facility_id,
             batch_id=batch_id) 
@@ -600,35 +600,21 @@ def _read_cell_batch(dataset, datapoint):
         datapoint.reagent_batch = reagentbatch
         reagents_read_hash[text_value] = reagentbatch
     except Exception, e:
-        logger.exception("Invalid Cell identifiers: %r" % text_value)
+        logger.exception("Invalid Cell identifier: %r" % datapoint)
         raise    
-    
+
 def _read_small_molecule(dataset, datapoint):
     
-    text_value = datapoint.text_value
-
-    if text_value in reagents_read_hash:
-        datapoint.reagent_batch = reagents_read_hash[text_value]
-        logger.debug('smb reagent already read in: %r' % text_value)
-        return
-    
-    value = text_value.split("-")
-    if len(value) < 2: 
-        raise Exception( (
-            'Invalid value: %r, '
-            'Small Molecule (Batch) format is '
-            '#####-###(-#) **Note that (batch) is optional')
-            % text_value )
-        
-    facility = util.convertdata(value[0], int) 
-    salt = util.convertdata(value[1], int)
-    batch_id = 0
-    if len(value)>2:
-        batch_id = util.convertdata(value[2], int)
-    
     try:
+        (facility_id,salt_id,batch_id,text_value) = (
+            _parse_reagent_salt_batch(datapoint.text_value))
+        datapoint.text_value = text_value
+        if text_value in reagents_read_hash:
+            datapoint.reagent_batch = reagents_read_hash[text_value]
+            logger.debug('reagent already read: %r' % text_value)
+            return
         reagentbatch = SmallMoleculeBatch.objects.get(
-            reagent__facility_id=facility, reagent__salt_id=salt, 
+            reagent__facility_id=facility_id, reagent__salt_id=salt_id, 
             batch_id=batch_id)
         dataset.small_molecules.add(reagentbatch)
         datapoint.reagent_batch = reagentbatch
@@ -637,8 +623,7 @@ def _read_small_molecule(dataset, datapoint):
         reagents_read_hash[text_value] = reagentbatch
     
     except Exception, e:
-        logger.exception(
-            'could not locate small molecule batch for %r' % text_value)
+        logger.exception("Invalid Small Molecule identifier: %r" % datapoint)
         raise
 
 def _read_plate_well(map_column, r, current_row, dr, small_mol_col,
