@@ -1,6 +1,7 @@
 from collections import OrderedDict
 from django.db import connection, DatabaseError
 from tastypie.utils.urls import trailing_slash
+from db.views import _get_raw_time_string
 try:
     from db import views
 except DatabaseError, e:
@@ -296,7 +297,6 @@ class CursorSerializer(Serializer):
         for row in cursor.fetchall():
             writer.writerow([self._write_val_safe(val) for val in row])
             i += 1
-
         logger.info('done, wrote: %d' % i)
         return raw_data.getvalue()
     
@@ -477,12 +477,18 @@ class DataSetDataResource2(Resource):
         resource_name = 'datasetdata'
 
     def get_detail(self, request, **kwargs):
-        return self.create_response(
+        facility_id = kwargs.get('facility_id', None)
+        if not facility_id:
+            raise Http404(str(('no facility id given',request.path)))
+        response  = self.create_response(
             request,self.get_object_list(request, **kwargs))
+        name = 'dataset_%s_%s' % (facility_id, _get_raw_time_string())
+        response['Content-Disposition'] = 'attachment; filename=%s.csv' % name
+        return response
 
     def get_object_list(self, request, **kwargs):
 
-        facility_id = kwargs.pop('facility_id', None)
+        facility_id = kwargs.get('facility_id', None)
         if not facility_id:
             raise Http404(str(('no facility id given',request.path)))
             
@@ -524,8 +530,9 @@ class DataSetDataResource2(Resource):
             ',$${dc_description}$$ as "{dc_name}_timepointDescription" ')
         
         query_string = (
-            'SELECT '
-            'datarecord.id as "datarecordID"'
+            'WITH drs as ('
+            ' SELECT '
+            ' datarecord.id as "datarecordID"'
             ', dataset.facility_id as "hmsDatasetID"'
             ', datarecord.plate as "recordedPlate"'
             ', datarecord.well as "recordedWell"'
@@ -651,29 +658,34 @@ class DataSetDataResource2(Resource):
                 column_name='%s_%s%s' 
                     % (camel_case_dwg(dc.name),prefix,'Name'))
                 
-        query_string += (
-            ', coalesce(dp.int_value::TEXT, dp.float_value::TEXT, dp.text_value) as "%s" '
-                % 'datapointValue' )
-        query_string += ', dc.name as "datapointName" '
-        query_string += ', dc.unit as "datapointUnit" '
         query_string += """
             from db_dataset dataset 
             join db_datarecord datarecord on(datarecord.dataset_id=dataset.id) 
-            , db_datapoint dp 
-            join db_datacolumn dc on (dp.datacolumn_id=dc.id) 
-            where dp.datarecord_id=datarecord.id  
-            and dataset.id = %s 
+            and dataset.id = %s )  
             """
+
+        query_string += 'SELECT drs.* '
+        query_string += ', dc.name as "datapointName" '
+        query_string += ', dc.unit as "datapointUnit" '
+        query_string += (
+            ', coalesce(dp.int_value::TEXT, dp.float_value::TEXT, dp.text_value) as "%s" '
+                % 'datapointValue' )
+        query_string += """ 
+            FROM drs 
+            JOIN db_datapoint dp on dp.datarecord_id=drs."datarecordID" 
+            join db_datacolumn dc on dp.datacolumn_id=dc.id  
+            where dp.dataset_id = %s """
         if dc_ids_to_exclude: 
             query_string += ( 
                 " and dp.datacolumn_id not in (%s)" 
                     % ','.join([str(x) for x in dc_ids_to_exclude]))    
-        query_string += " order by datarecord.id,dc.id "
+        query_string +=' order by "datarecordID",dc.id '
+        
         logger.info('query_string: %s' % query_string)
         cursor = connection.cursor()
-        cursor.execute(query_string, [dataset_id])
+        cursor.execute(query_string, [dataset_id,dataset_id])
         return cursor
-        
+  
     @staticmethod
     def get_datarecord_fields(dataset_id): 
         

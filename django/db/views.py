@@ -46,6 +46,7 @@ from db.models import PubchemRequest, SmallMolecule, SmallMoleculeBatch, Cell, \
     DataColumn, get_detail, Antibody, OtherReagent, CellBatch, QCEvent, \
     QCAttachedFile, AntibodyBatch, Reagent, ReagentBatch, get_listing
 from django_tables2.utils import AttributeDict
+from tempfile import SpooledTemporaryFile
 
 
 logger = logging.getLogger(__name__)
@@ -2329,8 +2330,8 @@ def export_as_xlsx(name,col_key_name_map, cursor=None, queryset=None,
         logger.info(str(('empty result for', name)))
         return response
 
-    wb = Workbook()
-    ws = wb.active
+    wb = Workbook(optimized_write=True)
+    ws = wb.create_sheet()
     ws.append(col_key_name_map.values())
     debug_interval=1000
     row = 0
@@ -2338,7 +2339,6 @@ def export_as_xlsx(name,col_key_name_map, cursor=None, queryset=None,
     if cursor:
         obj=cursor.fetchone()
         keys = col_key_name_map.keys()
-        logger.debug(str(('keys',keys)))
         while obj:  # row in the dataset; a tuple to be indexed numerically
             ws.append([_write_val_safe(obj[key]) for key in keys])
             if(row % debug_interval == 0):
@@ -2365,13 +2365,17 @@ def export_as_xlsx(name,col_key_name_map, cursor=None, queryset=None,
             ws.append(temp)
             if(row % debug_interval == 0):
                 logger.info("row: " + str(row))
-            row += 1    
-
-    response = HttpResponse(
-        save_virtual_workbook(wb), 
-        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    response['Content-Disposition'] = 'attachment; filename=%s.xlsx' % name
-    return response
+            row += 1 
+    logger.info('save temp file')
+    with SpooledTemporaryFile() as f:
+        wb.save(f)
+        f.seek(0)
+        logger.info('write file to response: %s ' % name)
+        response = HttpResponse(
+            f.read(), 
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = 'attachment; filename=%s.xlsx' % name
+        return response
     
 def send_to_file(outputType, name, table, queryset, lookup_tables, 
                  extra_columns = None, is_authenticated=False): 
