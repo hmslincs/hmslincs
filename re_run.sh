@@ -140,27 +140,27 @@ then
   check_errs $? "import cell fails"
   
   echo 'import small molecule tables...'
-  python src/import_smallmolecule.py -f  sampledata/HMS-LINCS_complete.sdf
+  python src/import_smallmolecule.py -f  sampledata/sample_small_molecules.sdf
   check_errs $? "import sdf fails"
 
   echo 'import salt table...'
-  python src/import_smallmolecule.py -f  sampledata/HMS-LINCS_salts.sdf
+  python src/import_smallmolecule.py -f  sampledata/sample_salts.sdf
   check_errs $? "import sdf fails"
 
   echo 'import small molecule batch tables...'
-  python src/import_smallmolecule_batch.py -f sampledata/small_molecule_batch-HMS_LINCS-1.xls
+  python src/import_smallmolecule_batch.py -f sampledata/sample_small_molecule_batch.xls
   check_errs $? "import smallmolecule batch fails"
   
   echo 'import small molecule batch qc reports...'
-  python src/import_qc_events_batch.py -f sampledata/qc_events_batch.xlsx -fd $DATADIR
+  python src/import_qc_events_batch.py -f sampledata/sample_qc_events_batch.xlsx -fd $DATADIR
   check_errs $? "import_qc_events_batch fails"
   
   echo 'import library mapping tables...'
-  python src/import_libraries.py -f sampledata/libraries.xls
+  python src/import_libraries.py -f sampledata/sample_libraries.xls
   check_errs $? "import library fails"
 	    
   echo 'import kinase tables...'
-  python src/import_protein.py -f sampledata/HMS-LINCS_ProteinMetadata_forLoading.xls
+  python src/import_protein.py -f sampledata/sample_proteins.xls
   check_errs $? 'import kinases fails'
     
   echo 'import antibody tables...'
@@ -172,7 +172,7 @@ then
   check_errs $? 'import antibody batches fails'
 
   echo 'import other reagent tables...'
-  python src/import_other_reagent.py -f sampledata/HMS-LINCS_other_reagents.xls
+  python src/import_other_reagent.py -f sampledata/sample_other_reagents.xls
   check_errs $? 'import other reagents fails'
   
   echo 'import test_dataset...'
