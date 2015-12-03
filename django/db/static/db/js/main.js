@@ -8,6 +8,7 @@ jQuery(document).ready(
         var SURVEY_HOST = 'https://hms.az1.qualtrics.com';
         var SURVEY_URL = SURVEY_HOST + '/SE/?SID=' + SURVEY_ID;
         var RETRY_INTERVAL = 3;
+        var SHOW_ON_INITIAL = true;
         var COOKIE_NAME = 'hmsLINCSsurvey';
         var EXPIRES_ON = 'Fri, 31 Dec 9999 23:59:59 GMT';
         var COOKIE_PATTERN = new RegExp( COOKIE_NAME + "=([^;]+)", "i" );
@@ -23,25 +24,27 @@ jQuery(document).ready(
         function testSurveyCookie() {
             var cookie = getCookie();
             if (cookie) {
+                cookie.count = cookie.count+1;
+                cookie.facilityIds = cookie.facilityIds + ',' + getFacilityId();
                 console.log('cookie', cookie);
                 if (cookie.allowRetry) {
-                    cookie.count = cookie.count+1;
-                    cookie.facilityIds = cookie.facilityIds + ',' + getFacilityId();
-                    if (true) {
-//                    if (cookie.count % RETRY_INTERVAL == 0) {
-                        createSurvey(cookie);
-                    }
                     setCookie(cookie.count, true, cookie.facilityIds);
+                    if (cookie.count % RETRY_INTERVAL == 0) {
+                        createSurvey(cookie.facilityIds);
+                    }
                 }
             }else{
                 console.log('first download attempt');
                 setCookie(1, true, getFacilityId());
+                if (RETRY_INTERVAL==1 || SHOW_ON_INITIAL){
+                  createSurvey(getFacilityId());
+                }
             }
         }
         
-        function createSurvey(cookie) {
+        function createSurvey(facilityIds) {
             var $dialog = $('#modal-download-dialog');
-            var url = SURVEY_URL + '&datasetIds=' + encodeURIComponent(cookie.facilityIds);
+            var url = SURVEY_URL + '&datasetIds=' + encodeURIComponent(facilityIds);
             var iframe_html = document.createElement('iframe');
             iframe_html.src = url;
             iframe_html.setAttribute('frameborder',0);
@@ -62,8 +65,8 @@ jQuery(document).ready(
                 if (event.origin !== SURVEY_HOST) {
                     return;
                 }
-                if (event.data &&
-                        event.data.indexOf('QualtricsEOS|' + SURVEY_ID) >= 0) {
+                else if (event.data &&
+                         event.data.indexOf('QualtricsEOS|' + SURVEY_ID) >= 0) {
                     turnOffCookie();
                     $dialog.dialog('close');
                 }
