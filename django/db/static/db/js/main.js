@@ -2,7 +2,6 @@ define(['jquery', 'jqueryui'], function (jQuery, jqueryui) {
 
 jQuery(document).ready(
     function ($) {
-      
         // var SURVEY_ID = 'SV_9oTuVcD7hccG0jr';
         var SURVEY_ID = 'SV_0B94YAoFzZ89Ls9';
         var SURVEY_HOST = 'https://hms.az1.qualtrics.com';
@@ -14,10 +13,15 @@ jQuery(document).ready(
         var COOKIE_PATTERN = new RegExp( COOKIE_NAME + "=([^;]+)", "i" );
         var FACILITY_ID_PATTERN = new RegExp( "datasets/(\\d+)/", "i" );
         var MAX_STORED_FACILITY_IDS = 20;
+        var $dialog = $('#modal-download-dialog');
         
         if (window.location.pathname.search(/.*\/results$/) != -1) {
             $('#search_export').find('a').click(function(e) {
-                testSurveyCookie();
+              e.preventDefault();
+              // Firefox issue:
+              // without preventDefault, the embedded iframe does not load the Qualtrics survey
+              document.getElementById('hiddenDownloadiFrame').src = e.target.href;
+              testSurveyCookie();
             });
         }
         
@@ -52,6 +56,7 @@ jQuery(document).ready(
             iframe_html.setAttribute('marginwidth',0);
             iframe_html.style.width = '400px';
             iframe_html.style.height = '500px';
+            $dialog.html(iframe_html);
     
             window.addEventListener('message',function(event) {
                 // Look for survey completion event:
@@ -66,9 +71,10 @@ jQuery(document).ready(
                     return;
                 }
                 else if (event.data &&
-                         event.data.indexOf('QualtricsEOS|' + SURVEY_ID) >= 0) {
+                    event.data.indexOf('QualtricsEOS|' + SURVEY_ID) >= 0) {
                     turnOffCookie();
-                    $dialog.dialog('close');
+                    // $dialog.dialog('close');
+                    $dialog.parent().find('.ui-dialog-buttonpane').hide();
                 }
             });
   
@@ -94,7 +100,6 @@ jQuery(document).ready(
                     $(this).before($(this).parent().find('.ui-dialog-buttonpane'));
                 }                
             });
-            $dialog.html(iframe_html);
         }
         
         function getFacilityId() {
