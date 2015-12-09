@@ -3,6 +3,7 @@ define(['jquery', 'jqueryui'], function (jQuery, jqueryui) {
 jQuery(document).ready(
     function ($) {
         // var SURVEY_ID = 'SV_9oTuVcD7hccG0jr';
+        var DIALOG_TITLE_TEXT = 'Please answer a survey about your data usage:';
         var SURVEY_ID = 'SV_0B94YAoFzZ89Ls9';
         var SURVEY_HOST = 'https://hms.az1.qualtrics.com';
         var SURVEY_URL = SURVEY_HOST + '/SE/?SID=' + SURVEY_ID;
@@ -17,14 +18,16 @@ jQuery(document).ready(
         
         if (window.location.pathname.search(/.*\/results$/) != -1) {
             $('#search_export').find('a').click(function(e) {
+              // Firefox issue: prevent the default anchor href action, and
+              // send the download to the hidden frame; 
+              // otherwise the download event blocks the iframe from loading
               e.preventDefault();
-              // Firefox issue:
-              // without preventDefault, the embedded iframe does not load the Qualtrics survey
               document.getElementById('hiddenDownloadiFrame').src = e.target.href;
               testSurveyCookie();
             });
         }
         
+        /** Read the survey cookie and test for survey display conditions **/
         function testSurveyCookie() {
             var cookie = getCookie();
             if (cookie) {
@@ -54,7 +57,8 @@ jQuery(document).ready(
             iframe_html.setAttribute('frameborder',0);
             iframe_html.setAttribute('marginheight',0);
             iframe_html.setAttribute('marginwidth',0);
-            iframe_html.style.width = '400px';
+            // iframe_html.style.width = '400px';
+            iframe_html.style.width = '100%';
             iframe_html.style.height = '500px';
             $dialog.html(iframe_html);
     
@@ -71,18 +75,29 @@ jQuery(document).ready(
                     return;
                 }
                 else if (event.data &&
-                    event.data.indexOf('QualtricsEOS|' + SURVEY_ID) >= 0) {
+                         event.data.indexOf('QualtricsEOS|' + SURVEY_ID) >= 0) 
+                {
+                    var $button = $('<button>', {
+                      type: 'button',
+                      class: 'ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only',
+                      role: 'button' });
+                    var $buttonSet = $dialog.parent().find('.ui-dialog-buttonset');
+                    $button.html('<span class="ui-button-text">Close</span>');
+
+                    $button.click(function(){
+                      $dialog.dialog('close');
+                    });
                     turnOffCookie();
-                    // $dialog.dialog('close');
-                    $dialog.parent().find('.ui-dialog-buttonpane').hide();
+                    $buttonSet.empty();
+                    $buttonSet.append($button);
                 }
             });
   
             $dialog.dialog({
-                title: 'Please answer a survey about your data usage:',
+                title: DIALOG_TITLE_TEXT,
                 modal: true,
                 resizable: false,
-                width: 'auto',
+                width: '' + DIALOG_TITLE_TEXT.length + 'em',
                 dialogClass: 'hmslincssurvey',
                 position: {
                     my: 'center top', at: 'center top', of: this 
