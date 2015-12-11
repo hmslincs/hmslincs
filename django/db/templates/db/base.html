@@ -4,11 +4,13 @@
 
 {% block requirejs %}
     <script>
-     require.config({
-         paths: {
-             db: 'db/js',
-         },
-     });
+    var QUALTRICS_SURVEY_ID = '{{ QUALTRICS_SURVEY_ID }}';
+     
+    require.config({
+        paths: {
+            db: 'db/js',
+        },
+    });
      require( [ 'db/main' ] );
     </script>
 {% endblock %}

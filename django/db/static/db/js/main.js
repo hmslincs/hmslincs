@@ -1,12 +1,14 @@
 define(['jquery', 'jqueryui'], function (jQuery, jqueryui) {
 
+/**
+ * Create a download survey popup dialog that will serve a Qualtrics survey.
+ * The 'QUALTRICS_SURVEY_ID' template variable should be set in the Django view.
+ */
 jQuery(document).ready(
     function ($) {
-        // var SURVEY_ID = 'SV_9oTuVcD7hccG0jr';
         var DIALOG_TITLE_TEXT = 'Please answer a survey about your data usage:';
-        var SURVEY_ID = 'SV_0B94YAoFzZ89Ls9';
         var SURVEY_HOST = 'https://hms.az1.qualtrics.com';
-        var SURVEY_URL = SURVEY_HOST + '/SE/?SID=' + SURVEY_ID;
+        var SURVEY_URL = SURVEY_HOST + '/SE/?SID=' + QUALTRICS_SURVEY_ID;
         var RETRY_INTERVAL = 3;
         var SHOW_ON_INITIAL = true;
         var COOKIE_NAME = 'hmsLINCSsurvey';
@@ -16,11 +18,14 @@ jQuery(document).ready(
         var MAX_STORED_FACILITY_IDS = 20;
         var $dialog = $('#modal-download-dialog');
         
-        if (window.location.pathname.search(/.*\/results$/) != -1) {
+        if (QUALTRICS_SURVEY_ID 
+            && window.location.pathname.search(/.*\/results$/) != -1) 
+        {
             $('#search_export').find('a').click(function(e) {
-              // Firefox issue: prevent the default anchor href action, and
-              // send the download to the hidden frame; 
-              // otherwise the download event blocks the iframe from loading
+              // Firefox issue: 
+              // The download event blocks the survey iframe from loading.
+              // Prevent the default download event, and
+              // send the download to a hidden frame.
               e.preventDefault();
               document.getElementById('hiddenDownloadiFrame').src = e.target.href;
               testSurveyCookie();
@@ -33,7 +38,6 @@ jQuery(document).ready(
             if (cookie) {
                 cookie.count = cookie.count+1;
                 cookie.facilityIds = cookie.facilityIds + ',' + getFacilityId();
-                console.log('cookie', cookie);
                 if (cookie.allowRetry) {
                     setCookie(cookie.count, true, cookie.facilityIds);
                     if (cookie.count % RETRY_INTERVAL == 0) {
@@ -41,7 +45,6 @@ jQuery(document).ready(
                     }
                 }
             }else{
-                console.log('first download attempt');
                 setCookie(1, true, getFacilityId());
                 if (RETRY_INTERVAL==1 || SHOW_ON_INITIAL){
                   createSurvey(getFacilityId());
@@ -57,26 +60,21 @@ jQuery(document).ready(
             iframe_html.setAttribute('frameborder',0);
             iframe_html.setAttribute('marginheight',0);
             iframe_html.setAttribute('marginwidth',0);
-            // iframe_html.style.width = '400px';
             iframe_html.style.width = '100%';
             iframe_html.style.height = '500px';
             $dialog.html(iframe_html);
     
             window.addEventListener('message',function(event) {
-                // Look for survey completion event:
-                // 
-                // Note 1: cannot reliably generate our own custom message:
-                // if (event.data == 'surveySubmitted') {
-                //
-                // NOTE 2: looking for non-official event generated (by Qualtrics) on 
-                // survey completion
-                console.log('message received', event, event.data );
+                // Detect the survey completion event:
+                // Note: cannot reliably detect the end-of-survey in our code;
+                // instead, detect non-official "EOS" event from Qualtrics
                 if (event.origin !== SURVEY_HOST) {
                     return;
                 }
                 else if (event.data &&
-                         event.data.indexOf('QualtricsEOS|' + SURVEY_ID) >= 0) 
+                         event.data.indexOf('QualtricsEOS|' + QUALTRICS_SURVEY_ID) >= 0) 
                 {
+                    // Add a "close" button / remove the other buttons
                     var $button = $('<button>', {
                       type: 'button',
                       class: 'ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only',
@@ -131,7 +129,6 @@ jQuery(document).ready(
         function getCookie() {
             var vals;
             var match = document.cookie.match( COOKIE_PATTERN );
-            console.log('doc cookie: ', document.cookie);
             if (match) {
                 vals = decodeURIComponent(match[1]).split('&');
                 return {
@@ -145,7 +142,6 @@ jQuery(document).ready(
         
         function turnOffCookie() {
             var cookie = getCookie();
-            console.log('turn off survey cookie: ' , cookie);
             if (cookie) {
                 setCookie(cookie.count,false,cookie.facilityIds);
             }else{
@@ -163,7 +159,6 @@ jQuery(document).ready(
             facilityIds = facilityIds.join(',');
             cookieVal = encodeURIComponent(count + "&" + (allowRetry ? 1 : 0 ) 
                 + "&" + facilityIds);
-            console.log('cookieVal: ', cookieVal );
             document.cookie = ( 
                 COOKIE_NAME + "=" + cookieVal + "; expires=" + EXPIRES_ON);
         }
