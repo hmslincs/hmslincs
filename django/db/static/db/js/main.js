@@ -27,7 +27,14 @@ jQuery(document).ready(
               // Prevent the default download event, and
               // send the download to a hidden frame.
               e.preventDefault();
-              document.getElementById('hiddenDownloadiFrame').src = e.target.href;
+              var downloadIframe = document.getElementById('tempdownloadframe');
+              if (!downloadIframe){
+                downloadIframe = document.createElement('iframe');
+                downloadIframe.id = 'tempdownloadframe';
+                downloadIframe.style.display = 'none';
+                document.getElementById('innercontent').appendChild(downloadIframe);
+              }
+              downloadIframe.src = e.target.href;
               testSurveyCookie();
             });
         }
@@ -53,16 +60,22 @@ jQuery(document).ready(
         }
         
         function createSurvey(facilityIds) {
-            var $dialog = $('#modal-download-dialog');
             var url = SURVEY_URL + '&datasetIds=' + encodeURIComponent(facilityIds);
-            var iframe_html = document.createElement('iframe');
-            iframe_html.src = url;
-            iframe_html.setAttribute('frameborder',0);
-            iframe_html.setAttribute('marginheight',0);
-            iframe_html.setAttribute('marginwidth',0);
-            iframe_html.style.width = '100%';
-            iframe_html.style.height = '500px';
-            $dialog.html(iframe_html);
+            var iframe_div = document.getElementById('modal-dialog-div');
+            var iframe_html, $dialog;
+            if (!iframe_div){
+                iframe_html = document.createElement('iframe');
+                iframe_html.src = url;
+                iframe_html.setAttribute('frameborder',0);
+                iframe_html.setAttribute('marginheight',0);
+                iframe_html.setAttribute('marginwidth',0);
+                iframe_html.style.width = '100%';
+                iframe_html.style.height = '500px';
+                iframe_div = document.createElement('modal-dialog-div');
+                iframe_div.appendChild(iframe_html);
+                document.getElementById('innercontent').appendChild(iframe_div);
+            }
+            $dialog = $(iframe_div)
     
             window.addEventListener('message',function(event) {
                 // Detect the survey completion event:
