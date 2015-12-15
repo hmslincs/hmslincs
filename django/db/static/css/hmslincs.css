@@ -360,3 +360,7 @@ a.ref {
 .hmslincssurvey.ui-dialog .ui-dialog-buttonpane {
     border-top-width:0px; border-bottom-width:1px;
 }
+
+.hmslincssurvey.ui-dialog .ui-dialog-title {
+  text-align: center;
+}

@@ -7,7 +7,7 @@ define(['jquery', 'jqueryui'], function (jQuery, jqueryui) {
  */
 jQuery(document).ready(
     function ($) {
-        var DIALOG_TITLE_TEXT = 'Please answer a survey about your data usage:';
+        var DIALOG_TITLE_TEXT = 'HMS LINCS Database Download Survey';
         var SURVEY_HOST = 'https://hms.az1.qualtrics.com';
         var SURVEY_URL = SURVEY_HOST + '/SE/?SID=' + survey_id;
         var RETRY_INTERVAL = 3;
@@ -63,8 +63,9 @@ jQuery(document).ready(
         function createSurvey(facilityIds) {
             var url = SURVEY_URL + '&datasetIds=' + encodeURIComponent(facilityIds);
             var $dialog = $('#modal-dialog-div');
+            
             if ($dialog.length == 0){
-                $dialog = $('<div>', {class: 'modal-dialog-div'});
+                $dialog = $('<div>', {id: 'modal-dialog-div'});
                 $('<iframe>', {
                     frameborder: 0,
                     marginheight: 0,
@@ -120,9 +121,6 @@ jQuery(document).ready(
                         $dialog.dialog('close');
                     }
                 },
-                open: function (event, ui) {
-                    $(this).before($(this).parent().find('.ui-dialog-buttonpane'));
-                }                
             });
         }
         
