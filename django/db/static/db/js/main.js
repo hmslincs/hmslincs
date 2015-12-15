@@ -1,14 +1,15 @@
 define(['jquery', 'jqueryui'], function (jQuery, jqueryui) {
 
+    module = {
+        init: function(survey_id) {
 /**
  * Create a download survey popup dialog that will serve a Qualtrics survey.
- * The 'QUALTRICS_SURVEY_ID' template variable should be set in the Django view.
  */
 jQuery(document).ready(
     function ($) {
         var DIALOG_TITLE_TEXT = 'Please answer a survey about your data usage:';
         var SURVEY_HOST = 'https://hms.az1.qualtrics.com';
-        var SURVEY_URL = SURVEY_HOST + '/SE/?SID=' + QUALTRICS_SURVEY_ID;
+        var SURVEY_URL = SURVEY_HOST + '/SE/?SID=' + survey_id;
         var RETRY_INTERVAL = 3;
         var SHOW_ON_INITIAL = true;
         var COOKIE_NAME = 'hmsLINCSsurvey';
@@ -18,7 +19,7 @@ jQuery(document).ready(
         var MAX_STORED_FACILITY_IDS = 20;
         var $dialog = $('#modal-download-dialog');
         
-        if (QUALTRICS_SURVEY_ID 
+        if (survey_id
             && window.location.pathname.search(/.*\/results$/) != -1) 
         {
             $('#search_export').find('a').click(function(e) {
@@ -85,7 +86,7 @@ jQuery(document).ready(
                     return;
                 }
                 else if (event.data &&
-                         event.data.indexOf('QualtricsEOS|' + QUALTRICS_SURVEY_ID) >= 0) 
+                         event.data.indexOf('QualtricsEOS|' + survey_id) >= 0) 
                 {
                     // Add a "close" button / remove the other buttons
                     var $button = $('<button>', {
@@ -177,5 +178,10 @@ jQuery(document).ready(
         }
     }
 );
+
+        }
+    };
+
+    return module;
 
 });
