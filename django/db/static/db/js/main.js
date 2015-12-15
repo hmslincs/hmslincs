@@ -62,21 +62,17 @@ jQuery(document).ready(
         
         function createSurvey(facilityIds) {
             var url = SURVEY_URL + '&datasetIds=' + encodeURIComponent(facilityIds);
-            var iframe_div = document.getElementById('modal-dialog-div');
-            var iframe_html, $dialog;
-            if (!iframe_div){
-                iframe_html = document.createElement('iframe');
-                iframe_html.src = url;
-                iframe_html.setAttribute('frameborder',0);
-                iframe_html.setAttribute('marginheight',0);
-                iframe_html.setAttribute('marginwidth',0);
-                iframe_html.style.width = '100%';
-                iframe_html.style.height = '500px';
-                iframe_div = document.createElement('modal-dialog-div');
-                iframe_div.appendChild(iframe_html);
-                document.getElementById('innercontent').appendChild(iframe_div);
+            var $dialog = $('#modal-dialog-div');
+            if ($dialog.length == 0){
+                $dialog = $('<div>', {class: 'modal-dialog-div'});
+                $('<iframe>', {
+                    frameborder: 0,
+                    marginheight: 0,
+                    marginwidth: 0,
+                    src: url,
+                }).css({width: '100%', height: '100%'}).appendTo($dialog);
+                $dialog.appendTo($('#innercontent'));
             }
-            $dialog = $(iframe_div)
     
             window.addEventListener('message',function(event) {
                 // Detect the survey completion event:
@@ -110,6 +106,7 @@ jQuery(document).ready(
                 modal: true,
                 resizable: false,
                 width: '' + DIALOG_TITLE_TEXT.length + 'em',
+                height: 600,
                 dialogClass: 'hmslincssurvey',
                 position: {
                     my: 'center top', at: 'center top', of: this 
