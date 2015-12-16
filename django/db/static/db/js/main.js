@@ -71,7 +71,7 @@ jQuery(document).ready(
                     marginheight: 0,
                     marginwidth: 0,
                     src: url,
-                }).css({width: '100%', height: '100%'}).appendTo($dialog);
+                }).css({width: '100%', height: '500px'}).appendTo($dialog);
                 $dialog.appendTo($('#innercontent'));
             }
     
@@ -107,7 +107,7 @@ jQuery(document).ready(
                 modal: true,
                 resizable: false,
                 width: '' + DIALOG_TITLE_TEXT.length + 'em',
-                height: 600,
+                // height: 600,
                 dialogClass: 'hmslincssurvey',
                 position: {
                     my: 'center top', at: 'center top', of: this 
