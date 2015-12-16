@@ -85,20 +85,15 @@ jQuery(document).ready(
                 else if (event.data &&
                          event.data.indexOf('QualtricsEOS|' + survey_id) >= 0) 
                 {
-                    // Add a "close" button / remove the other buttons
-                    var $button = $('<button>', {
-                      type: 'button',
-                      class: 'ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only',
-                      role: 'button' });
-                    var $buttonSet = $dialog.parent().find('.ui-dialog-buttonset');
-                    $button.html('<span class="ui-button-text">Close</span>');
-
-                    $button.click(function(){
-                      $dialog.dialog('close');
-                    });
                     turnOffCookie();
-                    $buttonSet.empty();
-                    $buttonSet.append($button);
+                    // Add a "close" button / remove the other buttons
+                    var $button = $('<button>Close survey window</button>')
+                        .button()
+                        .click(function(){
+                            $dialog.dialog('close');
+                        });
+                    $dialog.parent().find('.ui-dialog-buttonset')
+                        .empty().append($button);
                 }
             });
   
@@ -113,15 +108,18 @@ jQuery(document).ready(
                     my: 'center top', at: 'center top', of: this 
                 },
                 buttons: {
-                    'Not Now': function(e) {
+                    'Not now': function(e) {
                         $dialog.dialog('close');
                     },
-                    "Don't ask again": function(e) {
+                    "Don't ask me again": function(e) {
                         turnOffCookie();
                         $dialog.dialog('close');
                     }
                 },
             });
+            // Chrome (at least) focuses the first button on dialog creation,
+            // which draws too much attention to it with our style. Blur it.
+            $('.ui-button').blur()
         }
         
         function getFacilityId() {
