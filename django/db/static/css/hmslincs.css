@@ -351,3 +351,31 @@ a.ref {
   font-size: smaller;
   line-height: 0;
 }
+
+.download-feedback-popup {
+  display: none;
+  background: white;
+}
+
+.hmslincssurvey.ui-dialog .ui-dialog-buttonpane {
+    border-top-width:0px; border-bottom-width:1px;
+}
+
+.hmslincssurvey.ui-dialog .ui-dialog-title {
+  text-align: center;
+}
+
+.hmslincssurvey.ui-dialog .ui-dialog-content {
+    padding: 0.2em;
+}
+
+.hmslincssurvey.ui-dialog .ui-dialog-buttonset .ui-button {
+    background: none;
+    border: none;
+    color: #aaaaaa;
+    text-decoration: underline;
+}
+
+.hmslincssurvey.ui-dialog .ui-dialog-buttonset .ui-button:hover {
+    color: #666666;
+}

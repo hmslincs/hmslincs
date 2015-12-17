@@ -134,6 +134,9 @@ STATIC_AUTHENTICATED_FILE_DIR= op.join(_djangopath, '..','..','authenticated_sta
 # Example: "http://media.lawrence.com/static/"
 STATIC_URL = '/_static/'
 
+# Qualtrics download survey ID
+QUALTRICS_SURVEY_ID = 'SV_0B94YAoFzZ89Ls9'
+
 # List of finder classes that know how to find static files in
 # various locations.
 STATICFILES_FINDERS = (
@@ -298,11 +301,11 @@ LOGGING = {
 #            'propagate': True,
 #            'level': 'WARN',
 #        },
-#        'django.db': {  # if you want to see how django makes sql, use this one
-#            'handlers': ['console'],
-#            'propagate': True,
-#            'level': 'WARN',
-#        },      
+#         'django.db': {  # if you want to see how django makes sql, use this one
+#             'handlers': ['console'],
+#             'propagate': True,
+#             'level': 'DEBUG',
+#         },      
         '': {  # set a default handler
             'handlers': ['console'],
             'propagate': True,

@@ -1005,7 +1005,8 @@ def datasetDetailResults(request, facility_id, template='db/datasetDetailResults
         details = datasetDetail2(request,facility_id, 'results')
         
         details['pop_out_link'] = request.get_full_path().replace('results','results_minimal')
-
+        if hasattr(settings, 'QUALTRICS_SURVEY_ID'):
+            details['QUALTRICS_SURVEY_ID'] = settings.QUALTRICS_SURVEY_ID
         return render(request,template, details)
         
     except DataSet.DoesNotExist:
