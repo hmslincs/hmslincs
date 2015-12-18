@@ -2135,8 +2135,6 @@ def send_to_file1(outputType, name, table_name, ordered_datacolumns, cursor,
     @param table a django-tables2 table
     @param name the filename to use, consisting of only word characters
     """
-    assert not re.search(r'\W',name), '"name" parameter: "%s" must contain only word characters' % name
-
     logger.info(str(('send_to_file1', outputType, name, ordered_datacolumns)))
     col_key_name_map = get_cols_to_write(
         cursor, [table_name, ''],
@@ -2250,6 +2248,7 @@ def export_sm_images(queryset, is_authenticated=False, output_filename=None):
                             mimetype="application/x-zip-compressed")  
     
     output_filename = output_filename or 'hms_lincs_molecule_images'
+    output_filename = '_'.join(re.split(r'\W+',output_filename))
     response['Content-Disposition'] = \
         'attachment; filename=%s.zip' % output_filename
     return response
@@ -2264,9 +2263,9 @@ def export_as_csv(name,col_key_name_map, cursor=None, queryset=None,
         or queryset, not both
     @param name the filename to use, consisting of only word characters
     """
-    assert not re.search(r'\W',name), '"name" parameter: "%s" must contain only word characters' % name
     assert not (bool(cursor) and bool(queryset)), 'must define either cursor or queryset, not both'
     
+    name = '_'.join(re.split(r'\W+',name))
     response = HttpResponse(mimetype='text/csv')
     response['Content-Disposition'] = \
         'attachment; filename=%s.csv' % name
@@ -2326,15 +2325,13 @@ def export_as_xlsx(name,col_key_name_map, cursor=None, queryset=None,
         or queryset, not both
     @param name the filename to use, consisting of only word characters
     """
-    assert not re.search(r'\W',name), '"name" parameter: "%s" must contain only word characters' % name
     assert not (bool(cursor) and bool(queryset)), 'must define either cursor or queryset, not both'
-    
-    logger.info(str(('------is auth:',is_authenticated)) )
 
     if not (bool(cursor) or bool(queryset)):
         logger.info(str(('empty result for', name)))
         return response
 
+    name = '_'.join(re.split(r'\W+',name))
     wb = Workbook(optimized_write=True)
     ws = wb.create_sheet()
     ws.append(col_key_name_map.values())
@@ -2391,8 +2388,6 @@ def send_to_file(outputType, name, table, queryset, lookup_tables,
     @param table a django-tables2 table
     @param name the filename to use, consisting of only word characters
     """
-    assert not re.search(r'\W',name), '"name" parameter: "%s" must contain only word characters' % name
-    
     extra_columns = extra_columns or []
     # ordered list (field,verbose_name)
     columns = map(lambda (x,y): (x, y.verbose_name), 
