@@ -515,8 +515,9 @@ def smallMoleculeIndex(request, queryset=None, overrides=None):
 
     # trick to get these colums to sort with NULLS LAST in Postgres:
     # since a True sorts higher than a False, see above for usage (for Postgres)
-    select={'lincs_id_null':'lincs_id is null',
-            'pubchem_cid_null':'pubchem_cid is null' }
+    queryset = queryset.extra(
+        select={'lincs_id_null':'lincs_id is null',
+            'pubchem_cid_null':'pubchem_cid is null' })
     
     if overrides and 'table' in overrides:
         tablename = overrides['table_name']
@@ -939,6 +940,9 @@ def datasetDetailSmallMolecules(request, facility_id):
             queryset = SmallMolecule.objects.filter(id__in=(
                 dataset.small_molecules.all()
                     .values_list('reagent_id',flat=True).distinct()))
+            queryset = queryset.extra(
+                select={'lincs_id_null':'lincs_id is null',
+                    'pubchem_cid_null':'pubchem_cid is null' })
             if outputType == '.zip':
                 filename = 'sm_images_for_dataset_' + str(dataset.facility_id)
                 return export_sm_images(queryset, 
@@ -2517,6 +2521,9 @@ def datasetDetail2(request, facility_id, sub_page):
         if dataset.small_molecules.exists():
             queryset = SmallMolecule.objects.filter(id__in=(
                 dataset.small_molecules.all().values_list('reagent_id',flat=True).distinct()))
+            queryset = queryset.extra(
+                select={'lincs_id_null':'lincs_id is null',
+                    'pubchem_cid_null':'pubchem_cid is null' })
             queryset = queryset.order_by('facility_id')
             table = SmallMoleculeTable(queryset)
             setattr(table.data,'verbose_name_plural','Small Molecules')
