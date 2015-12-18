@@ -1251,7 +1251,7 @@ class ImageColumn(tables.Column):
     def __init__(self, loc=None, image_class=None, *args, **kwargs):
         self.loc=loc
         self.image_class=image_class
-        super(ImageColumn, self).__init__(*args, **kwargs)
+        super(ImageColumn, self).__init__(*args, orderable=False, **kwargs)
     
     def render(self, value):
         if value:

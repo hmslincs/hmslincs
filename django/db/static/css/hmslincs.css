@@ -379,3 +379,7 @@ a.ref {
 .hmslincssurvey.ui-dialog .ui-dialog-buttonset .ui-button:hover {
     color: #666666;
 }
+
+table.paleblue th{
+    color: #009ceb;
+}
