@@ -376,7 +376,7 @@ deployed by $USER ($UID) connected from $ssh_client
 EOF
 
   maybe_activate_virtualenv
-  gitpull && runpip && builddb && makeimg && collectstatic && killfcgi
+  gitpull && runpip && builddb && collectstatic && killfcgi
 
   STATUS=$SUCCESS
   echo done
