@@ -2253,6 +2253,9 @@ def export_sm_images(queryset, is_authenticated=False, output_filename=None):
         'attachment; filename=%s.zip' % output_filename
     return response
 
+def normalized_download_filename(name):
+    return re.sub(r'\W+','_',name)
+
 def export_as_csv(name,col_key_name_map, cursor=None, queryset=None, 
                   is_authenticated=False):
     """
@@ -2265,10 +2268,9 @@ def export_as_csv(name,col_key_name_map, cursor=None, queryset=None,
     """
     assert not (bool(cursor) and bool(queryset)), 'must define either cursor or queryset, not both'
     
-    name = '_'.join(re.split(r'\W+',name))
     response = HttpResponse(mimetype='text/csv')
     response['Content-Disposition'] = \
-        'attachment; filename=%s.csv' % name
+        'attachment; filename=%s.csv' % normalized_download_filename(name)
 
     if not (bool(cursor) or bool(queryset)):
         logger.info(str(('empty result for', name)))
@@ -2323,7 +2325,7 @@ def export_as_xlsx(name,col_key_name_map, cursor=None, queryset=None,
         or queryset, not both
     @param queryset a django QuerySet or simple list; must define either cursor
         or queryset, not both
-    @param name the filename to use, consisting of only word characters
+    @param name the filename to use
     """
     assert not (bool(cursor) and bool(queryset)), 'must define either cursor or queryset, not both'
 
@@ -2331,7 +2333,7 @@ def export_as_xlsx(name,col_key_name_map, cursor=None, queryset=None,
         logger.info(str(('empty result for', name)))
         return response
 
-    name = '_'.join(re.split(r'\W+',name))
+    name = normalized_download_filename(name)
     wb = Workbook(optimized_write=True)
     ws = wb.create_sheet()
     ws.append(col_key_name_map.values())
