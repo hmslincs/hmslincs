@@ -37,7 +37,7 @@ then
   export LINCS_PGSQL_DB=$DB
   export LINCS_PGSQL_SERVER=$PGHOST
   export LINCS_PGSQL_PASSWORD=`cat ~/.pgpass |grep "\W$DB_USER\W" | awk -F ':' '{print $5}'`
-  VIRTUALENV=/www/dev.lincs.hms.harvard.edu/support/virtualenv/bin/activate
+  VIRTUALENV=/www/lincs.hms.harvard.edu/support/virtualenv/bin/activate
 elif [[ "$SERVER" == "DEVTEST" ]] || [[ "$SERVER" == "devtest" ]] 
 then
   # not needed for test data DATADIR=${DIR}/data/dev2
