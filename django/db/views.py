@@ -515,8 +515,9 @@ def smallMoleculeIndex(request, queryset=None, overrides=None):
 
     # trick to get these colums to sort with NULLS LAST in Postgres:
     # since a True sorts higher than a False, see above for usage (for Postgres)
-    select={'lincs_id_null':'lincs_id is null',
-            'pubchem_cid_null':'pubchem_cid is null' }
+    queryset = queryset.extra(
+        select={'lincs_id_null':'lincs_id is null',
+            'pubchem_cid_null':'pubchem_cid is null' })
     
     if overrides and 'table' in overrides:
         tablename = overrides['table_name']
@@ -939,6 +940,9 @@ def datasetDetailSmallMolecules(request, facility_id):
             queryset = SmallMolecule.objects.filter(id__in=(
                 dataset.small_molecules.all()
                     .values_list('reagent_id',flat=True).distinct()))
+            queryset = queryset.extra(
+                select={'lincs_id_null':'lincs_id is null',
+                    'pubchem_cid_null':'pubchem_cid is null' })
             if outputType == '.zip':
                 filename = 'sm_images_for_dataset_' + str(dataset.facility_id)
                 return export_sm_images(queryset, 
@@ -1251,7 +1255,7 @@ class ImageColumn(tables.Column):
     def __init__(self, loc=None, image_class=None, *args, **kwargs):
         self.loc=loc
         self.image_class=image_class
-        super(ImageColumn, self).__init__(*args, **kwargs)
+        super(ImageColumn, self).__init__(*args, orderable=False, **kwargs)
     
     def render(self, value):
         if value:
@@ -2131,8 +2135,6 @@ def send_to_file1(outputType, name, table_name, ordered_datacolumns, cursor,
     @param table a django-tables2 table
     @param name the filename to use, consisting of only word characters
     """
-    assert not re.search(r'\W',name), '"name" parameter: "%s" must contain only word characters' % name
-
     logger.info(str(('send_to_file1', outputType, name, ordered_datacolumns)))
     col_key_name_map = get_cols_to_write(
         cursor, [table_name, ''],
@@ -2246,9 +2248,13 @@ def export_sm_images(queryset, is_authenticated=False, output_filename=None):
                             mimetype="application/x-zip-compressed")  
     
     output_filename = output_filename or 'hms_lincs_molecule_images'
+    output_filename = '_'.join(re.split(r'\W+',output_filename))
     response['Content-Disposition'] = \
         'attachment; filename=%s.zip' % output_filename
     return response
+
+def normalized_download_filename(name):
+    return re.sub(r'\W+','_',name)
 
 def export_as_csv(name,col_key_name_map, cursor=None, queryset=None, 
                   is_authenticated=False):
@@ -2260,12 +2266,11 @@ def export_as_csv(name,col_key_name_map, cursor=None, queryset=None,
         or queryset, not both
     @param name the filename to use, consisting of only word characters
     """
-    assert not re.search(r'\W',name), '"name" parameter: "%s" must contain only word characters' % name
     assert not (bool(cursor) and bool(queryset)), 'must define either cursor or queryset, not both'
     
     response = HttpResponse(mimetype='text/csv')
     response['Content-Disposition'] = \
-        'attachment; filename=%s.csv' % name
+        'attachment; filename=%s.csv' % normalized_download_filename(name)
 
     if not (bool(cursor) or bool(queryset)):
         logger.info(str(('empty result for', name)))
@@ -2320,17 +2325,15 @@ def export_as_xlsx(name,col_key_name_map, cursor=None, queryset=None,
         or queryset, not both
     @param queryset a django QuerySet or simple list; must define either cursor
         or queryset, not both
-    @param name the filename to use, consisting of only word characters
+    @param name the filename to use
     """
-    assert not re.search(r'\W',name), '"name" parameter: "%s" must contain only word characters' % name
     assert not (bool(cursor) and bool(queryset)), 'must define either cursor or queryset, not both'
-    
-    logger.info(str(('------is auth:',is_authenticated)) )
 
     if not (bool(cursor) or bool(queryset)):
         logger.info(str(('empty result for', name)))
         return response
 
+    name = normalized_download_filename(name)
     wb = Workbook(optimized_write=True)
     ws = wb.create_sheet()
     ws.append(col_key_name_map.values())
@@ -2387,8 +2390,6 @@ def send_to_file(outputType, name, table, queryset, lookup_tables,
     @param table a django-tables2 table
     @param name the filename to use, consisting of only word characters
     """
-    assert not re.search(r'\W',name), '"name" parameter: "%s" must contain only word characters' % name
-    
     extra_columns = extra_columns or []
     # ordered list (field,verbose_name)
     columns = map(lambda (x,y): (x, y.verbose_name), 
@@ -2517,6 +2518,9 @@ def datasetDetail2(request, facility_id, sub_page):
         if dataset.small_molecules.exists():
             queryset = SmallMolecule.objects.filter(id__in=(
                 dataset.small_molecules.all().values_list('reagent_id',flat=True).distinct()))
+            queryset = queryset.extra(
+                select={'lincs_id_null':'lincs_id is null',
+                    'pubchem_cid_null':'pubchem_cid is null' })
             queryset = queryset.order_by('facility_id')
             table = SmallMoleculeTable(queryset)
             setattr(table.data,'verbose_name_plural','Small Molecules')
