@@ -14,12 +14,12 @@ check_errs()
 }
 
 DATADIR=
-VIRTUALENV=
 DIR=/groups/lincs/
 
 if [[ $# -lt 2 ]]
 then 
   echo "Usage: $0 <required: [test | local | dev | stage | prod] [python_script] > <optional: python script arguments> "
+  echo "Set the \"VENV\" environment variable to activate a specific virtualenv"
   exit $WRONG_ARGS
 fi
 
@@ -37,7 +37,6 @@ then
   export LINCS_PGSQL_DB=$DB
   export LINCS_PGSQL_SERVER=$PGHOST
   export LINCS_PGSQL_PASSWORD=`cat ~/.pgpass |grep "\W$DB_USER\W" | awk -F ':' '{print $5}'`
-  VIRTUALENV=/www/lincs.hms.harvard.edu/support/virtualenv/bin/activate
 elif [[ "$SERVER" == "DEVTEST" ]] || [[ "$SERVER" == "devtest" ]] 
 then
   # not needed for test data DATADIR=${DIR}/data/dev2
@@ -48,7 +47,6 @@ then
   export LINCS_PGSQL_DB=$DB
   export LINCS_PGSQL_SERVER=$PGHOST
   export LINCS_PGSQL_PASSWORD=`cat ~/.pgpass |grep $DB_USER| awk -F ':' '{print $5}'`
-  VIRTUALENV=/www/dev.lincs.hms.harvard.edu/support/virtualenv/bin/activate
 elif [[ "$SERVER" == "DEV" ]] || [[ "$SERVER" == "dev" ]] 
 then
   DATADIR=${DIR}/data/dev2
@@ -59,7 +57,6 @@ then
   export LINCS_PGSQL_DB=$DB
   export LINCS_PGSQL_SERVER=$PGHOST
   export LINCS_PGSQL_PASSWORD=`cat ~/.pgpass |grep $DB_USER| awk -F ':' '{print $5}'`
-  VIRTUALENV=/www/dev.lincs.hms.harvard.edu/support/virtualenv/bin/activate
 elif [[ "$SERVER" == "DEV2" ]] || [[ "$SERVER" == "dev2" ]] 
 then
   DATADIR=${DIR}/data/dev2
@@ -70,27 +67,40 @@ then
   export LINCS_PGSQL_DB=$DB
   export LINCS_PGSQL_SERVER=$PGHOST
   export LINCS_PGSQL_PASSWORD=`cat ~/.pgpass |grep $DB_USER| awk -F ':' '{print $5}'`
-  VIRTUALENV=/www/dev.oshernatprod.hms.harvard.edu/support/virtualenv/bin/activate
 elif [[ "$SERVER" == "LOCAL" ]] || [[ "$SERVER" == "local" ]] 
 then
   DATADIR=/home/sde4/sean/docs/work/LINCS/data/dev2
   DB=django
   DB_USER=django
   PGHOST=localhost
-  VIRTUALENV=/home/sde4/workspace/hmslincs/myvirtualenv/bin/activate
 elif [[ "$SERVER" == "TEST" ]] || [[ "$SERVER" == "test" ]] 
 then
   # NOT NEEDED FOR TEST DATA : DATADIR=${2:-/home/sde4/workspace/hmslincs/}
   DB=django
   DB_USER=django
   PGHOST=localhost
-  VIRTUALENV=${3:-/home/sde4/workspace/hmslincs/myvirtualenv/bin/activate}
 else
   echo "Unknown option: \"$SERVER\""
   exit 1
 fi
 
-source $VIRTUALENV
+if [[ -z "${VIRTUAL_ENV}" ]] 
+then
+  if [[ -z "${VENV}" ]]
+  then
+    VENV="$(dirname $0)/../virtualenv/"
+  fi
+  if [[ ! -e $VENV ]]
+  then
+    echo "ERROR: virtualenv at \"${VENV}\" does not exist"
+    exit 1
+  fi
+  echo "using virtualenv at \"${VENV}\" "
+  source $VENV/bin/activate
+  check_errs $? "failed to activate virtualenv: $VENV"
+else
+  echo "Using already active virtual environment: \"${VIRTUAL_ENV}\" "
+fi
 
 export DJANGO_SETTINGS_MODULE=hmslincs_server.settings
 export PYTHONPATH=./django:./src
