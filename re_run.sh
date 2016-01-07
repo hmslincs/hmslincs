@@ -11,18 +11,18 @@ check_errs()
 }
 
 DATADIR=
-VIRTUALENV=
+
 DIR=/groups/lincs/
 
 if [[ $# -lt 1 ]]
 then 
-  echo "Usage: $0 <required: [test | local | dev | stage | prod] > [optional: local data dir] [optional: virtual env dir]"
+  echo "Usage: $0 <required: [test | local | dev | stage | prod] > [optional: local data dir]"
+  echo "Set the \"VENV\" environment variable to activate a specific virtualenv"
   exit $WRONG_ARGS
 fi
 
 SERVER=$1
 DATADIR=$2
-VIRTUALENV=$3
 
 if [[ "$SERVER" == "PROD" ]] || [[ "$SERVER" == "prod" ]] 
 then
@@ -35,7 +35,6 @@ then
   export LINCS_PGSQL_DB=$DB
   export LINCS_PGSQL_SERVER=$PGHOST
   export LINCS_PGSQL_PASSWORD=`cat ~/.pgpass |grep "\W$DB_USER\W" | awk -F ':' '{print $5}'`
-  VIRTUALENV=/www/dev.lincs.hms.harvard.edu/support/virtualenv/bin/activate
   
   echo 'backing up db... '
   DATE=`date +%Y%m%d%H%M%S`
@@ -56,7 +55,6 @@ then
   export LINCS_PGSQL_DB=$DB
   export LINCS_PGSQL_SERVER=$PGHOST
   export LINCS_PGSQL_PASSWORD=`cat ~/.pgpass |grep $DB_USER| awk -F ':' '{print $5}'`
-  VIRTUALENV=/www/dev.lincs.hms.harvard.edu/support/virtualenv/bin/activate
 elif [[ "$SERVER" == "DEV" ]] || [[ "$SERVER" == "dev" ]] 
 then
   DATADIR=${DATADIR:-${DIR}/data/dev}
@@ -67,7 +65,6 @@ then
   export LINCS_PGSQL_DB=$DB
   export LINCS_PGSQL_SERVER=$PGHOST
   export LINCS_PGSQL_PASSWORD=`cat ~/.pgpass |grep $DB_USER| awk -F ':' '{print $5}'`
-  VIRTUALENV=/www/dev.lincs.hms.harvard.edu/support/virtualenv/bin/activate
 elif [[ "$SERVER" == "DEV2" ]] || [[ "$SERVER" == "dev2" ]] 
 then
   DATADIR=${DATADIR:-${DIR}/data/dev}
@@ -78,7 +75,6 @@ then
   export LINCS_PGSQL_DB=$DB
   export LINCS_PGSQL_SERVER=$PGHOST
   export LINCS_PGSQL_PASSWORD=`cat ~/.pgpass |grep $DB_USER| awk -F ':' '{print $5}'`
-  VIRTUALENV=/www/dev.oshernatprod.hms.harvard.edu/support/virtualenv/bin/activate
 elif [[ "$SERVER" == "DEV2TEST" ]] || [[ "$SERVER" == "dev2test" ]] 
 then
   DATADIR="${DATADIR:-sampledata}"
@@ -89,21 +85,18 @@ then
   export LINCS_PGSQL_DB=$DB
   export LINCS_PGSQL_SERVER=$PGHOST
   export LINCS_PGSQL_PASSWORD=`cat ~/.pgpass |grep $DB_USER| awk -F ':' '{print $5}'`
-  VIRTUALENV=/www/dev.oshernatprod.hms.harvard.edu/support/virtualenv/bin/activate
 elif [[ "$SERVER" == "LOCAL" ]] || [[ "$SERVER" == "local" ]] 
 then
   DATADIR=${DATADIR:-/home/sde4/sean/docs/work/LINCS/data/dev}
   DB=django
   DB_USER=django
   PGHOST=localhost
-  VIRTUALENV=${3:-../hmslincs-env/bin/activate}
 elif [[ "$SERVER" == "TEST" ]] || [[ "$SERVER" == "test" ]] 
 then
   DATADIR="${DATADIR:-sampledata}"
   DB=django
   DB_USER=django
   PGHOST=localhost
-  VIRTUALENV=${3:-../hmslincs-env/bin/activate}
 else
   echo "Unknown option: \"$SERVER\""
   exit 1
@@ -113,7 +106,23 @@ fi
 ./generate_drop_all.sh $DB_USER $DB $PGHOST | psql -U$DB_USER  $DB -h $PGHOST 
 check_errs $? "dropdb fails"
 
-source $VIRTUALENV
+if [[ -z "${VIRTUAL_ENV}" ]] 
+then
+  if [[ -z "${VENV}" ]]
+  then
+    VENV="$(dirname $0)/../virtualenv/"
+  fi
+  if [[ ! -e $VENV ]]
+  then
+    echo "ERROR: virtualenv at \"${VENV}\" does not exist"
+    exit 1
+  fi
+  echo "using virtualenv at \"${VENV}\" "
+  source $VENV/bin/activate
+  check_errs $? "failed to activate virtualenv: $VENV"
+else
+  echo "Using already active virtual environment: \"${VIRTUAL_ENV}\" "
+fi
 
 django/manage.py syncdb 
 check_errs $? "syncdb fails"
