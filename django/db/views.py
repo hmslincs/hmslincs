@@ -179,7 +179,9 @@ def cellDetail(request, facility_batch, batch_id=None):
 
         # batch table
         if not cell_batch:
-            batches = CellBatch.objects.filter(reagent=cell, batch_id__gt=0)
+            batches = ( CellBatch.objects
+                .filter(reagent=cell, batch_id__gt=0)
+                .order_by('batch_id') )
             if batches.exists():
                 details['batchTable']=CellBatchTable(batches)
         else:
@@ -349,7 +351,9 @@ def antibodyDetail(request, facility_batch, batch_id=None):
                 reagent=antibody,batch_id=_batch_id) 
 
         if not antibody_batch:
-            batches = AntibodyBatch.objects.filter(reagent=antibody, batch_id__gt=0)
+            batches = ( AntibodyBatch.objects
+                .filter(reagent=antibody, batch_id__gt=0)
+                .order_by('batch_id') )
             if batches.exists():
                 details['batchTable']=AntibodyBatchTable(batches)
         else:
@@ -599,7 +603,9 @@ def smallMoleculeDetail(request, facility_salt_id):
             
         # batch table
         if not smb:
-            batches = SmallMoleculeBatch.objects.filter(reagent=sm,batch_id__gt=0)
+            batches = ( SmallMoleculeBatch.objects
+                .filter(reagent=sm,batch_id__gt=0)
+                .order_by('batch_id') )
             if batches.exists():
                 details['batchTable']=SmallMoleculeBatchTable(batches)
         else:
