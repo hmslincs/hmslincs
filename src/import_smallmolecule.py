@@ -37,7 +37,7 @@ def main(path):
     properties = ('model_field','required','default','converter')
     get_primary_name = lambda x: x.split(';')[0].strip()
     get_alternate_names = (
-        lambda x: ';'.join([x.strip() for x in x.split(';')[1:]]))
+        lambda x: '; '.join([x.strip() for x in x.split(';')[1:]]))
     
     labels = { s2p.MOLDATAKEY:('molfile',True),
         # NOTE: even though these db field are not integers, 
