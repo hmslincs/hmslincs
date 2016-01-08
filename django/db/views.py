@@ -210,15 +210,6 @@ def cellDetail(request, facility_batch, batch_id=None):
                     order_by=('facility_id',))        
             details['datasets'] = DataSetTable(queryset)
 
-        # add in the LIFE System link: TODO: put this into the fieldinformation
-        _LINK = 'http://life.ccs.miami.edu/life/summary?mode=CellLine&input={cl_center_specific_id}&source=HMS'
-        extralink = {   'title': 'LINCS Information Framework Structure Page' ,
-                        'name': 'LIFE Cell Information',
-                        'link': _LINK.format(cl_center_specific_id=cell.facility_id),
-                        'value': cell.facility_id }
-        details['extralink'] = extralink
-
-        
         return render(request, 'db/cellDetail.html', details)
     except Cell.DoesNotExist:
         raise Http404
@@ -302,14 +293,6 @@ def proteinDetail(request, lincs_id):
             queryset = datasets.extra( where=where, order_by=('facility_id',))        
             details['datasets'] = DataSetTable(queryset)
 
-        # add in the LIFE System link: TODO: put this into the fieldinformation
-        extralink = {   'title': 'LINCS Information Framework Page' ,
-                        'name': 'LIFE Protein Information',
-                        'link': 'http://life.ccs.miami.edu/life/summary?mode=Protein&input={pp_center_specific_id}&source=HMS'
-                                .format(pp_center_specific_id=protein.lincs_id), # Note, protein.lincs_id will be changed to protein.facility_id
-                        'value': protein.lincs_id }
-        details['extralink'] = extralink
-                
         return render(request, 'db/proteinDetail.html', details)
  
     except Protein.DoesNotExist:
@@ -395,16 +378,6 @@ def antibodyDetail(request, facility_batch, batch_id=None):
                     where=where,
                     order_by=('facility_id',))        
             details['datasets'] = DataSetTable(queryset)
-
-        # add in the LIFE System link: TODO: put this into the fieldinformation
-        extralink = {   
-            'title': 'LINCS Information Framework Page' ,
-            'name': 'LIFE Antibody Information',
-            'link': ( 'http://life.ccs.miami.edu/life/summary?mode=Antibody'
-                      '&input={ar_center_specific_id}&source=HMS' )
-                    .format(ar_center_specific_id=antibody.facility_id), 
-            'value': antibody.facility_id }
-        details['extralink'] = extralink
 
         return render(request, 'db/antibodyDetail.html', details)
     except Antibody.DoesNotExist:
@@ -702,14 +675,6 @@ def smallMoleculeDetail(request, facility_salt_id):
                 '/HMSL%s-%s.png' % (sm.facility_id,sm.salt_id) )
             if(can_access_image(ambit_image_location, sm.is_restricted)): 
                 details['ambit_image_location'] = ambit_image_location
-        
-        # add in the LIFE System link: TODO: put this into the fieldinformation
-        extralink = {   'title': 'LINCS Information Framework Structure Page' ,
-                        'name': 'LIFE Compound Information',
-                        'link': 'http://life.ccs.miami.edu/life/summary?mode=SmallMolecule&input={sm_lincs_id}&source=LINCS'
-                            .format(sm_lincs_id=sm.lincs_id),
-                        'value': sm.lincs_id }
-        details['extralink'] = extralink
         
         return render(request,'db/smallMoleculeDetail.html', details)
 
