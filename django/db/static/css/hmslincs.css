@@ -82,11 +82,10 @@ img:not(.compound_image_thumbnail):not(.compound_image){
 	border: 0px;
 	border-collapse:collapse;
 }
+
 .compound_image {
- position:absolute;
- top:2em;
- right:1em;
- height: 16em;
+ position: absolute;
+ right: 0px;
 }
 
 img.compound_image_thumbnail {

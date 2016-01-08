@@ -687,10 +687,17 @@ def smallMoleculeDetail(request, facility_salt_id):
         
         image_location = ( COMPOUND_IMAGE_LOCATION + '/HMSL%s-%s.png' 
             % (sm.facility_id,sm.salt_id) )
+        if(can_access_image(image_location, sm.is_restricted)): 
+            if not sm.is_restricted:
+                image_location = static(image_location)
+            elif request.user.is_authenticated:
+                image_location = reverse('restricted_image', 
+                    kwargs={ 'filepath': image_location } )
+            details['image_location'] = image_location
+        
         if(not sm.is_restricted 
             or ( sm.is_restricted and request.user.is_authenticated())):
-            if(can_access_image(image_location, sm.is_restricted)): 
-                details['image_location'] = image_location
+
             ambit_image_location = (AMBIT_COMPOUND_IMAGE_LOCATION + 
                 '/HMSL%s-%s.png' % (sm.facility_id,sm.salt_id) )
             if(can_access_image(ambit_image_location, sm.is_restricted)): 

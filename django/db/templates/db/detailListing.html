@@ -1,4 +1,4 @@
-<table class="detail_table">
+<table class="detail_table" style="position: relative;">
 {% for field,info in object.items %}
 {%   if not skip_blanks or info.value %}
 
@@ -6,8 +6,8 @@
     <td class="propertyLabelColumn propertyLabel" title="{{ info.fieldinformation.get_column_detail }}" ><b>{{ info.fieldinformation.get_verbose_name }}:</b>
     </td>
     <td class="propertyValueColumn" 
-      {% if info.fieldinformation.field == 'alternative_names' %}
-        style="padding-right:238px"
+      {% if image_location and info.fieldinformation.field == 'alternative_names' %}
+        style="padding-right:238px; word-wrap: break-word; max-width: 238px;"
       {% endif %} >
     {% if not is_restricted or info.fieldinformation.is_unrestricted or user.is_authenticated %}
 	    {# TODO: Move all field type information, and link information to the fieldinformation table #}
@@ -21,6 +21,12 @@
 				<a target="_blank" href="http://www.uniprot.org/uniprot/{{ info.value }}">{{ info.value }}</a>
       {% elif info.value and info.fieldinformation.field == 'salt_id' %}
         <a target="_blank" href="/db/sm/salt/{{ info.value }}">{{ info.value }}</a>
+      {% elif info.fieldinformation.field == 'facility_salt' %}
+        {% firstof info.value "" %}
+        {% if image_location %}
+          <img class='compound_image' src="{{image_location}}" 
+          onclick="w=window.open('{{image_location}}','image','height=500,width=500');w.moveTo(500,400);"/>
+        {% endif %}
       {% elif info.value and info.link %}
         <a target="_blank" href="{{ info.link }}">{{ info.value }}</a>
       {% elif info.value and info.fieldinformation.field == 'reference_source_url' %}
