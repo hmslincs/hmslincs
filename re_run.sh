@@ -1140,6 +1140,42 @@ else
   python src/import_dataset2.py -f $DATADIR/Screen20243_LJP_aggregatedData.xls
   check_errs $? "import dataset fails"
   
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20244_HCl1.xls
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20245_LJP-8.xls
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20246_LJP-9.xls
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20247_LJP-10.xls
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20248_LJP-11.xls
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20249_LJP-12.xls
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20250_LJP-13.xls
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20251_LJP-14.xls
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20252_LJP-15.xls
+  check_errs $? "import dataset fails"
+  
   # 2015-04-20: removed all attached compound QC files since original reports from vendors will no longer be used and future reports will be attached in the QC Testing Events section of each batch
   
 # if restricted:
