@@ -566,7 +566,8 @@ def smallMoleculeDetail(request, facility_salt_id):
     try:
         # TODO: let urls.py grep the facility and the salt
         temp = facility_salt_id.split('-') 
-        logger.info(str(('find sm detail for', temp)))
+        if len(temp) < 2:
+            raise Http404
         facility_id = temp[0]
         salt_id = temp[1]
         sm = SmallMolecule.objects.get(facility_id=facility_id, salt_id=salt_id) 
@@ -1588,7 +1589,9 @@ class AntibodyTable(PagedTable):
     facility_id = tables.LinkColumn("antibody_detail", args=[A('facility_id')])
     rank = tables.Column()
     snippet = DivWrappedColumn(verbose_name='matched text', classname='snippet')
-    target_protein_name = tables.LinkColumn("protein_detail", args=[A('target_protein_center_id')])
+    target_protein_name = tables.LinkColumn(
+        "protein_detail", order_by='target_protein__name',
+        args=[A('target_protein_center_id')])
     
     class Meta:
         model = Antibody
