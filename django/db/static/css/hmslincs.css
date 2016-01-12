@@ -82,11 +82,12 @@ img:not(.compound_image_thumbnail):not(.compound_image){
 	border: 0px;
 	border-collapse:collapse;
 }
+
 .compound_image {
- position:absolute;
- top:2em;
- right:1em;
- height: 16em;
+ position: absolute;
+ right: 0px;
+ height: 200px;
+ width: 200px;
 }
 
 img.compound_image_thumbnail {
@@ -154,6 +155,7 @@ h2#dataset_h2 {
 div.constrained_width_column {
   white-space: normal;
   max-width: 200px;
+  word-wrap: break-word;
 }
 div.constrained_width_column_300 {
   white-space: normal;
