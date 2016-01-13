@@ -213,7 +213,7 @@ def cellDetail(request, facility_batch, batch_id=None):
             details['datasets'] = DataSetTable(queryset)
 
         return render(request, 'db/cellDetail.html', details)
-    except Cell.DoesNotExist:
+    except (Cell.DoesNotExist,CellBatch.DoesNotExist):
         raise Http404
 
  
@@ -384,7 +384,7 @@ def antibodyDetail(request, facility_batch, batch_id=None):
             details['datasets'] = DataSetTable(queryset)
 
         return render(request, 'db/antibodyDetail.html', details)
-    except Antibody.DoesNotExist:
+    except (Antibody.DoesNotExist,AntibodyBatch.DoesNotExist):
         raise Http404
      
 def otherReagentIndex(request):
@@ -552,7 +552,7 @@ def smallMoleculeMolfile(request, facility_salt_id):
         response.write(sm.molfile)
         return response
         
-    except SmallMolecule.DoesNotExist:
+    except (SmallMolecule.DoesNotExist,SmallMoleculeBatch.DoesNotExist):
         raise Http404
  
 def saltDetail(request, salt_id):
