@@ -1029,6 +1029,14 @@ else
   check_errs $? "import dataset fails"
   
   echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/kinomescan/Screen20212_HMSL10363_kinomescan.xls
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/kinativ/Screen20213_HMSL10363_kinativ.xls
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
   python src/import_dataset2.py -f $DATADIR/Screen20215_TransCenter_SensitivityMeasures.xls
   check_errs $? "import dataset fails"
   
@@ -1174,6 +1182,30 @@ else
   
   echo 'import screen results...'
   python src/import_dataset2.py -f $DATADIR/Screen20252_LJP-15.xls
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/kinativ/Screen20253_HMSL10084_kinativ.xls
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/kinativ/Screen20254_HMSL10231_kinativ.xls
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/kinativ/Screen20255_HMSL10356_kinativ.xls
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20256_density_all.xls
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20257_density_mean.xls
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20258_density_fits.xls
   check_errs $? "import dataset fails"
   
   # 2015-04-20: removed all attached compound QC files since original reports from vendors will no longer be used and future reports will be attached in the QC Testing Events section of each batch
