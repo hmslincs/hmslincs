@@ -70,11 +70,6 @@ class SmallMoleculeResource(ModelResource):
         schema['fields'] = get_detail_schema(SmallMolecule(),['smallmolecule'])
         return schema 
     
-    def override_urls(self):
-        """ Note, will be deprecated in >0.9.12; delegate to new method, prepend_urls
-        """
-        return self.prepend_urls();
-    
     def prepend_urls(self):
 
         return [
@@ -111,11 +106,6 @@ class CellResource(ModelResource):
         schema['fields'] = get_detail_schema(Cell(),['cell'])
         return schema 
     
-    def override_urls(self):
-        """ Note, will be deprecated in >0.9.12; delegate to new method, prepend_urls
-        """
-        return self.prepend_urls();
-    
     def prepend_urls(self):
         return [
             url(r"^(?P<resource_name>%s)/(?P<facility_id>\d+)/$" % self._meta.resource_name, self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
@@ -148,11 +138,6 @@ class AntibodyResource(ModelResource):
         schema = super(AntibodyResource,self).build_schema()
         schema['fields'] = get_detail_schema(Antibody(),['antibody'])
         return schema 
-    
-    def override_urls(self):
-        """ Note, will be deprecated in >0.9.12; delegate to new method, prepend_urls
-        """
-        return self.prepend_urls();
     
     def prepend_urls(self):
         return [
@@ -187,11 +172,6 @@ class OtherReagentResource(ModelResource):
         schema['fields'] = get_detail_schema(OtherReagent(),['otherreagent'])
         return schema 
     
-    def override_urls(self):
-        """ Note, will be deprecated in >0.9.12; delegate to new method, prepend_urls
-        """
-        return self.prepend_urls();
-    
     def prepend_urls(self):
         return [
             url(r"^(?P<resource_name>%s)/(?P<facility_id>\d+)/$" % self._meta.resource_name, self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
@@ -225,11 +205,6 @@ class ProteinResource(ModelResource):
         schema['fields'] = get_detail_schema(Protein(),['protein'])
         return schema 
     
-    def override_urls(self):
-        """ Note, will be deprecated in >0.9.12; delegate to new method, prepend_urls
-        """
-        return self.prepend_urls();
-    
     def prepend_urls(self):
         return [
             url(r"^(?P<resource_name>%s)/(?P<lincs_id>\d+)/$" % self._meta.resource_name, self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
@@ -251,11 +226,6 @@ class LibraryResource(ModelResource):
         schema = super(LibraryResource,self).build_schema()
         schema['fields'] = get_detail_schema(Library(),['library'])
         return schema 
-    
-    def override_urls(self):
-        """ Note, will be deprecated in >0.9.12; delegate to new method, prepend_urls
-        """
-        return self.prepend_urls();
     
     def prepend_urls(self):
         return [
@@ -408,11 +378,6 @@ class DataSetResource2(ModelResource):
         schema['fields'] = OrderedDict(sorted(
             fields.items(), key=lambda x: x[0])) 
         return schema 
-    
-    def override_urls(self):
-        """ Note, will be deprecated in >0.9.12; delegate to prepend_urls
-        """
-        return self.prepend_urls();
     
     def prepend_urls(self):
 
