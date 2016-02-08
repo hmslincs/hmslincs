@@ -286,30 +286,10 @@ LOGGING = {
             'level': 'ERROR',
             'propagate': True,
         },
-#        'db': { 
-#            'handlers': ['console'],
-#            'propagate': True,
-#            'level': 'WARN',
-#        },
-#        'hms': {
-#            'handlers': ['console'],
-#            'propagate': True,
-#            'level': 'WARN',
-#        },
-#        'util': {  
-#            'handlers': ['console'],
-#            'propagate': True,
-#            'level': 'WARN',
-#        },
-#         'django.db': {  # if you want to see how django makes sql, use this one
-#             'handlers': ['console'],
-#             'propagate': True,
-#             'level': 'DEBUG',
-#         },      
         '': {  # set a default handler
             'handlers': ['console'],
             'propagate': True,
-            'level': 'WARN',
+            'level': 'ERROR',
         },
     }
 }
