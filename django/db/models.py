@@ -33,10 +33,6 @@ _NULLOKSTR  = dict(null=True, blank=False)
 # definition
 # _NULLOKSTR  = dict(null=False, blank=True)
 
-class FieldInformationLookupException(Exception):
-    ''' Signals missing field information
-    '''
-    pass
 
 class FieldsManager(models.Manager):
     
@@ -70,7 +66,6 @@ class FieldsManager(models.Manager):
         """
         searches for the FieldInformation using the tables in the 
         "tables_by_priority", in the order given.
-        raises a FieldInformationLookupException if not found in any of them.
         @param tables_by_priority: a sequence of table names.  
             If an empty string is given, then a search through all fields having
             no table name.  
@@ -87,10 +82,9 @@ class FieldsManager(models.Manager):
             if val:
                 return val
             else:
-                if( i+1 == len(tables_by_priority)): 
-                    raise FieldInformationLookupException(
-                        str(('Fieldinformation not found', 
-                             field_or_alias,tables_by_priority )))
+                logger.info('Field information for: %r not found in %r',
+                    field_or_alias,tables_by_priority)
+                return None
                 
     def get_column_fieldinformation(self,field_or_alias,table_or_queryset=None):
         '''
@@ -839,21 +833,17 @@ def get_fielddata(model_object, search_tables, field_information_filter=None, ex
     for field,value in property_dict.iteritems():
         logger.debug(str(('get_field_info', field)))
         details = {}
-        try:
-            fi = FieldInformation.manager.get_column_fieldinformation_by_priority(field,search_tables)
-            
-            if fi and (field_information_filter and field_information_filter(fi)
-                    or field_information_filter == None ): 
-                details['fieldinformation'] = fi
-                details['value'] = value
-                ui_dict[field] = details
-                #ui_dict[fi.get_verbose_name()] = value
-            else:
-                logger.debug(str(('field not shown in this view: ', field,value)))
-        except (FieldInformationLookupException) as e:
-            logger.debug(str(('no field information defined for: ', field, value)))
+        fi = FieldInformation.manager.get_column_fieldinformation_by_priority(field,search_tables)
+        
+        if fi and (field_information_filter and field_information_filter(fi)
+                or field_information_filter == None ): 
+            details['fieldinformation'] = fi
+            details['value'] = value
+            ui_dict[field] = details
+            #ui_dict[fi.get_verbose_name()] = value
+        else:
+            logger.debug(str(('field not shown in this view: ', field,value)))
     ui_dict = OrderedDict(sorted(ui_dict.items(), key=lambda x: x[1]['fieldinformation'].detail_order))
-    if(logger.isEnabledFor(logging.DEBUG)): logger.debug(str(('ui_dict',ui_dict)))
     return ui_dict
     #return self.DatasetForm(data)
  
