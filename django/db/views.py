@@ -714,7 +714,6 @@ def libraryDetail(request, short_name):
             response_dict['table']=table
             
             outputType = request.GET.get('output_type','')
-            logger.error(str(("outputType:", outputType)))
             if(outputType != ''):
                 return send_to_file(outputType, 'library_'+library.short_name ,
                     table, queryset, ['library','smallmolecule',
