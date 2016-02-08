@@ -13,7 +13,10 @@
 		<li class='{% selectedTag request "^/db/datasets/\d+/smallmolecules$" %}'><a  href="{% url dataset_detail_small_molecules   facility_id=facilityId%}">Small Molecules Studied</a></li>
 {% endif %}
 {% if has_cells %}
-		<li class='{% selectedTag request "^/db/datasets/\d+/cells$" %}'><a  href="{% url dataset_detail_cells   facility_id=facilityId%}">Cells Studied</a></li>
+    <li class='{% selectedTag request "^/db/datasets/\d+/cells$" %}'><a  href="{% url dataset_detail_cells   facility_id=facilityId%}">Cells Studied</a></li>
+{% endif %}
+{% if has_primary_cells %}
+    <li class='{% selectedTag request "^/db/datasets/\d+/primarycells$" %}'><a  href="{% url dataset_detail_primary_cells   facility_id=facilityId%}">Primary Cells Studied</a></li>
 {% endif %}
 {% if has_proteins %}
         <li class='{% selectedTag request "^/db/datasets/\d+/proteins$" %}'><a  href="{% url dataset_detail_proteins   facility_id=facilityId%}">Proteins Studied</a></li>

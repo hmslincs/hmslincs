@@ -140,12 +140,20 @@ then
   echo "===== perform the test import =====" 
   #============ Here is where the test data imports go =========================
   
-  echo 'import cell tables ...'
+  echo 'import cell line tables ...'
   python src/import_cell.py -f sampledata/sample_cells.xlsx
   check_errs $? "import cell fails"
   
-  echo 'import cell batch tables ...'
+  echo 'import cell line batch tables ...'
   python src/import_cell_batch.py -f sampledata/sample_cell_line_batch.xlsx
+  check_errs $? "import cell fails"
+  
+  echo 'import primary cell tables ...'
+  python src/import_primary_cell.py -f sampledata/sample_primary_cells.xlsx
+  check_errs $? "import primary cell fails"
+  
+  echo 'import primary cell line batch tables ...'
+  python src/import_primary_cell_batch.py -f sampledata/sample_primary_cell_batch.xlsx
   check_errs $? "import cell fails"
   
   echo 'import small molecule tables...'

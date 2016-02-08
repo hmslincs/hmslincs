@@ -42,7 +42,7 @@ def main(path):
               'CL_LINCS_ID':'lincs_id',
               'CL_Alternate_Name':'alternative_names',
               'CL_Alternate_ID':'alternate_id',
-              'CL_Center_Specific_ID':'center_specific_id',
+#               'CL_Center_Specific_ID':'center_specific_id',
               'MGH_ID':('mgh_id',False,None,lambda x:util.convertdata(x,int)),
               'Assay':'assay',
               'CL_Organism':'organism',

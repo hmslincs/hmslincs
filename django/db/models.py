@@ -511,11 +511,53 @@ class Cell(Reagent):
     def get_snippet_def(cls):
         return FieldInformation.manager.get_snippet_def(cls)
 
+class PrimaryCell(Reagent):
+
+    organism = models.TextField(null=True)
+    organ = models.TextField(null=True)
+    tissue = models.TextField(null=True)
+    cell_type = models.TextField(null=True)
+    cell_type_detail = models.TextField(null=True)
+    donor_sex = models.TextField(null=True)
+    gonosome_code = models.TextField(null=True)
+    donor_age_years = models.IntegerField(null=True)
+    donor_ethnicity = models.TextField(null=True)
+    donor_health_status = models.TextField(null=True)
+    disease = models.TextField(null=True)
+    disease_detail = models.TextField(null=True)
+    disease_site_onset = models.TextField(null=True)
+    disease_age_onset_years = models.IntegerField(null=True)
+    donor_age_death_years = models.IntegerField(null=True)
+    donor_disease_duration_years = models.IntegerField(null=True)
+    mutations_known = models.TextField(null=True)
+    mutations_citations = models.TextField(null=True)
+    molecular_features = models.TextField(null=True)
+    genetic_modification = models.TextField(null=True)
+    cell_markers = models.TextField(null=True)
+    growth_properties = models.TextField(null=True)
+    recommended_culture_conditions = models.TextField(null=True)
+    related_projects = models.TextField(null=True)
+    verification_reference_profile = models.TextField(null=True)
+    relevant_citations = models.TextField(null=True)
+    usage_note = models.TextField(null=True)
+
+    @classmethod
+    def get_snippet_def(cls):
+        return FieldInformation.manager.get_snippet_def(cls)
+
+class PrimaryCellBatch(ReagentBatch):
+
+    quality_verification = models.TextField(null=True)
+    transient_modification = models.TextField(null=True)
+    culture_conditions = models.TextField(null=True)
+    passage_number = models.IntegerField(null=True)
+    
 class CellBatch(ReagentBatch):
 
     quality_verification = models.TextField(null=True)
     transient_modification = models.TextField(null=True)
-
+    source_information = models.TextField(null=True)
+    
 class Protein(Reagent):
     
     uniprot_id          = _TEXT(**_NULLOKSTR) # Note: UNIPROT ID's are 6 chars long, but we have a record with two in it, see issue #74
@@ -641,6 +683,7 @@ class DataSet(models.Model):
     associated_project_summary = _TEXT(**_NULLOKSTR)
     small_molecules         = models.ManyToManyField('SmallMoleculeBatch')
     cells                   = models.ManyToManyField('CellBatch')
+    primary_cells           = models.ManyToManyField('PrimaryCellBatch')
     antibodies              = models.ManyToManyField('AntibodyBatch')
     proteins                = models.ManyToManyField('ProteinBatch')
     other_reagents          = models.ManyToManyField('OtherReagentBatch')

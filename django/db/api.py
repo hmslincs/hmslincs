@@ -15,7 +15,7 @@ except DatabaseError, e:
 from db.DjangoTables2Serializer import DjangoTables2Serializer, \
     get_visible_columns
 from db.models import SmallMolecule, SmallMoleculeBatch, Cell, \
-    CellBatch, Protein, ProteinBatch, \
+    CellBatch, PrimaryCell, PrimaryCellBatch, Protein, ProteinBatch, \
     Antibody, AntibodyBatch, OtherReagent, OtherReagentBatch, \
     Library, DataSet, DataRecord, DataColumn, FieldInformation, \
     get_detail_bundle, get_fieldinformation, get_schema_fieldinformation,\
@@ -119,6 +119,45 @@ class CellResource(ModelResource):
     def prepend_urls(self):
         return [
             url(r"^(?P<resource_name>%s)/(?P<facility_id>\d+)/$" % self._meta.resource_name, self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
+        ]
+    
+class PrimaryCellResource(ModelResource):
+    
+    class Meta:
+        queryset = PrimaryCell.objects.all()
+        allowed_methods = ['get']
+        excludes = []
+        filtering = {
+            'date_loaded':ALL, 
+            'date_publicly_available':ALL, 
+            'date_data_received':ALL }
+        
+    def dehydrate(self, bundle):
+        def _filter(field_information):
+            return (not bundle.obj.is_restricted 
+                    or field_information.is_unrestricted )
+
+        bundle.data = get_detail_bundle(
+            bundle.obj, ['primarycell',''], _filter=_filter)
+
+        batches = ( PrimaryCellBatch.objects.filter(reagent=bundle.obj)
+            .exclude(batch_id=0) )
+        bundle.data['batches'] = []
+        for batch in batches:
+            bundle.data['batches'].append(get_detail_bundle(
+                batch, ['primarycellbatch',''], _filter=_filter))
+        return bundle
+    
+    def build_schema(self):
+        schema = super(PrimaryCellResource,self).build_schema()
+        schema['fields'] = get_detail_schema(PrimaryCell(),['primarycell'])
+        return schema 
+    
+    def prepend_urls(self):
+        return [
+            url(r"^(?P<resource_name>%s)/(?P<facility_id>\d+)/$" 
+                % self._meta.resource_name, self.wrap_view('dispatch_detail'), 
+                name="api_dispatch_detail"),
         ]
     
 class AntibodyResource(ModelResource):
@@ -458,6 +497,11 @@ class DataSetDataResource2(Resource):
             "clCenterSpecificID",
             "clCenterSampleID",
             ],
+        'primary_cell': [
+            "pcName",
+            "pcCenterSpecificID",
+            "pcCenterSampleID",
+            ],
         'antibody': [
             "abName",
             "abCenterSpecificID",
@@ -513,7 +557,8 @@ class DataSetDataResource2(Resource):
         
         reagent_columns = ( DataColumn.objects.filter(dataset_id=dataset_id)
             .filter(data_type__in=[
-                'small_molecule','cell','protein','antibody','otherreagent']) )
+                'small_molecule','cell','primary_cell','protein','antibody',
+                'otherreagent']) )
         
         dc_ids_to_exclude = [dc.id for dc in timepoint_columns]
         dc_ids_to_exclude.extend([dc.id for dc in reagent_columns])
@@ -605,7 +650,7 @@ class DataSetDataResource2(Resource):
             )
         
         prefixes = { 'small_molecule': 'sm', 'protein': 'pp', 'antibody': 'ab',
-            'otherreagent': 'or', 'cell': 'cl'}
+            'otherreagent': 'or', 'cell': 'cl', 'primary_cell': 'pc'}
         for dc in reagent_columns:
             prefix = prefixes[dc.data_type]
             if dc.data_type == 'small_molecule':
@@ -719,7 +764,8 @@ class DataSetDataResource2(Resource):
                         base_cols.append('%s_%s' % (name,colname))
                         
             elif dc.data_type in [
-                'small_molecule','cell','protein','antibody','otherreagent']:
+                'small_molecule','cell','primary_cell', 'protein','antibody',
+                'otherreagent']:
                 for colname in DataSetDataResource2.datapoint_cols[dc.data_type]:
                     base_cols.append('%s_%s' % (name,colname))
         
@@ -730,8 +776,8 @@ class DataSetDataResource2(Resource):
         
         data_columns = ( DataColumn.objects.filter(dataset_id=dataset_id)
             .exclude(data_type__in=[
-                'small_molecule','cell','protein','antibody','otherreagent',
-                'omero_image'])
+                'small_molecule','cell','primary_cell', 'protein','antibody',
+                'otherreagent','omero_image'])
             .exclude(unit__in=['day','hour','minute','second']) )
         
         datapoint_fields = OrderedDict()
@@ -753,8 +799,11 @@ class DataSetDataResource2(Resource):
         
         col_field_info = {}
         for fi in FieldInformation.objects.all().filter(
-            table__in=['smallmolecule','protein','cell','antibody','otherreagent',
-                'smallmoleculebatch','proteinbatch','cellbatch','antibodybatch','otherreagentbatch']):
+            table__in=[
+                'smallmolecule','protein','cell','primary_cell','antibody',
+                'otherreagent', 'smallmoleculebatch','proteinbatch',
+                'cellbatch','prmarycellbatch', 'antibodybatch',
+                'otherreagentbatch']):
             col_field_info[fi.get_camel_case_dwg_name()] = {
                 'reagentType': fi.table,
                 'dwgName': fi.dwg_field_name,
@@ -763,7 +812,8 @@ class DataSetDataResource2(Resource):
         
         data_columns = ( DataColumn.objects.filter(dataset_id=dataset_id)
             .filter(data_type__in=[
-                'small_molecule','cell','protein','antibody','otherreagent']) )
+                'small_molecule','cell','primary_cell', 'protein','antibody',
+                'otherreagent']) )
         reagent_fields = OrderedDict()
         meta_field_info = get_listing(DataColumn(),['datacolumn'])
         for dc in data_columns.order_by('display_order'):
@@ -778,7 +828,8 @@ class DataSetDataResource2(Resource):
             reagent_fields[specific_name]['columns'] = {}
             for dwg_name in DataSetDataResource2.datapoint_cols[dc.data_type]:
                 col_name = '%s_%s' % (specific_name,dwg_name)
-                reagent_fields[specific_name]['columns'][col_name] = col_field_info.get(dwg_name, {})
+                reagent_fields[specific_name]['columns'][col_name] = \
+                    col_field_info.get(dwg_name, {})
         return reagent_fields
         
     def get_schema(self, request, **kwargs):
