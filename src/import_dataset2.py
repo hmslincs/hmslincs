@@ -31,7 +31,7 @@ default_reagent_columns = {
     'Cell': {
         'display_order': 2,
         'name': 'cell',
-        'display_name': 'Cell',
+        'display_name': 'Cell Line',
         'data_type': 'cell',
         'description': 'A Cell Line reagent',
         'comments': 'A Cell Line reagent'
