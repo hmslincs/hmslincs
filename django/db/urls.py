@@ -4,6 +4,7 @@ from tastypie.api import Api
 from db.views import *
 from db.api import SmallMoleculeResource
 from db.api import CellResource
+from db.api import PrimaryCellResource
 from db.api import AntibodyResource
 from db.api import OtherReagentResource
 from db.api import DataSetResource2
@@ -16,6 +17,7 @@ from django.contrib import admin
 v1_api = Api(api_name='v1')
 v1_api.register(SmallMoleculeResource())
 v1_api.register(CellResource())
+v1_api.register(PrimaryCellResource())
 v1_api.register(DataSetResource2())
 v1_api.register(DataSetDataResource2())
 v1_api.register(ProteinResource())
