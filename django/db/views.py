@@ -149,7 +149,7 @@ def cellIndex(request):
     outputType = request.GET.get('output_type','')
     if(outputType != ''):
         return send_to_file(outputType, 'cells', table, queryset, ['cell',''] )
-    return render_list_index(request, table,search,'Cell','Cells',
+    return render_list_index(request, table,search,'Cell Line','Cell Lines',
         **{ 'extra_form': form, 'search_label': search_label })
 
 def cellDetail(request, facility_batch, batch_id=None):
@@ -169,6 +169,10 @@ def cellDetail(request, facility_batch, batch_id=None):
         if(cell.is_restricted and not request.user.is_authenticated()):
             return HttpResponse('Log in required.', status=401)
         details = {'object': get_detail(cell, ['cell',''])}
+        
+        if cell.precursor:
+            details['object']['precursor_cell_name']['link'] = (
+                '/db/cells/%s' % cell.precursor.facility_id )
         
         logger.info(str((details)))
         
