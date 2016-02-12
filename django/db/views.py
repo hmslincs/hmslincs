@@ -630,7 +630,8 @@ def smallMoleculeIndex(request, queryset=None, overrides=None):
         select={'lincs_id_null':'lincs_id is null',
             'pubchem_cid_null':'pubchem_cid is null' })
     
-    if overrides and 'table' in overrides:
+    outputType = request.GET.get('output_type','')
+    if not outputType and overrides and 'table' in overrides:
         tablename = overrides['table_name']
         table = overrides['table'](
             queryset, visible_field_overrides=visible_field_overrides)
@@ -639,7 +640,6 @@ def smallMoleculeIndex(request, queryset=None, overrides=None):
         table = SmallMoleculeTable(
             queryset, visible_field_overrides=visible_field_overrides)
     
-    outputType = request.GET.get('output_type','')
     if outputType:
         if(outputType == ".zip"):
             return export_sm_images(queryset, request.user.is_authenticated())
