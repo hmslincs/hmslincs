@@ -16,6 +16,8 @@ __version__ = "$Revision: 24d02504e664 $"
 # ---------------------------------------------------------------------------
 
 import setparams as _sg
+from django.core.exceptions import ObjectDoesNotExist
+from import_utils import convertdata
 _params = dict(
     VERBOSE = False,
     APPNAME = 'db',
@@ -41,8 +43,11 @@ def main(path):
               'CL_Name':('name',True),
               'CL_LINCS_ID':'lincs_id',
               'CL_Alternate_Name':'alternative_names',
-              'CL_Alternate_ID':'alternate_id',
-#               'CL_Center_Specific_ID':'center_specific_id',
+              'CL_Alternate_ID':'alternative_id',
+              
+              'CL_Precursor_Cell_ID':('precursor_facility_id',False,None, 
+                  lambda x: x[x.index('HMSL')+4:]),
+
               'MGH_ID':('mgh_id',False,None,lambda x:util.convertdata(x,int)),
               'Assay':'assay',
               'CL_Organism':'organism',
@@ -64,9 +69,9 @@ def main(path):
               'CL_Known_Mutations':'mutations_known',
               'CL_Mutations_Citations':'mutations_citations',
               'CL_Molecular_Features': 'molecular_features',
+              'CL_Production_Details': 'production_details',
               'CL_Relevant_Citations': 'relevant_citations',
               'CL_Reference_Source': 'reference_source',
-              'CL_Reference_Source_ID': 'reference_source_id',
               'Reference Source URL': 'reference_source_url',
               'Usage Note': 'usage_note',
               
@@ -82,38 +87,45 @@ def main(path):
     cols = util.find_columns(column_definitions, sheet.labels, all_sheet_columns_required=False)
             
     rows = 0    
-    logger.debug(str(('cols: ' , cols)))
+    precursor_map = {}
     for row in sheet:
         r = util.make_row(row)
         initializer = {}
         for i,value in enumerate(r):
             if i not in cols: continue
             properties = cols[i]
-
-            logger.debug(str(('read col: ', i, ', ', properties)))
             required = properties['required']
             default = properties['default']
             converter = properties['converter']
             model_field = properties['model_field']
-
-            # Todo, refactor to a method
-            logger.debug(str(('raw value', value)))
-            if(converter != None):
-                value = converter(value)
-            if(value == None ):
-                if( default != None ):
+            
+            value = convertdata(value)
+            if value is not None:
+                if converter:
+                    try:
+                        value = converter(value)
+                    except Exception:
+                        logger.error('field parse error: %r, value: %r, row: %d',
+                            properties['column_label'],value,rows+2)
+                        raise 
+            if value is None:
+                if default is not None:
                     value = default
-            if(value == None and  required == True):
+            if value is None and required:
                 raise Exception('Field is required: %s, record: %d' % (properties['column_label'],rows))
-            logger.debug(str(('model_field: ' , model_field, ', value: ', value)))
+
+            logger.debug('model_field: %r, value: %r' , model_field, value)
             initializer[model_field] = value
+            
+        precursor_facility_id = initializer.pop('precursor_facility_id')
+        if precursor_facility_id:
+            precursor_map[initializer['facility_id']] = precursor_facility_id
 
         try:
-            logger.debug(str(('initializer: ', initializer)))
+            logger.info('initializer: %r', initializer)
             cell = Cell(**initializer)
             cell.save()
             logger.info(str(('cell created:', cell)))
-            rows += 1
 
             # create a default batch - 0
             CellBatch.objects.create(reagent=cell,batch_id=0)
@@ -122,6 +134,18 @@ def main(path):
             print "Invalid Cell, name: ", r[0]
             raise e
         
+        rows += 1
+    
+    for facility_id,precursor_facility_id in precursor_map.items():
+        try:
+            precursor = Cell.objects.get(facility_id=precursor_facility_id)
+            cell = Cell.objects.get(facility_id=facility_id)
+            cell.precursor = precursor
+            cell.save()
+            
+        except ObjectDoesNotExist:
+            raise Exception('Precursor not found: %r, for %r'
+                % (precursor_facility_id,facility_id))
     print "Cells read: ", rows
     
     

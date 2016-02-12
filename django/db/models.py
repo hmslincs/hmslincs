@@ -348,7 +348,8 @@ class Reagent(models.Model):
     salt_id = _TEXT(**_NOTNULLSTR)
     is_restricted = models.BooleanField(default=False) 
     alternative_names = models.TextField(null=True)
-
+    alternative_id = models.TextField(null=True)
+    
     date_data_received = models.DateField(null=True,blank=True)
     date_loaded = models.DateField(null=True,blank=True)
     date_publicly_available = models.DateField(null=True,blank=True)
@@ -384,6 +385,8 @@ class ReagentBatch(models.Model):
     provider_name = models.TextField(null=True)
     provider_catalog_id = models.TextField(null=True)
     provider_batch_id = models.TextField(null=True)
+    
+    center_name = models.TextField(null=True)
 
     date_data_received = models.DateField(null=True,blank=True)
     date_loaded = models.DateField(null=True,blank=True)
@@ -406,6 +409,7 @@ class ReagentBatch(models.Model):
 
     class Meta:
         unique_together = ('reagent', 'batch_id')
+        unique_together = ('reagent', 'center_name')
 
     def __unicode__(self):
         return u'%s:%s' %(self.reagent, self.batch_id)
@@ -476,8 +480,8 @@ class SmallMoleculeBatch(ReagentBatch):
     smiles                  = _TEXT(**_NULLOKSTR)
 
 class Cell(Reagent):
-
-    alternate_id = models.TextField(null=True)
+    
+    precursor = models.ForeignKey('Cell',related_name='descendants', null=True)
     center_specific_id = models.TextField(null=False)
     mgh_id = models.TextField(null=True)
     assay = models.TextField(null=True)
@@ -495,21 +499,28 @@ class Cell(Reagent):
     verification_reference_profile = models.TextField(null=True)
     mutations_known = models.TextField(null=True)
     mutations_citations = models.TextField(null=True)
-    
     reference_source = models.TextField(null=True)
-    reference_source_id = models.TextField(null=True)
     reference_source_url = models.TextField(null=True)
     donor_sex = models.TextField(null=True)
     donor_age_years = models.IntegerField(null=True)
     donor_ethnicity = models.TextField(null=True)
     donor_health_status = models.TextField(null=True)
     molecular_features = models.TextField(null=True)
+    production_details = models.TextField(null=True)
     relevant_citations = models.TextField(null=True)
     usage_note = models.TextField(null=True)
 
     @classmethod
     def get_snippet_def(cls):
         return FieldInformation.manager.get_snippet_def(cls)
+
+    @property
+    def precursor_cell_name(self):
+        if self.precursor:
+            return self.precursor.name
+        else:
+            return None
+
 
 class PrimaryCell(Reagent):
 
@@ -545,18 +556,30 @@ class PrimaryCell(Reagent):
     def get_snippet_def(cls):
         return FieldInformation.manager.get_snippet_def(cls)
 
+class CellBatch(ReagentBatch):
+
+    quality_verification = models.TextField(null=True)
+    transient_modification = models.TextField(null=True)
+    source_information = models.TextField(null=True)
+    date_received = models.TextField(null=True)
+
+    # TODO: test this for batch - update indexer
+    @classmethod
+    def get_snippet_def(cls):
+        return FieldInformation.manager.get_snippet_def(cls)
+    
 class PrimaryCellBatch(ReagentBatch):
 
     quality_verification = models.TextField(null=True)
     transient_modification = models.TextField(null=True)
     culture_conditions = models.TextField(null=True)
     passage_number = models.IntegerField(null=True)
-    
-class CellBatch(ReagentBatch):
+    date_received = models.TextField(null=True)
 
-    quality_verification = models.TextField(null=True)
-    transient_modification = models.TextField(null=True)
-    source_information = models.TextField(null=True)
+    # TODO: test this for batch - update indexer
+    @classmethod
+    def get_snippet_def(cls):
+        return FieldInformation.manager.get_snippet_def(cls)
     
 class Protein(Reagent):
     

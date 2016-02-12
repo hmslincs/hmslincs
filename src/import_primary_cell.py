@@ -39,6 +39,7 @@ def main(path):
         'PC_Name':('name',True),
         'PC_LINCS_ID':'lincs_id',
         'PC_Alternative_Name':'alternative_names',
+        'PC_Alternative_ID': 'alternative_id',
         'PC_Organism': 'organism',
         'PC_Organ': 'organ',
         'PC_Tissue': 'tissue',
