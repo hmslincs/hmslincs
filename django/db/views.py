@@ -1359,7 +1359,8 @@ class StructureSearchForm(forms.Form):
     
 class TypeColumn(tables.Column):
     def render(self, value):
-        if value == "cell_detail": return "Cell"
+        if value == "cell_detail": return "Cell Line"
+        elif value == "primary_cell_detail": return "Primary Cell"
         elif value == "sm_detail": return "Small Molecule"
         elif value == "dataset_detail": return "Dataset"
         elif value == "protein_detail": return "Protein"
@@ -1978,12 +1979,12 @@ class CellSearchManager(SearchManager):
 class PrimaryCellSearchManager(SearchManager):
 
     def search(self, searchString, is_authenticated=False):
-        base_query = Cell.objects.all()
+        base_query = PrimaryCell.objects.all()
         
         id_fields = []
         query =  super(PrimaryCellSearchManager, self).search(
             base_query, 'db_primarycell', searchString, id_fields, 
-            Cell.get_snippet_def())
+            PrimaryCell.get_snippet_def())
         
         return query
 
@@ -2003,7 +2004,7 @@ class PrimaryCellSearchManager(SearchManager):
                 " where rb.reagent_id={specific_reagent_table}.reagent_ptr_id)" ) 
                     .format(join_table='db_dataset_primary_cells',
                             specific_batch_id='primarycellbatch_id',
-                            specific_reagent_table='db_primary_cell')
+                            specific_reagent_table='db_primarycell')
             })
         return queryset
 
@@ -3216,7 +3217,8 @@ WHERE search_vector @@ {query_number}
         cursor.execute(sql , 
                        [queryStringProcessed,queryStringProcessed,
                         queryStringProcessed,queryStringProcessed,
-                        queryStringProcessed,queryStringProcessed])
+                        queryStringProcessed,queryStringProcessed,
+                        queryStringProcessed])
         _data = dictfetchall(cursor)
 
         # perform (largely redundant) queries using the specific managers:
