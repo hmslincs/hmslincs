@@ -40,6 +40,7 @@ def main(path):
     column_definitions = { 
               'Facility ID':('facility_id',True,None, lambda x: x[x.index('HMSL')+4:]),
               'PC_Batch_ID':('batch_id',True,None,lambda x:util.convertdata(x,int)),
+              'PC_Center_Specific_Code': 'center_specific_code',
               'PC_Provider_Name':'provider_name',
               'PC_Provider_Batch_ID':'provider_batch_id',
               'PC_Provider_Catalog_ID':'provider_catalog_id',

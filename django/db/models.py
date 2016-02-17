@@ -386,7 +386,7 @@ class ReagentBatch(models.Model):
     provider_catalog_id = models.TextField(null=True)
     provider_batch_id = models.TextField(null=True)
     
-    center_name = models.TextField(null=True)
+    center_specific_code = models.TextField(null=True)
 
     date_data_received = models.DateField(null=True,blank=True)
     date_loaded = models.DateField(null=True,blank=True)
@@ -409,7 +409,8 @@ class ReagentBatch(models.Model):
 
     class Meta:
         unique_together = ('reagent', 'batch_id')
-        unique_together = ('reagent', 'center_name')
+        # TODO: verify that the center_specific_code will not be repeated
+        # unique_together = ('reagent', 'center_specific_code')
 
     def __unicode__(self):
         return u'%s:%s' %(self.reagent, self.batch_id)
