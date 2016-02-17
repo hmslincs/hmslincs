@@ -45,7 +45,8 @@ from db.models import PubchemRequest, SmallMolecule, SmallMoleculeBatch, Cell, \
     Protein, DataSet, Library, FieldInformation, AttachedFile, DataRecord, \
     DataColumn, get_detail, Antibody, OtherReagent, CellBatch, \
     PrimaryCell, PrimaryCellBatch, QCEvent, \
-    QCAttachedFile, AntibodyBatch, Reagent, ReagentBatch, get_listing
+    QCAttachedFile, AntibodyBatch, Reagent, ReagentBatch, get_listing,\
+    ProteinBatch
 from django_tables2.utils import AttributeDict
 from tempfile import SpooledTemporaryFile
 
@@ -1902,8 +1903,10 @@ class SearchManager(models.Manager):
                 + ', to_tsquery(%s))' )
             params.append(searchProcessed)
             extra_ids = [ id for id in ReagentBatch.objects.filter(
+                Q(batch_id__icontains=searchString) |
                 Q(provider_name__icontains=searchString) |
                 Q(provider_catalog_id__icontains=searchString) |
+                Q(center_specific_code__icontains=searchString) |
                 Q(provider_batch_id__icontains=searchString) ).\
                     values_list('reagent__id').distinct('reagent__id')]
             ids.extend(extra_ids)
@@ -1949,9 +1952,17 @@ class CellSearchManager(SearchManager):
         base_query = Cell.objects.all()
         
         id_fields = []
+        
+        # Note: using simple "contains" search for cellbatch specific fields
+        ids = [id for id in
+            CellBatch.objects.all().filter(
+                Q(source_information__icontains=searchString) |
+                Q(transient_modification__icontains=searchString ))
+                .values_list('reagent__id', flat=True)
+                .distinct('reagent__id')]
         query =  super(CellSearchManager, self).search(
             base_query, 'db_cell', searchString, id_fields, 
-            Cell.get_snippet_def())
+            Cell.get_snippet_def(), ids=ids)
         
         return query
 
@@ -1982,9 +1993,17 @@ class PrimaryCellSearchManager(SearchManager):
         base_query = PrimaryCell.objects.all()
         
         id_fields = []
+        # Note: using simple "contains" search for primarycellbatch specific fields
+        ids = [id for id in
+            PrimaryCellBatch.objects.all().filter(
+                Q(source_information__icontains=searchString) |
+                Q(transient_modification__icontains=searchString ) |
+                Q(culture_conditions__icontains=searchString ) )
+                .values_list('reagent__id', flat=True)
+                .distinct('reagent__id')]
         query =  super(PrimaryCellSearchManager, self).search(
             base_query, 'db_primarycell', searchString, id_fields, 
-            PrimaryCell.get_snippet_def())
+            PrimaryCell.get_snippet_def(), ids=ids)
         
         return query
 
@@ -2015,9 +2034,17 @@ class ProteinSearchManager(SearchManager):
 
         id_fields = ['uniprot_id', 'alternate_name_2',
              'provider_catalog_id']
+
+        # Note: using simple "contains" search for proteinbatch specific fields
+        ids = [id for id in
+            ProteinBatch.objects.all().filter(
+                Q(production_organism__icontains=searchString) )
+                .values_list('reagent__id', flat=True)
+                .distinct('reagent__id')]
+
         return super(ProteinSearchManager, self).search(
             Protein.objects.all(), 'db_protein', searchString, id_fields, 
-            Protein.get_snippet_def())        
+            Protein.get_snippet_def(), ids=ids)        
     
     def join_query_to_dataset_type(self, queryset, dataset_type=None ):
         if dataset_type:
@@ -2048,9 +2075,18 @@ class SmallMoleculeSearchManager(SearchManager):
         searchString = re.sub('HMSL','', searchString)
         id_fields = []
         
+        # Note: using simple "contains" search for proteinbatch specific fields
+        ids = [id for id in
+            SmallMoleculeBatch.objects.all().filter(
+                Q(chemical_synthesis_reference__icontains=searchString) |
+                Q(purity__icontains=searchString) |
+                Q(purity_method__icontains=searchString) )
+                .values_list('reagent__id', flat=True)
+                .distinct('reagent__id')]
+
         return super(SmallMoleculeSearchManager, self).search(
             queryset, 'db_smallmolecule', searchString, id_fields, 
-            SmallMolecule.get_snippet_def() )        
+            SmallMolecule.get_snippet_def(), ids=ids )        
 
     def join_query_to_dataset_type(self, queryset, dataset_type=None ):
         if dataset_type:
@@ -2077,9 +2113,17 @@ class AntibodySearchManager(SearchManager):
     def search(self, searchString, is_authenticated=False):
 
         id_fields = []
+
+        # Note: using simple "contains" search for antibodybatchc specific fields
+        ids = [id for id in
+            AntibodyBatch.objects.all().filter(
+                Q(antibody_purity__icontains=searchString))
+                .values_list('reagent__id', flat=True)
+                .distinct('reagent__id')]
+
         return super(AntibodySearchManager, self).search(
             Antibody.objects.all(), 'db_antibody', searchString, id_fields, 
-            Antibody.get_snippet_def())        
+            Antibody.get_snippet_def(), ids=ids)        
 
     def join_query_to_dataset_type(self, queryset, dataset_type=None ):
         if dataset_type:

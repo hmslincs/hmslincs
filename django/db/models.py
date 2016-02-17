@@ -573,6 +573,7 @@ class PrimaryCellBatch(ReagentBatch):
 
     quality_verification = models.TextField(null=True)
     transient_modification = models.TextField(null=True)
+    source_information = models.TextField(null=True)
     culture_conditions = models.TextField(null=True)
     passage_number = models.IntegerField(null=True)
     date_received = models.TextField(null=True)

@@ -46,6 +46,7 @@ def main(path):
               'PC_Provider_Catalog_ID':'provider_catalog_id',
               'PC_Quality_Verification':'quality_verification',
               'PC_Transient_Modification': 'transient_modification',
+              'PC_Source_Information': 'source_information',
               'PC_Culture_Conditions': 'culture_conditions',
               'PC_Passage_Number': ('passage_number',False,None,lambda x:util.convertdata(x,int)),
               'PC_Date_Received': 'date_received',
