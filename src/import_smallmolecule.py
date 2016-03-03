@@ -30,24 +30,18 @@ logger = logging.getLogger(__name__)
 
 @transaction.commit_on_success
 def main(path):
-    """
-    Read in the sdf file
-    """
-    # map field labels to model fields
+ 
     properties = ('model_field','required','default','converter')
     get_primary_name = lambda x: x.split(';')[0].strip()
     get_alternate_names = (
         lambda x: '; '.join([x.strip() for x in x.split(';')[1:]]))
     
     labels = { s2p.MOLDATAKEY:('molfile',True),
-        # NOTE: even though these db field are not integers, 
-        # it is convenient to convert the read in values to INT to make sure 
-        # they are not interpreted as float values
         'facility_reagent_id': (
             'facility_id',True,None, 
             lambda x: util.convertdata(x[x.index('HMSL')+4:],int)), 
         'salt_id': ('salt_id',True,None, lambda x: util.convertdata(x,int)),
-        'lincs_id':('lincs_id',False), #None,lambda x:util.convertdata(x,int)),
+        'lincs_id':('lincs_id',False), 
         'chemical_name':('name',True),
         'alternative_names':'alternative_names',
         'pubchem_cid':'pubchem_cid',
@@ -61,11 +55,7 @@ def main(path):
             lambda x: round(util.convertdata(x, float),2)),
         'molecular_formula':'_molecular_formula',
         'software':'software',
-        # 'concentration':'concentration',
-        #'well_type':('well_type',False,'experimental'),
         'is_restricted':('is_restricted',False,False,util.bool_converter)}
-    # convert the labels to fleshed out dict's, with strategies for optional, 
-    # default and converter
     labels = util.fill_in_column_definitions(properties,labels)
     
     assert typecheck.isstring(path)
@@ -86,7 +76,6 @@ def main(path):
             
             value = record.get(key)
 
-            # Todo, refactor to a method
             try:
                 if(converter != None):
                     value = converter(value)
