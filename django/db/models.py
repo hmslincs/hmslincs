@@ -550,6 +550,7 @@ class PrimaryCell(Reagent):
     recommended_culture_conditions = models.TextField(null=True)
     related_projects = models.TextField(null=True)
     verification_reference_profile = models.TextField(null=True)
+    production_details = models.TextField(null=True)
     relevant_citations = models.TextField(null=True)
     usage_note = models.TextField(null=True)
 

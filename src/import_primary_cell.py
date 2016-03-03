@@ -65,6 +65,7 @@ def main(path):
         'PC_Recommended_Culture_Conditions': 'recommended_culture_conditions',
         'PC_Related_Projects': 'related_projects',
         'PC_Verification_Reference_Profile': 'verification_reference_profile',
+        'PC_Production_Details': 'production_details',
         'PC_Relevant_Citations': 'relevant_citations',
         'Usage Note': 'usage_note',
         
