@@ -31,14 +31,15 @@ logger = logging.getLogger(__name__)
 @transaction.commit_on_success
 def main(path):
     sheet_name = 'Sheet1'
-    sheet = iu.readtable([path, sheet_name, 0]) 
+    sheet = iu.readtable([path, sheet_name, 1]) 
 
     properties = ('model_field','required','default','converter')
     column_definitions = { 
         'AR_Name': ('name',True),
         'AR_LINCS_ID': 'lincs_id', 
         'AR_Alternative_Name': 'alternative_names',
-        'AR_Center_Specific_ID': (
+        'AR_Alternative_ID': 'alternative_id',
+        'AR_Center_Canonical_ID': (
             'facility_id',True,None, lambda x: x[x.index('HMSL')+4:]),
         'AR_Clone_Name': 'clone_name',
         'AR_RRID': 'rrid',
@@ -69,7 +70,8 @@ def main(path):
               
     column_definitions = util.fill_in_column_definitions(properties,column_definitions)
     
-    cols = util.find_columns(column_definitions, sheet.labels)
+    cols = util.find_columns(column_definitions, sheet.labels, 
+        all_sheet_columns_required=False)
 
     rows = 0    
     logger.debug('cols: %s' % cols)

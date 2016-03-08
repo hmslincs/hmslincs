@@ -387,7 +387,8 @@ class ReagentBatch(models.Model):
     provider_batch_id = models.TextField(null=True)
     
     center_specific_code = models.TextField(null=True)
-
+    center_name = models.TextField(null=True)
+    
     date_data_received = models.DateField(null=True,blank=True)
     date_loaded = models.DateField(null=True,blank=True)
     date_publicly_available = models.DateField(null=True,blank=True)

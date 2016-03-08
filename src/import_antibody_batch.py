@@ -34,12 +34,13 @@ def main(path):
     Read in the Antibody Batches
     """
     sheet_name = 'Sheet1'
-    sheet = iu.readtable([path, sheet_name, 0]) 
+    sheet = iu.readtable([path, sheet_name, 1]) 
 
     properties = ('model_field','required','default','converter')
     column_definitions = { 
               'AR_Center_Specific_ID': ('antibody_facility_id',True,None, lambda x: x[x.index('HMSL')+4:]),
-              'AR_Batch_ID': ('batch_id',True,None,lambda x:util.convertdata(x,int)),
+              'AR_Center_Batch_ID': ('batch_id',True,None,lambda x:util.convertdata(x,int)),
+              'AR_Center_Name': 'center_name',
               'AR_Provider_Name': 'provider_name',
               'AR_Provider_Catalog_ ID': 'provider_catalog_id',
               'AR_Provider_Batch_ID': 'provider_batch_id',
