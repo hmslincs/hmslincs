@@ -171,7 +171,7 @@ cell,alternative_id,,,TRUE,TRUE,,TRUE,5,999,FALSE,TRUE,CL:5,CL_Alternative_ID,"A
 cell,precursor,,,FALSE,FALSE,,FALSE,999,999,,,CL:6,CL_Precursor_Cell_ID,,,,,,,,,,,
 ,precursor_cell_name,,cell,TRUE,FALSE,,TRUE,6,999,FALSE,TRUE,CL:7,CL_Precursor_Cell_Name,"Parent Cell Line","Name of the parent cell line from which the cell line was derived, if relevant",,,,,,,,,
 ,precursor_cell_id,,cell,FALSE,FALSE,,TRUE,999,999,FALSE,TRUE,CL:8,CL_Precursor_Cell_ID,,,,"used in api",,,,,,,
-,precursor_cell_batch_id,,cell,FALSE,FALSE,,TRUE,999,999,FALSE,TRUE,CL:9,CL_Precursor_Cell_Batch_ID,,,,"used in api",,,,,,,
+,precursor_cell_batch_id,,cell,FALSE,FALSE,,TRUE,999,999,FALSE,TRUE,CL:9,CL_Precursor_Cell_Batch_ID,,"Center-specific batch ID of the parent cell line from which this cell line was derived",,"used in api",,,,,,,
 ,precursor_cell_facility_batch_id,,cell,FALSE,FALSE,,FALSE,6,999,FALSE,TRUE,CL:9a,,"Parent Cell Line HMS LINCS ID",,,"used in table download from the ui",,,,,,,
 cell,reference_source,,,TRUE,FALSE,,TRUE,7,4,TRUE,TRUE,CL:10,CL_Reference_Source,,"Repository or provider from which the cell line can be obtained",,,,,,,2015-June,,
 cell,reference_source_url,,,FALSE,FALSE,,FALSE,999,999,FALSE,TRUE,CL:11,,"Reference Source URL","URL for the repository from which the cell line can be obtained",,,,,,,,,
@@ -187,7 +187,7 @@ cell,donor_health_status,,,TRUE,FALSE,,TRUE,16,999,TRUE,TRUE,CL:20,CL_Donor_Heal
 cell,disease,,,TRUE,FALSE,,TRUE,17,999,TRUE,TRUE,CL:21,CL_Disease,,"Disease of the cell donor, if relevant",1,"the disease hierarchy is captured in the ontology; i.e. DOID","Human Disease Ontology (DOID); with possible link to CTD disease (but this is less comprehensive)",http://bioportal.bioontology.org/ontologies/1009,"DOID:disease; CTD links to MeSH",cell_source_disease,2012/04/12,"canonical cell line",Histology
 cell,disease_detail,,,TRUE,FALSE,,TRUE,18,999,TRUE,TRUE,CL:22,CL_Disease_Detail,"Details of Disease","Details of the disease of the cell donor, if relevant",2,"need to develop what exactly should go here and the corresponding terms","to be developed; initially free text",,"may initially require free text",,2012/04/12,"canonical cell line",
 cell,production_details,,,TRUE,FALSE,,TRUE,19,999,TRUE,TRUE,CL:23,CL_Production_Details,,"Procedure(s) by which the cell line was derived from its parent cell line, including genetic transformations and phenotypic selections",,,,,,,,,
-cell,genetic_modification,,,TRUE,FALSE,,TRUE,20,999,TRUE,TRUE,CL:24,CL_Genetic_Modification,"Genetic Modification(s)","Description of any stable transfections or viral transductions done to the cells",1,"MIACA is minimal information that may be a guidance; requires more fields to define modifications using controlled terms","BAO and imported CLO terms (needs more work)
+cell,genetic_modification,,,TRUE,FALSE,,TRUE,20,999,TRUE,TRUE,CL:24,CL_Genetic_Modification,"Genetic Modification(s)","Description of any stable genetic transformations done to the cells",1,"MIACA is minimal information that may be a guidance; requires more fields to define modifications using controlled terms","BAO and imported CLO terms (needs more work)
 
 BAO/'cell line specification'/'cell line modification'
 BAO/'cell line specification'/immortalized
@@ -221,7 +221,7 @@ primarycell,alternative_id,,,TRUE,TRUE,,TRUE,5,4,FALSE,TRUE,PC:5,PC_Alternative_
 primarycell,precursor,,,FALSE,FALSE,,FALSE,999,999,FALSE,TRUE,PC:6,,,,,,,,,,,,
 ,precursor_cell_name,,primarycell,TRUE,FALSE,,TRUE,6,999,FALSE,TRUE,PC:7,PC_Precursor_Cell_Name,"Parent Primary Cell","Name of the parent primary cells from which these cells were derived, if relevant",,,,,,,,,
 ,precursor_cell_id,,primarycell,FALSE,FALSE,,TRUE,6,999,FALSE,TRUE,PC:8,PC_Precursor_Cell_ID,,,,,,,,,,,
-,precursor_cell_batch_id,,primarycell,FALSE,FALSE,,TRUE,6,999,FALSE,TRUE,PC:9,PC_Precursor_Cell_Batch_ID,,,,,,,,,,,
+,precursor_cell_batch_id,,primarycell,FALSE,FALSE,,TRUE,6,999,FALSE,TRUE,PC:9,PC_Precursor_Cell_Batch_ID,,"Center-specific batch ID of the parent primary cells from which these cells were derived",,,,,,,,,
 ,precursor_cell_facility_batch_id,,primarycell,FALSE,FALSE,,FALSE,6,999,FALSE,TRUE,PC:9a,,"Parent Primary Cell HMS LINCS ID",,,"used in table download from the ui",,,,,,,
 primarycell,organism,,,TRUE,FALSE,,TRUE,6,999,TRUE,TRUE,PC:10,PC_Organism,,"Organism of origin for the cells",,,,,,,,,
 primarycell,organ,,,TRUE,FALSE,,TRUE,7,999,TRUE,TRUE,PC:11,PC_Organ,,"Organ of origin for the cells",,,,,,,,,
