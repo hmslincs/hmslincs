@@ -33,23 +33,23 @@ def main(path):
     Read in the primary cell batch info
     """
     sheet_name = 'Sheet1'
-    start_row = 0
+    start_row = 1
     sheet = iu.readtable([path, sheet_name, start_row]) # Note, skipping the header row by default
 
     properties = ('model_field','required','default','converter')
     column_definitions = { 
               'Facility ID':('facility_id',True,None, lambda x: x[x.index('HMSL')+4:]),
-              'PC_Batch_ID':('batch_id',True,None,lambda x:util.convertdata(x,int)),
+              'PC_Center_Batch_ID':('batch_id',True,None,lambda x:util.convertdata(x,int)),
               'PC_Center_Specific_Code': 'center_specific_code',
               'PC_Provider_Name':'provider_name',
-              'PC_Provider_Batch_ID':'provider_batch_id',
               'PC_Provider_Catalog_ID':'provider_catalog_id',
-              'PC_Quality_Verification':'quality_verification',
-              'PC_Transient_Modification': 'transient_modification',
+              'PC_Provider_Batch_ID':'provider_batch_id',
               'PC_Source_Information': 'source_information',
+              'PC_Date_Received': 'date_received',
+              'PC_Quality_Verification':'quality_verification',
               'PC_Culture_Conditions': 'culture_conditions',
               'PC_Passage_Number': ('passage_number',False,None,lambda x:util.convertdata(x,int)),
-              'PC_Date_Received': 'date_received',
+              'PC_Transient_Modification': 'transient_modification',
               'Date Data Received':('date_data_received',False,None,util.date_converter),
               'Date Loaded': ('date_loaded',False,None,util.date_converter),
               'Date Publicly Available': ('date_publicly_available',False,None,util.date_converter),

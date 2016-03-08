@@ -42,14 +42,14 @@ def main(path):
     properties = ('model_field','required','default','converter')
     column_definitions = { 
               'Facility ID':('facility_id',True,None, lambda x: x[x.index('HMSL')+4:]),
-              'CL_Batch_ID':('batch_id',True,None,lambda x:util.convertdata(x,int)),
+              'CL_Center_Batch_ID':('batch_id',True,None,lambda x:util.convertdata(x,int)),
               'CL_Center_Specific_Code': 'center_specific_code',
               'CL_Provider_Name':'provider_name',
-              'CL_Provider_Batch_ID':'provider_batch_id',
               'CL_Provider_Catalog_ID':'provider_catalog_id',
+              'CL_Provider_Batch_ID':'provider_batch_id',
+              'CL_Source_Information': 'source_information',
               'CL_Quality_Verification':'quality_verification',
               'CL_Transient_Modification': 'transient_modification',
-              'CL_Source_Information': 'source_information',
               'CL_Date_Received': 'date_received',
               'Date Data Received':('date_data_received',False,None,util.date_converter),
               'Date Loaded': ('date_loaded',False,None,util.date_converter),

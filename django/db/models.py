@@ -482,7 +482,9 @@ class SmallMoleculeBatch(ReagentBatch):
 
 class Cell(Reagent):
     
-    precursor = models.ForeignKey('Cell',related_name='descendants', null=True)
+    precursor = models.ForeignKey(
+        'CellBatch',related_name='descendants', null=True)
+    
     center_specific_id = models.TextField(null=False)
     mgh_id = models.TextField(null=True)
     assay = models.TextField(null=True)
@@ -495,18 +497,16 @@ class Cell(Reagent):
     disease_detail = models.TextField(null=True)
     growth_properties = models.TextField(null=True)
     genetic_modification = models.TextField(null=True)
-    related_projects = models.TextField(null=True)
     recommended_culture_conditions = models.TextField(null=True)
     verification_reference_profile = models.TextField(null=True)
     mutations_known = models.TextField(null=True)
-    mutations_citations = models.TextField(null=True)
+    mutation_citations = models.TextField(null=True)
     reference_source = models.TextField(null=True)
     reference_source_url = models.TextField(null=True)
     donor_sex = models.TextField(null=True)
     donor_age_years = models.IntegerField(null=True)
     donor_ethnicity = models.TextField(null=True)
     donor_health_status = models.TextField(null=True)
-    molecular_features = models.TextField(null=True)
     production_details = models.TextField(null=True)
     relevant_citations = models.TextField(null=True)
     usage_note = models.TextField(null=True)
@@ -518,13 +518,39 @@ class Cell(Reagent):
     @property
     def precursor_cell_name(self):
         if self.precursor:
-            return self.precursor.name
+            return self.precursor.reagent.name
         else:
             return None
 
+    @property
+    def precursor_cell_id(self):
+        if self.precursor:
+            return self.precursor.reagent.facility_id
+        else:
+            return None
+        
+    @property
+    def precursor_cell_batch_id(self):
+        if self.precursor:
+            return self.precursor.batch_id
+        else:
+            return None
 
+    @property
+    def precursor_cell_facility_batch_id(self):
+        'For file download format'
+        if self.precursor:
+            return ('HMSL%s-%s' 
+                % (self.precursor.reagent.facility_id,self.precursor.batch_id))
+        else:
+            return None
+        
+        
 class PrimaryCell(Reagent):
 
+    precursor = models.ForeignKey(
+        'PrimaryCellBatch',related_name='descendants', null=True)
+    
     organism = models.TextField(null=True)
     organ = models.TextField(null=True)
     tissue = models.TextField(null=True)
@@ -542,8 +568,7 @@ class PrimaryCell(Reagent):
     donor_age_death_years = models.IntegerField(null=True)
     donor_disease_duration_years = models.IntegerField(null=True)
     mutations_known = models.TextField(null=True)
-    mutations_citations = models.TextField(null=True)
-    molecular_features = models.TextField(null=True)
+    mutation_citations = models.TextField(null=True)
     genetic_modification = models.TextField(null=True)
     cell_markers = models.TextField(null=True)
     growth_properties = models.TextField(null=True)
@@ -557,6 +582,36 @@ class PrimaryCell(Reagent):
     @classmethod
     def get_snippet_def(cls):
         return FieldInformation.manager.get_snippet_def(cls)
+
+    @property
+    def precursor_cell_name(self):
+        if self.precursor:
+            return self.precursor.reagent.name
+        else:
+            return None
+    
+    @property
+    def precursor_cell_id(self):
+        if self.precursor:
+            return self.precursor.reagent.facility_id
+        else:
+            return None
+        
+    @property
+    def precursor_cell_batch_id(self):
+        if self.precursor:
+            return self.precursor.batch_id
+        else:
+            return None
+        
+    @property
+    def precursor_cell_facility_batch_id(self):
+        'For file download format'
+        if self.precursor:
+            return ('HMSL%s-%s' 
+                % (self.precursor.reagent.facility_id,self.precursor.batch_id))
+        else:
+            return None
 
 class CellBatch(ReagentBatch):
 
@@ -875,7 +930,7 @@ def get_listing(model_object, search_tables):
     return get_fielddata(model_object, search_tables, lambda x: x.show_in_list )
 
 def get_detail(
-        model_object, search_tables, _filter=None, extra_properties=[],
+        model_object, search_tables, _filter=None, extra_properties=None,
         _override_filter=None ):
     """
     returns an ordered dict of field_name->{value:value,fieldinformation:}
@@ -887,9 +942,10 @@ def get_detail(
         field_information_filter = lambda x: x.show_in_detail and _filter(x)
     else:
         field_information_filter = lambda x: x.show_in_detail
-    return get_fielddata(model_object, search_tables, field_information_filter=field_information_filter, extra_properties=extra_properties )
+    return get_fielddata(model_object, search_tables, 
+        field_information_filter=field_information_filter, extra_properties=extra_properties )
 
-def get_fielddata(model_object, search_tables, field_information_filter=None, extra_properties=[]):
+def get_fielddata(model_object, search_tables, field_information_filter=None, extra_properties=None):
     """
     returns an ordered dict of field_name->{value:value,fieldinformation:fi}
     to be used to display the item in the UI Detail views
@@ -898,10 +954,9 @@ def get_fielddata(model_object, search_tables, field_information_filter=None, ex
     #dump(self.dataset)
     #data=model_to_dict(self.dataset)
     property_dict = get_properties(model_object)
-    if len(extra_properties) > 0:
+    if extra_properties:
         for prop in extra_properties:
             property_dict[prop] = getattr(model_object, prop)
-            logger.info(str(('got extra prop',prop,getattr(model_object, prop) )))
             
     logger.debug(str(('property_dict', property_dict)))
     ui_dict = { }
@@ -910,9 +965,10 @@ def get_fielddata(model_object, search_tables, field_information_filter=None, ex
         details = {}
         try:
             fi = FieldInformation.manager.get_column_fieldinformation_by_priority(field,search_tables)
-            
+            logger.info('for field: %r, fi: %r', field, fi)
             if fi and (field_information_filter and field_information_filter(fi)
-                    or field_information_filter == None ): 
+                    or field_information_filter == None
+                    or (extra_properties and field in extra_properties) ): 
                 details['fieldinformation'] = fi
                 details['value'] = value
                 ui_dict[field] = details
@@ -927,12 +983,16 @@ def get_fielddata(model_object, search_tables, field_information_filter=None, ex
     #return self.DatasetForm(data)
  
 
-def get_detail_bundle(obj,tables_to_search, _filter=None, _override_filter=None):
+def get_detail_bundle(
+    obj,tables_to_search, _filter=None, _override_filter=None, 
+    extra_properties=None):
     """
     returns a bundle (dict of {verbose_name->value}) for the object, using fieldinformation to 
     determine fields to show, and to find the verbose names
     """
-    detail = get_detail(obj, tables_to_search, _filter, _override_filter=_override_filter)
+    detail = get_detail(
+        obj, tables_to_search, _filter, _override_filter=_override_filter,
+        extra_properties=extra_properties)
     data = {}
     for entry in detail.values():
         data[entry['fieldinformation'].get_camel_case_dwg_name()]=entry['value']

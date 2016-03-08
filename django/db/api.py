@@ -96,7 +96,9 @@ class CellResource(ModelResource):
             return (not bundle.obj.is_restricted 
                     or field_information.is_unrestricted )
 
-        bundle.data = get_detail_bundle(bundle.obj, ['cell',''], _filter=_filter)
+        bundle.data = get_detail_bundle(
+            bundle.obj, ['cell',''], _filter=_filter,
+            extra_properties=['precursor_cell_id','precursor_cell_batch_id'])
 
         batches = ( CellBatch.objects.filter(reagent=bundle.obj)
             .exclude(batch_id=0) )
@@ -138,8 +140,9 @@ class PrimaryCellResource(ModelResource):
                     or field_information.is_unrestricted )
 
         bundle.data = get_detail_bundle(
-            bundle.obj, ['primarycell',''], _filter=_filter)
-
+            bundle.obj, ['primarycell',''], _filter=_filter,
+            extra_properties=['precursor_cell_id','precursor_cell_batch_id'])
+        
         batches = ( PrimaryCellBatch.objects.filter(reagent=bundle.obj)
             .exclude(batch_id=0) )
         bundle.data['batches'] = []

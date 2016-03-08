@@ -149,7 +149,9 @@ def cellIndex(request):
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
     outputType = request.GET.get('output_type','')
     if(outputType != ''):
-        return send_to_file(outputType, 'cells', table, queryset, ['cell',''] )
+        return send_to_file(outputType, 'cells', table, queryset, ['cell',''], 
+            extra_columns=[
+            'precursor_cell_name','precursor_cell_facility_batch_id'] )
     return render_list_index(request, table,search,'Cell Line','Cell Lines',
         **{ 'extra_form': form, 'search_label': search_label })
 
@@ -172,10 +174,12 @@ def cellDetail(request, facility_batch, batch_id=None):
         details = {'object': get_detail(cell, ['cell',''])}
         
         if cell.precursor:
+            details['object']['precursor_cell_name']['value'] = \
+                'HMSL%s-%s: %s' % (cell.precursor.reagent.facility_id, 
+                    cell.precursor.batch_id, cell.precursor.reagent.name)
             details['object']['precursor_cell_name']['link'] = (
-                '/db/cells/%s' % cell.precursor.facility_id )
-        
-        logger.info(str((details)))
+                '/db/cells/%s-%s#batchinfo' 
+                % (cell.precursor.reagent.facility_id,cell.precursor.batch_id) )
         
         details['facility_id'] = cell.facility_id
         cell_batch = None
@@ -284,7 +288,10 @@ def primaryCellIndex(request):
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
     outputType = request.GET.get('output_type','')
     if(outputType != ''):
-        return send_to_file(outputType, 'primary_cells', table, queryset, ['primarycell',''] )
+        return send_to_file(
+            outputType, 'primary_cells', table, queryset, ['primarycell',''],
+            extra_columns=[
+                'precursor_cell_name','precursor_cell_facility_batch_id'] )
     return render_list_index(request, table,search,'Primary Cell','Primary Cells',
         **{ 'extra_form': form, 'search_label': search_label })
 
@@ -305,9 +312,16 @@ def primaryCellDetail(request, facility_batch, batch_id=None):
             return HttpResponse('Log in required.', status=401)
         details = {'object': get_detail(cell, ['primarycell',''])}
         
-        logger.info(str((details)))
-        
+        if cell.precursor:
+            details['object']['precursor_cell_name']['value'] = \
+                'HMSL%s-%s: %s' % (cell.precursor.reagent.facility_id, 
+                    cell.precursor.batch_id, cell.precursor.reagent.name)
+            details['object']['precursor_cell_name']['link'] = (
+                '/db/primarycells/%s-%s#batchinfo' 
+                % (cell.precursor.reagent.facility_id,cell.precursor.batch_id) )
+
         details['facility_id'] = cell.facility_id
+        
         cell_batch = None
         if(_batch_id):
             cell_batch = PrimaryCellBatch.objects.get( 
@@ -1715,7 +1729,8 @@ class CellTable(PagedTable):
     id = tables.Column(verbose_name='CLO Id')
     disease = DivWrappedColumn(classname='constrained_width_column')
     dataset_types = DivWrappedColumn(classname='constrained_width_column', visible=False)
-    
+    precursor_cell_name = tables.Column(visible=False)
+    precursor_cell_facility_batch_id = tables.Column(visible=False)
 #    snippet_def = ("coalesce(name,'') || ' ' || coalesce(id,'') || ' ' || coalesce(alternate_name,'') || ' ' || " +  
 #                   "coalesce(alternate_id,'') || ' ' || coalesce(center_name,'') || ' ' || coalesce(center_specific_id,'') || ' ' || " +  
 #                   "coalesce(assay,'') || ' ' || coalesce(provider_name,'') || ' ' || coalesce(provider_catalog_id,'') || ' ' || coalesce(batch_id,'') || ' ' || " + 
@@ -1743,6 +1758,8 @@ class PrimaryCellTable(PagedTable):
     id = tables.Column(verbose_name='CLO Id')
     disease = DivWrappedColumn(classname='constrained_width_column')
     dataset_types = DivWrappedColumn(classname='constrained_width_column', visible=False)
+    precursor_cell_name = tables.Column(visible=False)
+    precursor_cell_facility_batch_id = tables.Column(visible=False)
     
     class Meta:
         model = PrimaryCell
@@ -2642,7 +2659,8 @@ def send_to_file(outputType, name, table, queryset, lookup_tables,
     extra_columns = extra_columns or []
     # ordered list (field,verbose_name)
     columns = map(lambda (x,y): (x, y.verbose_name), 
-                  filter(lambda (x,y): x!='rank' and x!='snippet' and y.visible, 
+                  filter(lambda (x,y): ( 
+                      x!='rank' and x!='snippet' and (y.visible or x in extra_columns)), 
                          table.base_columns.items()))
     col_fi_map = {}
     for field,verbose_name in columns:
@@ -2661,7 +2679,7 @@ def send_to_file(outputType, name, table, queryset, lookup_tables,
                 fi = FieldInformation.manager.\
                     get_column_fieldinformation_by_priority(
                         field,lookup_tables)
-            if(fi.show_in_detail):
+            if(fi.show_in_detail or field in extra_columns):
                 col_fi_map[field]=fi
         except (Exception) as e:
             logger.warn(str(('no fieldinformation found for field:', field, e)))        
