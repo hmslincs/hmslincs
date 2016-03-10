@@ -732,7 +732,7 @@ def smallMoleculeDetail(request, facility_salt_id):
         extra_properties = []
         if(not sm.is_restricted or request.user.is_authenticated()):
             extra_properties=['_inchi', '_inchi_key', '_smiles', 
-                '_molecular_formula', '_molecular_mass']
+                '_molecular_formula', '_molecular_mass', '_relevant_citations']
         details = {'object': get_detail(
             sm, ['smallmolecule',''],extra_properties=extra_properties )}
         details['facility_salt_id'] = sm.facility_id + '-' + sm.salt_id
@@ -758,8 +758,12 @@ def smallMoleculeDetail(request, facility_salt_id):
             if batches.exists():
                 details['batchTable']=SmallMoleculeBatchTable(batches)
         else:
+            extra_properties = []
+            if(not sm.is_restricted or request.user.is_authenticated()):
+                extra_properties=['_molecular_mass',
+                    '_chemical_synthesis_reference','_purity','_purity_method']
             details['smallmolecule_batch']= get_detail(
-                smb,['smallmoleculebatch',''])
+                smb,['smallmoleculebatch',''], extra_properties=extra_properties)
             details['facility_salt_batch'] = '%s-%s-%s' % (sm.facility_id,sm.salt_id,smb.batch_id) 
             # 20150413 - proposed "QC Outcome" field on batch info removed per group discussion
             qcEvents = QCEvent.objects.filter(

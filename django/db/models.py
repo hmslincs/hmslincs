@@ -238,7 +238,7 @@ class FieldInformation(models.Model):
     additional_notes = _TEXT(**_NULLOKSTR)
     is_unrestricted = models.BooleanField(default=False, null=False)
     class Meta:
-        unique_together = (('table', 'field','queryset'),('field','alias'))    
+        unique_together = (('table', 'field','queryset'))    
     def __unicode__(self):
         return unicode(str((self.table, self.field, self.unique_id, 
             self.dwg_field_name, self.hms_field_name,self.detail_order)))
@@ -426,6 +426,7 @@ class SmallMolecule(Reagent):
     _molecular_mass = models.DecimalField(
         db_column='molecular_mass', max_digits=8, decimal_places=2, null=True) 
     _molecular_formula = _TEXT(db_column='molecular_formula', **_NULLOKSTR)
+    _relevant_citations = _TEXT(**_NULLOKSTR)
       
     def get_molecular_formula(self, is_authenticated=False):
         if(not self.is_restricted or is_authenticated):
@@ -457,6 +458,12 @@ class SmallMolecule(Reagent):
         else:
             return 'restricted'
     
+    def get_relevant_citations(self, is_authenticated=False):
+        if(not self.is_restricted or is_authenticated):
+            return self._relevant_citations
+        else:
+            return 'restricted'
+        
     @property
     def primary_name(self):
         "Returns the 'primary name'"
@@ -468,16 +475,60 @@ class SmallMolecule(Reagent):
 
 class SmallMoleculeBatch(ReagentBatch):
 
-    chemical_synthesis_reference = _TEXT(**_NULLOKSTR)
-    purity= _TEXT(**_NULLOKSTR)
-    purity_method = _TEXT(**_NULLOKSTR)
+    _molecular_mass = models.DecimalField(
+        db_column='molecular_mass', max_digits=8, decimal_places=2, null=True) 
+    _chemical_synthesis_reference = _TEXT(**_NULLOKSTR)
+    _purity= _TEXT(**_NULLOKSTR)
+    _purity_method = _TEXT(**_NULLOKSTR)
     aqueous_solubility = models.DecimalField(
         max_digits=4, decimal_places=2, null=True)
     aqueous_solubility_unit = models.TextField(null=True)
-    inchi = _TEXT(**_NULLOKSTR)
-    inchi_key = _TEXT(**_NULLOKSTR)
-    smiles = _TEXT(**_NULLOKSTR)
+    _inchi = _TEXT(**_NULLOKSTR)
+    _inchi_key = _TEXT(**_NULLOKSTR)
+    _smiles = _TEXT(**_NULLOKSTR)
 
+    def get_molecular_mass(self, is_authenticated=False):
+        if(not self.is_restricted or is_authenticated):
+            return self._molecular_mass
+        else:
+            return 0
+
+    def get_chemical_synthesis_reference(self, is_authenticated=False):
+        if(not self.reagent.is_restricted or is_authenticated):
+            return self._chemical_synthesis_reference
+        else:
+            return 'restricted'
+
+    def get_purity(self, is_authenticated=False):
+        if(not self.reagent.is_restricted or is_authenticated):
+            return self._purity
+        else:
+            return 'restricted'
+
+    def get_purity_method(self, is_authenticated=False):
+        if(not self.reagent.is_restricted or is_authenticated):
+            return self._purity_method
+        else:
+            return 'restricted'
+
+    def get_inchi(self, is_authenticated=False):
+        if(not self.reagent.is_restricted or is_authenticated):
+            return self._inchi
+        else:
+            return 'restricted'
+        
+    def get_inchi_key(self, is_authenticated=False):
+        if(not self.reagent.is_restricted or is_authenticated):
+            return self._inchi_key
+        else:
+            return 'restricted'
+
+    def get_smiles(self, is_authenticated=False):
+        if(not self.reagent.is_restricted or is_authenticated):
+            return self._smiles
+        else:
+            return 'restricted'
+        
 class Cell(Reagent):
     
     precursor = models.ForeignKey(
@@ -917,7 +968,7 @@ def get_properties(obj):
             else:
                 attrs[slot] = attr
         except Exception, e:
-            logger.exception('can not introspect')
+            logger.debug('can not introspect')
     return attrs
 
 def get_listing(model_object, search_tables):
@@ -965,10 +1016,8 @@ def get_fielddata(
         try:
             fi = FieldInformation.manager.\
                 get_column_fieldinformation_by_priority(field,search_tables)
-            logger.info('for field: %r, fi: %r', field, fi)
             if fi and (field_information_filter and field_information_filter(fi)
-                    or field_information_filter == None
-                    or (extra_properties and field in extra_properties) ): 
+                    or field_information_filter == None ):
                 details['fieldinformation'] = fi
                 details['value'] = value
                 ui_dict[field] = details

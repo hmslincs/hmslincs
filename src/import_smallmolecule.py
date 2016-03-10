@@ -49,10 +49,11 @@ def main(path):
         'chebi_id':'chebi_id',
         'inchi':'_inchi',
         'inchi_key':'_inchi_key',
-        'smiles': ('_smiles',True),
+        'smiles': ('_smiles',False),
         'molecular_mass':(
             '_molecular_mass',False,None, 
             lambda x: round(util.convertdata(x, float),2)),
+        'relevant_citations': '_relevant_citations',
         'molecular_formula':'_molecular_formula',
         'software':'software',
         'is_restricted':('is_restricted',False,False,util.bool_converter)}

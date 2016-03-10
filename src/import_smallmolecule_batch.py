@@ -45,9 +45,12 @@ def main(path):
         'provider': ('provider_name',True),
         'provider_catalog_id':'provider_catalog_id',
         'provider_sample_id':'provider_batch_id',
-        'chemical_synthesis_reference':'chemical_synthesis_reference',
-        'purity':'purity',
-        'purity_method':'purity_method',
+        'molecular_mass':(
+            '_molecular_mass',False,None, 
+            lambda x: round(util.convertdata(x, float),2)),
+        'chemical_synthesis_reference':'_chemical_synthesis_reference',
+        'purity':'_purity',
+        'purity_method':'_purity_method',
         'aqueous_solubility':'aqueous_solubility',
         # FIXME: should warn the user if no unit is provided when 
         # aqueous_solubility is provided
@@ -112,7 +115,7 @@ def main(path):
         except Exception, e:
             logger.exception(
                 'Invalid smallmolecule batch initializer: %r, row: %d', 
-                initializer, rows+start_row+2, e)
+                initializer, rows+start_row+2)
             raise
         
     print "Rows read: ", rows

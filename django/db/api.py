@@ -54,15 +54,21 @@ class SmallMoleculeResource(ModelResource):
         def _filter(field_information):
             return (not bundle.obj.is_restricted 
                     or field_information.is_unrestricted )
+        extra_properties=['_inchi', '_inchi_key', '_smiles', 
+            '_molecular_formula', '_molecular_mass', '_relevant_citations']
+        batch_extra_properties=['_molecular_mass',
+            '_chemical_synthesis_reference','_purity','_purity_method']
 
-        bundle.data = get_detail_bundle(bundle.obj, ['smallmolecule',''], _filter=_filter)
+        bundle.data = get_detail_bundle(bundle.obj, ['smallmolecule',''],
+             _filter=_filter, extra_properties=extra_properties)
 
         smbs = ( SmallMoleculeBatch.objects.filter(reagent=bundle.obj)
             .exclude(batch_id=0) )
         bundle.data['batches'] = []
         for smb in smbs:
             bundle.data['batches'].append(
-                get_detail_bundle(smb, ['smallmoleculebatch',''], _filter=_filter))
+                get_detail_bundle(smb, ['smallmoleculebatch',''], 
+                    _filter=_filter, extra_properties=batch_extra_properties))
         return bundle
 
     def build_schema(self):
