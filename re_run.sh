@@ -200,6 +200,10 @@ then
   python src/import_other_reagent.py -f sampledata/sample_other_reagents.xls
   check_errs $? 'import other reagents fails'
   
+  echo 'import other reagent batches...'
+  python src/import_other_reagent_batch.py -f sampledata/sample_other_reagent_batches.xlsx
+  check_errs $? 'import other reagent batches fails'
+
   echo 'import test_dataset...'
   python src/import_dataset2.py -f sampledata/test_dataset.xls 
   check_errs $? "import dataset fails"

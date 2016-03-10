@@ -5,17 +5,41 @@
 {% endblock %}
 
 {% block content %}
-{% include "db/detailTitle.html" with name=object.name type="Cell" id=object.facility_id %}
+{% include "db/detailTitle.html" with name=object.name type="Other Reagent" id=object.facility_id %}
  {% include "db/detailListing.html" %}
-  {% if datasets %}
+  {% if datasets and not other_reagent_batch %}
     {% load render_table from django_tables2 %}
     <h2 class='entity_detail_title'>Datasets:</h2>
     {% render_table datasets %}
   {% endif %}
-	{% if attached_files %}
-		<h2 class='entity_detail_title'>Attached Files</h2>
-		{% load render_table from django_tables2 %}
-		{% render_table attached_files %}
-	{% endif %}
+
+  {% if attached_files %}
+    <h2 class='entity_detail_title'>Attached Files</h2>
+    {% load render_table from django_tables2 %}
+    {% render_table attached_files %}
+  {% endif %}
+
+  {% if batchTable %}
+    {% load render_table from django_tables2 %}
+    <h2 class='entity_detail_title'>Batch Information:</h2>
+    {% render_table batchTable %}
+  {% endif %}
+
+  {% if other_reagent_batch %}
+    <a name='batchinfo'></a>
+    <h2 class='entity_detail_title'>Batch Information for HMSL{{ facility_batch }}:</h2>
+    {% include "db/detailListing.html" with object=other_reagent_batch %}
+    {% if qcTable %}
+      {% load render_table from django_tables2 %}
+      <h2 class='entity_detail_title'>HMS QC Testing Events for HMSL{{ facility_batch }}:</h2>
+      {% render_table qcTable %}
+    {% endif %}
+    {% if attached_files_batch %}
+      <h2 class='entity_detail_title'>Attached Files for HMSL{{ facility_batch }}:</h2>
+      {% load render_table from django_tables2 %}
+      {% render_table attached_files_batch %}
+    {% endif %}
+  {% endif %}
 
 {% endblock %}
+

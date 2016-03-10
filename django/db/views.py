@@ -46,7 +46,7 @@ from db.models import PubchemRequest, SmallMolecule, SmallMoleculeBatch, Cell, \
     DataColumn, get_detail, Antibody, OtherReagent, CellBatch, \
     PrimaryCell, PrimaryCellBatch, QCEvent, \
     QCAttachedFile, AntibodyBatch, Reagent, ReagentBatch, get_listing,\
-    ProteinBatch
+    ProteinBatch, OtherReagentBatch
 from django_tables2.utils import AttributeDict
 from tempfile import SpooledTemporaryFile
 
@@ -555,24 +555,65 @@ def otherReagentIndex(request):
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
     return render_list_index(request, table,search,'Other Reagent','Other Reagents')
     
-def otherReagentDetail(request, facility_id):
+def otherReagentDetail(request, facility_batch, batch_id=None):
     try:
-        reagent = OtherReagent.objects.get(facility_id=facility_id) # todo: cell here
-        if(reagent.is_restricted and not request.user.is_authenticated()):
-            return HttpResponse('Log in required.', status=401)
-        details = {'object': get_detail(reagent, ['otherreagent',''])}
+        _batch_id = None
+        if not batch_id:
+            temp = facility_batch.split('-') 
+            logger.info('find other reagent for %s' % temp)
+            _facility_id = temp[0]
+            if len(temp) > 1:
+                _batch_id = temp[1]
+        else:
+            _facility_id = facility_batch
+            _batch_id = batch_id        
         
-        datasets = DataSet.objects.filter(other_reagents__reagent=reagent).distinct()
+        other_reagent = OtherReagent.objects.get(facility_id=_facility_id) 
+        if(other_reagent.is_restricted and not request.user.is_authenticated()):
+            return HttpResponse('Log in required.', status=401)
+        details = {'object': get_detail(other_reagent, ['otherreagent',''])}
+        
+        details['facility_id'] = other_reagent.facility_id
+        other_reagent_batch = None
+        if(_batch_id):
+            other_reagent_batch = OtherReagentBatch.objects.get(
+                reagent=other_reagent,batch_id=_batch_id) 
+
+        if not other_reagent_batch:
+            batches = ( OtherReagentBatch.objects
+                .filter(reagent=other_reagent, batch_id__gt=0)
+                .order_by('batch_id') )
+            if batches.exists():
+                details['batchTable']=OtherReagentBatchTable(batches)
+        else:
+            details['other_reagent_batch']= get_detail(
+                other_reagent_batch,['otherreagentbatch',''])
+            details['facility_batch'] = ( '%s-%s' 
+                % (other_reagent.facility_id,other_reagent_batch.batch_id) ) 
+
+            qcEvents = QCEvent.objects.filter(
+                facility_id_for=other_reagent.facility_id,
+                batch_id_for=other_reagent_batch.batch_id).order_by('-date')
+            if qcEvents:
+                details['qcTable'] = QCEventTable(qcEvents)
+            
+            if(not other_reagent.is_restricted or request.user.is_authenticated()):
+                attachedFiles = get_attached_files(
+                    other_reagent.facility_id,batch_id=other_reagent_batch.batch_id)
+                if(len(attachedFiles)>0):
+                    details['attached_files_batch'] = AttachedFileTable(attachedFiles)        
+                
+        datasets = DataSet.objects.filter(other_reagents__reagent=other_reagent).distinct()
         if(datasets.exists()):
             where = []
             if(not request.user.is_authenticated()): 
                 where.append("(not is_restricted or is_restricted is NULL)")
-            queryset = datasets.extra(where=where,
+            queryset = datasets.extra(
+                    where=where,
                     order_by=('facility_id',))        
             details['datasets'] = DataSetTable(queryset)
 
         return render(request, 'db/otherReagentDetail.html', details)
- 
     except OtherReagent.DoesNotExist:
         raise Http404
 
@@ -1609,6 +1650,21 @@ class AntibodyBatchTable(PagedTable):
         sequence_override = ['facility_batch']
         set_table_column_info(
             self, ['antibody','antibodybatch',''],sequence_override)  
+
+
+class OtherReagentBatchTable(PagedTable):
+    facility_batch = BatchInfoLinkColumn("otherreagent_detail", args=[A('facility_batch')])
+    
+    class Meta:
+        model = OtherReagentBatch
+        orderable = True
+        attrs = {'class': 'paleblue'}
+
+    def __init__(self, table, *args, **kwargs):
+        super(OtherReagentBatchTable, self).__init__(table, *args, **kwargs)
+        sequence_override = ['facility_batch']
+        set_table_column_info(
+            self, ['otherreagent','otherreagentbatch',''],sequence_override)  
 
 
 class SaltTable(PagedTable):

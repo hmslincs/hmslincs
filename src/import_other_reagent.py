@@ -38,13 +38,12 @@ def main(path):
     properties = ('model_field','required','default','converter')
     column_definitions = { 
                           
-              'OR_ID': 'lincs_id', 
+              'OR_LINCS_ID': 'lincs_id', 
               'Facility ID': ('facility_id',True),
-              'OR_Alternate_ID': 'alternate_id',
-              'OR_Primary_Name': ('name',True),
-              'OR_Alternate_Name': 'alternative_names',
-              'OR_Role': 'role',
-              'OR_Reference': 'reference',                          
+              'OR_Alternative_ID': 'alternative_id',
+              'OR_Name': ('name',True),
+              'OR_Alternative_Name': 'alternative_names',
+              'OR_Relevant_Citations': 'relevant_citations',                          
               'Date Data Received':('date_data_received',False,None,util.date_converter),
               'Date Loaded': ('date_loaded',False,None,util.date_converter),
               'Date Publicly Available': ('date_publicly_available',False,None,util.date_converter),

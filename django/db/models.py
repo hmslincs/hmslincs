@@ -774,9 +774,8 @@ class AntibodyBatch(ReagentBatch):
 
 class OtherReagent(Reagent):
 
-    alternate_id = _TEXT(**_NULLOKSTR)
     role = _TEXT(**_NULLOKSTR)
-    reference = _TEXT(**_NULLOKSTR) 
+    relevant_citations = _TEXT(**_NULLOKSTR) 
 
     @classmethod
     def get_snippet_def(cls):
