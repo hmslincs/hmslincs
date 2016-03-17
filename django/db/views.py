@@ -62,6 +62,7 @@ OMERO_IMAGE_COLUMN_TYPE = 'omero_image'
 DAYS_TO_CACHE = 1
 DAYS_TO_CACHE_PUBCHEM_ERRORS = 1
 
+FACILITY_BATCH_PATTERN = re.compile(r'^(HMSL)?(\d+)(-(\d+))?$',re.IGNORECASE)
 
 def dump(obj):
     dumpObj(obj)
@@ -1996,7 +1997,18 @@ class SearchManager(models.Manager):
                     Q(facility_id__icontains=searchString))
                     .values_list('id') ]
             ids.extend(extra_ids)
-        
+
+        match = FACILITY_BATCH_PATTERN.match(searchString)
+        if match:
+            query = ( ReagentBatch.objects.all()
+                .filter(reagent__facility_id__exact=match.group(2)))
+            if match.group(4):
+                query = query.filter(batch_id=match.group(4))
+            extra_ids = [ id for id in
+                query.values_list('reagent__id', flat=True)
+                    .distinct('reagent__id')]
+            ids.extend(extra_ids)
+                    
         if ids:
             if tablename in ['db_smallmolecule','db_cell','db_primarycell',
                 'db_antibody','db_protein','db_otherreagent']:
@@ -2037,6 +2049,27 @@ class CellSearchManager(SearchManager):
                 Q(transient_modification__icontains=searchString ))
                 .values_list('reagent__id', flat=True)
                 .distinct('reagent__id')]
+        
+        new_ids = [id for id in
+            CellBatch.objects.all()
+                .filter(reagent__cell__precursor__reagent__name__icontains=searchString) 
+                .values_list('reagent__id', flat=True)
+                .distinct('reagent__id')]
+
+        # find by precursor (id, name)
+        match = FACILITY_BATCH_PATTERN.match(searchString)
+        if match:
+            query = ( CellBatch.objects.all()
+                .filter(reagent__cell__precursor__reagent__facility_id__exact
+                    =match.group(2))) 
+            if match.group(4):
+                query = query.filter(reagent__cell__precursor__batch_id__exact
+                    =match.group(4))
+            new_ids = [id for id in 
+                query.values_list('reagent__id', flat=True)
+                    .distinct('reagent__id')]
+        ids.extend(new_ids)
+        
         query =  super(CellSearchManager, self).search(
             base_query, 'db_cell', searchString, id_fields, 
             Cell.get_snippet_def(), ids=ids)
@@ -2151,15 +2184,16 @@ class SmallMoleculeSearchManager(SearchManager):
         # - perm fix is to update all ID's to the "HMSLXXX" form
         searchString = re.sub('HMSL','', searchString)
         id_fields = []
-        
+        ids = []
         # Note: using simple "contains" search for proteinbatch specific fields
-        ids = [id for id in
-            SmallMoleculeBatch.objects.all().filter(
-                Q(chemical_synthesis_reference__icontains=searchString) |
-                Q(purity__icontains=searchString) |
-                Q(purity_method__icontains=searchString) )
-                .values_list('reagent__id', flat=True)
-                .distinct('reagent__id')]
+        if is_authenticated:
+            ids = [id for id in
+                SmallMoleculeBatch.objects.all().filter(
+                    Q(_chemical_synthesis_reference__icontains=searchString) |
+                    Q(_purity__icontains=searchString) |
+                    Q(_purity_method__icontains=searchString) )
+                    .values_list('reagent__id', flat=True)
+                    .distinct('reagent__id')]
 
         return super(SmallMoleculeSearchManager, self).search(
             queryset, 'db_smallmolecule', searchString, id_fields, 
