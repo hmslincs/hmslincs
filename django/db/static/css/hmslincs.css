@@ -86,8 +86,8 @@ img:not(.compound_image_thumbnail):not(.compound_image){
 .compound_image {
  position: absolute;
  right: 0px;
- height: 200px;
- width: 200px;
+ height: 170px;
+ width: 170px;
 }
 
 img.compound_image_thumbnail {
