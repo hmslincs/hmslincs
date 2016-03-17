@@ -2050,13 +2050,12 @@ class CellSearchManager(SearchManager):
                 .values_list('reagent__id', flat=True)
                 .distinct('reagent__id')]
         
+        # find by precursor (id, name)
         new_ids = [id for id in
             CellBatch.objects.all()
                 .filter(reagent__cell__precursor__reagent__name__icontains=searchString) 
                 .values_list('reagent__id', flat=True)
                 .distinct('reagent__id')]
-
-        # find by precursor (id, name)
         match = FACILITY_BATCH_PATTERN.match(searchString)
         if match:
             query = ( CellBatch.objects.all()
@@ -2111,6 +2110,27 @@ class PrimaryCellSearchManager(SearchManager):
                 Q(culture_conditions__icontains=searchString ) )
                 .values_list('reagent__id', flat=True)
                 .distinct('reagent__id')]
+
+        # find by precursor (id, name)
+        new_ids = [id for id in
+            PrimaryCellBatch.objects.all()
+                .filter(reagent__primarycell__precursor__reagent__name__icontains=searchString) 
+                .values_list('reagent__id', flat=True)
+                .distinct('reagent__id')]
+        match = FACILITY_BATCH_PATTERN.match(searchString)
+        if match:
+            query = ( PrimaryCellBatch.objects.all()
+                .filter(reagent__primarycell__precursor__reagent__facility_id__exact
+                    =match.group(2))) 
+            if match.group(4):
+                query = query.filter(reagent__primarycell__precursor__batch_id__exact
+                    =match.group(4))
+            new_ids = [id for id in 
+                query.values_list('reagent__id', flat=True)
+                    .distinct('reagent__id')]
+        ids.extend(new_ids)
+        
+        
         query =  super(PrimaryCellSearchManager, self).search(
             base_query, 'db_primarycell', searchString, id_fields, 
             PrimaryCell.get_snippet_def(), ids=ids)
