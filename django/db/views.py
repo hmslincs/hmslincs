@@ -774,7 +774,7 @@ def smallMoleculeDetail(request, facility_salt_id):
         extra_properties = []
         if(not sm.is_restricted or request.user.is_authenticated()):
             extra_properties=['_inchi', '_inchi_key', '_smiles', 
-                '_molecular_formula', '_molecular_mass', '_relevant_citations']
+                '_relevant_citations']
         details = {'object': get_detail(
             sm, ['smallmolecule',''],extra_properties=extra_properties )}
         details['facility_salt_id'] = sm.facility_id + '-' + sm.salt_id
@@ -802,7 +802,7 @@ def smallMoleculeDetail(request, facility_salt_id):
         else:
             extra_properties = []
             if(not sm.is_restricted or request.user.is_authenticated()):
-                extra_properties=['_molecular_mass',
+                extra_properties=['get_salt_id', 'get_molecular_weight','_molecular_formula',
                     '_chemical_synthesis_reference','_purity','_purity_method']
             details['smallmolecule_batch']= get_detail(
                 smb,['smallmoleculebatch',''], extra_properties=extra_properties)

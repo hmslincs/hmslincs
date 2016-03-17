@@ -45,9 +45,10 @@ def main(path):
         'provider': ('provider_name',True),
         'provider_catalog_id':'provider_catalog_id',
         'provider_sample_id':'provider_batch_id',
-        'molecular_mass':(
-            '_molecular_mass',False,None, 
-            lambda x: round(util.convertdata(x, float),2)),
+        'molecular_weight':(
+            '_molecular_weight',False,None, 
+            lambda x: util.convertdata(x, float)),
+        'molecular_formula':'_molecular_formula',
         'chemical_synthesis_reference':'_chemical_synthesis_reference',
         'purity':'_purity',
         'purity_method':'_purity_method',

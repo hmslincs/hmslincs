@@ -475,8 +475,9 @@ class SmallMolecule(Reagent):
 
 class SmallMoleculeBatch(ReagentBatch):
 
-    _molecular_mass = models.DecimalField(
-        db_column='molecular_mass', max_digits=8, decimal_places=2, null=True) 
+    _molecular_weight = models.DecimalField(
+        db_column='molecular_weight', max_digits=11, decimal_places=8, null=True) 
+    _molecular_formula = _TEXT(db_column='molecular_formula', **_NULLOKSTR)
     _chemical_synthesis_reference = _TEXT(**_NULLOKSTR)
     _purity= _TEXT(**_NULLOKSTR)
     _purity_method = _TEXT(**_NULLOKSTR)
@@ -487,11 +488,20 @@ class SmallMoleculeBatch(ReagentBatch):
     _inchi_key = _TEXT(**_NULLOKSTR)
     _smiles = _TEXT(**_NULLOKSTR)
 
-    def get_molecular_mass(self, is_authenticated=False):
-        if(not self.is_restricted or is_authenticated):
-            return self._molecular_mass
+    def get_salt_id(self):
+        return self.reagent.salt_id  
+      
+    def get_molecular_weight(self, is_authenticated=False):
+        if(not self.reagent.is_restricted or is_authenticated):
+            return str(self._molecular_weight).rstrip('0')
         else:
             return 0
+
+    def get_molecular_formula(self, is_authenticated=False):
+        if(not self.reagent.is_restricted or is_authenticated):
+            return self._molecular_formula
+        else:
+            return 'restricted'
 
     def get_chemical_synthesis_reference(self, is_authenticated=False):
         if(not self.reagent.is_restricted or is_authenticated):
