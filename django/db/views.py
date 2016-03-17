@@ -773,7 +773,7 @@ def smallMoleculeDetail(request, facility_salt_id):
         # from restricted and unrestricted models
         extra_properties = []
         if(not sm.is_restricted or request.user.is_authenticated()):
-            extra_properties=['_inchi', '_inchi_key', '_smiles', 
+            extra_properties=['_molecular_mass','_inchi', '_inchi_key', '_smiles', 
                 '_relevant_citations']
         details = {'object': get_detail(
             sm, ['smallmolecule',''],extra_properties=extra_properties )}
