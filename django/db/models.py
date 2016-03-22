@@ -410,8 +410,11 @@ class ReagentBatch(models.Model):
         unique_together = ('reagent', 'batch_id')
 
     def __unicode__(self):
-        return u'%s:%s' %(self.reagent, self.batch_id)
-    
+        try:
+            return u'%s:%s' %(self.reagent, self.batch_id)
+        except ObjectDoesNotExist:
+            return u'%s:%s' %(None, self.batch_id)
+            
 class SmallMolecule(Reagent):
     
     nominal_target = models.ForeignKey('Protein', null=True)
@@ -1018,15 +1021,20 @@ def get_fielddata(
     if extra_properties:
         for prop in extra_properties:
             property_dict[prop] = getattr(model_object, prop)
-            
+    
+    if not field_information_filter:
+        field_information_filter = lambda x: True
+        
     ui_dict = { }
     for field,value in property_dict.iteritems():
         details = {}
         try:
             fi = FieldInformation.manager.\
                 get_column_fieldinformation_by_priority(field,search_tables)
-            if fi and (field_information_filter and field_information_filter(fi)
-                    or field_information_filter == None ):
+            if not fi:
+                continue
+            if( field_information_filter(fi)
+                    or ( extra_properties and field in extra_properties )):
                 details['fieldinformation'] = fi
                 details['value'] = value
                 ui_dict[field] = details
@@ -1074,20 +1082,23 @@ def get_fieldinformation(field, search_tables=[]):
     return FieldInformation.manager.get_column_fieldinformation_by_priority(
         field,search_tables)
 
-def get_detail_schema(obj,tables_to_search, field_information_filter=None):
+def get_detail_schema(obj,tables_to_search, field_information_filter=None,
+        extra_properties=None):
     """
     returns a dictionary: 
     {fieldinformation.camel_case_dwg_name -> 
         {field information for each field in the model obj}) 
     for the api
     """
+    if not field_information_filter:
+        field_information_filter = lambda x: x.show_in_detail
     _meta_field_info = get_listing(FieldInformation(),['fieldinformation'])
-    detail = get_fielddata(obj, tables_to_search)
+    detail = get_fielddata(obj, tables_to_search, 
+        field_information_filter=field_information_filter, 
+        extra_properties=extra_properties)
     fields = {}
     for entry in detail.values():
         fi = entry['fieldinformation']
-        if field_information_filter and not field_information_filter(fi):
-            continue
         field_schema_info = {}
         for item in _meta_field_info.items():
             meta_fi_attr = item[0]

@@ -48,19 +48,19 @@ class SmallMoleculeResource(ModelResource):
         excludes = ['column']
         allowed_methods = ['get']
         filtering = {'date_loaded':ALL, 'date_publicly_available':ALL, 'date_data_received':ALL }
+        extra_properties=['_inchi', '_inchi_key', '_smiles', 
+            '_molecular_formula', '_molecular_mass', '_relevant_citations']
+        batch_extra_properties=['_molecular_weight',
+            '_chemical_synthesis_reference','_purity','_purity_method']
         
     def dehydrate(self, bundle):
         
         def _filter(field_information):
             return (not bundle.obj.is_restricted 
                     or field_information.is_unrestricted )
-        extra_properties=['_inchi', '_inchi_key', '_smiles', 
-            '_molecular_formula', '_molecular_mass', '_relevant_citations']
-        batch_extra_properties=['_molecular_mass',
-            '_chemical_synthesis_reference','_purity','_purity_method']
 
         bundle.data = get_detail_bundle(bundle.obj, ['smallmolecule',''],
-             _filter=_filter, extra_properties=extra_properties)
+             _filter=_filter, extra_properties=self._meta.extra_properties)
 
         smbs = ( SmallMoleculeBatch.objects.filter(reagent=bundle.obj)
             .exclude(batch_id=0) )
@@ -68,12 +68,17 @@ class SmallMoleculeResource(ModelResource):
         for smb in smbs:
             bundle.data['batches'].append(
                 get_detail_bundle(smb, ['smallmoleculebatch',''], 
-                    _filter=_filter, extra_properties=batch_extra_properties))
+                    _filter=_filter, extra_properties=self._meta.batch_extra_properties))
         return bundle
 
     def build_schema(self):
         schema = super(SmallMoleculeResource,self).build_schema()
-        schema['fields'] = get_detail_schema(SmallMolecule(),['smallmolecule'])
+        schema['fields'] = get_detail_schema(
+            SmallMolecule(),['smallmolecule',''],
+            extra_properties=self._meta.extra_properties)
+        schema['batch_fields'] = get_detail_schema(
+            SmallMoleculeBatch(),['smallmoleculebatch',''],
+            extra_properties=self._meta.batch_extra_properties)
         return schema 
     
     def override_urls(self):
@@ -96,6 +101,7 @@ class CellResource(ModelResource):
         allowed_methods = ['get']
         excludes = []
         filtering = {'date_loaded':ALL, 'date_publicly_available':ALL, 'date_data_received':ALL }
+        extra_properties = ['precursor_cell_id','precursor_cell_batch_id']
         
     def dehydrate(self, bundle):
         def _filter(field_information):
@@ -104,7 +110,7 @@ class CellResource(ModelResource):
 
         bundle.data = get_detail_bundle(
             bundle.obj, ['cell',''], _filter=_filter,
-            extra_properties=['precursor_cell_id','precursor_cell_batch_id'])
+            extra_properties=self._meta.extra_properties)
 
         batches = ( CellBatch.objects.filter(reagent=bundle.obj)
             .exclude(batch_id=0) )
@@ -116,7 +122,10 @@ class CellResource(ModelResource):
     
     def build_schema(self):
         schema = super(CellResource,self).build_schema()
-        schema['fields'] = get_detail_schema(Cell(),['cell'])
+        schema['fields'] = get_detail_schema(
+            Cell(),['cell',''], extra_properties=self._meta.extra_properties)
+        schema['batch_fields'] = get_detail_schema(
+            CellBatch(),['cellbatch',''])
         return schema 
     
     def override_urls(self):
@@ -139,6 +148,7 @@ class PrimaryCellResource(ModelResource):
             'date_loaded':ALL, 
             'date_publicly_available':ALL, 
             'date_data_received':ALL }
+        extra_properties=['precursor_cell_id','precursor_cell_batch_id']
         
     def dehydrate(self, bundle):
         def _filter(field_information):
@@ -147,7 +157,7 @@ class PrimaryCellResource(ModelResource):
 
         bundle.data = get_detail_bundle(
             bundle.obj, ['primarycell',''], _filter=_filter,
-            extra_properties=['precursor_cell_id','precursor_cell_batch_id'])
+            extra_properties=self._meta.extra_properties)
         
         batches = ( PrimaryCellBatch.objects.filter(reagent=bundle.obj)
             .exclude(batch_id=0) )
@@ -159,7 +169,11 @@ class PrimaryCellResource(ModelResource):
     
     def build_schema(self):
         schema = super(PrimaryCellResource,self).build_schema()
-        schema['fields'] = get_detail_schema(PrimaryCell(),['primarycell'])
+        schema['fields'] = get_detail_schema(
+            PrimaryCell(),['primarycell',''],
+            extra_properties=self._meta.extra_properties)
+        schema['batch_fields'] = get_detail_schema(
+            PrimaryCellBatch(),['primarycellbatch',''])
         return schema 
     
     def prepend_urls(self):
@@ -194,7 +208,9 @@ class AntibodyResource(ModelResource):
 
     def build_schema(self):
         schema = super(AntibodyResource,self).build_schema()
-        schema['fields'] = get_detail_schema(Antibody(),['antibody'])
+        schema['fields'] = get_detail_schema(Antibody(),['antibody',''])
+        schema['batch_fields'] = get_detail_schema(
+            AntibodyBatch(),['antibodybatch',''])
         return schema 
     
     def override_urls(self):
@@ -232,7 +248,9 @@ class OtherReagentResource(ModelResource):
 
     def build_schema(self):
         schema = super(OtherReagentResource,self).build_schema()
-        schema['fields'] = get_detail_schema(OtherReagent(),['otherreagent'])
+        schema['fields'] = get_detail_schema(OtherReagent(),['otherreagent',''])
+        schema['batch_fields'] = get_detail_schema(
+            OtherReagentBatch(),['otherreagentbatch',''])
         return schema 
     
     def override_urls(self):
@@ -270,7 +288,9 @@ class ProteinResource(ModelResource):
 
     def build_schema(self):
         schema = super(ProteinResource,self).build_schema()
-        schema['fields'] = get_detail_schema(Protein(),['protein'])
+        schema['fields'] = get_detail_schema(Protein(),['protein',''])
+        schema['batch_fields'] = get_detail_schema(
+            ProteinBatch(),['protein',''])
         return schema 
     
     def override_urls(self):
@@ -297,7 +317,7 @@ class LibraryResource(ModelResource):
 
     def build_schema(self):
         schema = super(LibraryResource,self).build_schema()
-        schema['fields'] = get_detail_schema(Library(),['library'])
+        schema['fields'] = get_detail_schema(Library(),['library',''])
         return schema 
     
     def override_urls(self):
