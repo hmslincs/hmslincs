@@ -1994,6 +1994,7 @@ class SearchManager(models.Manager):
                     Q(name__icontains=searchString) |
                     Q(lincs_id__icontains=searchString) |
                     Q(alternative_names__icontains=searchString) |
+                    Q(salt_id__exact=searchString) |
                     Q(facility_id__icontains=searchString))
                     .values_list('id') ]
             ids.extend(extra_ids)
