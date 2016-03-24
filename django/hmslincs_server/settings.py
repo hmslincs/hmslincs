@@ -76,6 +76,17 @@ if socket.getfqdn().endswith('.orchestra'):
         # Don't forget to use absolute paths, not relative paths.
         '/groups/lincs/data/images/',
     )   
+
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'DefaultCache:',
+        },
+    }
+
+    WEBTEMPLATES_PERMANENT_CACHE = True
+    WEBTEMPLATES_TIMEOUT = 20
+
 else:
 
     # Additional locations of static files
