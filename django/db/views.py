@@ -1790,6 +1790,7 @@ class CellTable(PagedTable):
     id = tables.Column(verbose_name='CLO Id')
     disease = DivWrappedColumn(classname='constrained_width_column')
     dataset_types = DivWrappedColumn(classname='constrained_width_column', visible=False)
+    alternative_id = DivWrappedColumn(classname='constrained_width_column')
     precursor_cell_name = tables.Column(visible=False)
     precursor_cell_facility_batch_id = tables.Column(visible=False)
 #    snippet_def = ("coalesce(name,'') || ' ' || coalesce(id,'') || ' ' || coalesce(alternate_name,'') || ' ' || " +  
@@ -1819,6 +1820,7 @@ class PrimaryCellTable(PagedTable):
     id = tables.Column(verbose_name='CLO Id')
     disease = DivWrappedColumn(classname='constrained_width_column')
     dataset_types = DivWrappedColumn(classname='constrained_width_column', visible=False)
+    alternative_id = DivWrappedColumn(classname='constrained_width_column')
     precursor_cell_name = tables.Column(visible=False)
     precursor_cell_facility_batch_id = tables.Column(visible=False)
     
@@ -1839,6 +1841,7 @@ class ProteinTable(PagedTable):
     rank = tables.Column()
     snippet = DivWrappedColumn(verbose_name='matched text', classname='snippet')
     alternative_names = DivWrappedColumn(classname='constrained_width_column', visible=False)
+    alternative_id = DivWrappedColumn(classname='constrained_width_column')
     dataset_types = DivWrappedColumn(classname='constrained_width_column', visible=False)
 
     class Meta:
@@ -1859,6 +1862,7 @@ class AntibodyTable(PagedTable):
     rank = tables.Column()
     snippet = DivWrappedColumn(verbose_name='matched text', classname='snippet')
     target_protein_name = tables.LinkColumn("protein_detail", args=[A('target_protein_center_id')])
+    alternative_id = DivWrappedColumn(classname='constrained_width_column')
     
     class Meta:
         model = Antibody
@@ -1874,6 +1878,7 @@ class OtherReagentTable(PagedTable):
     facility_id = tables.LinkColumn("otherreagent_detail", args=[A('facility_id')])
     rank = tables.Column()
     snippet = DivWrappedColumn(verbose_name='matched text', classname='snippet')
+    alternative_id = DivWrappedColumn(classname='constrained_width_column')
 
     class Meta:
         model = OtherReagent
