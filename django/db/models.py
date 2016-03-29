@@ -479,7 +479,7 @@ class SmallMolecule(Reagent):
 class SmallMoleculeBatch(ReagentBatch):
 
     _molecular_weight = models.DecimalField(
-        db_column='molecular_weight', max_digits=11, decimal_places=8, null=True) 
+        db_column='molecular_weight', max_digits=10, decimal_places=6, null=True) 
     _molecular_formula = _TEXT(db_column='molecular_formula', **_NULLOKSTR)
     _chemical_synthesis_reference = _TEXT(**_NULLOKSTR)
     _purity= _TEXT(**_NULLOKSTR)
