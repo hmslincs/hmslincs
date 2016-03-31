@@ -955,6 +955,7 @@ class AttachedFile(models.Model):
 del _TEXT, _INTEGER
 del _NULLOKSTR, _NOTNULLSTR
 
+
 def get_properties(obj):
     """
     Custom method to grab all of the fields _and_ properties on model instances
@@ -966,16 +967,10 @@ def get_properties(obj):
         try:
             attr = getattr(obj, slot)
 
-            if ( slot.find('_') == 0 
-                 or slot == '__dict__' 
-                 or slot == '__class__' 
-                 or slot == '__doc__' 
-                 or  slot == '__module__' 
-                 or (isinstance(attr, types.BuiltinMethodType) or 
-                  isinstance(attr, MethodWrapperType))
-                 or (isinstance(attr, types.MethodType) or
-                  isinstance(attr, types.FunctionType))
-                or isinstance(attr, types.TypeType)):
+            if ( slot[0] == '_' or ( 
+                isinstance(attr, (
+                    types.BuiltinMethodType, MethodWrapperType,
+                    types.MethodType,types.FunctionType,types.TypeType)))):
                 continue
             else:
                 attrs[slot] = attr
