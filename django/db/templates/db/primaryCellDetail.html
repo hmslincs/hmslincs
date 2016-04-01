@@ -1,11 +1,11 @@
 {% extends "db/base.html" %}
 
 {% block title %}
-  {{ object.name.value }} - Cell Line - {{ block.super }}
+  {{ object.name.value }} - Primary Cell - {{ block.super }}
 {% endblock %}
 
 {% block content %}
-{% include "db/detailTitle.html" with name=object.name type="Cell Line" id=object.facility_id %}
+{% include "db/detailTitle.html" with name=object.name type="Primary Cell" id=object.facility_id %}
  {% include "db/detailListing.html" %}
 
   {% if datasets and not cell_batch %}

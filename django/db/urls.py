@@ -4,6 +4,7 @@ from tastypie.api import Api
 from db.views import *
 from db.api import SmallMoleculeResource
 from db.api import CellResource
+from db.api import PrimaryCellResource
 from db.api import AntibodyResource
 from db.api import OtherReagentResource
 from db.api import DataSetResource2
@@ -16,6 +17,7 @@ from django.contrib import admin
 v1_api = Api(api_name='v1')
 v1_api.register(SmallMoleculeResource())
 v1_api.register(CellResource())
+v1_api.register(PrimaryCellResource())
 v1_api.register(DataSetResource2())
 v1_api.register(DataSetDataResource2())
 v1_api.register(ProteinResource())
@@ -41,13 +43,19 @@ urlpatterns = patterns('',
     url(r'^cells/$','db.views.cellIndex', name="listCells"),
     url(r'^cells/(?P<facility_batch>[0-9\-]+)/$', 'db.views.cellDetail', name="cell_detail"),
     url(r'^cells/(?P<facility_batch>\d+)-(?P<batch_id>\d+)/$', 'db.views.cellDetail', name="cell_detail2"),    
+    url(r'^primarycells/$','db.views.primaryCellIndex', name="listPrimaryCells"),
+    url(r'^primarycells/(?P<facility_batch>[0-9\-]+)/$', 'db.views.primaryCellDetail', name="primary_cell_detail"),
+    url(r'^primarycells/(?P<facility_batch>\d+)-(?P<batch_id>\d+)/$', 'db.views.primaryCellDetail', name="primary_cell_detail2"),    
     url(r'^antibodies/$','db.views.antibodyIndex', name="listAntibodies"),
     url(r'^antibodies/(?P<facility_batch>[\d-]+)/$', 
         'db.views.antibodyDetail', name="antibody_detail"),
     url(r'^antibodies/(?P<facility_batch>\d+)-(?P<batch_id>\d+)/$', 
         'db.views.antibodyDetail', name="antibody_detail2"),    
     url(r'^otherreagents/$','db.views.otherReagentIndex', name="listOtherReagents"),
-    url(r'^otherreagents/(?P<facility_id>\d+)/$', 'db.views.otherReagentDetail', name="otherreagent_detail"),
+    url(r'^otherreagents/(?P<facility_batch>[\d-]+)/$', 
+        'db.views.otherReagentDetail', name="otherreagent_detail"),
+    url(r'^otherreagents/(?P<facility_batch>\d+)-(?P<batch_id>\d+)/$', 
+        'db.views.otherReagentDetail', name="otherreagent_detail2"),    
     url(r'^proteins/$','db.views.proteinIndex', name="listProteins"),
     url(r'^proteins/(?P<lincs_id>\d+)/$', 'db.views.proteinDetail', name="protein_detail"),
     url(r'^libraries/$','db.views.libraryIndex', name="listLibraries"),
@@ -56,6 +64,7 @@ urlpatterns = patterns('',
     url(r'^datasets/(?P<facility_id>\d+)/$', 'db.views.datasetDetailMain', name="dataset_detail"),
     url(r'^datasets/(?P<facility_id>\d+)/main$', 'db.views.datasetDetailMain', name="dataset_detail_main"),
     url(r'^datasets/(?P<facility_id>\d+)/cells$', 'db.views.datasetDetailCells', name="dataset_detail_cells"),
+    url(r'^datasets/(?P<facility_id>\d+)/primarycells$', 'db.views.datasetDetailPrimaryCells', name="dataset_detail_primary_cells"),
     url(r'^datasets/(?P<facility_id>\d+)/antibodies$', 'db.views.datasetDetailAntibodies', name="dataset_detail_antibodies"),
     url(r'^datasets/(?P<facility_id>\d+)/otherreagents$', 'db.views.datasetDetailOtherReagents', name="dataset_detail_otherreagents"),
     url(r'^datasets/(?P<facility_id>\d+)/proteins$', 'db.views.datasetDetailProteins', name="dataset_detail_proteins"),

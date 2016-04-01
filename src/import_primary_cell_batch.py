@@ -1,3 +1,4 @@
+
 import sys
 import argparse
 import xls2py as x2p
@@ -7,11 +8,10 @@ import logging
 
 import init_utils as iu
 import import_utils as util
-from db.models import OtherReagent, OtherReagentBatch
+from db.models import PrimaryCell, PrimaryCellBatch
 from django.db import transaction
 
 __version__ = "$Revision: 24d02504e664 $"
-# $Source$
 
 # ---------------------------------------------------------------------------
 
@@ -30,78 +30,85 @@ logger = logging.getLogger(__name__)
 @transaction.commit_on_success
 def main(path):
     """
-    Read in the OtherReagent
+    Read in the primary cell batch info
     """
     sheet_name = 'Sheet1'
-    sheet = iu.readtable([path, sheet_name, 1]) # Note, skipping the header row by default
+    start_row = 1
+    sheet = iu.readtable([path, sheet_name, start_row]) # Note, skipping the header row by default
 
     properties = ('model_field','required','default','converter')
     column_definitions = { 
-                          
-              'OR_LINCS_ID': 'lincs_id', 
-              'Facility ID': ('facility_id',True),
-              'OR_Alternative_ID': 'alternative_id',
-              'OR_Name': ('name',True),
-              'OR_Alternative_Name': 'alternative_names',
-              'OR_Relevant_Citations': 'relevant_citations',                          
+              'Facility ID':('facility_id',True,None, lambda x: x[x.index('HMSL')+4:]),
+              'PC_Center_Batch_ID':('batch_id',True,None,lambda x:util.convertdata(x,int)),
+              'PC_Center_Specific_Code': 'center_specific_code',
+              'PC_Provider_Name':'provider_name',
+              'PC_Provider_Catalog_ID':'provider_catalog_id',
+              'PC_Provider_Batch_ID':'provider_batch_id',
+              'PC_Source_Information': 'source_information',
+              'PC_Date_Received': 'date_received',
+              'PC_Quality_Verification':'quality_verification',
+              'PC_Culture_Conditions': 'culture_conditions',
+              'PC_Passage_Number': ('passage_number',False,None,lambda x:util.convertdata(x,int)),
+              'PC_Transient_Modification': 'transient_modification',
               'Date Data Received':('date_data_received',False,None,util.date_converter),
               'Date Loaded': ('date_loaded',False,None,util.date_converter),
               'Date Publicly Available': ('date_publicly_available',False,None,util.date_converter),
               'Most Recent Update': ('date_updated',False,None,util.date_converter),
-              'Is Restricted':('is_restricted',False,False)}
+              }
 
-              
-    # convert the labels to fleshed out dict's, with strategies for optional, default and converter
     column_definitions = util.fill_in_column_definitions(properties,column_definitions)
-    
-    # create a dict mapping the column ordinal to the proper column definition dict
     cols = util.find_columns(column_definitions, sheet.labels)
-
+    
     rows = 0    
-    logger.debug(str(('cols: ' , cols)))
     for row in sheet:
+        
         r = util.make_row(row)
-        dict = {}
         initializer = {}
+        
         for i,value in enumerate(r):
+
             if i not in cols: continue
             properties = cols[i]
 
-            logger.debug(str(('read col: ', i, ', ', properties)))
             required = properties['required']
             default = properties['default']
             converter = properties['converter']
             model_field = properties['model_field']
 
-            # Todo, refactor to a method
-            logger.debug(str(('raw value', value)))
             if(converter != None):
                 value = converter(value)
             if(value == None ):
                 if( default != None ):
                     value = default
             if(value == None and  required == True):
-                raise Exception('Field is required: %s, record: %d' % (properties['column_label'],rows))
-            logger.debug(str(('model_field: ' , model_field, ', value: ', value)))
-            initializer[model_field] = value
+                raise Exception('Field is required: %s, record: %d' % (
+                    properties['column_label'],rows))
+            
+            if model_field == 'facility_id':
+                try:
+                    cell = PrimaryCell.objects.get(facility_id=value)
+                    initializer['reagent'] = cell
+                except:
+                    logger.exception(
+                        "Primary Cell not found: %r, row: %d", value,rows+start_row+1)
+                    raise
+            else:
+                initializer[model_field] = value
         try:
-            logger.debug(str(('initializer: ', initializer)))
-            reagent = OtherReagent(**initializer)
-            reagent.save()
-            logger.info(str(('OtherReagent created: ', reagent)))
+            logger.debug('initializer: %r', initializer)
+            cell = PrimaryCellBatch(**initializer)
+            cell.save()
+            logger.debug('primary cell batch created: %r', cell)
             rows += 1
-            
-            # create a default batch - 0
-            OtherReagentBatch.objects.create(reagent=reagent,batch_id=0)
-            
         except Exception, e:
-            logger.error(str(( "Invalid OtherReagent initializer: ", initializer)))
+            logger.exception(
+                "Invalid Primary CellBatch initializer: %r, row: %d",
+                initializer, rows+start_row+1)
             raise
         
     print "Rows read: ", rows
     
     
-
 parser = argparse.ArgumentParser(description='Import file')
 parser.add_argument('-f', action='store', dest='inputFile',
                     metavar='FILE', required=True,
@@ -120,9 +127,7 @@ if __name__ == "__main__":
         log_level = logging.INFO
     elif args.verbose >= 2:
         log_level = logging.DEBUG
-    # NOTE this doesn't work because the config is being set by the included settings.py, and you can only set the config once
     logging.basicConfig(level=log_level, format='%(msecs)d:%(module)s:%(lineno)d:%(levelname)s: %(message)s')        
-    logger.setLevel(log_level)
 
     print 'importing ', args.inputFile
     main(args.inputFile)

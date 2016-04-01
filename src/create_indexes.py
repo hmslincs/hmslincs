@@ -3,7 +3,7 @@ import sys
 import init_utils as iu
 
 from db.models import Cell, DataSet, SmallMolecule, Library, Protein, FieldInformation,\
-    Antibody, OtherReagent, Reagent,ReagentBatch
+    Antibody, OtherReagent, Reagent,ReagentBatch, PrimaryCell
 from django.db import models
 
 # ---------------------------------------------------------------------------
@@ -19,30 +19,22 @@ del _sg, _params
 # ---------------------------------------------------------------------------
 
 def main():
-    print '/** creating index definitions for Reagent **/'
     createTableIndex('db_reagent', Reagent)
-    print '/** creating index definitions for ReagentBatch **/'
     createTableIndex('db_reagentbatch', ReagentBatch)
-    print '/** creating index definitions for Cell **/'
     createTableIndex('db_cell', Cell)
-    print '/** creating index definitions for Small Molecule **/'
+    createTableIndex('db_primarycell', PrimaryCell)
     createTableIndex('db_smallmolecule', SmallMolecule)
-    print '/** creating index definitions for DataSet **/'
     createTableIndex('db_dataset', DataSet)
-    print '/** creating index definitions for Library **/'
     createTableIndex('db_library', Library)
-    print '/** creating index definitions for Protein **/'
     createTableIndex('db_protein', Protein)
-    print '/** creating index definitions for Antibody **/'
     createTableIndex('db_antibody', Antibody)
-    print '/** creating index definitions for OtherReagent **/'
     createTableIndex('db_otherreagent', OtherReagent)
-    print "\n"
 
 def ignore_errors(yn):
     print '\\%s ON_ERROR_STOP' % ('unset' if yn else 'set')
 
 def createTableIndex(tableName, model):
+    print '/** Creating indexes for %r, model: %r **/\n' % (tableName, model)
     index = '%s_index' % tableName
     qualifier = 'cascade'
     kws = dict(locals())

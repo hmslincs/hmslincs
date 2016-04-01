@@ -8,7 +8,6 @@ import logging
 
 import init_utils as iu
 import import_utils as util
-from db.models import SmallMolecule,SmallMoleculeBatch
 from django.db import transaction
 
 __version__ = "$Revision: 24d02504e664 $"
@@ -17,6 +16,7 @@ __version__ = "$Revision: 24d02504e664 $"
 # ---------------------------------------------------------------------------
 
 import setparams as _sg
+from db.models import OtherReagent, OtherReagentBatch
 _params = dict(
     VERBOSE = False,
     APPNAME = 'db',
@@ -38,24 +38,11 @@ def main(path):
     column_definitions = { 
         'facility_id': (
             'facility_id',True,None, lambda x: util.convertdata(x,int)),
-        'salt_id': (
-            'salt_id',True,None, lambda x: util.convertdata(x,int)),
         'facility_batch_id':(
             'batch_id',True,None, lambda x: util.convertdata(x,int)),
         'provider': ('provider_name',True),
         'provider_catalog_id':'provider_catalog_id',
         'provider_sample_id':'provider_batch_id',
-        'molecular_weight':(
-            '_molecular_weight',False,None, 
-            lambda x: util.convertdata(x, float)),
-        'molecular_formula':'_molecular_formula',
-        'chemical_synthesis_reference':'_chemical_synthesis_reference',
-        'purity':'_purity',
-        'purity_method':'_purity_method',
-        'aqueous_solubility':'aqueous_solubility',
-        # FIXME: should warn the user if no unit is provided when 
-        # aqueous_solubility is provided
-        'aqueous_solubility_unit':'aqueous_solubility_unit',    
         'Date Data Received':(
             'date_data_received',False,None,util.date_converter),
         'Date Loaded': ('date_loaded',False,None,util.date_converter),
@@ -71,52 +58,50 @@ def main(path):
         all_sheet_columns_required=False)
     
     rows = 0    
+    logger.debug('cols: %s' % cols)
     for row in sheet:
         r = util.make_row(row)
+        dict = {}
         initializer = {}
-        small_molecule_lookup = {'facility_id':None, 'salt_id':None}
         for i,value in enumerate(r):
             if i not in cols: continue
             properties = cols[i]
 
+            logger.debug('read col: %d: %s' % (i,properties))
             required = properties['required']
             default = properties['default']
             converter = properties['converter']
             model_field = properties['model_field']
 
+            logger.debug('raw value %r' % value)
             if(converter != None):
                 value = converter(value)
             if(value == None ):
                 if( default != None ):
                     value = default
             if(value == None and  required == True):
-                raise Exception(
-                    'Field is required: %s, record: %d' 
+                raise Exception('Field is required: %s, record: %d' 
                     % (properties['column_label'],rows))
-            
-            if(model_field in small_molecule_lookup):
-                small_molecule_lookup[model_field]=value
-                if( None not in small_molecule_lookup.values()):
-                    try:
-                        sm = SmallMolecule.objects.get(**small_molecule_lookup)
-                        initializer['reagent'] = sm
-                    except Exception, e:
-                        logger.exception(
-                            'sm identifiers not found: %r, row: %d', 
-                            small_molecule_lookup,rows+start_row+2)
-                        raise
-            else:
-                initializer[model_field] = value
+
+            logger.debug('model_field: %s, converted value %r'
+                % (model_field, value) )
+            initializer[model_field] = value
         try:
-            logger.debug(str(('initializer: ', initializer)))
-            smb = SmallMoleculeBatch(**initializer)
-            smb.save()
-            logger.debug(str(('smb created:', smb)))
+            logger.debug('initializer: %s' % initializer)
+            
+            facility_id = initializer.pop('facility_id',None)
+            try:
+                other_reagent = OtherReagent.objects.get(facility_id=facility_id)
+                initializer['reagent'] = other_reagent
+            except ObjectDoesNotExist, e:
+                logger.error('facility_id: "%s" does not exist, row: %d' 
+                    % (facility_id,i))
+            batch = OtherReagentBatch(**initializer)
+            batch.save()
+            logger.debug('batch created: %s', batch)
             rows += 1
         except Exception, e:
-            logger.exception(
-                'Invalid smallmolecule batch initializer: %r, row: %d', 
-                initializer, rows+start_row+2)
+            logger.error("Invalid other_reagent_batch initializer: %s" % initializer)
             raise
         
     print "Rows read: ", rows

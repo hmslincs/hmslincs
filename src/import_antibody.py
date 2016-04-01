@@ -30,48 +30,48 @@ logger = logging.getLogger(__name__)
 
 @transaction.commit_on_success
 def main(path):
-    """
-    Read in the Antibody
-    """
     sheet_name = 'Sheet1'
-    sheet = iu.readtable([path, sheet_name, 0]) 
+    sheet = iu.readtable([path, sheet_name, 1]) 
 
     properties = ('model_field','required','default','converter')
     column_definitions = { 
-              'AR_Name': ('name',True),
-              'AR_LINCS_ID': 'lincs_id', 
-              'AR_Alternative_Name': 'alternative_names',
-              'AR_Center_Specific_ID': ('facility_id',True,None, lambda x: x[x.index('HMSL')+4:]),
-              'AR_Clone_Name': 'clone_name',
-              'AR_RRID': 'rrid',
-              'AR_Antibody_Type': 'type',
-              'target_protein_lincs_id': (
-                  'target_protein_lincs_id',False,None, 
-                  lambda x: x[x.index('HMSL')+4:] if x else None ),
-              'AR_Non-Protein_Target': 'non_protein_target_name',
-              'AR_Target_Organism': 'target_organism',
-              'AR_Immunogen': 'immunogen',
-              'AR_Immunogen_Sequence': 'immunogen_sequence',
-              'AR_Antibody_Species': 'species',
-              'AR_Antibody_Clonality': 'clonality',
-              'AR_Antibody_Isotype': 'isotype',
-              'AR_Antibody_Production_Source_Organism': 'source_organism',
-              'AR_Antibody_Production_Details': 'production_details',
-              'AR_Antibody_Labeling': 'labeling',
-              'AR_Antibody_Labeling_Details': 'labeling_details',
-              'AR_Relevant_Citations': 'relevant_citations',
-
-              'Date Data Received':('date_data_received',False,None,util.date_converter),
-              'Date Loaded': ('date_loaded',False,None,util.date_converter),
-              'Date Publicly Available': ('date_publicly_available',False,None,util.date_converter),
-              'Most Recent Update': ('date_updated',False,None,util.date_converter),
-              'Is Restricted':('is_restricted',False,False,util.bool_converter)}
+        'AR_Name': ('name',True),
+        'AR_LINCS_ID': 'lincs_id', 
+        'AR_Alternative_Name': 'alternative_names',
+        'AR_Alternative_ID': 'alternative_id',
+        'AR_Center_Canonical_ID': (
+            'facility_id',True,None, lambda x: x[x.index('HMSL')+4:]),
+        'AR_Clone_Name': 'clone_name',
+        'AR_RRID': 'rrid',
+        'AR_Antibody_Type': 'type',
+        'target_protein_lincs_id': (
+            'target_protein_lincs_id',False,None, 
+            lambda x: x[x.index('HMSL')+4:] if x else None ),
+        'AR_Non-Protein_Target': 'non_protein_target_name',
+        'AR_Target_Organism': 'target_organism',
+        'AR_Immunogen': 'immunogen',
+        'AR_Immunogen_Sequence': 'immunogen_sequence',
+        'AR_Antibody_Species': 'species',
+        'AR_Antibody_Clonality': 'clonality',
+        'AR_Antibody_Isotype': 'isotype',
+        'AR_Antibody_Production_Source_Organism': 'source_organism',
+        'AR_Antibody_Production_Details': 'production_details',
+        'AR_Antibody_Labeling': 'labeling',
+        'AR_Antibody_Labeling_Details': 'labeling_details',
+        'AR_Relevant_Citations': 'relevant_citations',
+        
+        'Date Data Received':(
+            'date_data_received',False,None,util.date_converter),
+        'Date Loaded': ('date_loaded',False,None,util.date_converter),
+        'Date Publicly Available': (
+            'date_publicly_available',False,None,util.date_converter),
+        'Most Recent Update': ('date_updated',False,None,util.date_converter),
+        'Is Restricted':('is_restricted',False,False,util.bool_converter)}
               
-    # convert the labels to fleshed out dict's, with strategies for optional, default and converter
     column_definitions = util.fill_in_column_definitions(properties,column_definitions)
     
-    # create a dict mapping the column ordinal to the proper column definition dict
-    cols = util.find_columns(column_definitions, sheet.labels)
+    cols = util.find_columns(column_definitions, sheet.labels, 
+        all_sheet_columns_required=False)
 
     rows = 0    
     logger.debug('cols: %s' % cols)
@@ -107,13 +107,16 @@ def main(path):
         try:
             logger.debug('row: %s, initializer: %s' % (rows,initializer))
             
-            target_protein_lincs_id = initializer.pop('target_protein_lincs_id',None)
+            target_protein_lincs_id = initializer.pop(
+                'target_protein_lincs_id',None)
             if target_protein_lincs_id: 
                 try:
-                    target_protein = Protein.objects.get(lincs_id=target_protein_lincs_id)
+                    target_protein = Protein.objects.get(
+                        lincs_id=target_protein_lincs_id)
                     initializer['target_protein'] = target_protein
                 except ObjectDoesNotExist, e:
-                    logger.error('target_protein_lincs_id "%s" does not exist, row: %d' 
+                    logger.error(
+                        'target_protein_lincs_id "%s" does not exist, row: %d' 
                         % (target_protein_lincs_id,i))
             antibody = Antibody(**initializer)
             antibody.save()

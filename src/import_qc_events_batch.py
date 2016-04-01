@@ -10,7 +10,7 @@ import logging
 
 import init_utils as iu
 import import_utils as util
-from db.models import SmallMolecule,SmallMoleculeBatch,QCEvent,QCAttachedFile
+from db.models import QCEvent,QCAttachedFile
 from django.db import transaction
 from django.conf import settings
 

@@ -28,6 +28,8 @@ del _sg, _params
 
 logger = logging.getLogger(__name__)
 
+DATE_RECEIVED_PARTIAL_DATE_PATTERN = r'\d{4}(-\d{2}(-\d{2})?)?'
+
 @transaction.commit_on_success
 def main(path):
     """
@@ -40,12 +42,15 @@ def main(path):
     properties = ('model_field','required','default','converter')
     column_definitions = { 
               'Facility ID':('facility_id',True,None, lambda x: x[x.index('HMSL')+4:]),
-              'CL_Batch_ID':('batch_id',True,None,lambda x:util.convertdata(x,int)),
+              'CL_Center_Batch_ID':('batch_id',True,None,lambda x:util.convertdata(x,int)),
+              'CL_Center_Specific_Code': 'center_specific_code',
               'CL_Provider_Name':'provider_name',
-              'CL_Provider_Batch_ID':'provider_batch_id',
               'CL_Provider_Catalog_ID':'provider_catalog_id',
+              'CL_Provider_Batch_ID':'provider_batch_id',
+              'CL_Source_Information': 'source_information',
               'CL_Quality_Verification':'quality_verification',
               'CL_Transient_Modification': 'transient_modification',
+              'CL_Date_Received': 'date_received',
               'Date Data Received':('date_data_received',False,None,util.date_converter),
               'Date Loaded': ('date_loaded',False,None,util.date_converter),
               'Date Publicly Available': ('date_publicly_available',False,None,util.date_converter),
@@ -57,6 +62,7 @@ def main(path):
     # create a dict mapping the column ordinal to the proper column definition dict
     cols = util.find_columns(column_definitions, sheet.labels)
     
+    date_received_matcher = re.compile(DATE_RECEIVED_PARTIAL_DATE_PATTERN)
     rows = 0    
     logger.debug(str(('cols: ' , cols)))
     for row in sheet:
@@ -82,7 +88,14 @@ def main(path):
                 raise Exception('Field is required: %s, record: %d' % (
                     properties['column_label'],rows))
             logger.debug(str(('model_field: ' , model_field, ', value: ', value)))
-            
+            if value and model_field == 'date_received':
+                if not date_received_matcher.match(value):
+                    logger.error((
+                        'CL_Date_Received: %r does not match the pattern: %r,',
+                        'row: %d'),
+                        value,DATE_RECEIVED_PARTIAL_DATE_PATTERN,rows+start_row+2)
+                    raise
+                
             if model_field == 'facility_id':
                 try:
                     cell = Cell.objects.get(facility_id=value)

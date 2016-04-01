@@ -11,7 +11,8 @@ from xlrd.book import colname
 
 from db.models import DataSet, DataColumn, DataRecord, DataPoint, \
         LibraryMapping, AntibodyBatch, OtherReagent, SmallMoleculeBatch, \
-        OtherReagentBatch, ProteinBatch, CellBatch, camel_case_dwg
+        OtherReagentBatch, ProteinBatch, CellBatch, PrimaryCellBatch, \
+        camel_case_dwg
 import time;  
 
 logger = logging.getLogger(__name__)
@@ -30,10 +31,18 @@ default_reagent_columns = {
     'Cell': {
         'display_order': 2,
         'name': 'cell',
-        'display_name': 'Cell',
+        'display_name': 'Cell Line',
         'data_type': 'cell',
-        'description': 'A Cell reagent',
-        'comments': 'A Cell reagent'
+        'description': 'A Cell Line reagent',
+        'comments': 'A Cell Line reagent'
+    },
+    'PrimaryCell': {
+        'display_order': 2,
+        'name': 'primarycell',
+        'display_name': 'Primary Cell',
+        'data_type': 'primary_cell',
+        'description': 'A Primary Cell reagent',
+        'comments': 'A Primary Cell reagent'
     },
     'Protein': {
         'display_order': 3,
@@ -487,6 +496,8 @@ def _create_datapoint(datacolumn, dataset, datarecord, value):
             _read_other_reagent(dataset, datapoint)
         elif datacolumn.data_type == 'cell':
             _read_cell_batch(dataset, datapoint)
+        elif datacolumn.data_type == 'primary_cell':
+            _read_primary_cell_batch(dataset, datapoint)
 
     return datapoint
 
@@ -540,7 +551,8 @@ def _read_protein(dataset, datapoint):
         datapoint.reagent_batch = reagentbatch
         reagents_read_hash[text_value] = reagentbatch
     except Exception, e:
-        logger.exception("Invalid Protein identifier: %r" % datapoint)
+        logger.exception("Invalid Protein identifier: %r:%r, raw val: %r",
+            facility_id,batch_id,text_value)
         raise    
 
 def _read_other_reagent(dataset, datapoint):
@@ -560,7 +572,8 @@ def _read_other_reagent(dataset, datapoint):
         datapoint.reagent_batch = reagentbatch
         reagents_read_hash[text_value] = reagentbatch
     except Exception, e:
-        logger.exception("Invalid OtherReagent identifier: %r" % datapoint)
+        logger.exception("Invalid Other Reagent identifier: %r:%r, raw val: %r",
+            facility_id,batch_id,text_value)
         raise    
 
 def _read_antibody(dataset, datapoint):
@@ -580,7 +593,8 @@ def _read_antibody(dataset, datapoint):
         datapoint.reagent_batch = reagentbatch
         reagents_read_hash[text_value] = reagentbatch
     except Exception, e:
-        logger.exception("Invalid Antibody identifier: %r" % datapoint)
+        logger.exception("Invalid Antibody identifier: %r:%r, raw val: %r",
+            facility_id,batch_id,text_value)
         raise    
 
 def _read_cell_batch(dataset, datapoint):
@@ -600,7 +614,29 @@ def _read_cell_batch(dataset, datapoint):
         datapoint.reagent_batch = reagentbatch
         reagents_read_hash[text_value] = reagentbatch
     except Exception, e:
-        logger.exception("Invalid Cell identifier: %r" % datapoint)
+        logger.exception("Invalid Cell Line identifier: %r:%r, raw val: %r",
+            facility_id,batch_id,text_value)
+        raise    
+
+def _read_primary_cell_batch(dataset, datapoint):
+
+    try:
+        (facility_id,batch_id,text_value) = (
+            _parse_reagent_batch(datapoint.text_value))
+        datapoint.text_value = text_value
+        if text_value in reagents_read_hash:
+            datapoint.reagent_batch = reagents_read_hash[text_value]
+            logger.debug('reagent already read: %r' % text_value)
+            return
+        reagentbatch = PrimaryCellBatch.objects.get(
+            reagent__facility_id=facility_id,
+            batch_id=batch_id) 
+        dataset.primary_cells.add(reagentbatch)
+        datapoint.reagent_batch = reagentbatch
+        reagents_read_hash[text_value] = reagentbatch
+    except Exception, e:
+        logger.exception("Invalid Primary Cell identifier: %r:%r, raw val: %r",
+            facility_id,batch_id,text_value)
         raise    
 
 def _read_small_molecule(dataset, datapoint):
@@ -623,7 +659,8 @@ def _read_small_molecule(dataset, datapoint):
         reagents_read_hash[text_value] = reagentbatch
     
     except Exception, e:
-        logger.exception("Invalid Small Molecule identifier: %r" % datapoint)
+        logger.exception("Invalid Small Molecule identifier: %r:%r, raw val: %r",
+            facility_id,batch_id,text_value)
         raise
 
 def _read_plate_well(map_column, r, current_row, dr, small_mol_col,
