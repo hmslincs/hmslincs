@@ -242,6 +242,22 @@ else
   python src/import_cell_batch.py -f $DATADIR/cell_line_batch.xlsx
   check_errs $? "import cell fails"
   
+  echo 'import cell line precursor patches ...'
+  python src/import_cell.py -f $DATADIR/LINCS_Cells_forLoading.xls --do_precursors
+  check_errs $? "import cell precursors fails"
+  
+  echo 'import primary cell tables ...'
+  python src/import_primary_cell.py -f $DATADIR/primary_cells.xlsx
+  check_errs $? "import primary cell fails"
+  
+  echo 'import primary cell line batch tables ...'
+  python src/import_primary_cell_batch.py -f $DATADIR/primary_cell_batch.xlsx
+  check_errs $? "import cell fails"
+  
+  echo 'import primary cell precursor patches ...'
+  python src/import_primary_cell.py -f $DATADIR/primary_cells.xlsx --do_precursors
+  check_errs $? "import primary cell precursors fails"
+  
   echo 'import small molecule tables...'
   python src/import_smallmolecule.py -f $DATADIR/HMS-LINCS_complete.sdf
   check_errs $? "import sdf fails"
@@ -277,6 +293,10 @@ else
   echo 'import other reagent tables...'
   python src/import_other_reagent.py -f $DATADIR/HMS-LINCS_other_reagents.xls
   check_errs $? 'import other reagents fails'
+  
+  echo 'import other reagent batches...'
+  python src/import_other_reagent_batch.py -f $DATADIR/other_reagent_batches.xlsx
+  check_errs $? 'import other reagent batches fails'
   
   echo 'import screen results...'
   python src/import_dataset2.py -f $DATADIR/Study20000_NominalTargets_forLoading.xls 
@@ -1020,9 +1040,9 @@ else
   python src/import_dataset2.py -f $DATADIR/kinativ/Screen20204_HMSL10075_kinativ.xls
   check_errs $? "import dataset fails"
   
-  # echo 'import screen results...'
-  # python src/import_dataset2.py -f $DATADIR/kinativ/Screen20205_HMSL10077_kinativ.xls
-  # check_errs $? "import dataset fails"
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/kinativ/Screen20205_HMSL10077_kinativ.xls
+  check_errs $? "import dataset fails"
   
   echo 'import screen results...'
   python src/import_dataset2.py -f $DATADIR/kinativ/Screen20206_HMSL10129_kinativ.xls
@@ -1054,6 +1074,10 @@ else
   
   echo 'import screen results...'
   python src/import_dataset2.py -f $DATADIR/kinativ/Screen20213_HMSL10363_kinativ.xls
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/kinativ/Screen20214_HMSL10129_kinativ.xls
   check_errs $? "import dataset fails"
   
   echo 'import screen results...'
@@ -1226,6 +1250,14 @@ else
   
   echo 'import screen results...'
   python src/import_dataset2.py -f $DATADIR/Screen20258_density_fits.xls
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20259_LJP_drugcombo_all.xls
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20260_LJP_drugcombo_mean.xls
   check_errs $? "import dataset fails"
   
   # 2015-04-20: removed all attached compound QC files since original reports from vendors will no longer be used and future reports will be attached in the QC Testing Events section of each batch
