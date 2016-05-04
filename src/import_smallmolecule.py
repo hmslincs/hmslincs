@@ -56,7 +56,14 @@ def main(path):
         'relevant_citations': '_relevant_citations',
         'molecular_formula':'_molecular_formula',
         'software':'software',
-        'is_restricted':('is_restricted',False,False,util.bool_converter)}
+        'date_data_received':('date_data_received',False,None,
+                              util.date_converter),
+        'date_loaded': ('date_loaded',False,None,util.date_converter),
+        'date_publicly_available': ('date_publicly_available',False,None,
+                                    util.date_converter),
+        'date_updated': ('date_updated',False,None,util.date_converter),
+        'is_restricted':('is_restricted',False,False,util.bool_converter)
+    }
     labels = util.fill_in_column_definitions(properties,labels)
     
     assert typecheck.isstring(path)
