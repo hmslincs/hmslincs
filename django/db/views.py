@@ -782,7 +782,6 @@ def smallMoleculeDetail(request, facility_salt_id):
         # change the facility ID if it is a salt, for the purpose of display
         if int(sm.facility_id) < 1000:
             details['object']['facility_salt']['value'] = sm.facility_id
-            del details['object']['salt_id']
         
         #TODO: set is_restricted if the user is not logged in only
         details['is_restricted'] = sm.is_restricted
@@ -1044,8 +1043,8 @@ def datasetDetailPrimaryCells(request, facility_id):
             dataset = DataSet.objects.get(facility_id=facility_id)
             if(dataset.is_restricted and not request.user.is_authenticated()):
                 raise Http401
-            queryset = Cell.objects.filter(id__in=(
-                dataset.cells.all().values_list('reagent_id',flat=True).distinct()))
+            queryset = PrimaryCell.objects.filter(id__in=(
+                dataset.primary_cells.all().values_list('reagent_id',flat=True).distinct()))
             return send_to_file(
                 outputType, 'primary_cells_for_'+ str(facility_id), 
                 PrimaryCellTable(queryset), queryset, ['primarycell',''] )
@@ -2660,6 +2659,8 @@ def export_as_csv(name,col_key_name_map, cursor=None, queryset=None,
 
     if not (bool(cursor) or bool(queryset)):
         logger.info(str(('empty result for', name)))
+        response = HttpResponse()
+        response.status_code=204
         return response
 
     writer = csv.writer(response)
@@ -2717,6 +2718,8 @@ def export_as_xlsx(name,col_key_name_map, cursor=None, queryset=None,
 
     if not (bool(cursor) or bool(queryset)):
         logger.info(str(('empty result for', name)))
+        response = HttpResponse()
+        response.status_code=204
         return response
 
     name = normalized_download_filename(name)
