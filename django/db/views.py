@@ -782,7 +782,6 @@ def smallMoleculeDetail(request, facility_salt_id):
         # change the facility ID if it is a salt, for the purpose of display
         if int(sm.facility_id) < 1000:
             details['object']['facility_salt']['value'] = sm.facility_id
-            del details['object']['salt_id']
         
         #TODO: set is_restricted if the user is not logged in only
         details['is_restricted'] = sm.is_restricted
