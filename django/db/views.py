@@ -2581,7 +2581,7 @@ def _write_val_safe(val, is_authenticated=False):
     # for #185, remove 'None' values
     # also, for #386, trim leading spaces from strings for openpyxl
     # see https://bitbucket.org/openpyxl/openpyxl/issues/280
-    return smart_str(val, 'utf-8', errors='ignore').strip() if val else ''
+    return smart_str(val, 'utf-8', errors='ignore').strip() if val is not None else ''
   
 def export_sm_images(queryset, is_authenticated=False, output_filename=None):
     '''
