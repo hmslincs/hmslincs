@@ -2659,6 +2659,8 @@ def export_as_csv(name,col_key_name_map, cursor=None, queryset=None,
 
     if not (bool(cursor) or bool(queryset)):
         logger.info(str(('empty result for', name)))
+        response = HttpResponse()
+        response.status_code=204
         return response
 
     writer = csv.writer(response)
@@ -2716,6 +2718,8 @@ def export_as_xlsx(name,col_key_name_map, cursor=None, queryset=None,
 
     if not (bool(cursor) or bool(queryset)):
         logger.info(str(('empty result for', name)))
+        response = HttpResponse()
+        response.status_code=204
         return response
 
     name = normalized_download_filename(name)
