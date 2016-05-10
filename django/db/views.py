@@ -1043,8 +1043,8 @@ def datasetDetailPrimaryCells(request, facility_id):
             dataset = DataSet.objects.get(facility_id=facility_id)
             if(dataset.is_restricted and not request.user.is_authenticated()):
                 raise Http401
-            queryset = Cell.objects.filter(id__in=(
-                dataset.cells.all().values_list('reagent_id',flat=True).distinct()))
+            queryset = PrimaryCell.objects.filter(id__in=(
+                dataset.primary_cells.all().values_list('reagent_id',flat=True).distinct()))
             return send_to_file(
                 outputType, 'primary_cells_for_'+ str(facility_id), 
                 PrimaryCellTable(queryset), queryset, ['primarycell',''] )
