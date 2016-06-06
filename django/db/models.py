@@ -497,7 +497,7 @@ class SmallMoleculeBatch(ReagentBatch):
     def get_molecular_weight(self, is_authenticated=False):
         if(not self.reagent.is_restricted or is_authenticated):
             return ( str(self._molecular_weight).rstrip('0') 
-                        if self._molecular_weight else '' )
+                        if self._molecular_weight is not None else '' )
         else:
             return 0
 
