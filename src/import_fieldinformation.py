@@ -63,17 +63,10 @@ def main(path):
         'list_order':('list_order',True,None,lambda x:util.convertdata(x,int)),
         'detail_order':('detail_order',True,None,lambda x:util.convertdata(x,int)),
         'use_for_search_index':('use_for_search_index',True,False,util.bool_converter),
-        'Data Working Group version':'dwg_version',
         'Unique ID':('unique_id',True),
         'DWG Field Name':'dwg_field_name',
         'HMS Field Name':'hms_field_name',
-        'Related to':'related_to',
         'Description':'description',
-        'Importance (1: essential; 2: desirable / recommended; 3: optional)':'importance',
-        'Comments':'comments',
-        'Ontologies / references considered':'ontology_reference',
-        'Link to ontology / reference':'ontology_reference',
-        'Additional Notes (for development)':'additional_notes',
         }
        
     column_definitions = util.fill_in_column_definitions(
