@@ -514,36 +514,41 @@ class DataSetDataResource2(Resource):
             "timepointDescription",
             ],
         'small_molecule': [
-            "smCenterCompoundID",
-            "smSalt",
-            "smCenterSampleID",
-            "smLincsID",
             "smName",
+            "smCenterCanonicalID",
+            "smSalt",
+            "smCenterBatchID",
+            "smLincsID",
             ],
         'protein': [
             "ppName",
             "ppLincsID",
-            "ppCenterSampleID",
+            "ppCenterCanonicalID",
+            "ppCenterBatchID",
             ],
         'cell': [
             "clName",
-            "clCenterSpecificID",
-            "clCenterSampleID",
+            "clCenterCanonicalID",
+            "clLincsID",
+            "clCenterBatchID",
             ],
         'primary_cell': [
             "pcName",
-            "pcCenterSpecificID",
-            "pcCenterSampleID",
+            "pcCenterCanonicalID",
+            "pcLincsID",
+            "pcCenterBatchID",
             ],
         'antibody': [
-            "abName",
-            "abCenterSpecificID",
-            "abCenterSampleID",
+            "arName",
+            "arCenterCanonicalID",
+            "arLincsID",
+            "arCenterBatchID",
             ],
         'otherreagent': [
             "orName",
-            "orCenterSpecificID",
-            "orCenterSampleID",
+            "orCenterCanonicalID",
+            "orLincsID",
+            "orCenterBatchID",
             ]
         }
 
@@ -656,7 +661,7 @@ class DataSetDataResource2(Resource):
              ' WHERE {alias}.datarecord_id=datarecord.id '
              ' AND {alias}.datacolumn_id={dc_id} ) as "{column_name}" '
             )
-        sm_lincs_id_query = (
+        reagent_lincs_id_query = (
              ', (SELECT r.lincs_id'
              ' FROM db_reagent r '
              ' JOIN db_reagentbatch rb on rb.reagent_id=r.id '
@@ -705,7 +710,7 @@ class DataSetDataResource2(Resource):
 
                 alias_count += 1
                 alias = 'dp_%d' % alias_count
-                query_string += sm_lincs_id_query.format(
+                query_string += reagent_lincs_id_query.format(
                     alias=alias,
                     dc_id=dc.id,
                     column_name='%s_%s%s' 
@@ -718,7 +723,14 @@ class DataSetDataResource2(Resource):
                     alias=alias,
                     dc_id=dc.id,
                     column_name='%s_%s%s' 
-                        % (camel_case_dwg(dc.name),prefix,'CenterSpecificID'))
+                        % (camel_case_dwg(dc.name),prefix,'CenterCanonicalID'))
+                alias_count += 1
+                alias = 'dp_%d' % alias_count
+                query_string += reagent_lincs_id_query.format(
+                    alias=alias,
+                    dc_id=dc.id,
+                    column_name='%s_%s%s' 
+                        % (camel_case_dwg(dc.name),prefix,'LincsID'))
             
             alias_count += 1
             alias = 'dp_%d' % alias_count
@@ -726,7 +738,7 @@ class DataSetDataResource2(Resource):
                 alias=alias,
                 dc_id=dc.id,
                 column_name='%s_%s%s' 
-                    % (camel_case_dwg(dc.name),prefix,'CenterSampleID'))
+                    % (camel_case_dwg(dc.name),prefix,'CenterBatchID'))
                 
             alias_count += 1
             alias = 'dp_%d' % alias_count
@@ -835,7 +847,7 @@ class DataSetDataResource2(Resource):
         col_field_info = {}
         for fi in FieldInformation.objects.all().filter(
             table__in=[
-                'smallmolecule','protein','cell','primary_cell','antibody',
+                'smallmolecule','protein','cell','primarycell','antibody',
                 'otherreagent', 'smallmoleculebatch','proteinbatch',
                 'cellbatch','prmarycellbatch', 'antibodybatch',
                 'otherreagentbatch']):
