@@ -7,6 +7,7 @@ import logging
 from django.conf.urls.defaults import url
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import connection, DatabaseError
+from django.db.models import Q
 from django.http import Http404
 from django.utils.encoding import smart_str
 from tastypie.authorization import Authorization
@@ -22,6 +23,7 @@ from db.models import SmallMolecule, SmallMoleculeBatch, Cell, \
     get_detail_bundle, get_fieldinformation, get_schema_fieldinformation, \
     camel_case_dwg, get_listing, get_detail_schema, get_detail
 from db.views import _get_raw_time_string
+from django.db.models.sql.where import OR
 
 
 try:
@@ -845,18 +847,18 @@ class DataSetDataResource2(Resource):
     def get_reagent_columns(dataset_id):
         
         col_field_info = {}
-        for fi in FieldInformation.objects.all().filter(
-            table__in=[
+        table_or_query = [
                 'smallmolecule','protein','cell','primarycell','antibody',
                 'otherreagent', 'smallmoleculebatch','proteinbatch',
-                'cellbatch','prmarycellbatch', 'antibodybatch',
-                'otherreagentbatch']):
+                'cellbatch','primarycellbatch', 'antibodybatch',
+                'otherreagentbatch']
+        for fi in FieldInformation.objects.all().filter(
+            Q(table__in=table_or_query) | Q(queryset__in=table_or_query)):
             col_field_info[fi.get_camel_case_dwg_name()] = {
                 'reagentType': fi.table,
                 'dwgName': fi.dwg_field_name,
                 'description': fi.description 
                 }
-        
         data_columns = ( DataColumn.objects.filter(dataset_id=dataset_id)
             .filter(data_type__in=[
                 'small_molecule','cell','primary_cell', 'protein','antibody',
