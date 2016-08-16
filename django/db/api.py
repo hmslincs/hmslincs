@@ -1,7 +1,31 @@
+import StringIO
 from collections import OrderedDict
+import csv
+import json
+import logging
+
+from django.conf.urls.defaults import url
+from django.core.serializers.json import DjangoJSONEncoder
 from django.db import connection, DatabaseError
+from django.db.models import Q
+from django.http import Http404
+from django.utils.encoding import smart_str
+from tastypie.authorization import Authorization
+from tastypie.constants import ALL
+from tastypie.resources import ModelResource, Resource
+from tastypie.serializers import Serializer
 from tastypie.utils.urls import trailing_slash
+
+from db.models import SmallMolecule, SmallMoleculeBatch, Cell, \
+    CellBatch, PrimaryCell, PrimaryCellBatch, Protein, ProteinBatch, \
+    Antibody, AntibodyBatch, OtherReagent, OtherReagentBatch, \
+    Library, DataSet, DataRecord, DataColumn, FieldInformation, \
+    get_detail_bundle, get_fieldinformation, get_schema_fieldinformation, \
+    camel_case_dwg, get_listing, get_detail_schema, get_detail
 from db.views import _get_raw_time_string
+from django.db.models.sql.where import OR
+
+
 try:
     from db import views
 except DatabaseError, e:
@@ -12,31 +36,7 @@ except DatabaseError, e:
         if os.environ.get('HMSLINCS_DEV', 'false') != 'true':
             raise
 
-from db.DjangoTables2Serializer import DjangoTables2Serializer, \
-    get_visible_columns
-from db.models import SmallMolecule, SmallMoleculeBatch, Cell, \
-    CellBatch, PrimaryCell, PrimaryCellBatch, Protein, ProteinBatch, \
-    Antibody, AntibodyBatch, OtherReagent, OtherReagentBatch, \
-    Library, DataSet, DataRecord, DataColumn, FieldInformation, \
-    get_detail_bundle, get_fieldinformation, get_schema_fieldinformation,\
-    camel_case_dwg, get_fieldinformation, get_listing, get_detail_schema, get_detail
-from django.conf.urls.defaults import url
-from django.core.serializers.json import DjangoJSONEncoder
-from django.http import Http404, HttpResponse
-from django.utils.encoding import smart_str
-from tastypie.authorization import Authorization
-from tastypie.bundle import Bundle
-from tastypie.resources import ModelResource, Resource
-from tastypie.serializers import Serializer
-from tastypie import fields
-from tastypie.constants import ALL
 
-import StringIO
-import csv
-import json
-import logging
-import re
-import math
         
 logger = logging.getLogger(__name__)
 
@@ -47,9 +47,13 @@ class SmallMoleculeResource(ModelResource):
         queryset = SmallMolecule.objects.all()
         excludes = ['column']
         allowed_methods = ['get']
-        filtering = {'date_loaded':ALL, 'date_publicly_available':ALL, 'date_data_received':ALL }
-        extra_properties=['_inchi', '_inchi_key', '_smiles', 
-            '_molecular_formula', '_molecular_mass', '_relevant_citations']
+        filtering = {
+            'date_loaded':ALL, 
+            'date_publicly_available':ALL, 
+            'date_data_received':ALL }
+        extra_properties=[
+            '_inchi', '_inchi_key', '_smiles', '_molecular_formula', 
+            '_molecular_mass', '_relevant_citations']
         batch_extra_properties=['_molecular_weight',
             '_chemical_synthesis_reference','_purity','_purity_method']
         
@@ -67,8 +71,9 @@ class SmallMoleculeResource(ModelResource):
         bundle.data['batches'] = []
         for smb in smbs:
             bundle.data['batches'].append(
-                get_detail_bundle(smb, ['smallmoleculebatch',''], 
-                    _filter=_filter, extra_properties=self._meta.batch_extra_properties))
+                get_detail_bundle(
+                    smb, ['smallmoleculebatch',''], _filter=_filter, 
+                    extra_properties=self._meta.batch_extra_properties))
         return bundle
 
     def build_schema(self):
@@ -81,15 +86,13 @@ class SmallMoleculeResource(ModelResource):
             extra_properties=self._meta.batch_extra_properties)
         return schema 
     
-    def override_urls(self):
-        """ Note, will be deprecated in >0.9.12; delegate to new method, prepend_urls
-        """
-        return self.prepend_urls();
-    
     def prepend_urls(self):
 
         return [
-            url(r"^(?P<resource_name>%s)/(?P<facility_id>\d+)\-(?P<salt_id>\d+)/$" % self._meta.resource_name, 
+            url(
+                r"^(?P<resource_name>%s)/"
+                r"(?P<facility_id>\d+)\-(?P<salt_id>\d+)/$" 
+                    % self._meta.resource_name, 
                 self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
         ]
 
@@ -100,7 +103,10 @@ class CellResource(ModelResource):
         queryset = Cell.objects.all()
         allowed_methods = ['get']
         excludes = []
-        filtering = {'date_loaded':ALL, 'date_publicly_available':ALL, 'date_data_received':ALL }
+        filtering = {
+            'date_loaded':ALL, 
+            'date_publicly_available':ALL, 
+            'date_data_received':ALL }
         extra_properties = ['precursor_cell_id','precursor_cell_batch_id']
         
     def dehydrate(self, bundle):
@@ -112,8 +118,8 @@ class CellResource(ModelResource):
             bundle.obj, ['cell',''], _filter=_filter,
             extra_properties=self._meta.extra_properties)
 
-        batches = ( CellBatch.objects.filter(reagent=bundle.obj)
-            .exclude(batch_id=0) )
+        batches = ( 
+            CellBatch.objects.filter(reagent=bundle.obj).exclude(batch_id=0) )
         bundle.data['batches'] = []
         for batch in batches:
             bundle.data['batches'].append(
@@ -128,14 +134,12 @@ class CellResource(ModelResource):
             CellBatch(),['cellbatch',''])
         return schema 
     
-    def override_urls(self):
-        """ Note, will be deprecated in >0.9.12; delegate to new method, prepend_urls
-        """
-        return self.prepend_urls();
-    
     def prepend_urls(self):
         return [
-            url(r"^(?P<resource_name>%s)/(?P<facility_id>\d+)/$" % self._meta.resource_name, self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
+            url(r"^(?P<resource_name>%s)/"
+                r"(?P<facility_id>\d+)/$" 
+                    % self._meta.resource_name, 
+                self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
         ]
     
 class PrimaryCellResource(ModelResource):
@@ -159,12 +163,14 @@ class PrimaryCellResource(ModelResource):
             bundle.obj, ['primarycell',''], _filter=_filter,
             extra_properties=self._meta.extra_properties)
         
-        batches = ( PrimaryCellBatch.objects.filter(reagent=bundle.obj)
-            .exclude(batch_id=0) )
+        batches = ( 
+            PrimaryCellBatch.objects.filter(reagent=bundle.obj)
+                .exclude(batch_id=0) )
         bundle.data['batches'] = []
         for batch in batches:
-            bundle.data['batches'].append(get_detail_bundle(
-                batch, ['primarycellbatch',''], _filter=_filter))
+            bundle.data['batches'].append(
+                get_detail_bundle(
+                    batch, ['primarycellbatch',''], _filter=_filter))
         return bundle
     
     def build_schema(self):
@@ -179,7 +185,8 @@ class PrimaryCellResource(ModelResource):
     def prepend_urls(self):
         return [
             url(r"^(?P<resource_name>%s)/(?P<facility_id>\d+)/$" 
-                % self._meta.resource_name, self.wrap_view('dispatch_detail'), 
+                    % self._meta.resource_name, 
+                self.wrap_view('dispatch_detail'), 
                 name="api_dispatch_detail"),
         ]
     
@@ -189,21 +196,26 @@ class AntibodyResource(ModelResource):
         queryset = Antibody.objects.all()
         allowed_methods = ['get']
         excludes = []
-        filtering = {'date_loaded':ALL, 'date_publicly_available':ALL, 'date_data_received':ALL }
+        filtering = {
+            'date_loaded':ALL, 
+            'date_publicly_available':ALL, 
+            'date_data_received':ALL }
         
     def dehydrate(self, bundle):
         def _filter(field_information):
             return (not bundle.obj.is_restricted 
                     or field_information.is_unrestricted )
 
-        bundle.data = get_detail_bundle(bundle.obj, ['antibody',''], _filter=_filter)
+        bundle.data = get_detail_bundle(
+            bundle.obj, ['antibody',''], _filter=_filter)
 
-        batches = ( AntibodyBatch.objects.filter(reagent=bundle.obj)
-            .exclude(batch_id=0) )
+        batches = ( 
+            AntibodyBatch.objects.filter(reagent=bundle.obj)
+                .exclude(batch_id=0) )
         bundle.data['batches'] = []
         for batch in batches:
-            bundle.data['batches'].append(
-                get_detail_bundle(batch, ['antibodybatch',''], _filter=_filter))
+            bundle.data['batches'].append(get_detail_bundle(
+                batch, ['antibodybatch',''], _filter=_filter))
         return bundle
 
     def build_schema(self):
@@ -213,14 +225,11 @@ class AntibodyResource(ModelResource):
             AntibodyBatch(),['antibodybatch',''])
         return schema 
     
-    def override_urls(self):
-        """ Note, will be deprecated in >0.9.12; delegate to new method, prepend_urls
-        """
-        return self.prepend_urls();
-    
     def prepend_urls(self):
         return [
-            url(r"^(?P<resource_name>%s)/(?P<facility_id>\d+)/$" % self._meta.resource_name, self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
+            url(r"^(?P<resource_name>%s)/(?P<facility_id>\d+)/$" 
+                    % self._meta.resource_name, 
+                self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
         ]
     
 class OtherReagentResource(ModelResource):
@@ -229,38 +238,42 @@ class OtherReagentResource(ModelResource):
         queryset = OtherReagent.objects.all()
         allowed_methods = ['get']
         excludes = []
-        filtering = {'date_loaded':ALL, 'date_publicly_available':ALL, 'date_data_received':ALL }
+        filtering = {
+            'date_loaded':ALL, 
+            'date_publicly_available':ALL, 
+            'date_data_received':ALL }
         
     def dehydrate(self, bundle):
         def _filter(field_information):
             return (not bundle.obj.is_restricted 
                     or field_information.is_unrestricted )
 
-        bundle.data = get_detail_bundle(bundle.obj, ['otherreagent',''], _filter=_filter)
+        bundle.data = get_detail_bundle(
+            bundle.obj, ['otherreagent',''], _filter=_filter)
 
-        batches = ( OtherReagentBatch.objects.filter(reagent=bundle.obj)
-            .exclude(batch_id=0) )
+        batches = ( 
+            OtherReagentBatch.objects.filter(reagent=bundle.obj)
+                .exclude(batch_id=0) )
         bundle.data['batches'] = []
         for batch in batches:
             bundle.data['batches'].append(
-                get_detail_bundle(batch, ['otherreagentbatch',''], _filter=_filter))
+                get_detail_bundle(
+                    batch, ['otherreagentbatch',''], _filter=_filter))
         return bundle
 
     def build_schema(self):
         schema = super(OtherReagentResource,self).build_schema()
-        schema['fields'] = get_detail_schema(OtherReagent(),['otherreagent',''])
+        schema['fields'] = get_detail_schema(
+            OtherReagent(),['otherreagent',''])
         schema['batch_fields'] = get_detail_schema(
             OtherReagentBatch(),['otherreagentbatch',''])
         return schema 
     
-    def override_urls(self):
-        """ Note, will be deprecated in >0.9.12; delegate to new method, prepend_urls
-        """
-        return self.prepend_urls();
-    
     def prepend_urls(self):
         return [
-            url(r"^(?P<resource_name>%s)/(?P<facility_id>\d+)/$" % self._meta.resource_name, self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
+            url(r"^(?P<resource_name>%s)/(?P<facility_id>\d+)/$" 
+                    % self._meta.resource_name, 
+                self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
         ]
     
 class ProteinResource(ModelResource):
@@ -269,17 +282,21 @@ class ProteinResource(ModelResource):
         queryset = Protein.objects.all()
         allowed_methods = ['get']
         excludes = []
-        filtering = {'date_loaded':ALL, 'date_publicly_available':ALL, 'date_data_received':ALL }
+        filtering = {
+            'date_loaded':ALL, 
+            'date_publicly_available':ALL, 
+            'date_data_received':ALL }
             
     def dehydrate(self, bundle):
         def _filter(field_information):
             return (not bundle.obj.is_restricted 
                     or field_information.is_unrestricted )
 
-        bundle.data = get_detail_bundle(bundle.obj, ['protein',''], _filter=_filter)
+        bundle.data = get_detail_bundle(
+            bundle.obj, ['protein',''], _filter=_filter)
 
-        batches = ( ProteinBatch.objects.filter(reagent=bundle.obj)
-            .exclude(batch_id=0) )
+        batches = ( 
+            ProteinBatch.objects.filter(reagent=bundle.obj).exclude(batch_id=0))
         bundle.data['batches'] = []
         for batch in batches:
             bundle.data['batches'].append(
@@ -293,14 +310,11 @@ class ProteinResource(ModelResource):
             ProteinBatch(),['protein',''])
         return schema 
     
-    def override_urls(self):
-        """ Note, will be deprecated in >0.9.12; delegate to new method, prepend_urls
-        """
-        return self.prepend_urls();
-    
     def prepend_urls(self):
         return [
-            url(r"^(?P<resource_name>%s)/(?P<lincs_id>\d+)/$" % self._meta.resource_name, self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
+            url(r"^(?P<resource_name>%s)/(?P<lincs_id>\d+)/$" 
+                    % self._meta.resource_name, 
+                self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
         ]
     
 class LibraryResource(ModelResource):
@@ -309,7 +323,10 @@ class LibraryResource(ModelResource):
         queryset = Library.objects.all()
         allowed_methods = ['get']
         excludes = []
-        filtering = {'date_loaded':ALL, 'date_publicly_available':ALL, 'date_data_received':ALL }
+        filtering = {
+            'date_loaded':ALL, 
+            'date_publicly_available':ALL, 
+            'date_data_received':ALL }
         
     def dehydrate(self, bundle):
         bundle.data = get_detail_bundle(bundle.obj, ['library',''])
@@ -320,22 +337,17 @@ class LibraryResource(ModelResource):
         schema['fields'] = get_detail_schema(Library(),['library',''])
         return schema 
     
-    def override_urls(self):
-        """ Note, will be deprecated in >0.9.12; delegate to new method, prepend_urls
-        """
-        return self.prepend_urls();
-    
     def prepend_urls(self):
         return [
-            url(r"^(?P<resource_name>%s)/(?P<lincs_id>\d+)/$" % self._meta.resource_name, self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
+            url(r"^(?P<resource_name>%s)/(?P<lincs_id>\d+)/$" 
+                    % self._meta.resource_name, 
+                self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
         ]
         
 
 class CursorSerializer(Serializer):
     """
-    A simple serializer that takes a cursor, queries it for its columns, and outputs 
-    this as either CSV or JSON.
-    (The CSV output is used with SAF)
+    Serialize a database cursor as either CSV or JSON.
     """
     
     formats = ['json', 'jsonp', 'xml', 'yaml', 'csv']
@@ -350,13 +362,14 @@ class CursorSerializer(Serializer):
     def to_csv(self, cursor, options=None):
 
         raw_data = StringIO.StringIO()
-                
-        if(isinstance(cursor,dict) and 'error_message' in cursor):
-            logger.info(str(('report error', cursor)))
-            raw_data.writelines(('error_message\n',cursor['error_message'],'\n'))
+        writer = csv.writer(raw_data)
+        
+        if isinstance(cursor,dict):
+            # Tastypie sends errors as a dict in DEBUG mode
+            for key,val in cursor.items():
+                writer.writerow([key,val])
             return raw_data.getvalue() 
         
-        writer = csv.writer(raw_data)
         i=0
         cols = [col[0] for col in cursor.description]
         
@@ -370,21 +383,15 @@ class CursorSerializer(Serializer):
     
     
     def _write_val_safe(self,val):
-        # for #185, remove 'None' values
         if not val: return ''
         return smart_str(val, 'utf-8', errors='ignore')
 
     def to_json(self,cursor, options=None):
         
-        logger.info(str(('typeof the object sent to_json',type(cursor))))
         raw_data = StringIO.StringIO()
-                
-        if isinstance(cursor,dict) and 'error_message' in cursor :
-            logger.info(str(('report error', cursor)))
-            raw_data.writelines(('error_message\n',cursor['error_message'],'\n'))
-            return raw_data.getvalue() 
-        elif isinstance(cursor,dict) :
-            # then in this case, this is a non-error dict, probably for the schema, dump and return.
+    
+        if isinstance(cursor,dict):
+            # Tastypie sends errors as a dict in DEBUG mode
             raw_data.writelines(json.dumps(cursor))
             return raw_data.getvalue()
         # TODO: sort the fields?
@@ -395,7 +402,11 @@ class CursorSerializer(Serializer):
         for row in cursor.fetchall():
             if i!=0:
                 raw_data.write(',\n')
-            raw_data.write(json.dumps(OrderedDict(zip(cols, row)),skipkeys=False,ensure_ascii=True,check_circular=True, allow_nan=True, cls=DjangoJSONEncoder))
+            raw_data.write(
+                json.dumps(
+                    OrderedDict(zip(cols, row)),skipkeys=False,
+                    ensure_ascii=True,check_circular=True, allow_nan=True, 
+                    cls=DjangoJSONEncoder))
             i += 1
         raw_data.write(']')
 
@@ -404,15 +415,15 @@ class CursorSerializer(Serializer):
     
     
     def to_jsonp(self, table, options=None):
-        return 'Sorry, not implemented yet. Please append "?format=csv" to your URL.'
+        return 'Not implemented. Please append "?format=csv" to your URL.'
         #return super.to_jsonp(table.data.list, options)
 
     def to_xml(self, table, options=None):
-        return 'Sorry, not implemented yet. Please append "?format=csv" to your URL.'
+        return 'Not implemented. Please append "?format=csv" to your URL.'
         #return super.to_xml(table.data.list,options)
     
     def to_yaml(self, table, options=None):
-        return 'Sorry, not implemented yet. Please append "?format=csv" to your URL.'
+        return 'Not implemented. Please append "?format=csv" to your URL.'
         #return super.to_yaml(table.data.list, options)
         
     def from_csv(self, content):
@@ -477,22 +488,17 @@ class DataSetResource2(ModelResource):
             fields.items(), key=lambda x: x[0])) 
         return schema 
     
-    def override_urls(self):
-        """ Note, will be deprecated in >0.9.12; delegate to prepend_urls
-        """
-        return self.prepend_urls();
-    
     def prepend_urls(self):
 
         return [
             url(r"^(?P<resource_name>%s)/schema%s$" 
-                % ( self._meta.resource_name, trailing_slash()),
+                    % ( self._meta.resource_name, trailing_slash()),
                 self.wrap_view('get_schema'), name="api_get_schema"),
             url(r"^(?P<resource_name>%s)%s$" 
-                % ( self._meta.resource_name, trailing_slash()),
+                    % ( self._meta.resource_name, trailing_slash()),
                 self.wrap_view('dispatch_list'), name="api_dispatch_list"),
             url(r"^(?P<resource_name>%s)/(?P<facility_id>\d+)%s$" 
-                % ( self._meta.resource_name, trailing_slash()), 
+                    % ( self._meta.resource_name, trailing_slash()), 
                 self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
         ]
         
@@ -510,36 +516,41 @@ class DataSetDataResource2(Resource):
             "timepointDescription",
             ],
         'small_molecule': [
-            "smCenterCompoundID",
-            "smSalt",
-            "smCenterSampleID",
-            "smLincsID",
             "smName",
+            "smCenterCanonicalID",
+            "smSalt",
+            "smCenterBatchID",
+            "smLincsID",
             ],
         'protein': [
             "ppName",
             "ppLincsID",
-            "ppCenterSampleID",
+            "ppCenterCanonicalID",
+            "ppCenterBatchID",
             ],
         'cell': [
             "clName",
-            "clCenterSpecificID",
-            "clCenterSampleID",
+            "clCenterCanonicalID",
+            "clLincsID",
+            "clCenterBatchID",
             ],
         'primary_cell': [
             "pcName",
-            "pcCenterSpecificID",
-            "pcCenterSampleID",
+            "pcCenterCanonicalID",
+            "pcLincsID",
+            "pcCenterBatchID",
             ],
         'antibody': [
-            "abName",
-            "abCenterSpecificID",
-            "abCenterSampleID",
+            "arName",
+            "arCenterCanonicalID",
+            "arLincsID",
+            "arCenterBatchID",
             ],
         'otherreagent': [
             "orName",
-            "orCenterSpecificID",
-            "orCenterSampleID",
+            "orCenterCanonicalID",
+            "orLincsID",
+            "orCenterBatchID",
             ]
         }
 
@@ -552,7 +563,7 @@ class DataSetDataResource2(Resource):
     def get_detail(self, request, **kwargs):
         facility_id = kwargs.get('facility_id', None)
         if not facility_id:
-            raise Http404(str(('no facility id given',request.path)))
+            raise Http404('no facility id given')
         response  = self.create_response(
             request,self.get_object_list(request, **kwargs))
         name = 'dataset_%s_%s' % (facility_id, _get_raw_time_string())
@@ -563,7 +574,7 @@ class DataSetDataResource2(Resource):
 
         facility_id = kwargs.get('facility_id', None)
         if not facility_id:
-            raise Http404(str(('no facility id given',request.path)))
+            raise Http404('no facility id given')
             
         try:
             dataset = DataSet.objects.get(facility_id=facility_id)
@@ -652,7 +663,7 @@ class DataSetDataResource2(Resource):
              ' WHERE {alias}.datarecord_id=datarecord.id '
              ' AND {alias}.datacolumn_id={dc_id} ) as "{column_name}" '
             )
-        sm_lincs_id_query = (
+        reagent_lincs_id_query = (
              ', (SELECT r.lincs_id'
              ' FROM db_reagent r '
              ' JOIN db_reagentbatch rb on rb.reagent_id=r.id '
@@ -701,7 +712,7 @@ class DataSetDataResource2(Resource):
 
                 alias_count += 1
                 alias = 'dp_%d' % alias_count
-                query_string += sm_lincs_id_query.format(
+                query_string += reagent_lincs_id_query.format(
                     alias=alias,
                     dc_id=dc.id,
                     column_name='%s_%s%s' 
@@ -714,7 +725,14 @@ class DataSetDataResource2(Resource):
                     alias=alias,
                     dc_id=dc.id,
                     column_name='%s_%s%s' 
-                        % (camel_case_dwg(dc.name),prefix,'CenterSpecificID'))
+                        % (camel_case_dwg(dc.name),prefix,'CenterCanonicalID'))
+                alias_count += 1
+                alias = 'dp_%d' % alias_count
+                query_string += reagent_lincs_id_query.format(
+                    alias=alias,
+                    dc_id=dc.id,
+                    column_name='%s_%s%s' 
+                        % (camel_case_dwg(dc.name),prefix,'LincsID'))
             
             alias_count += 1
             alias = 'dp_%d' % alias_count
@@ -722,7 +740,7 @@ class DataSetDataResource2(Resource):
                 alias=alias,
                 dc_id=dc.id,
                 column_name='%s_%s%s' 
-                    % (camel_case_dwg(dc.name),prefix,'CenterSampleID'))
+                    % (camel_case_dwg(dc.name),prefix,'CenterBatchID'))
                 
             alias_count += 1
             alias = 'dp_%d' % alias_count
@@ -742,7 +760,9 @@ class DataSetDataResource2(Resource):
         query_string += ', dc.name as "datapointName" '
         query_string += ', dc.unit as "datapointUnit" '
         query_string += (
-            ', coalesce(dp.int_value::TEXT, dp.float_value::TEXT, dp.text_value) as "%s" '
+            ', coalesce(dp.int_value::TEXT'
+            ', dp.float_value::TEXT'
+            ', dp.text_value) as "%s" '
                 % 'datapointValue' )
         query_string += """ 
             FROM drs 
@@ -785,7 +805,7 @@ class DataSetDataResource2(Resource):
             name = dc.name
             if dc.unit in ['day','hour','minute','second']:
                 for colname in DataSetDataResource2.datapoint_cols['timepoint']:
-                    # for legacy compatibility, omit the dc name if  
+                    # For legacy compatibility, omit the dc name if  
                     # if there is only one timepoint column (which is the norm)
                     if timepoint_col_count == 1:
                         base_cols.append('%s' % colname)
@@ -827,18 +847,18 @@ class DataSetDataResource2(Resource):
     def get_reagent_columns(dataset_id):
         
         col_field_info = {}
-        for fi in FieldInformation.objects.all().filter(
-            table__in=[
-                'smallmolecule','protein','cell','primary_cell','antibody',
+        table_or_query = [
+                'smallmolecule','protein','cell','primarycell','antibody',
                 'otherreagent', 'smallmoleculebatch','proteinbatch',
-                'cellbatch','prmarycellbatch', 'antibodybatch',
-                'otherreagentbatch']):
+                'cellbatch','primarycellbatch', 'antibodybatch',
+                'otherreagentbatch']
+        for fi in FieldInformation.objects.all().filter(
+            Q(table__in=table_or_query) | Q(queryset__in=table_or_query)):
             col_field_info[fi.get_camel_case_dwg_name()] = {
                 'reagentType': fi.table,
                 'dwgName': fi.dwg_field_name,
                 'description': fi.description 
                 }
-        
         data_columns = ( DataColumn.objects.filter(dataset_id=dataset_id)
             .filter(data_type__in=[
                 'small_molecule','cell','primary_cell', 'protein','antibody',
@@ -870,7 +890,7 @@ class DataSetDataResource2(Resource):
         
         facility_id = kwargs.get('facility_id', None)
         if not facility_id:
-            raise Http404(str(('no facility id given',request.path)))
+            raise Http404('no facility id given')
 
         try:
             dataset = DataSet.objects.get(facility_id=facility_id)
@@ -878,7 +898,7 @@ class DataSetDataResource2(Resource):
                 raise Http401
             return self.generate_schema(dataset.id)
         except DataSet.DoesNotExist, e:
-            logger.error(str(('no such facility id', facility_id)))
+            logger.error('no such facility id: %r', facility_id)
             raise e
     
     @staticmethod
@@ -898,16 +918,14 @@ class DataSetDataResource2(Resource):
         
         return [
             url(r"^(?P<resource_name>%s)/(?P<facility_id>\d+)/schema%s$" 
-                % ( self._meta.resource_name, trailing_slash()),
+                    % ( self._meta.resource_name, trailing_slash()),
                 self.wrap_view('get_schema'), name="api_get_schema"),
             url(r"^(?P<resource_name>%s)/(?P<facility_id>\d+)%s$" 
-                % ( self._meta.resource_name, trailing_slash()), 
+                    % ( self._meta.resource_name, trailing_slash()), 
                 self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
         ]                     
 
 
-
 class Http401(Exception):
     pass
-
 

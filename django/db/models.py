@@ -284,8 +284,8 @@ class FieldInformation(models.Model):
             field_name = self.hms_field_name
         if not field_name or len(field_name)==0 :
             logger.error(
-                'There is an issue with the field name: %r, %r',
-                self.dwg_field_name,self.hms_field_name)
+                'There is an issue with the field name: %r, %r, %r',
+                self.dwg_field_name,self.hms_field_name, self)
             return self.field
         return field_name
     
