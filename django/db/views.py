@@ -1836,7 +1836,7 @@ class PrimaryCellTable(PagedTable):
             visible_field_overrides=visible_field_overrides)  
                         
 class ProteinTable(PagedTable):
-    lincs_id = tables.LinkColumn("protein_detail", args=[A('lincs_id')])
+    facility_id = tables.LinkColumn("protein_detail", args=[A('facility_id')])
     rank = tables.Column()
     snippet = DivWrappedColumn(verbose_name='matched text', classname='snippet')
     alternative_names = DivWrappedColumn(classname='constrained_width_column', visible=False)
@@ -3369,7 +3369,7 @@ WHERE search_vector @@ {query_number}
             sql += RESTRICTION_SQL
         sql += " UNION "
         sql += REAGENT_SEARCH_SQL.format(
-            key_id='lincs_id',
+            key_id='facility_id',
             reagent_snippet_def=Reagent.get_snippet_def(),
             snippet_def=Protein.get_snippet_def(),
             detail_type='protein_detail',

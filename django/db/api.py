@@ -728,10 +728,15 @@ class DataSetDataResource2(Resource):
                         % (camel_case_dwg(dc.name),prefix,'CenterCanonicalID'))
                 alias_count += 1
                 alias = 'dp_%d' % alias_count
-                query_string += reagent_lincs_id_query.format(
-                    alias=alias,
-                    dc_id=dc.id,
-                    column_name='%s_%s%s' 
+                # Note: remove condition when new protein specification is released
+                if dc.data_type != 'protein':
+                    query_string += reagent_lincs_id_query.format(
+                        alias=alias,
+                        dc_id=dc.id,
+                        column_name='%s_%s%s' 
+                            % (camel_case_dwg(dc.name),prefix,'LincsID'))
+                else:
+                    query_string += (", '' as %s_%s%s" 
                         % (camel_case_dwg(dc.name),prefix,'LincsID'))
             
             alias_count += 1
