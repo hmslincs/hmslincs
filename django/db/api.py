@@ -471,6 +471,36 @@ class DataSetResource2(ModelResource):
         bundle.data['datapointFile'] = datapointFileSchema
         bundle.data['safVersion'] = '0.1'  
         bundle.data['screeningFacility'] = 'HMS' 
+
+        
+        bundle.data['reagents_studied'] = {
+            'antibodies': [
+                x.facility_batch for x in 
+                    bundle.obj.antibodies.all().order_by(
+                        'reagent__facility_id', 'batch_id')],
+            'cells': [
+                x.facility_batch for x in 
+                    bundle.obj.cells.all().order_by(
+                        'reagent__facility_id', 'batch_id')],
+            'other_reagents': [
+                x.facility_batch for x in 
+                    bundle.obj.other_reagents.all().order_by(
+                        'reagent__facility_id', 'batch_id')],
+            'primary_cells': [
+                x.facility_batch for x in 
+                    bundle.obj.primary_cells.all().order_by(
+                        'reagent__facility_id', 'batch_id')],
+            'proteins': [
+                x.facility_batch for x in 
+                    bundle.obj.proteins.all().order_by(
+                        'reagent__facility_id', 'batch_id')],
+            'small_molecules': [
+                x.facility_salt_batch for x in 
+                    bundle.obj.small_molecules.all().order_by(
+                        'reagent__facility_id', 'reagent__salt_id', 'batch_id')]
+        }
+        
+        
         return bundle
     
     def build_schema(self):
