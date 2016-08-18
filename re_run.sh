@@ -212,6 +212,10 @@ then
   python src/import_dataset2.py -f sampledata/test_dataset2.xls 
   check_errs $? "import dataset 2 fails"
   
+  echo 'import test_dataset_no_data...'
+  python src/import_dataset2.py -f sampledata/test_dataset_no_data.xlsx 
+  check_errs $? "import test_dataset_no_data fails"
+  
   echo 'import targets_test_dataset.xls...'
   python src/import_dataset2.py -f sampledata/Study20000_NominalTargets_forLoading.xls 
   check_errs $? "import dataset fails"

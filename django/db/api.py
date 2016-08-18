@@ -462,17 +462,20 @@ class DataSetResource2(ModelResource):
             bundle.obj, ['dataset',''],
             _override_filter=lambda x: x.show_in_detail or x.field=='bioassay')
         
-        datapointFileSchema = DataSetDataResource2.generate_schema(dataset_id)
-        _uri = self.get_resource_uri(bundle)
-        saf_uri = _uri.replace('dataset','datasetdata')
-        saf_uri = saf_uri + '?format=csv'
-        datapointFileSchema['uri'] = bundle.request.build_absolute_uri(saf_uri)
+        if bundle.obj.datarecord_set.exists():
+            datapointFileSchema = DataSetDataResource2.generate_schema(dataset_id)
+            _uri = self.get_resource_uri(bundle)
+            saf_uri = _uri.replace('dataset','datasetdata')
+            saf_uri = saf_uri + '?format=csv'
+            datapointFileSchema['uri'] = bundle.request.build_absolute_uri(saf_uri)
+            bundle.data['datapointFile'] = datapointFileSchema
+            bundle.data['safVersion'] = '0.1'  
         
-        bundle.data['datapointFile'] = datapointFileSchema
-        bundle.data['safVersion'] = '0.1'  
+        if bundle.obj.dataset_data_url:
+            bundle.data['data_url'] = bundle.obj.dataset_data_url
+        
         bundle.data['screeningFacility'] = 'HMS' 
 
-        
         bundle.data['reagents_studied'] = {
             'antibodies': [
                 x.facility_batch for x in 

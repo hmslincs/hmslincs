@@ -2841,7 +2841,8 @@ def datasetDetail2(request, facility_id, sub_page):
                 'has_primary_cells':dataset.primary_cells.exists(),
                 'has_proteins':dataset.proteins.exists(),
                 'has_antibodies':dataset.antibodies.exists(),
-                'has_otherreagents':dataset.other_reagents.exists()}
+                'has_otherreagents':dataset.other_reagents.exists(),
+                'has_datacolumns': dataset.datacolumn_set.exists() }
 
     items_per_page = 25
     form = PaginationForm(request.GET)
@@ -2851,16 +2852,18 @@ def datasetDetail2(request, facility_id, sub_page):
             items_per_page = int(form.cleaned_data['items_per_page'])
     
     if (sub_page == 'results'):
+        if dataset.datarecord_set.exists():
+            form = manager.get_result_set_data_form(request)
+            table = manager.get_table(facility_ids=form.get_search_facility_ids()) 
+            details['search_form'] = form
+            if(len(table.data)>0):
+                details['table'] = table
+                RequestConfig(
+                    request, paginate={"per_page": items_per_page}).configure(table)
+        if manager.dataset.dataset_data_url:
+            logger.info('dataset_data_url: %r', manager.dataset.dataset_data_url)
+            details['dataset_data_url'] = manager.dataset.dataset_data_url
 
-        form = manager.get_result_set_data_form(request)
-        table = manager.get_table(facility_ids=form.get_search_facility_ids()) 
-        details['search_form'] = form
-        if(len(table.data)>0):
-            details['table'] = table
-            RequestConfig(
-                request, paginate={"per_page": items_per_page}).configure(table)
-
-        
     elif (sub_page == 'cells'):
         if dataset.cells.exists():
             queryset = Cell.objects.filter(id__in=(
