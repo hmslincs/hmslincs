@@ -98,7 +98,10 @@
         {% render_table table %}
 
   {% elif dataset_data_url %}
-    <h3>Data files: <a href="{{ dataset_data_url }}">{{ dataset_data_url }}</a></h3>
+    <div id="search_export">
+      <h3>This dataset is only available for direct download.</h3>
+      Download: <a href="{{ dataset_data_url }}">All data (ZIP)</a>
+    </div>
   {% elif search %}
     No records were found for the search term: "{{search}}"
   {% else %}
