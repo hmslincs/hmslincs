@@ -1877,6 +1877,7 @@ class AntibodyTable(PagedTable):
     rank = tables.Column()
     snippet = DivWrappedColumn(verbose_name='matched text', classname='snippet')
     target_protein_center_ids_ui = TargetProteinLinkColumn()
+    alternative_names = DivWrappedColumn(classname='constrained_width_column')
     alternative_id = DivWrappedColumn(classname='constrained_width_column')
     
     class Meta:
@@ -1894,6 +1895,7 @@ class OtherReagentTable(PagedTable):
     rank = tables.Column()
     snippet = DivWrappedColumn(verbose_name='matched text', classname='snippet')
     alternative_id = DivWrappedColumn(classname='constrained_width_column')
+    alternative_names = DivWrappedColumn(classname='constrained_width_column')
 
     class Meta:
         model = OtherReagent
