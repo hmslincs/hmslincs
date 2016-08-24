@@ -462,15 +462,48 @@ class DataSetResource2(ModelResource):
             bundle.obj, ['dataset',''],
             _override_filter=lambda x: x.show_in_detail or x.field=='bioassay')
         
-        datapointFileSchema = DataSetDataResource2.generate_schema(dataset_id)
-        _uri = self.get_resource_uri(bundle)
-        saf_uri = _uri.replace('dataset','datasetdata')
-        saf_uri = saf_uri + '?format=csv'
-        datapointFileSchema['uri'] = bundle.request.build_absolute_uri(saf_uri)
+        if bundle.obj.datarecord_set.exists():
+            datapointFileSchema = DataSetDataResource2.generate_schema(dataset_id)
+            _uri = self.get_resource_uri(bundle)
+            saf_uri = _uri.replace('dataset','datasetdata')
+            saf_uri = saf_uri + '?format=csv'
+            datapointFileSchema['uri'] = bundle.request.build_absolute_uri(saf_uri)
+            bundle.data['datapointFile'] = datapointFileSchema
+            bundle.data['safVersion'] = '0.1'  
         
-        bundle.data['datapointFile'] = datapointFileSchema
-        bundle.data['safVersion'] = '0.1'  
+        if bundle.obj.dataset_data_url:
+            bundle.data['data_url'] = bundle.obj.dataset_data_url
+        
         bundle.data['screeningFacility'] = 'HMS' 
+
+        bundle.data['reagents_studied'] = {
+            'antibodies': [
+                x.facility_batch for x in 
+                    bundle.obj.antibodies.all().order_by(
+                        'reagent__facility_id', 'batch_id')],
+            'cells': [
+                x.facility_batch for x in 
+                    bundle.obj.cells.all().order_by(
+                        'reagent__facility_id', 'batch_id')],
+            'other_reagents': [
+                x.facility_batch for x in 
+                    bundle.obj.other_reagents.all().order_by(
+                        'reagent__facility_id', 'batch_id')],
+            'primary_cells': [
+                x.facility_batch for x in 
+                    bundle.obj.primary_cells.all().order_by(
+                        'reagent__facility_id', 'batch_id')],
+            'proteins': [
+                x.facility_batch for x in 
+                    bundle.obj.proteins.all().order_by(
+                        'reagent__facility_id', 'batch_id')],
+            'small_molecules': [
+                x.facility_salt_batch for x in 
+                    bundle.obj.small_molecules.all().order_by(
+                        'reagent__facility_id', 'reagent__salt_id', 'batch_id')]
+        }
+        
+        
         return bundle
     
     def build_schema(self):
@@ -728,10 +761,15 @@ class DataSetDataResource2(Resource):
                         % (camel_case_dwg(dc.name),prefix,'CenterCanonicalID'))
                 alias_count += 1
                 alias = 'dp_%d' % alias_count
-                query_string += reagent_lincs_id_query.format(
-                    alias=alias,
-                    dc_id=dc.id,
-                    column_name='%s_%s%s' 
+                # Note: remove condition when new protein specification is released
+                if dc.data_type != 'protein':
+                    query_string += reagent_lincs_id_query.format(
+                        alias=alias,
+                        dc_id=dc.id,
+                        column_name='%s_%s%s' 
+                            % (camel_case_dwg(dc.name),prefix,'LincsID'))
+                else:
+                    query_string += (", '' as %s_%s%s" 
                         % (camel_case_dwg(dc.name),prefix,'LincsID'))
             
             alias_count += 1

@@ -1,19 +1,22 @@
-import argparse
-import import_utils as util
-import init_utils as iu
 import logging
 import re
 import time;  
+
+import import_utils as util
+import init_utils as iu
+
+import argparse
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction, models
 import xlrd
+from xlrd.biffh import XLRDError
 from xlrd.book import colname
 
 from db.models import DataSet, DataColumn, DataRecord, DataPoint, \
         LibraryMapping, AntibodyBatch, OtherReagent, SmallMoleculeBatch, \
         OtherReagentBatch, ProteinBatch, CellBatch, PrimaryCellBatch, \
-        camel_case_dwg
-import time;  
+        ReagentBatch, camel_case_dwg 
+
 
 logger = logging.getLogger(__name__)
 
@@ -86,15 +89,53 @@ def int_for_col(name, i=0):
         val += int_for_col(name[:-1],i+1)
     return val
 
-def col_for_int(i):
-    # note use equivalent xlrd.book.colname
-    exp = i/26
-    val = i%26
-    letter = chr(ord('A')+val)
-    if exp > 0:
-        letter = col_for_int(exp-1) + letter
-    return letter
- 
+def read_string(cell):
+    value = cell.value
+    if value is None:
+        return None
+    elif cell.ctype == xlrd.XL_CELL_NUMBER:
+        ival = int(value)
+        if value == ival:
+            value = ival
+        return str(value)
+    else:
+        value = str(value).strip()
+        if not value:
+            return None
+        return value
+
+def main(path):
+    
+    logger.debug('read metadata...')
+    book = xlrd.open_workbook(path)
+
+    dataset = None
+
+    metadata = read_metadata(book.sheet_by_name('Meta'))
+    try:
+        extant_dataset = DataSet.objects.get( facility_id=metadata['facility_id'] )
+        if(extant_dataset):
+            logger.warn(
+                'deleting extant dataset for facility id: %r' 
+                    % metadata['facility_id'] )
+            extant_dataset.delete()
+    except ObjectDoesNotExist, e:
+        pass
+    except Exception,e:
+        logger.exception(
+            'on delete of extant dataset: %r' % metadata['facility_id'])
+        raise
+
+    dataset = DataSet(**metadata)
+    logger.info('dataset to save %s' % dataset)
+    dataset.save()
+    
+    read_datacolumns_and_data(book, dataset)
+    
+    read_explicit_reagents(book, dataset)
+
+    dataset.save()
+
 def read_metadata(meta_sheet):
 
     properties = ('model_field', 'required', 'default', 'converter')
@@ -123,6 +164,7 @@ def read_metadata(meta_sheet):
         'Bioassay':('bioassay', False),
         'Dataset Keywords':('dataset_keywords', False),
         'Usage Message':('usage_message', False),
+        'Dataset Data URL':('dataset_data_url', False),
         'Associated Publication': ('associated_publication', False),
         'Associated Project Summary': ('associated_project_summary', False),
     }
@@ -164,12 +206,14 @@ def read_metadata(meta_sheet):
 
     return initializer 
 
-def read_datacolumns(book):
-    '''
-    @return an array of data column definition dicts 
-    '''
-    
-    data_column_sheet = book.sheet_by_name('Data Columns')
+def read_datacolumns_and_data(book, dataset):
+
+    logger.debug('read data columns and data...')
+    try:
+        data_column_sheet = book.sheet_by_name('Data Columns')
+    except XLRDError, e:
+        logger.info('no "Data Columns" sheet found')
+        return None
     
     labels = {
         'Worksheet Column':'worksheet_column',
@@ -325,56 +369,90 @@ def read_datacolumns(book):
     logger.info('data column definitions found: %s' 
         % [x['display_name'] for x in dc_definitions_found])
 
-    return dc_definitions_found
-
-
-def main(path):
     
-    datarecord_batch = []
-    save_interval = 1000
-
-    logger.debug('read metadata...')
-    book = xlrd.open_workbook(path)
-
-    dataset = None
-
-    metadata = read_metadata(book.sheet_by_name('Meta'))
-    try:
-        extant_dataset = DataSet.objects.get( facility_id=metadata['facility_id'] )
-        if(extant_dataset):
-            logger.warn(
-                'deleting extant dataset for facility id: %r' 
-                    % metadata['facility_id'] )
-            extant_dataset.delete()
-    except ObjectDoesNotExist, e:
-        pass
-    except Exception,e:
-        logger.exception(
-            'on delete of extant dataset: %r' % metadata['facility_id'])
-        raise
-
-    dataset = DataSet(**metadata)
-    logger.info('dataset to save %s' % dataset)
-    dataset.save()
-    
-    logger.debug('read data columns...')
-    col_to_definitions = read_datacolumns(book)
-
-    small_molecule_col = None
     col_to_dc_map = {}
-    for i,dc_definition in enumerate(col_to_definitions):
+    first_small_molecule_column = None
+    for i,dc_definition in enumerate(dc_definitions_found):
         dc_definition['dataset'] = dataset
         if (not 'display_order' in dc_definition 
                 or dc_definition['display_order']==None): 
             dc_definition['display_order']=i
         datacolumn = DataColumn(**dc_definition)
         datacolumn.save()
-        if not small_molecule_col and datacolumn.data_type == 'small_molecule':
-            small_molecule_col = datacolumn
+        if not first_small_molecule_column and datacolumn.data_type == 'small_molecule':
+            first_small_molecule_column = datacolumn
         logger.debug('datacolumn created: %r' % datacolumn)
         if datacolumn.worksheet_column:
             col_to_dc_map[int_for_col(datacolumn.worksheet_column)] = datacolumn    
     logger.debug('final data columns: %s' % col_to_dc_map)
+
+    read_data(book, col_to_dc_map, first_small_molecule_column, dataset)
+
+def read_explicit_reagents(book, dataset):
+    
+    try:
+        reagents_sheet = book.sheet_by_name('Reagents')
+        for row in range(1,reagents_sheet.nrows):
+            facility_batch_id = read_string(reagents_sheet.cell(row,0))
+            vals = [
+                 util.convertdata(x,int) for x in facility_batch_id.split('-')]
+            
+            logger.info('facility_batch_id: %r', vals)
+            
+            if len(vals)>3:
+                raise Exception(
+                    'Reagent id has too many values: %r', facility_batch_id)
+            
+            if (len(vals)==3):
+                smb = SmallMoleculeBatch.objects.get(
+                    reagent__facility_id=vals[0],
+                    reagent__salt_id=vals[1],
+                    batch_id=vals[2])
+                logger.info('small molecule batch found: %r', smb)
+                dataset.small_molecules.add(smb)
+            else:
+                if len(vals)==2:
+                    if len(str(vals[1]))==3:
+                        smb = SmallMoleculeBatch.objects.get(
+                            reagent__facility_id=vals[0],
+                            reagent__salt_id=vals[1],
+                            batch_id=0)
+                        logger.info('small molecule batch found: %r', smb)
+                        dataset.small_molecules.add(smb)
+                        continue
+                    
+                    rb = ReagentBatch.objects.get(
+                        reagent__facility_id=vals[0],
+                        batch_id=vals[1])
+                else:
+                    rb = ReagentBatch.objects.get(
+                        reagent__facility_id=vals[0],
+                        batch_id=0)
+                if hasattr(rb,'antibodybatch'):
+                    logger.info('antibody reagent found: %r', rb)
+                    dataset.antibodies.add(rb.antibodybatch)
+                elif hasattr(rb, 'cellbatch'):
+                    logger.info('cell reagent found: %r', rb)
+                    dataset.cells.add(rb.cellbatch)
+                elif hasattr(rb, 'otherreagentbatch'):
+                    logger.info('other_reagent reagent found: %r', rb)
+                    dataset.other_reagents.add(rb.otherreagentbatch)
+                elif hasattr(rb, 'primarycellbatch'):
+                    logger.info('primary cell reagent found: %r', rb)
+                    dataset.primary_cells.add(rb.primarycellbatch)
+                elif hasattr(rb, 'proteinbatch'):
+                    logger.info('protein reagent found: %r', rb)
+                    dataset.proteins.add(rb.proteinbatch)
+                else:
+                    raise Exception('unknown reagent type: %r', rb)
+        dataset.save()
+    except XLRDError, e:
+        logger.info('no "Reagents" sheet found')
+
+def read_data(book, col_to_dc_map, first_small_molecule_column, dataset):
+
+    datarecord_batch = []
+    save_interval = 1000
 
     logger.debug('read the Data sheet')
     data_sheet = book.sheet_by_name('Data')
@@ -387,13 +465,10 @@ def main(path):
     
     logger.debug('meta_columns: %s, datacolumnList: %s' 
         % (meta_columns, col_to_dc_map) )
-    
     logger.debug('read the data sheet, save_interval: %d' % save_interval)
     loopStart = time.time()
     pointsSaved = 0
     rows_read = 0
-    col_to_dc_items = col_to_dc_map.items()
-
     for i in xrange(data_sheet.nrows-1):
         current_row = i + 2
         row = data_sheet.row_values(i+1)    
@@ -407,7 +482,7 @@ def main(path):
 
         datapoint_batch = []
         small_molecule_datapoint = None 
-        for i,dc in col_to_dc_items:
+        for i,dc in col_to_dc_map.items():
             value = r[i]
             logger.debug(
                 'reading column %r, %s, val: %r' % (colname(i), dc, value))
@@ -422,8 +497,10 @@ def main(path):
                 small_molecule_datapoint = datapoint
                 
         if meta_columns['Plate'] > -1:
-            _read_plate_well(meta_columns['Plate'], r, current_row, 
-                datarecord,small_molecule_col,small_molecule_datapoint,datapoint_batch)
+            _read_plate_well(
+                meta_columns['Plate'], r, current_row, datarecord,
+                first_small_molecule_column,small_molecule_datapoint,
+                datapoint_batch)
         
         
         datarecord_batch.append((datarecord, datapoint_batch))
@@ -457,7 +534,6 @@ def cleanup_unused_datacolumns(dataset):
         if not dc.datapoint_set.all().exists():
             print 'removing unused datacolumn (no values stored): %r' % dc
             dc.delete()
-
 
 def _create_datapoint(datacolumn, dataset, datarecord, value):
     
@@ -663,7 +739,7 @@ def _read_small_molecule(dataset, datapoint):
             facility_id,batch_id,text_value)
         raise
 
-def _read_plate_well(map_column, r, current_row, dr, small_mol_col,
+def _read_plate_well(map_column, r, current_row, dr, small_molecule_column,
         small_molecule_datapoint,datapoint_batch):
 
     plate_id=None
@@ -703,7 +779,7 @@ def _read_plate_well(map_column, r, current_row, dr, small_mol_col,
                     text_value += '-%s' % dr.library_mapping.smallmolecule_batch.reagent.salt_id
                     if dr.library_mapping.smallmolecule_batch.batch_id != 0:
                         text_value += '-%s' % dr.library_mapping.smallmolecule_batch.batch_id
-                    datapoint = DataPoint(datacolumn=small_mol_col,
+                    datapoint = DataPoint(datacolumn=small_molecule_column,
                                       dataset = dr.dataset,
                                       datarecord = dr,
                                       reagent_batch=dr.library_mapping.smallmolecule_batch,

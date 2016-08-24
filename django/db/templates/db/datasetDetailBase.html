@@ -27,8 +27,12 @@
 {% if has_otherreagents %}
         <li class='{% selectedTag request "^/db/datasets/\d+/otherreagents$" %}'><a  href="{% url dataset_detail_otherreagents   facility_id=facilityId%}">Other Reagents Studied</a></li>
 {% endif %}
+{% if has_datacolumns %}
 		<li class='{% selectedTag request "^/db/datasets/\d+/datacolumns$" %}'><a  href="{% url dataset_detail_datacolumns  facility_id=facilityId%}">Data Columns</a></li>
-		<li class='{% selectedTag request "^/db/datasets/\d+/results$" %}'><a  href="{% url dataset_detail_results  facility_id=facilityId%}">Results</a></li>
+{% endif %}
+<li class='{% selectedTag request "^/db/datasets/\d+/results$" %}'><a  href="{% url dataset_detail_results  facility_id=facilityId%}">Results</a></li>
+
+
 	</ul>
 	<div id="datasetcontent">
 	    {% block datasetContent %}{% endblock %}

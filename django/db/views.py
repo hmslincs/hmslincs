@@ -1836,7 +1836,7 @@ class PrimaryCellTable(PagedTable):
             visible_field_overrides=visible_field_overrides)  
                         
 class ProteinTable(PagedTable):
-    lincs_id = tables.LinkColumn("protein_detail", args=[A('lincs_id')])
+    facility_id = tables.LinkColumn("protein_detail", args=[A('facility_id')])
     rank = tables.Column()
     snippet = DivWrappedColumn(verbose_name='matched text', classname='snippet')
     alternative_names = DivWrappedColumn(classname='constrained_width_column', visible=False)
@@ -2841,7 +2841,8 @@ def datasetDetail2(request, facility_id, sub_page):
                 'has_primary_cells':dataset.primary_cells.exists(),
                 'has_proteins':dataset.proteins.exists(),
                 'has_antibodies':dataset.antibodies.exists(),
-                'has_otherreagents':dataset.other_reagents.exists()}
+                'has_otherreagents':dataset.other_reagents.exists(),
+                'has_datacolumns': dataset.datacolumn_set.exists() }
 
     items_per_page = 25
     form = PaginationForm(request.GET)
@@ -2851,16 +2852,18 @@ def datasetDetail2(request, facility_id, sub_page):
             items_per_page = int(form.cleaned_data['items_per_page'])
     
     if (sub_page == 'results'):
+        if dataset.datarecord_set.exists():
+            form = manager.get_result_set_data_form(request)
+            table = manager.get_table(facility_ids=form.get_search_facility_ids()) 
+            details['search_form'] = form
+            if(len(table.data)>0):
+                details['table'] = table
+                RequestConfig(
+                    request, paginate={"per_page": items_per_page}).configure(table)
+        if manager.dataset.dataset_data_url:
+            logger.info('dataset_data_url: %r', manager.dataset.dataset_data_url)
+            details['dataset_data_url'] = manager.dataset.dataset_data_url
 
-        form = manager.get_result_set_data_form(request)
-        table = manager.get_table(facility_ids=form.get_search_facility_ids()) 
-        details['search_form'] = form
-        if(len(table.data)>0):
-            details['table'] = table
-            RequestConfig(
-                request, paginate={"per_page": items_per_page}).configure(table)
-
-        
     elif (sub_page == 'cells'):
         if dataset.cells.exists():
             queryset = Cell.objects.filter(id__in=(
@@ -3369,7 +3372,7 @@ WHERE search_vector @@ {query_number}
             sql += RESTRICTION_SQL
         sql += " UNION "
         sql += REAGENT_SEARCH_SQL.format(
-            key_id='lincs_id',
+            key_id='facility_id',
             reagent_snippet_def=Reagent.get_snippet_def(),
             snippet_def=Protein.get_snippet_def(),
             detail_type='protein_detail',
