@@ -736,7 +736,7 @@ class Antibody(Reagent):
     clone_name = _TEXT(**_NULLOKSTR)
     rrid = _TEXT(**_NULLOKSTR)
     type = _TEXT(**_NULLOKSTR)
-    target_protein = models.ForeignKey('Protein',null=True)
+    target_proteins = models.ManyToManyField('Protein')
     non_protein_target_name = _TEXT(**_NULLOKSTR)
     target_organism = _TEXT(**_NULLOKSTR) 
     immunogen = _TEXT(**_NULLOKSTR) 
@@ -751,30 +751,40 @@ class Antibody(Reagent):
     relevant_citations = _TEXT(**_NULLOKSTR) 
     
     @property
-    def target_protein_name(self):
-        if self.target_protein:
-            return self.target_protein.name
+    def target_protein_names(self):
+        if self.target_proteins.exists():
+            return [x.name for x in self.target_proteins.all()]
         else:
             return None
 
     @property
-    def target_protein_uniprot_id(self):
-        if self.target_protein:
-            return self.target_protein.uniprot_id
+    def target_protein_uniprot_ids(self):
+        if self.target_proteins.exists():
+            return [x.uniprot_id 
+                for x in self.target_proteins.all().order_by('uniprot_id')]
         else:
             return None
     
     @property
-    def target_protein_center_id(self):
-        if self.target_protein:
-            return self.target_protein.facility_id
+    def target_protein_center_ids(self):
+        if self.target_proteins.exists():
+            return [x.facility_id 
+                for x in self.target_proteins.all().order_by('facility_id')]
+        else:
+            return None
+    @property
+    def target_protein_center_ids_ui(self):
+        if self.target_proteins.exists():
+            return [x.facility_id 
+                for x in self.target_proteins.all().order_by('facility_id')]
         else:
             return None
 
     @property
-    def target_protein_lincs_id(self):
-        if self.target_protein:
-            return self.target_protein.lincs_id
+    def target_protein_lincs_ids(self):
+        if self.target_proteins.exists():
+            return [x.lincs_id 
+                for x in self.target_proteins.all().order_by('lincs_id')]
         else:
             return None
             
