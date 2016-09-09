@@ -467,7 +467,9 @@ def antibodyIndex(request):
     if(outputType != ''):
         return send_to_file(
             outputType, 'antibodies', table, queryset, ['antibody',''],
-            extra_columns=['target_protein_center_ids_ui'] )
+            extra_columns=[
+                'target_protein_center_ids_ui',
+                'other_human_target_protein_center_ids_ui'] )
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
     return render_list_index(request, table,search,'Antibody','Antibodies')
    
@@ -498,6 +500,13 @@ def antibodyDetail(request, facility_batch, batch_id=None):
                 [(i,'/db/proteins/%s' % x.facility_id, x.facility_id) 
                     for i,x in enumerate(
                         antibody.target_proteins.all().order_by('facility_id'))])
+
+        if antibody.other_human_target_proteins.exists():
+            details['object']['other_human_target_protein_center_ids']['links'] = (
+                [(i,'/db/proteins/%s' % x.facility_id, x.facility_id) 
+                    for i,x in enumerate(
+                        antibody.other_human_target_proteins.all()
+                            .order_by('facility_id'))])
 
         details['facility_id'] = antibody.facility_id
         antibody_batch = None
@@ -1096,7 +1105,9 @@ def datasetDetailAntibodies(request, facility_id):
             return send_to_file(
                 outputType, 'antibodies_for_'+ str(facility_id), 
                 AntibodyTable(queryset), 
-                queryset, ['antibody',''], extra_columns=['target_protein_center_ids_ui'] )
+                queryset, ['antibody',''], extra_columns=[
+                    'target_protein_center_ids_ui',
+                    'other_human_target_protein_center_ids_ui'] )
         except DataSet.DoesNotExist:
             raise Http404
     try:
@@ -1877,6 +1888,7 @@ class AntibodyTable(PagedTable):
     rank = tables.Column()
     snippet = DivWrappedColumn(verbose_name='matched text', classname='snippet')
     target_protein_center_ids_ui = TargetProteinLinkColumn()
+    other_human_target_protein_center_ids_ui = TargetProteinLinkColumn()
     alternative_names = DivWrappedColumn(classname='constrained_width_column')
     alternative_id = DivWrappedColumn(classname='constrained_width_column')
     
@@ -2275,12 +2287,14 @@ class AntibodySearchManager(SearchManager):
                 .values_list('reagent__id', flat=True)
                 .distinct('reagent__id')]
 
-        # find by nominal target (id, name)
+        # find by nominal target (id, name), other_human_target_proteins
         new_ids = [id for id in
             Antibody.objects.all()
                 .filter(
                     Q(target_proteins__name__icontains=searchString) |
-                    Q(target_proteins__facility_id__icontains=searchString)
+                    Q(target_proteins__facility_id__icontains=searchString) |
+                    Q(other_human_target_proteins__name__icontains=searchString) |
+                    Q(other_human_target_proteins__facility_id__icontains=searchString)
                 ) 
                 .values_list('id', flat=True)
                 .distinct('id')]

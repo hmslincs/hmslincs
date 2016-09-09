@@ -736,9 +736,13 @@ class Antibody(Reagent):
     clone_name = _TEXT(**_NULLOKSTR)
     rrid = _TEXT(**_NULLOKSTR)
     type = _TEXT(**_NULLOKSTR)
-    target_proteins = models.ManyToManyField('Protein')
+    target_proteins = models.ManyToManyField(
+        'Protein', related_name='targeting_antibodies')
     non_protein_target_name = _TEXT(**_NULLOKSTR)
     target_organism = _TEXT(**_NULLOKSTR) 
+    other_target_information = _TEXT(**_NULLOKSTR) 
+    other_human_target_proteins = models.ManyToManyField(
+        'Protein', related_name='other_human_protein_targeting_antibodies')
     immunogen = _TEXT(**_NULLOKSTR) 
     immunogen_sequence = _TEXT(**_NULLOKSTR) 
     species = _TEXT(**_NULLOKSTR)
@@ -774,6 +778,11 @@ class Antibody(Reagent):
             return None
     @property
     def target_protein_center_ids_ui(self):
+        '''
+        Alias for target_protein_center_ids.
+        Motivation: accessor for this property in the context of list/export, 
+        where visibility may differ from the detail view.
+        '''
         if self.target_proteins.exists():
             return [x.facility_id 
                 for x in self.target_proteins.all().order_by('facility_id')]
@@ -785,6 +794,29 @@ class Antibody(Reagent):
         if self.target_proteins.exists():
             return [x.lincs_id 
                 for x in self.target_proteins.all().order_by('lincs_id')]
+        else:
+            return None
+            
+    @property
+    def other_human_target_protein_center_ids(self):
+        if self.other_human_target_proteins.exists():
+            return [x.facility_id 
+                for x in self.other_human_target_proteins.all()
+                    .order_by('facility_id')]
+        else:
+            return None
+            
+    @property
+    def other_human_target_protein_center_ids_ui(self):
+        '''
+        Alias for other_human_target_protein_center_ids.
+        Motivation: accessor for this property in the context of list/export, 
+        where visibility may differ from the detail view.
+        '''
+        if self.other_human_target_proteins.exists():
+            return [x.facility_id 
+                for x in self.other_human_target_proteins.all()
+                    .order_by('facility_id')]
         else:
             return None
             

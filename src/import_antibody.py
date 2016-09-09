@@ -47,6 +47,9 @@ def main(path):
         'target_protein_center_ids': 'target_protein_center_ids',
         'AR_Non-Protein_Target': 'non_protein_target_name',
         'AR_Target_Organism': 'target_organism',
+        'other_target_information': 'other_target_information',    
+        'other_human_target_protein_center_ids': 
+            'other_human_target_protein_center_ids',
         'AR_Immunogen': 'immunogen',
         'AR_Immunogen_Sequence': 'immunogen_sequence',
         'AR_Antibody_Species': 'species',
@@ -113,15 +116,35 @@ def main(path):
                     target_proteins = []
                     for id in ids:
                         id = id[id.index('HMSL')+4:]
-                        target_proteins.append(Protein.objects.get(facility_id=id))
+                        target_proteins.append(
+                            Protein.objects.get(facility_id=id))
                 except ObjectDoesNotExist, e:
                     logger.error(
                         'target_protein_center_ids "%s" does not exist, row: %d' 
                         % (id,i))
                     raise
+            other_human_target_protein_center_ids = initializer.pop(
+                'other_human_target_protein_center_ids',None)
+            if other_human_target_protein_center_ids: 
+                ids = [x for x in 
+                    other_human_target_protein_center_ids.split(';')]
+                try:
+                    other_target_proteins = []
+                    for id in ids:
+                        id = id[id.index('HMSL')+4:]
+                        other_target_proteins.append(
+                            Protein.objects.get(facility_id=id))
+                except ObjectDoesNotExist, e:
+                    logger.error(
+                        'other_human_target_protein_center_ids "%s"'
+                        ' does not exist, row: %d' 
+                        % (id,i))
+                    raise
             antibody = Antibody.objects.create(**initializer)
             if target_proteins:
                 antibody.target_proteins = target_proteins
+            if other_target_proteins:
+                antibody.other_human_target_proteins = other_target_proteins
             antibody.save()
             logger.info('antibody created: %s' % antibody)
             rows += 1
