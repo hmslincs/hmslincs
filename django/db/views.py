@@ -2287,17 +2287,14 @@ class AntibodySearchManager(SearchManager):
                 .values_list('reagent__id', flat=True)
                 .distinct('reagent__id')]
 
-        # find by nominal target (id, name), other_human_target_proteins
-        new_ids = [id for id in
+        # Find matching proteins linked through target fields
+        proteinSearchQuery = ProteinSearchManager().search(searchString, is_authenticated)
+        protein_ids = [x.id for x in proteinSearchQuery.all()]
+        new_ids = [x.id for x in 
             Antibody.objects.all()
                 .filter(
-                    Q(target_proteins__name__icontains=searchString) |
-                    Q(target_proteins__facility_id__icontains=searchString) |
-                    Q(other_human_target_proteins__name__icontains=searchString) |
-                    Q(other_human_target_proteins__facility_id__icontains=searchString)
-                ) 
-                .values_list('id', flat=True)
-                .distinct('id')]
+                    Q(target_proteins__in=protein_ids) |
+                    Q(other_human_target_proteins__in=protein_ids))]
         ids.extend(new_ids)
         return super(AntibodySearchManager, self).search(
             Antibody.objects.all(), 'db_antibody', searchString, id_fields, 
