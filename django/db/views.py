@@ -1490,6 +1490,7 @@ class PagedTable(tables.Table):
     
     def __init__(self,*args,**kwargs):
         kwargs['template']="db/custom_tables2_template.html"
+        kwargs['default'] = ''
         super(PagedTable,self).__init__(*args,**kwargs)
 
     def previous_ten_page_number(self):
