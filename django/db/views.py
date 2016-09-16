@@ -31,6 +31,7 @@ from django.shortcuts import render
 from django_tables2 import RequestConfig
 from django_tables2.utils import A # alias for Accessor
 import django_tables2 as tables
+import django_tables2.columns.linkcolumn
 from django.utils import timezone
 from django.utils.encoding import smart_str
 from django.utils.safestring import mark_safe, SafeString
@@ -507,6 +508,10 @@ def antibodyDetail(request, facility_batch, batch_id=None):
                     for i,x in enumerate(
                         antibody.other_human_target_proteins.all()
                             .order_by('facility_id'))])
+
+        if antibody.rrid is not None:
+            details['object']['rrid']['link'] = \
+                AntibodyTable.rrid_link_template.format(value=antibody.rrid) 
 
         details['facility_id'] = antibody.facility_id
         antibody_batch = None
@@ -1486,6 +1491,17 @@ class ImageColumn(tables.Column):
         else:
             return ''
 
+class LinkTemplateColumn(django_tables2.columns.linkcolumn.BaseLinkColumn):
+    
+    def __init__(self, link_template=None, attrs=None, *args, **kwargs):
+        self.link_template = link_template
+        django_tables2.columns.linkcolumn.BaseLinkColumn.__init__(
+            self, attrs=attrs, *args, **kwargs)
+        
+    def render(self, value):
+        
+        return self.render_link(self.link_template.format(value=value), value)
+                        
 class PagedTable(tables.Table):
     
     def __init__(self,*args,**kwargs):
@@ -1883,8 +1899,11 @@ class ProteinTable(PagedTable):
         sequence_override = ['lincs_id']    
         set_table_column_info(self, ['protein',''],sequence_override, 
             visible_field_overrides=visible_field_overrides)  
-                        
+
 class AntibodyTable(PagedTable):
+    
+    rrid_link_template = 'http://antibodyregistry.org/search.php?q={value}'
+    
     facility_id = tables.LinkColumn("antibody_detail", args=[A('facility_id')])
     rank = tables.Column()
     snippet = DivWrappedColumn(verbose_name='matched text', classname='snippet')
@@ -1892,6 +1911,7 @@ class AntibodyTable(PagedTable):
     other_human_target_protein_center_ids_ui = TargetProteinLinkColumn()
     alternative_names = DivWrappedColumn(classname='constrained_width_column')
     alternative_id = DivWrappedColumn(classname='constrained_width_column')
+    rrid = LinkTemplateColumn(link_template=rrid_link_template)
     
     class Meta:
         model = Antibody
