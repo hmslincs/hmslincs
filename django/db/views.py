@@ -1471,7 +1471,7 @@ class TargetProteinLinkColumn(tables.Column):
         temp = []
         for id in value:
             p = Protein.objects.get(facility_id=id)
-            temp.append('<a href="db/proteins/%s">%s</a>' % (id,p.name))
+            temp.append('<a href="/db/proteins/%s">%s</a>' % (id,p.name))
         return mark_safe(
             "<div class='constrained_width_column' >%s</div>" 
                 % '; '.join(temp))

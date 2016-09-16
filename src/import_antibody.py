@@ -110,6 +110,11 @@ def main(path):
             
             target_protein_center_ids = initializer.pop(
                 'target_protein_center_ids',None)
+            other_human_target_protein_center_ids = initializer.pop(
+                'other_human_target_protein_center_ids',None)
+
+            antibody = Antibody.objects.create(**initializer)
+            
             if target_protein_center_ids: 
                 ids = [x for x in target_protein_center_ids.split(';')]
                 try:
@@ -118,13 +123,12 @@ def main(path):
                         id = id[id.index('HMSL')+4:]
                         target_proteins.append(
                             Protein.objects.get(facility_id=id))
+                    antibody.target_proteins = target_proteins
                 except ObjectDoesNotExist, e:
                     logger.error(
                         'target_protein_center_ids "%s" does not exist, row: %d' 
                         % (id,i))
                     raise
-            other_human_target_protein_center_ids = initializer.pop(
-                'other_human_target_protein_center_ids',None)
             if other_human_target_protein_center_ids: 
                 ids = [x for x in 
                     other_human_target_protein_center_ids.split(';')]
@@ -134,17 +138,14 @@ def main(path):
                         id = id[id.index('HMSL')+4:]
                         other_target_proteins.append(
                             Protein.objects.get(facility_id=id))
+                    antibody.other_human_target_proteins = other_target_proteins
                 except ObjectDoesNotExist, e:
                     logger.error(
                         'other_human_target_protein_center_ids "%s"'
                         ' does not exist, row: %d' 
                         % (id,i))
                     raise
-            antibody = Antibody.objects.create(**initializer)
-            if target_proteins:
-                antibody.target_proteins = target_proteins
-            if other_target_proteins:
-                antibody.other_human_target_proteins = other_target_proteins
+
             antibody.save()
             logger.info('antibody created: %s' % antibody)
             rows += 1
