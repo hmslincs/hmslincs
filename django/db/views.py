@@ -1909,6 +1909,7 @@ class AntibodyTable(PagedTable):
     snippet = DivWrappedColumn(verbose_name='matched text', classname='snippet')
     target_protein_center_ids_ui = TargetProteinLinkColumn()
     other_human_target_protein_center_ids_ui = TargetProteinLinkColumn()
+    name = DivWrappedColumn(classname='constrained_width_column')
     alternative_names = DivWrappedColumn(classname='constrained_width_column')
     alternative_id = DivWrappedColumn(classname='constrained_width_column')
     rrid = LinkTemplateColumn(link_template=rrid_link_template)
