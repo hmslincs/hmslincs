@@ -10,7 +10,7 @@ __version__ = "$Revision: 24d02504e664 $"
 
 logger = logging.getLogger(__name__)
 
-PUBCHEM_BASE_URL = 'http://pubchem.ncbi.nlm.nih.gov/rest/pug/'
+PUBCHEM_BASE_URL = 'https://pubchem.ncbi.nlm.nih.gov/rest/pug/'
 
 
 KEY_CANONICAL_SMILES = 'CanonicalSMILES'
@@ -20,7 +20,7 @@ KEY_INCHI_KEY = 'InChIKey'
 
 
 OUTPUT_FORMAT = 'JSON'
-DEFAULT_TIMEOUT = 10
+DEFAULT_TIMEOUT = 30
 DEFAULT_MAX_WAIT = 30
 DEFAULT_INITIAL_WAIT = 3
 DEFAULT_TRIES = 15
