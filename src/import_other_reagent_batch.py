@@ -9,6 +9,7 @@ import logging
 import init_utils as iu
 import import_utils as util
 from django.db import transaction
+from django.core.exceptions import ObjectDoesNotExist
 
 __version__ = "$Revision: 24d02504e664 $"
 # $Source$

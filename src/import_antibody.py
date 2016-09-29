@@ -44,11 +44,12 @@ def main(path):
         'AR_Clone_Name': 'clone_name',
         'AR_RRID': 'rrid',
         'AR_Antibody_Type': 'type',
-        'target_protein_lincs_id': (
-            'target_protein_lincs_id',False,None, 
-            lambda x: x[x.index('HMSL')+4:] if x else None ),
+        'target_protein_center_ids': 'target_protein_center_ids',
         'AR_Non-Protein_Target': 'non_protein_target_name',
         'AR_Target_Organism': 'target_organism',
+        'other_target_information': 'other_target_information',    
+        'other_human_target_protein_center_ids': 
+            'other_human_target_protein_center_ids',
         'AR_Immunogen': 'immunogen',
         'AR_Immunogen_Sequence': 'immunogen_sequence',
         'AR_Antibody_Species': 'species',
@@ -107,18 +108,44 @@ def main(path):
         try:
             logger.debug('row: %s, initializer: %s' % (rows,initializer))
             
-            target_protein_lincs_id = initializer.pop(
-                'target_protein_lincs_id',None)
-            if target_protein_lincs_id: 
+            target_protein_center_ids = initializer.pop(
+                'target_protein_center_ids',None)
+            other_human_target_protein_center_ids = initializer.pop(
+                'other_human_target_protein_center_ids',None)
+
+            antibody = Antibody.objects.create(**initializer)
+            
+            if target_protein_center_ids: 
+                ids = [x for x in target_protein_center_ids.split(';')]
                 try:
-                    target_protein = Protein.objects.get(
-                        lincs_id=target_protein_lincs_id)
-                    initializer['target_protein'] = target_protein
+                    target_proteins = []
+                    for id in ids:
+                        id = id[id.index('HMSL')+4:]
+                        target_proteins.append(
+                            Protein.objects.get(facility_id=id))
+                    antibody.target_proteins = target_proteins
                 except ObjectDoesNotExist, e:
                     logger.error(
-                        'target_protein_lincs_id "%s" does not exist, row: %d' 
-                        % (target_protein_lincs_id,i))
-            antibody = Antibody(**initializer)
+                        'target_protein_center_ids "%s" does not exist, row: %d' 
+                        % (id,i))
+                    raise
+            if other_human_target_protein_center_ids: 
+                ids = [x for x in 
+                    other_human_target_protein_center_ids.split(';')]
+                try:
+                    other_target_proteins = []
+                    for id in ids:
+                        id = id[id.index('HMSL')+4:]
+                        other_target_proteins.append(
+                            Protein.objects.get(facility_id=id))
+                    antibody.other_human_target_proteins = other_target_proteins
+                except ObjectDoesNotExist, e:
+                    logger.error(
+                        'other_human_target_protein_center_ids "%s"'
+                        ' does not exist, row: %d' 
+                        % (id,i))
+                    raise
+
             antibody.save()
             logger.info('antibody created: %s' % antibody)
             rows += 1

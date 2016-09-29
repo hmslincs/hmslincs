@@ -31,6 +31,7 @@ from django.shortcuts import render
 from django_tables2 import RequestConfig
 from django_tables2.utils import A # alias for Accessor
 import django_tables2 as tables
+import django_tables2.columns.linkcolumn
 from django.utils import timezone
 from django.utils.encoding import smart_str
 from django.utils.safestring import mark_safe, SafeString
@@ -465,7 +466,11 @@ def antibodyIndex(request):
     table = AntibodyTable(queryset)
     outputType = request.GET.get('output_type','')
     if(outputType != ''):
-        return send_to_file(outputType, 'antibodies', table, queryset, ['antibody',''] )
+        return send_to_file(
+            outputType, 'antibodies', table, queryset, ['antibody',''],
+            extra_columns=[
+                'target_protein_center_ids_ui',
+                'other_human_target_protein_center_ids_ui'] )
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
     return render_list_index(request, table,search,'Antibody','Antibodies')
    
@@ -487,13 +492,27 @@ def antibodyDetail(request, facility_batch, batch_id=None):
             return HttpResponse('Log in required.', status=401)
         details = {'object': get_detail(antibody, ['antibody',''])}
         
-        if antibody.target_protein_name and antibody.target_protein_center_id:
-            details['object']['target_protein_name']['link'] = (
-                '/db/proteins/%s' % antibody.target_protein_center_id )
-        if antibody.target_protein_center_id:
-            details['object']['target_protein_center_id']['link'] = (
-                '/db/proteins/%s' % antibody.target_protein_center_id )
-        
+        if antibody.target_proteins.exists():
+            details['object']['target_protein_names']['links'] = (
+                [(i,'/db/proteins/%s' % x.facility_id, x.name) 
+                    for i,x in enumerate(
+                        antibody.target_proteins.all().order_by('facility_id'))])
+            details['object']['target_protein_center_ids']['links'] = (
+                [(i,'/db/proteins/%s' % x.facility_id, x.facility_id) 
+                    for i,x in enumerate(
+                        antibody.target_proteins.all().order_by('facility_id'))])
+
+        if antibody.other_human_target_proteins.exists():
+            details['object']['other_human_target_protein_center_ids']['links'] = (
+                [(i,'/db/proteins/%s' % x.facility_id, x.facility_id) 
+                    for i,x in enumerate(
+                        antibody.other_human_target_proteins.all()
+                            .order_by('facility_id'))])
+
+        if antibody.rrid is not None:
+            details['object']['rrid']['link'] = \
+                AntibodyTable.rrid_link_template.format(value=antibody.rrid) 
+
         details['facility_id'] = antibody.facility_id
         antibody_batch = None
         if(_batch_id):
@@ -1091,7 +1110,9 @@ def datasetDetailAntibodies(request, facility_id):
             return send_to_file(
                 outputType, 'antibodies_for_'+ str(facility_id), 
                 AntibodyTable(queryset), 
-                queryset, ['antibody',''] )
+                queryset, ['antibody',''], extra_columns=[
+                    'target_protein_center_ids_ui',
+                    'other_human_target_protein_center_ids_ui'] )
         except DataSet.DoesNotExist:
             raise Http404
     try:
@@ -1443,6 +1464,17 @@ class DivWrappedColumn(tables.Column):
             "<div class='%s' >%s</div>" % (
                 self.classname, smart_str(value, 'utf-8', errors='ignore')))
 
+class TargetProteinLinkColumn(tables.Column):
+
+    def render(self, value):
+        # value is a list of protein hmsl ids
+        temp = []
+        for id in value:
+            p = Protein.objects.get(facility_id=id)
+            temp.append('<a href="/db/proteins/%s">%s</a>' % (id,p.name))
+        return mark_safe(
+            "<div class='constrained_width_column' >%s</div>" 
+                % '; '.join(temp))
     
 class ImageColumn(tables.Column):
 
@@ -1459,10 +1491,22 @@ class ImageColumn(tables.Column):
         else:
             return ''
 
+class LinkTemplateColumn(django_tables2.columns.linkcolumn.BaseLinkColumn):
+    
+    def __init__(self, link_template=None, attrs=None, *args, **kwargs):
+        self.link_template = link_template
+        django_tables2.columns.linkcolumn.BaseLinkColumn.__init__(
+            self, attrs=attrs, *args, **kwargs)
+        
+    def render(self, value):
+        
+        return self.render_link(self.link_template.format(value=value), value)
+                        
 class PagedTable(tables.Table):
     
     def __init__(self,*args,**kwargs):
         kwargs['template']="db/custom_tables2_template.html"
+        kwargs['default'] = ''
         super(PagedTable,self).__init__(*args,**kwargs)
 
     def previous_ten_page_number(self):
@@ -1855,13 +1899,20 @@ class ProteinTable(PagedTable):
         sequence_override = ['lincs_id']    
         set_table_column_info(self, ['protein',''],sequence_override, 
             visible_field_overrides=visible_field_overrides)  
-                        
+
 class AntibodyTable(PagedTable):
+    
+    rrid_link_template = 'http://antibodyregistry.org/search.php?q={value}'
+    
     facility_id = tables.LinkColumn("antibody_detail", args=[A('facility_id')])
     rank = tables.Column()
     snippet = DivWrappedColumn(verbose_name='matched text', classname='snippet')
-    target_protein_name = tables.LinkColumn("protein_detail", args=[A('target_protein_center_id')])
+    target_protein_center_ids_ui = TargetProteinLinkColumn()
+    other_human_target_protein_center_ids_ui = TargetProteinLinkColumn()
+    name = DivWrappedColumn(classname='constrained_width_column')
+    alternative_names = DivWrappedColumn(classname='constrained_width_column')
     alternative_id = DivWrappedColumn(classname='constrained_width_column')
+    rrid = LinkTemplateColumn(link_template=rrid_link_template)
     
     class Meta:
         model = Antibody
@@ -1878,6 +1929,7 @@ class OtherReagentTable(PagedTable):
     rank = tables.Column()
     snippet = DivWrappedColumn(verbose_name='matched text', classname='snippet')
     alternative_id = DivWrappedColumn(classname='constrained_width_column')
+    alternative_names = DivWrappedColumn(classname='constrained_width_column')
 
     class Meta:
         model = OtherReagent
@@ -2245,18 +2297,27 @@ class SmallMoleculeSearchManager(SearchManager):
         return queryset
 
 class AntibodySearchManager(SearchManager):
-    
+
     def search(self, searchString, is_authenticated=False):
 
         id_fields = []
 
-        # Note: using simple "contains" search for antibodybatchc specific fields
+        # Note: using simple "contains" search for antibodybatch specific fields
         ids = [id for id in
             AntibodyBatch.objects.all().filter(
                 Q(antibody_purity__icontains=searchString))
                 .values_list('reagent__id', flat=True)
                 .distinct('reagent__id')]
 
+        # Find matching proteins linked through target fields
+        proteinSearchQuery = ProteinSearchManager().search(searchString, is_authenticated)
+        protein_ids = [x.id for x in proteinSearchQuery.all()]
+        new_ids = [x.id for x in 
+            Antibody.objects.all()
+                .filter(
+                    Q(target_proteins__in=protein_ids) |
+                    Q(other_human_target_proteins__in=protein_ids))]
+        ids.extend(new_ids)
         return super(AntibodySearchManager, self).search(
             Antibody.objects.all(), 'db_antibody', searchString, id_fields, 
             Antibody.get_snippet_def(), ids=ids)        
@@ -2688,6 +2749,7 @@ def export_as_csv(name,col_key_name_map, cursor=None, queryset=None,
                         for field in col_key_name_map.keys()])
             else:# a ORM object
                 vals = [getattr(obj,field) for field in col_key_name_map.keys()]
+                vals = [';'.join(x) if isinstance(x,(list,tuple)) else x for x in vals]
                 vals_authenticated = []
                 for i,column in enumerate(vals):
                     # if the method is a column, we are referencing the method 
@@ -2745,6 +2807,7 @@ def export_as_xlsx(name,col_key_name_map, cursor=None, queryset=None,
                             for field in col_key_name_map.keys()]
             else: # a ORM object
                 vals = [getattr(obj,field) for field in col_key_name_map.keys()]
+                vals = [';'.join(x) if isinstance(x,(list,tuple)) else x for x in vals]
             
             temp = []
             for column in vals:

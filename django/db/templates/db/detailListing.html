@@ -29,6 +29,8 @@
         {% endif %}
       {% elif info.value and info.link %}
         <a target="_blank" href="{{ info.link }}">{{ info.value }}</a>
+      {% elif info.links %}
+          {% for i,link,value in info.links %}{% if i %}; {% endif %}<a target="_blank" href="{{ link }}">{{ value }}</a>{% endfor %}
       {% elif info.value and info.fieldinformation.field == 'reference_source_url' %}
         <a target="_blank" href="{{ info.value }}">{{ info.value }}</a>
 		  {% else %}
