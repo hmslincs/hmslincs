@@ -41,7 +41,7 @@ def main(path):
             'facility_id',True,None, lambda x: util.convertdata(x,int)),
         'facility_batch_id':(
             'batch_id',True,None, lambda x: util.convertdata(x,int)),
-        'provider': ('provider_name',True),
+        'provider': ('provider_name',False),
         'provider_catalog_id':'provider_catalog_id',
         'provider_sample_id':'provider_batch_id',
         'Date Data Received':(
