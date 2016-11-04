@@ -44,7 +44,7 @@ logger = logging.getLogger(__name__)
 class SmallMoleculeResource(ModelResource):
        
     class Meta:
-        queryset = SmallMolecule.objects.all()
+        queryset = SmallMolecule.objects.all().order_by('facility_id','salt_id')
         excludes = ['column']
         allowed_methods = ['get']
         filtering = {
@@ -67,7 +67,7 @@ class SmallMoleculeResource(ModelResource):
              _filter=_filter, extra_properties=self._meta.extra_properties)
 
         smbs = ( SmallMoleculeBatch.objects.filter(reagent=bundle.obj)
-            .exclude(batch_id=0) )
+            .exclude(batch_id=0).order_by('batch_id') )
         bundle.data['batches'] = []
         for smb in smbs:
             bundle.data['batches'].append(
@@ -100,7 +100,7 @@ class SmallMoleculeResource(ModelResource):
 class CellResource(ModelResource):
     
     class Meta:
-        queryset = Cell.objects.all()
+        queryset = Cell.objects.all().order_by('facility_id')
         allowed_methods = ['get']
         excludes = []
         filtering = {
@@ -119,7 +119,8 @@ class CellResource(ModelResource):
             extra_properties=self._meta.extra_properties)
 
         batches = ( 
-            CellBatch.objects.filter(reagent=bundle.obj).exclude(batch_id=0) )
+            CellBatch.objects.filter(reagent=bundle.obj)
+                .exclude(batch_id=0).order_by('batch_id') )
         bundle.data['batches'] = []
         for batch in batches:
             bundle.data['batches'].append(
@@ -145,7 +146,7 @@ class CellResource(ModelResource):
 class PrimaryCellResource(ModelResource):
     
     class Meta:
-        queryset = PrimaryCell.objects.all()
+        queryset = PrimaryCell.objects.all().order_by('facility_id')
         allowed_methods = ['get']
         excludes = []
         filtering = {
@@ -165,7 +166,7 @@ class PrimaryCellResource(ModelResource):
         
         batches = ( 
             PrimaryCellBatch.objects.filter(reagent=bundle.obj)
-                .exclude(batch_id=0) )
+                .exclude(batch_id=0).order_by('batch_id') )
         bundle.data['batches'] = []
         for batch in batches:
             bundle.data['batches'].append(
@@ -193,7 +194,7 @@ class PrimaryCellResource(ModelResource):
 class AntibodyResource(ModelResource):
 
     class Meta:
-        queryset = Antibody.objects.all()
+        queryset = Antibody.objects.all().order_by('facility_id')
         allowed_methods = ['get']
         excludes = []
         filtering = {
@@ -211,7 +212,7 @@ class AntibodyResource(ModelResource):
 
         batches = ( 
             AntibodyBatch.objects.filter(reagent=bundle.obj)
-                .exclude(batch_id=0) )
+                .exclude(batch_id=0).order_by('batch_id') )
         bundle.data['batches'] = []
         for batch in batches:
             bundle.data['batches'].append(get_detail_bundle(
@@ -235,7 +236,7 @@ class AntibodyResource(ModelResource):
 class OtherReagentResource(ModelResource):
     
     class Meta:
-        queryset = OtherReagent.objects.all()
+        queryset = OtherReagent.objects.all().order_by('facility_id')
         allowed_methods = ['get']
         excludes = []
         filtering = {
@@ -253,7 +254,7 @@ class OtherReagentResource(ModelResource):
 
         batches = ( 
             OtherReagentBatch.objects.filter(reagent=bundle.obj)
-                .exclude(batch_id=0) )
+                .exclude(batch_id=0).order_by('batch_id') )
         bundle.data['batches'] = []
         for batch in batches:
             bundle.data['batches'].append(
@@ -279,7 +280,7 @@ class OtherReagentResource(ModelResource):
 class ProteinResource(ModelResource):
 
     class Meta:
-        queryset = Protein.objects.all()
+        queryset = Protein.objects.all().order_by('facility_id')
         allowed_methods = ['get']
         excludes = []
         filtering = {
@@ -296,7 +297,8 @@ class ProteinResource(ModelResource):
             bundle.obj, ['protein',''], _filter=_filter)
 
         batches = ( 
-            ProteinBatch.objects.filter(reagent=bundle.obj).exclude(batch_id=0))
+            ProteinBatch.objects.filter(reagent=bundle.obj)
+                .exclude(batch_id=0).order_by('batch_id'))
         bundle.data['batches'] = []
         for batch in batches:
             bundle.data['batches'].append(
@@ -320,7 +322,7 @@ class ProteinResource(ModelResource):
 class LibraryResource(ModelResource):
 
     class Meta:
-        queryset = Library.objects.all()
+        queryset = Library.objects.all().order_by('name')
         allowed_methods = ['get']
         excludes = []
         filtering = {
@@ -437,7 +439,7 @@ class DataSetResource2(ModelResource):
     '''
     
     class Meta:
-        queryset = DataSet.objects.all()
+        queryset = DataSet.objects.all().order_by('facility_id')
         allowed_methods = ['get']
         excludes = [
             'lead_screener_firstname',
@@ -631,7 +633,7 @@ class DataSetDataResource2(Resource):
         reagent_columns = ( DataColumn.objects.filter(dataset_id=dataset_id)
             .filter(data_type__in=[
                 'small_molecule','cell','primary_cell','protein','antibody',
-                'otherreagent']) )
+                'otherreagent']).order_by('display_order') )
         
         dc_ids_to_exclude = [dc.id for dc in timepoint_columns]
         dc_ids_to_exclude.extend([dc.id for dc in reagent_columns])
@@ -838,7 +840,8 @@ class DataSetDataResource2(Resource):
                 .filter(unit__in=['day','hour','minute','second']) )
         timepoint_col_count = len(timepoint_columns)
 
-        data_columns = DataColumn.objects.filter(dataset_id=dataset_id)
+        data_columns = ( DataColumn.objects.filter(dataset_id=dataset_id)
+            .order_by('display_order') )
         for dc in data_columns:
             name = dc.name
             if dc.unit in ['day','hour','minute','second']:
@@ -865,7 +868,8 @@ class DataSetDataResource2(Resource):
             .exclude(data_type__in=[
                 'small_molecule','cell','primary_cell', 'protein','antibody',
                 'otherreagent','omero_image'])
-            .exclude(unit__in=['day','hour','minute','second']) )
+            .exclude(unit__in=['day','hour','minute','second'])
+            .order_by('display_order') )
         
         datapoint_fields = OrderedDict()
         meta_field_info = get_listing(DataColumn(),['datacolumn'])
@@ -900,7 +904,7 @@ class DataSetDataResource2(Resource):
         data_columns = ( DataColumn.objects.filter(dataset_id=dataset_id)
             .filter(data_type__in=[
                 'small_molecule','cell','primary_cell', 'protein','antibody',
-                'otherreagent']) )
+                'otherreagent']).order_by('display_order') )
         reagent_fields = OrderedDict()
         meta_field_info = get_listing(DataColumn(),['datacolumn'])
         for dc in data_columns.order_by('display_order'):
