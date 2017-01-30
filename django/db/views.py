@@ -151,9 +151,12 @@ def cellIndex(request):
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
     outputType = request.GET.get('output_type','')
     if(outputType != ''):
-        return send_to_file(outputType, 'cells', table, queryset, ['cell',''], 
+        col_key_name_map = get_table_col_key_name_map(
+            table,fieldinformation_tables=['cell',''],
             extra_columns=[
-            'precursor_cell_name','precursor_cell_facility_batch_id'] )
+                'precursor_cell_name','precursor_cell_facility_batch_id'])
+        return send_to_file(
+            outputType, 'cells', queryset, col_key_name_map)
     return render_list_index(request, table,search,'Cell Line','Cell Lines',
         **{ 'extra_form': form, 'search_label': search_label })
 
@@ -290,10 +293,14 @@ def primaryCellIndex(request):
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
     outputType = request.GET.get('output_type','')
     if(outputType != ''):
-        return send_to_file(
-            outputType, 'primary_cells', table, queryset, ['primarycell',''],
+
+        col_key_name_map = get_table_col_key_name_map(
+            table,fieldinformation_tables=['primarycell',''],
             extra_columns=[
-                'precursor_cell_name','precursor_cell_facility_batch_id'] )
+                'precursor_cell_name','precursor_cell_facility_batch_id'])
+        return send_to_file(
+            outputType, 'primary_cells', queryset, col_key_name_map)
+        
     return render_list_index(request, table,search,'Primary Cell','Primary Cells',
         **{ 'extra_form': form, 'search_label': search_label })
 
@@ -425,7 +432,11 @@ def proteinIndex(request):
     table = ProteinTable(queryset, visible_field_overrides=visible_field_overrides)
     outputType = request.GET.get('output_type','')
     if(outputType != ''):
-        return send_to_file(outputType, 'proteins', table, queryset, ['protein',''] )
+        col_key_name_map = get_table_col_key_name_map(
+            table,fieldinformation_tables=['protein',''])
+        return send_to_file(
+            outputType, 'proteins', queryset, col_key_name_map)
+
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
     return render_list_index(
         request, table,search,'Protein','Proteins',
@@ -466,11 +477,14 @@ def antibodyIndex(request):
     table = AntibodyTable(queryset)
     outputType = request.GET.get('output_type','')
     if(outputType != ''):
-        return send_to_file(
-            outputType, 'antibodies', table, queryset, ['antibody',''],
+        col_key_name_map = get_table_col_key_name_map(
+            table,fieldinformation_tables=['antibody',''],
             extra_columns=[
                 'target_protein_center_ids_ui',
                 'other_human_target_protein_center_ids_ui'] )
+        return send_to_file(
+            outputType, 'antibodies', queryset, col_key_name_map)
+
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
     return render_list_index(request, table,search,'Antibody','Antibodies')
    
@@ -571,7 +585,11 @@ def otherReagentIndex(request):
     table = OtherReagentTable(queryset)
     outputType = request.GET.get('output_type','')
     if(outputType != ''):
-        return send_to_file(outputType, 'other_reagents', table, queryset, ['otherreagent',''] )
+        col_key_name_map = get_table_col_key_name_map(
+            table,fieldinformation_tables=['otherreagent',''],)
+        return send_to_file(
+            outputType, 'other_reagents', queryset, col_key_name_map)
+        
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
     return render_list_index(request, table,search,'Other Reagent','Other Reagents')
     
@@ -719,10 +737,13 @@ def smallMoleculeIndex(request, queryset=None, overrides=None):
     if outputType:
         if(outputType == ".zip"):
             return export_sm_images(queryset, request.user.is_authenticated())
+
+        col_key_name_map = get_table_col_key_name_map(
+            table,fieldinformation_tables=[tablename,''])
+        return send_to_file(
+            outputType, 'small_molecule', queryset, col_key_name_map,
+            is_authenticated=request.user.is_authenticated())
         
-        return send_to_file(outputType, 'small_molecule', table, queryset,
-                    [tablename,''], is_authenticated=request.user.is_authenticated())
-    
     if(len(queryset) == 1 ):
         return redirect_to_small_molecule_detail(queryset[0])
         
@@ -908,7 +929,11 @@ def libraryIndex(request):
     table = LibraryTable(queryset)
     outputType = request.GET.get('output_type','')
     if(outputType != ''):
-        return send_to_file(outputType, 'libraries', table, queryset, ['library',''] )
+        col_key_name_map = get_table_col_key_name_map(
+            table,fieldinformation_tables=['library',''])
+        return send_to_file(
+            outputType, 'libraries', queryset, col_key_name_map)
+        
     return render_list_index(request, table,search,'Library','Libraries')
 
 def libraryDetail(request, short_name):
@@ -927,11 +952,14 @@ def libraryDetail(request, short_name):
             response_dict['table']=table
             
             outputType = request.GET.get('output_type','')
-            logger.error(str(("outputType:", outputType)))
             if(outputType != ''):
-                return send_to_file(outputType, 'library_'+library.short_name ,
-                    table, queryset, ['library','smallmolecule',
-                        'smallmoleculebatch','librarymapping',''] )
+                col_key_name_map = get_table_col_key_name_map(
+                    table, fieldinformation_tables=[
+                        'library','smallmolecule',
+                        'smallmoleculebatch','librarymapping',''])
+                return send_to_file(
+                    outputType, 'library_'+library.short_name, queryset, 
+                    col_key_name_map)
         
         return render(request,'db/libraryDetail.html', response_dict)
     except Library.DoesNotExist:
@@ -1011,8 +1039,10 @@ def datasetIndex(request): #, type='screen'):
     
     outputType = request.GET.get('output_type','')
     if(outputType != ''):
+        col_key_name_map = get_table_col_key_name_map(
+            table, fieldinformation_tables=['dataset',''])
         return send_to_file(
-            outputType, 'datasetIndex', table, queryset, ['dataset',''] )
+            outputType, 'datasetIndex', queryset, col_key_name_map)
     requestArgs = { 
         'usage_message': 
             ( 'To find <a href="datasets">datasets</a> from ' 
@@ -1041,11 +1071,21 @@ def datasetDetailCells(request, facility_id):
             dataset = DataSet.objects.get(facility_id=facility_id)
             if(dataset.is_restricted and not request.user.is_authenticated()):
                 raise Http401
-            queryset = Cell.objects.filter(id__in=(
-                dataset.cells.all().values_list('reagent_id',flat=True).distinct()))
+            queryset = dataset.cells.all()
+            # create a combination dict of canonical and batch
+            def make_cell(batch):
+                d = model_to_dict(batch)
+                d.update(model_to_dict(batch.reagent.cell))
+                d['facility_batch'] = batch.facility_batch
+                return d
+            queryset = [make_cell(batch) for batch in queryset]
+            col_key_name_map = get_col_key_mapping(
+                queryset[0].keys(),
+                fieldinformation_tables=['cell','cellbatch',''],
+                sequence_override=['facility_batch'])
             return send_to_file(
                 outputType, 'cells_for_'+ str(facility_id), 
-                CellTable(queryset), queryset, ['cell',''] )
+                queryset, col_key_name_map )
         except DataSet.DoesNotExist:
             raise Http404
     try:
@@ -1062,11 +1102,21 @@ def datasetDetailPrimaryCells(request, facility_id):
             dataset = DataSet.objects.get(facility_id=facility_id)
             if(dataset.is_restricted and not request.user.is_authenticated()):
                 raise Http401
-            queryset = PrimaryCell.objects.filter(id__in=(
-                dataset.primary_cells.all().values_list('reagent_id',flat=True).distinct()))
+            queryset = dataset.primary_cells.all()
+            # create a combination dict of canonical and batch
+            def make_primary_cell(batch):
+                d = model_to_dict(batch)
+                d.update(model_to_dict(batch.reagent.primarycell))
+                d['facility_batch'] = batch.facility_batch
+                return d
+            queryset = [make_primary_cell(batch) for batch in queryset]
+            col_key_name_map = get_col_key_mapping(
+                queryset[0].keys(),
+                fieldinformation_tables=['primarycell','primarycellbatch',''],
+                sequence_override=['facility_batch'])
             return send_to_file(
                 outputType, 'primary_cells_for_'+ str(facility_id), 
-                PrimaryCellTable(queryset), queryset, ['primarycell',''] )
+                queryset, col_key_name_map )
         except DataSet.DoesNotExist:
             raise Http404
     try:
@@ -1085,10 +1135,11 @@ def datasetDetailProteins(request, facility_id):
                 raise Http401
             queryset = Protein.objects.filter(id__in=(
                 dataset.proteins.all().values_list('reagent_id',flat=True).distinct()))
+            col_key_name_map = get_table_col_key_name_map(
+                ProteinTable(queryset),fieldinformation_tables=['protein',''])
             return send_to_file(
                 outputType, 'proteins_for_'+ str(facility_id), 
-                ProteinTable(queryset), 
-                queryset, ['protein',''] )
+                queryset, col_key_name_map )
         except DataSet.DoesNotExist:
             raise Http404
     try:
@@ -1105,14 +1156,24 @@ def datasetDetailAntibodies(request, facility_id):
             dataset = DataSet.objects.get(facility_id=facility_id)
             if(dataset.is_restricted and not request.user.is_authenticated()):
                 raise Http401
-            queryset = Antibody.objects.filter(id__in=(
-                dataset.antibodies.all().values_list('reagent_id',flat=True).distinct()))
+            queryset = dataset.antibodies.all()
+            # create a combination dict of canonical and batch
+            def make_antibody(batch):
+                d = model_to_dict(batch)
+                d.update(model_to_dict(batch.reagent.antibody))
+                d['facility_batch'] = batch.facility_batch
+                return d
+            queryset = [make_antibody(batch) for batch in queryset]
+            col_key_name_map = get_col_key_mapping(
+                queryset[0].keys(),
+                fieldinformation_tables=['antibody','antibodybatch',''],
+                extra_columns=[
+                    'target_protein_center_ids_ui',
+                    'other_human_target_protein_center_ids_ui'],
+                sequence_override=['facility_batch'])
             return send_to_file(
                 outputType, 'antibodies_for_'+ str(facility_id), 
-                AntibodyTable(queryset), 
-                queryset, ['antibody',''], extra_columns=[
-                    'target_protein_center_ids_ui',
-                    'other_human_target_protein_center_ids_ui'] )
+                queryset, col_key_name_map )
         except DataSet.DoesNotExist:
             raise Http404
     try:
@@ -1129,12 +1190,22 @@ def datasetDetailOtherReagents(request, facility_id):
             dataset = DataSet.objects.get(facility_id=facility_id)
             if(dataset.is_restricted and not request.user.is_authenticated()):
                 raise Http401
-            queryset = OtherReagent.objects.filter(id__in=(
-                dataset.other_reagents.all().values_list('reagent_id',flat=True).distinct()))
+            queryset = dataset.other_reagents.all()
+            # create a combination dict of canonical and batch
+            def make_other_reagent(batch):
+                d = model_to_dict(batch)
+                d.update(model_to_dict(batch.reagent.otherreagent))
+                d['facility_batch'] = batch.facility_batch
+                return d
+            queryset = [make_other_reagent(batch) for batch in queryset]
+            col_key_name_map = get_col_key_mapping(
+                queryset[0].keys(),
+                fieldinformation_tables=['otherreagent','otherreagentbatch',''],
+                extra_columns=[],
+                sequence_override=['facility_batch'])
             return send_to_file(
                 outputType, 'other_reagents_for_'+ str(facility_id), 
-                OtherReagentTable(queryset), 
-                queryset, ['otherreagent',''] )
+                queryset, col_key_name_map )
         except DataSet.DoesNotExist:
             raise Http404
     try:
@@ -1151,22 +1222,39 @@ def datasetDetailSmallMolecules(request, facility_id):
             dataset = DataSet.objects.get(facility_id=facility_id)
             if(dataset.is_restricted and not request.user.is_authenticated()):
                 raise Http401
-            queryset = SmallMolecule.objects.filter(id__in=(
-                dataset.small_molecules.all()
-                    .values_list('reagent_id',flat=True).distinct()))
-            queryset = queryset.extra(
-                select={'lincs_id_null':'lincs_id is null',
-                    'pubchem_cid_null':'pubchem_cid is null' })
+            queryset = dataset.small_molecules.all().order_by('reagent__facility_id','batch_id')
             if outputType == '.zip':
                 filename = 'sm_images_for_dataset_' + str(dataset.facility_id)
+                queryset = SmallMolecule.objects.filter(id__in=(
+                    dataset.small_molecules.all()
+                        .values_list('reagent_id',flat=True).distinct()))
                 return export_sm_images(queryset, 
                                         request.user.is_authenticated(),
                                         output_filename=filename)
             else:
+                # create a combination dict of canonical and batch
+                def make_sm(batch):
+                    d = model_to_dict(batch)
+                    d.update(model_to_dict(
+                        SmallMolecule.objects.get(pk=batch.reagent.id)))
+                    d['facility_salt_batch'] = batch.facility_salt_batch
+                    d['facility_salt'] = batch.reagent.facility_id
+                    for key,val in d.items():
+                        if key[0]=='_' and d['is_restricted'] is True:
+                            if request.user.is_authenticated() is not True:
+                                d[key] = 'restricted'
+                    return d
+                queryset = [make_sm(batch) for batch in queryset]
+                col_key_name_map = get_col_key_mapping(
+                    queryset[0].keys(),
+                    fieldinformation_tables=[
+                        'smallmolecule','smallmoleculebatch',''],
+                    extra_columns=['facility_id',],
+                    sequence_override=['facility_salt_batch','facility_salt'])
                 return send_to_file(
                     outputType, 'small_molecules_for_'+ str(facility_id), 
-                    SmallMoleculeTable(queryset), 
-                    queryset,['smallmolecule',''] )
+                    queryset, col_key_name_map )
+
         except DataSet.DoesNotExist:
             raise Http404
     try:
@@ -1186,10 +1274,11 @@ def datasetDetailDataColumns(request, facility_id):
                 raise Http401
             queryset = DataColumn.objects.all().filter(
                 dataset_id=dataset.id).order_by('display_order')
-            
+            col_key_name_map = get_table_col_key_name_map(
+                DataColumnTable(queryset),fieldinformation_tables=['datacolumn',''])
             return send_to_file(
                 outputType, 'datacolumns_for_'+ str(facility_id),
-                DataColumnTable(queryset), queryset, ['datacolumn',''] )
+                queryset, col_key_name_map)
         except DataSet.DoesNotExist:
             raise Http404
     try:
@@ -1633,6 +1722,37 @@ class BatchInfoLinkColumn(tables.LinkColumn):
         
         return super(BatchInfoLinkColumn,self).render_link(uri + "#batchinfo",text,attrs)    
     
+class BatchOrCanonicalLinkColumn(django_tables2.columns.linkcolumn.BaseLinkColumn):
+    
+    def __init__(self, viewname, *args, **kwargs):
+        self.viewname = viewname
+        super(BatchOrCanonicalLinkColumn, self).__init__(*args, **kwargs)
+    
+    def render(self, value, record, bound_column):
+        '''
+        Manually construct the facility[[-salt]-batch_id] link
+        - only show the batch_id for non-canonical records (batch_id not '0')
+        - only show the salt_id for the link and not the link text
+        '''
+        
+        text_values = [record.reagent.facility_id]
+        ids = [record.reagent.facility_id]
+        
+        if isinstance(record, SmallMoleculeBatch):
+            ids.append(record.reagent.salt_id)
+
+        if record.batch_id == '0':
+            id = '-'.join(ids)
+            uri = reverse(self.viewname, args=(id,))
+        else:
+            text_values.append(record.batch_id)
+            ids.append(record.batch_id)
+            id = '-'.join(ids)
+            uri = reverse(self.viewname, args=(id,)) + '#batchinfo'
+
+        text = '-'.join(text_values)
+        return self.render_link(uri, text=text)
+            
 class SmallMoleculeBatchTable(PagedTable):
     
     facility_salt_batch = BatchInfoLinkColumn("sm_detail", args=[A('facility_salt_batch')])
@@ -1826,6 +1946,132 @@ class SmallMoleculeForm(ModelForm):
         order = ('facility_id', '...')
         exclude = ('id', 'molfile') 
 
+class CellBatchDatasetTable(PagedTable):
+    facility_batch = BatchOrCanonicalLinkColumn("cell_detail")
+    name = tables.Column(accessor=A('reagent.name'))
+    lincs_id = tables.Column(accessor=A('reagent.lincs_id'))
+    alternative_id = DivWrappedColumn(
+        accessor=A('reagent.alternative_id'),
+        classname='constrained_width_column')
+
+    class Meta:
+        model = CellBatch
+        orderable = True
+        attrs = {'class': 'paleblue'}
+        exclude = ('provider_name','provider_catalog_id','provider_batch_id')
+        
+    def __init__(self, table, *args, **kwargs):
+        super(CellBatchDatasetTable, self).__init__(table, *args, **kwargs)
+        sequence_override = ['facility_batch']
+        set_table_column_info(
+            self, ['cell','cellbatch',''],sequence_override,
+            visible_field_overrides=['name'])  
+
+class PrimaryCellBatchDatasetTable(PagedTable):
+    facility_batch = BatchOrCanonicalLinkColumn("primary_cell_detail")
+    name = tables.Column(accessor=A('reagent.name'))
+    lincs_id = tables.Column(accessor=A('reagent.lincs_id'))
+    alternative_id = DivWrappedColumn(
+        accessor=A('reagent.alternative_id'),
+        classname='constrained_width_column')
+
+    class Meta:
+        model = PrimaryCellBatch
+        orderable = True
+        attrs = {'class': 'paleblue'}
+        exclude = ('provider_name','provider_catalog_id','provider_batch_id')
+        
+    def __init__(self, table, *args, **kwargs):
+        super(PrimaryCellBatchDatasetTable, self).__init__(table, *args, **kwargs)
+        sequence_override = ['facility_batch']
+        set_table_column_info(
+            self, ['primarycell','primarycellbatch',''],sequence_override,
+            visible_field_overrides=['name'])  
+
+class AntibodyBatchDatasetTable(PagedTable):
+    facility_batch = BatchOrCanonicalLinkColumn("antibody_detail")
+    name = DivWrappedColumn(
+        accessor=A('reagent.name'),
+        classname='constrained_width_column')
+    alternative_names = DivWrappedColumn(
+        accessor=A('reagent.alternative_names'),
+        classname='constrained_width_column')
+    clone_name = tables.Column(accessor=A('reagent.antibody.clone_name'))
+    lincs_id = tables.Column(accessor=A('reagent.lincs_id'))
+    alternative_id = DivWrappedColumn(
+        accessor=A('reagent.alternative_id'),
+        classname='constrained_width_column')
+    target_protein_center_ids_ui = TargetProteinLinkColumn(
+        accessor=A('reagent.antibody.target_protein_center_ids_ui'))
+    rrid_link_template = 'http://antibodyregistry.org/search.php?q={value}'
+    rrid = LinkTemplateColumn(
+        accessor=A('reagent.antibody.rrid'),
+        link_template=rrid_link_template)
+
+    class Meta:
+        model = AntibodyBatch
+        orderable = True
+        attrs = {'class': 'paleblue'}
+        exclude = ('provider_name','provider_catalog_id','provider_batch_id')
+        
+    def __init__(self, table, *args, **kwargs):
+        super(AntibodyBatchDatasetTable, self).__init__(table, *args, **kwargs)
+        sequence_override = ['facility_batch','name','alternative_names',
+            'clone_name','lincs_id','rrid','target_protein_center_ids_ui']
+        set_table_column_info(
+            self, ['antibody','antibodybatch',''],sequence_override,
+            visible_field_overrides=[])  
+
+class OtherReagentBatchDatasetTable(PagedTable):
+    facility_batch = BatchOrCanonicalLinkColumn("otherreagent_detail")
+    name = tables.Column(accessor=A('reagent.name'))
+    lincs_id = tables.Column(accessor=A('reagent.lincs_id'))
+    alternative_id = DivWrappedColumn(
+        accessor=A('reagent.alternative_id'),
+        classname='constrained_width_column')
+    alternative_names = DivWrappedColumn(
+        accessor=A('reagent.alternative_names'),
+        classname='constrained_width_column')
+
+    class Meta:
+        model = OtherReagentBatch
+        orderable = True
+        attrs = {'class': 'paleblue'}
+        exclude = ('provider_name','provider_catalog_id','provider_batch_id')
+        
+    def __init__(self, table, *args, **kwargs):
+        super(OtherReagentBatchDatasetTable, self).__init__(table, *args, **kwargs)
+        sequence_override = ['facility_batch']
+        set_table_column_info(
+            self, ['otherreagent','otherreagentbatch',''],sequence_override,
+            visible_field_overrides=['name'])  
+
+class SmallMoleculeBatchDatasetTable(PagedTable):
+    facility_salt = BatchOrCanonicalLinkColumn(
+        "sm_detail", accessor=A('reagent.facility_salt')) 
+    name = tables.Column(accessor=A('reagent.name'))
+    lincs_id = tables.Column(accessor=A('reagent.lincs_id'))
+    alternative_names = DivWrappedColumn(
+        accessor=A('reagent.alternative_names'),
+        classname='constrained_width_column')
+    image = ImageColumn(
+        verbose_name='image', accessor=A('reagent.unrestricted_facility_salt'), 
+        image_class='compound_image_thumbnail', loc=COMPOUND_IMAGE_LOCATION)
+    pubchem_cid = tables.Column(accessor=A('reagent.smallmolecule.pubchem_cid'))
+    
+    class Meta:
+        model = SmallMoleculeBatch
+        orderable = True
+        attrs = {'class': 'paleblue'}
+        exclude = ('provider_name','provider_catalog_id','provider_batch_id')
+        
+    def __init__(self, table, *args, **kwargs):
+        super(SmallMoleculeBatchDatasetTable, self).__init__(table, *args, **kwargs)
+        sequence_override = ['facility_salt']
+        set_table_column_info(
+            self, ['smallmolecule','smallmoleculebatch',''],sequence_override,
+            visible_field_overrides=['name'])  
+    
 class CellTable(PagedTable):
     facility_id = tables.LinkColumn("cell_detail", args=[A('facility_id')])
     rank = tables.Column()
@@ -2581,7 +2827,7 @@ def send_to_file1(outputType, name, table_name, ordered_datacolumns, cursor,
     @param name the filename to use, consisting of only word characters
     """
     logger.info(str(('send_to_file1', outputType, name, ordered_datacolumns)))
-    col_key_name_map = get_cols_to_write(
+    col_key_name_map = get_cursor_col_key_name_map(
         cursor, [table_name, ''],
         ordered_datacolumns)   
     
@@ -2597,10 +2843,11 @@ def send_to_file1(outputType, name, table_name, ordered_datacolumns, cursor,
         raise Http404('Unknown output type: "%s", must be one of [".xlsx",".csv"]' % outputType )
 
 
-def get_cols_to_write(cursor, fieldinformation_tables=None, 
-                      ordered_datacolumns=None):
+def get_cursor_col_key_name_map(cursor, fieldinformation_tables=None, 
+                                ordered_datacolumns=None):
     """
-    returns a dict of #column_number:verbose_name
+    returns an OrderedDict of column_number:verbose_name
+    @param ordered_datacolumns for use in ordering
     """
     if not fieldinformation_tables: 
         fieldinformation_tables=['']
@@ -2608,8 +2855,9 @@ def get_cols_to_write(cursor, fieldinformation_tables=None,
     for i,col in enumerate(cursor.description):
         found = False
         if ordered_datacolumns:
-            logger.info('find cursor col %r in ordered_datacolumns %s' 
-                % (col.name, [x.name for x in ordered_datacolumns]))
+            logger.debug(
+                'find cursor col %r in ordered_datacolumns %s' 
+                    % (col.name, [x.name for x in ordered_datacolumns]))
             for dc in ordered_datacolumns:
                 if ( dc.data_type in 
                     ['small_molecule', 'cell','primary_cell','protein',
@@ -2624,7 +2872,9 @@ def get_cols_to_write(cursor, fieldinformation_tables=None,
                     found = True
                     header_row[i] = dc.display_name
         if not found:
-            logger.info('col: %r, not found in datacolumns, find in fieldinformation' % col.name)
+            logger.info(
+                'col: %r, not found in datacolumns, find in fieldinformation' 
+                    % col.name)
             try:
                 fi = FieldInformation.manager.\
                     get_column_fieldinformation_by_priority(
@@ -2632,9 +2882,88 @@ def get_cols_to_write(cursor, fieldinformation_tables=None,
                 header_row[i] = fi.get_verbose_name()
             except (Exception) as e:
                 logger.warn(
-                    str(('no fieldinformation found for field:', col.name)))
+                    'no fieldinformation found for field: %r', col.name)
          
     return OrderedDict(sorted(header_row.items(),key=lambda x: x[0]))
+
+def get_table_col_key_name_map(table, fieldinformation_tables=None,
+                               extra_columns=None):
+    if fieldinformation_tables is None: 
+        fieldinformation_tables=['']
+    if extra_columns is None:
+        extra_columns=[]
+    # ordered list (field,verbose_name)
+    columns = map(
+        lambda (x,y): (x, y.verbose_name), 
+            filter(lambda (x,y): 
+                (x!='rank' and x!='snippet' and (y.visible or x in extra_columns)), 
+                    table.base_columns.items()))
+    col_fi_map = {}
+    for field,verbose_name in columns:
+        try:
+            # _ is the marker for private fields - only accessible through logic
+            # defined on the ORM object
+            # i.e. if authorized
+            if(field[0] == '_'):
+                temp = field[1:]
+                field = 'get_' + temp
+                fi = FieldInformation.manager.\
+                    get_column_fieldinformation_by_priority(
+                        field,fieldinformation_tables)
+            else:
+                fi = FieldInformation.manager.\
+                    get_column_fieldinformation_by_priority(
+                        field,fieldinformation_tables)
+            if(fi.show_in_detail or field in extra_columns):
+                col_fi_map[field]=fi
+        except (Exception) as e:
+            logger.warn('no fieldinformation found for field: %r', field)        
+    return OrderedDict(
+        [(x[0],x[1].get_verbose_name()) 
+            for x in sorted(
+                col_fi_map.items(), key=lambda item:item[1].detail_order)])    
+
+def get_col_key_mapping(cols, fieldinformation_tables=None, 
+                        extra_columns=None, sequence_override=None):
+    """
+    returns an OrderedDict of key:verbose_name
+    """
+    if fieldinformation_tables is None: 
+        fieldinformation_tables=['']
+    if extra_columns is None:
+        extra_columns=[]
+    if sequence_override is None:
+        sequence_override = []
+    header_row = {}
+    fi_map = {}
+    for col_name in cols:
+        try:
+            fi = FieldInformation.manager.\
+                get_column_fieldinformation_by_priority(
+                    col_name,fieldinformation_tables)
+            if fi.show_in_list or fi.show_in_detail or col_name in extra_columns:
+                header_row[col_name] = fi.get_verbose_name()
+                fi_map[col_name] = fi
+        except (Exception) as e:
+            logger.exception(
+                'no fieldinformation found for field:  %r, tables: %r', 
+                    col_name, fieldinformation_tables)
+    logger.info('sequence_override: %r', sequence_override)
+    def sort_key(item):
+        key = item[0]
+        if key in sequence_override:
+            val = sequence_override.index(key)
+        else:
+            fi = fi_map[key]
+            tablename = fi.table or fi.queryset
+            order = 1000
+            if tablename in fieldinformation_tables:
+                index = fieldinformation_tables.index(tablename)
+                order = index *100
+            val = order + fi_map[key].detail_order
+        return val
+        
+    return OrderedDict(sorted(header_row.items(),key=sort_key))
 
 
 def _write_val_safe(val, is_authenticated=False):
@@ -2832,46 +3161,9 @@ def export_as_xlsx(name,col_key_name_map, cursor=None, queryset=None,
             content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
         response['Content-Disposition'] = 'attachment; filename=%s.xlsx' % name
         return response
-    
-def send_to_file(outputType, name, table, queryset, lookup_tables, 
-                 extra_columns = None, is_authenticated=False): 
-    """
-    Export the queryset to the file type pointed to by outputType.  
-    Get the column header information from the django-tables2 table
-    @param outputType '.csv','.xls'
-    @param table a django-tables2 table
-    @param name the filename to use, consisting of only word characters
-    """
-    extra_columns = extra_columns or []
-    # ordered list (field,verbose_name)
-    columns = map(lambda (x,y): (x, y.verbose_name), 
-                  filter(lambda (x,y): ( 
-                      x!='rank' and x!='snippet' and (y.visible or x in extra_columns)), 
-                         table.base_columns.items()))
-    col_fi_map = {}
-    for field,verbose_name in columns:
-        try:
-            # _ is the marker for private fields - only accessible through logic
-            # defined on the ORM object
-            # i.e. if authorized
-            if(field[0] == '_'):
-                temp = field[1:]
-                field = 'get_' + temp
-                fi = FieldInformation.manager.\
-                    get_column_fieldinformation_by_priority(
-                        field,lookup_tables)
-                logger.info(str(('found', field, fi)))
-            else:
-                fi = FieldInformation.manager.\
-                    get_column_fieldinformation_by_priority(
-                        field,lookup_tables)
-            if(fi.show_in_detail or field in extra_columns):
-                col_fi_map[field]=fi
-        except (Exception) as e:
-            logger.warn(str(('no fieldinformation found for field:', field, e)))        
-    col_key_name_map = OrderedDict([(x[0],x[1].get_verbose_name()) 
-        for x in sorted(col_fi_map.items(), key=lambda item:item[1].detail_order)])    
 
+def send_to_file(outputType, name, queryset, col_key_name_map,
+                 is_authenticated=False): 
     name = name + '_' + _get_raw_time_string()
     
     # The type strings deliberately include a leading "." to make the URLs
@@ -2885,8 +3177,10 @@ def send_to_file(outputType, name, table, queryset, lookup_tables,
             name, col_key_name_map, queryset=queryset, 
             is_authenticated=is_authenticated)
     else:
-        raise Http404('Unknown output type: "%s", must be one of [".xlsx",".csv"]' % outputType )
-
+        raise Http404(
+            'Unknown output type: "%s", must be one of [".xlsx",".csv"]' 
+                % outputType )
+    
 def datasetDetail2(request, facility_id, sub_page):
     try:
         dataset = DataSet.objects.get(facility_id=facility_id)
@@ -2929,10 +3223,9 @@ def datasetDetail2(request, facility_id, sub_page):
 
     elif (sub_page == 'cells'):
         if dataset.cells.exists():
-            queryset = Cell.objects.filter(id__in=(
-                dataset.cells.all().values_list('reagent_id',flat=True).distinct()))
-            queryset = queryset.order_by('facility_id')
-            table = CellTable(queryset)
+            queryset = dataset.cells.all()
+            queryset = queryset.order_by('reagent__facility_id','batch_id')
+            table = CellBatchDatasetTable(queryset)
             setattr(table.data,'verbose_name_plural','Cells')
             setattr(table.data,'verbose_name','Cells')
             details['table'] = table
@@ -2940,10 +3233,9 @@ def datasetDetail2(request, facility_id, sub_page):
                 request, paginate={"per_page": items_per_page}).configure(table)
     elif (sub_page == 'primary_cells'):
         if dataset.primary_cells.exists():
-            queryset = PrimaryCell.objects.filter(id__in=(
-                dataset.primary_cells.all().values_list('reagent_id',flat=True).distinct()))
-            queryset = queryset.order_by('facility_id')
-            table = PrimaryCellTable(queryset)
+            queryset = dataset.primary_cells.all()
+            queryset = queryset.order_by('reagent__facility_id','batch_id')
+            table = PrimaryCellBatchDatasetTable(queryset)
             setattr(table.data,'verbose_name_plural','Primary Cells')
             setattr(table.data,'verbose_name','Primary Cells')
             details['table'] = table
@@ -2962,10 +3254,9 @@ def datasetDetail2(request, facility_id, sub_page):
                 request, paginate={"per_page": items_per_page}).configure(table)
     elif (sub_page == 'antibodies'):
         if dataset.antibodies.exists():
-            queryset = Antibody.objects.filter(id__in=(
-                dataset.antibodies.all().values_list('reagent_id',flat=True).distinct()))
-            queryset = queryset.order_by('facility_id')
-            table = AntibodyTable(queryset)
+            queryset = dataset.antibodies.all()
+            queryset = queryset.order_by('reagent__facility_id','batch_id')
+            table = AntibodyBatchDatasetTable(queryset)
             setattr(table.data,'verbose_name_plural','Antibodies')
             setattr(table.data,'verbose_name','Antibody')
             details['table'] = table
@@ -2973,10 +3264,9 @@ def datasetDetail2(request, facility_id, sub_page):
                 request, paginate={"per_page": items_per_page}).configure(table)
     elif (sub_page == 'otherreagents'):
         if dataset.other_reagents.exists():
-            queryset = OtherReagent.objects.filter(id__in=(
-                dataset.other_reagents.all().values_list('reagent_id',flat=True).distinct()))
-            queryset = queryset.order_by('facility_id')
-            table = OtherReagentTable(queryset)
+            queryset = dataset.other_reagents.all()
+            queryset = queryset.order_by('reagent__facility_id','batch_id')
+            table = OtherReagentBatchDatasetTable(queryset)
             setattr(table.data,'verbose_name_plural','Other Reagents')
             setattr(table.data,'verbose_name','Other Reagent')
             details['table'] = table
@@ -2984,13 +3274,9 @@ def datasetDetail2(request, facility_id, sub_page):
                 request, paginate={"per_page": items_per_page}).configure(table)
     elif (sub_page == 'small_molecules'):
         if dataset.small_molecules.exists():
-            queryset = SmallMolecule.objects.filter(id__in=(
-                dataset.small_molecules.all().values_list('reagent_id',flat=True).distinct()))
-            queryset = queryset.extra(
-                select={'lincs_id_null':'lincs_id is null',
-                    'pubchem_cid_null':'pubchem_cid is null' })
-            queryset = queryset.order_by('facility_id')
-            table = SmallMoleculeTable(queryset)
+            queryset = dataset.small_molecules.all()
+            queryset = queryset.order_by('reagent__facility_id')
+            table = SmallMoleculeBatchDatasetTable(queryset)
             setattr(table.data,'verbose_name_plural','Small Molecules')
             setattr(table.data,'verbose_name','Small Molecule')
             details['table'] = table
