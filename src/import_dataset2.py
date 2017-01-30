@@ -627,8 +627,8 @@ def _read_protein(dataset, datapoint):
         datapoint.reagent_batch = reagentbatch
         reagents_read_hash[text_value] = reagentbatch
     except Exception, e:
-        logger.exception("Invalid Protein identifier: %r:%r, raw val: %r",
-            facility_id,batch_id,text_value)
+        logger.exception("Invalid Protein identifier: raw val: %r",
+            datapoint.text_value)
         raise    
 
 def _read_other_reagent(dataset, datapoint):
