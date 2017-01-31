@@ -58,6 +58,7 @@ APPNAME = 'db',
 COMPOUND_IMAGE_LOCATION = "compound-images-by-facility-salt-id"  
 AMBIT_COMPOUND_IMAGE_LOCATION = "ambit-study-compound-images-by-facility-salt-id"  
 DATASET_IMAGE_LOCATION = "dataset-images-by-facility-id" 
+RRID_LINK_TEMPLATE = 'http://antibodyregistry.org/search.php?q={value}'
 
 OMERO_IMAGE_COLUMN_TYPE = 'omero_image'
 DAYS_TO_CACHE = 1
@@ -525,7 +526,7 @@ def antibodyDetail(request, facility_batch, batch_id=None):
 
         if antibody.rrid is not None:
             details['object']['rrid']['link'] = \
-                AntibodyTable.rrid_link_template.format(value=antibody.rrid) 
+                RRID_LINK_TEMPLATE.format(value=antibody.rrid) 
 
         details['facility_id'] = antibody.facility_id
         antibody_batch = None
@@ -1947,7 +1948,8 @@ class SmallMoleculeForm(ModelForm):
         exclude = ('id', 'molfile') 
 
 class CellBatchDatasetTable(PagedTable):
-    facility_batch = BatchOrCanonicalLinkColumn("cell_detail")
+    facility_id = BatchOrCanonicalLinkColumn(
+        "cell_detail", accessor=A('reagent.facility_id'))
     name = tables.Column(accessor=A('reagent.name'))
     lincs_id = tables.Column(accessor=A('reagent.lincs_id'))
     alternative_id = DivWrappedColumn(
@@ -1962,13 +1964,14 @@ class CellBatchDatasetTable(PagedTable):
         
     def __init__(self, table, *args, **kwargs):
         super(CellBatchDatasetTable, self).__init__(table, *args, **kwargs)
-        sequence_override = ['facility_batch']
         set_table_column_info(
-            self, ['cell','cellbatch',''],sequence_override,
+            self, ['cell','cellbatch',''],
+            sequence_override=['facility_id'],
             visible_field_overrides=['name'])  
 
 class PrimaryCellBatchDatasetTable(PagedTable):
-    facility_batch = BatchOrCanonicalLinkColumn("primary_cell_detail")
+    facility_id = BatchOrCanonicalLinkColumn(
+        "primary_cell_detail", accessor=A('reagent.facility_id'))
     name = tables.Column(accessor=A('reagent.name'))
     lincs_id = tables.Column(accessor=A('reagent.lincs_id'))
     alternative_id = DivWrappedColumn(
@@ -1983,13 +1986,14 @@ class PrimaryCellBatchDatasetTable(PagedTable):
         
     def __init__(self, table, *args, **kwargs):
         super(PrimaryCellBatchDatasetTable, self).__init__(table, *args, **kwargs)
-        sequence_override = ['facility_batch']
         set_table_column_info(
-            self, ['primarycell','primarycellbatch',''],sequence_override,
+            self, ['primarycell','primarycellbatch',''],
+            sequence_override=['facility_id'],
             visible_field_overrides=['name'])  
 
 class AntibodyBatchDatasetTable(PagedTable):
-    facility_batch = BatchOrCanonicalLinkColumn("antibody_detail")
+    facility_id = BatchOrCanonicalLinkColumn(
+        "antibody_detail", accessor=A('reagent.facility_id'))
     name = DivWrappedColumn(
         accessor=A('reagent.name'),
         classname='constrained_width_column')
@@ -2003,10 +2007,9 @@ class AntibodyBatchDatasetTable(PagedTable):
         classname='constrained_width_column')
     target_protein_center_ids_ui = TargetProteinLinkColumn(
         accessor=A('reagent.antibody.target_protein_center_ids_ui'))
-    rrid_link_template = 'http://antibodyregistry.org/search.php?q={value}'
     rrid = LinkTemplateColumn(
         accessor=A('reagent.antibody.rrid'),
-        link_template=rrid_link_template)
+        link_template=RRID_LINK_TEMPLATE)
 
     class Meta:
         model = AntibodyBatch
@@ -2016,14 +2019,15 @@ class AntibodyBatchDatasetTable(PagedTable):
         
     def __init__(self, table, *args, **kwargs):
         super(AntibodyBatchDatasetTable, self).__init__(table, *args, **kwargs)
-        sequence_override = ['facility_batch','name','alternative_names',
-            'clone_name','lincs_id','rrid','target_protein_center_ids_ui']
         set_table_column_info(
-            self, ['antibody','antibodybatch',''],sequence_override,
-            visible_field_overrides=[])  
+            self, ['antibody','antibodybatch',''],
+            sequence_override=[
+                'facility_id','name','alternative_names','clone_name',
+                'lincs_id','rrid','target_protein_center_ids_ui'])  
 
 class OtherReagentBatchDatasetTable(PagedTable):
-    facility_batch = BatchOrCanonicalLinkColumn("otherreagent_detail")
+    facility_id = BatchOrCanonicalLinkColumn(
+        "otherreagent_detail", accessor=A('reagent.facility_id'))
     name = tables.Column(accessor=A('reagent.name'))
     lincs_id = tables.Column(accessor=A('reagent.lincs_id'))
     alternative_id = DivWrappedColumn(
@@ -2041,14 +2045,14 @@ class OtherReagentBatchDatasetTable(PagedTable):
         
     def __init__(self, table, *args, **kwargs):
         super(OtherReagentBatchDatasetTable, self).__init__(table, *args, **kwargs)
-        sequence_override = ['facility_batch']
         set_table_column_info(
-            self, ['otherreagent','otherreagentbatch',''],sequence_override,
+            self, ['otherreagent','otherreagentbatch',''],
+            sequence_override=['facility_id'],
             visible_field_overrides=['name'])  
 
 class SmallMoleculeBatchDatasetTable(PagedTable):
-    facility_salt = BatchOrCanonicalLinkColumn(
-        "sm_detail", accessor=A('reagent.facility_salt')) 
+    facility_id = BatchOrCanonicalLinkColumn(
+        "sm_detail", accessor=A('reagent.facility_id')) 
     name = tables.Column(accessor=A('reagent.name'))
     lincs_id = tables.Column(accessor=A('reagent.lincs_id'))
     alternative_names = DivWrappedColumn(
@@ -2067,9 +2071,9 @@ class SmallMoleculeBatchDatasetTable(PagedTable):
         
     def __init__(self, table, *args, **kwargs):
         super(SmallMoleculeBatchDatasetTable, self).__init__(table, *args, **kwargs)
-        sequence_override = ['facility_salt']
         set_table_column_info(
-            self, ['smallmolecule','smallmoleculebatch',''],sequence_override,
+            self, ['smallmolecule','smallmoleculebatch',''],
+            sequence_override=['facility_id'],
             visible_field_overrides=['name'])  
     
 class CellTable(PagedTable):
@@ -2148,8 +2152,6 @@ class ProteinTable(PagedTable):
 
 class AntibodyTable(PagedTable):
     
-    rrid_link_template = 'http://antibodyregistry.org/search.php?q={value}'
-    
     facility_id = tables.LinkColumn("antibody_detail", args=[A('facility_id')])
     rank = tables.Column()
     snippet = DivWrappedColumn(verbose_name='matched text', classname='snippet')
@@ -2158,7 +2160,7 @@ class AntibodyTable(PagedTable):
     name = DivWrappedColumn(classname='constrained_width_column')
     alternative_names = DivWrappedColumn(classname='constrained_width_column')
     alternative_id = DivWrappedColumn(classname='constrained_width_column')
-    rrid = LinkTemplateColumn(link_template=rrid_link_template)
+    rrid = LinkTemplateColumn(link_template=RRID_LINK_TEMPLATE)
     
     class Meta:
         model = Antibody
@@ -2695,7 +2697,7 @@ class FieldsMetaForm(forms.Form):
         
       
 def set_table_column_info(table,table_names, sequence_override=None,
-                          visible_field_overrides=[]):
+                          visible_field_overrides=None):
     """
     Field information section
     @param table: a django-tables2 table
@@ -2703,10 +2705,12 @@ def set_table_column_info(table,table_names, sequence_override=None,
     @param table_names: a list of table names, by order of priority, 
             include '' empty string for a general search.
     """ 
-    # TODO: set_table_column info could pick the columns to include from the 
-    # fieldinformation as well
-    if not sequence_override: 
+    if sequence_override is None: 
         sequence_override = []
+    if visible_field_overrides is None:
+        visible_field_overrides = []
+    visible_field_overrides = set(visible_field_overrides) | set(sequence_override)
+    
     fields = OrderedDict()
     exclude_list = [x for x in table.exclude]
     for fieldname,column in table.base_columns.iteritems():
@@ -2729,10 +2733,11 @@ def set_table_column_info(table,table_names, sequence_override=None,
     sequence = filter(
         lambda x: x not in sequence_override and x not in visible_field_overrides, 
         [x for x in fields.keys()])
-    sequence_override.extend(visible_field_overrides)
+    sequence_override.extend(
+        [x for x in visible_field_overrides if x not in sequence_override])
     sequence_override.extend(sequence)
-    table.exclude = tuple(exclude_list)
     table.sequence = sequence_override
+    table.exclude = tuple(exclude_list)
     
         
 def dictfetchall(cursor): 
