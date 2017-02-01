@@ -1202,7 +1202,6 @@ def datasetDetailOtherReagents(request, facility_id):
             col_key_name_map = get_col_key_mapping(
                 queryset[0].keys(),
                 fieldinformation_tables=['otherreagent','otherreagentbatch',''],
-                extra_columns=[],
                 sequence_override=['facility_batch'])
             return send_to_file(
                 outputType, 'other_reagents_for_'+ str(facility_id), 
@@ -1239,7 +1238,7 @@ def datasetDetailSmallMolecules(request, facility_id):
                     d.update(model_to_dict(
                         SmallMolecule.objects.get(pk=batch.reagent.id)))
                     d['facility_salt_batch'] = batch.facility_salt_batch
-                    d['facility_salt'] = batch.reagent.facility_id
+                    d['facility_id'] = batch.reagent.facility_id
                     for key,val in d.items():
                         if key[0]=='_' and d['is_restricted'] is True:
                             if request.user.is_authenticated() is not True:
@@ -1250,8 +1249,7 @@ def datasetDetailSmallMolecules(request, facility_id):
                     queryset[0].keys(),
                     fieldinformation_tables=[
                         'smallmolecule','smallmoleculebatch',''],
-                    extra_columns=['facility_id',],
-                    sequence_override=['facility_salt_batch','facility_salt'])
+                    sequence_override=['facility_salt_batch','facility_id'])
                 return send_to_file(
                     outputType, 'small_molecules_for_'+ str(facility_id), 
                     queryset, col_key_name_map )
@@ -1641,9 +1639,7 @@ class DataSetTable(PagedTable):
 
     def __init__(self, table):
         super(DataSetTable, self).__init__(table)
-        
         set_table_column_info(self, ['dataset',''])  
-
     
 OMERO_IMAGE_TEMPLATE = '''
    <a href="#" onclick='window.open("https://lincs-omero.hms.harvard.edu/webclient/img_detail/{{ record.%s }}", "_blank","height=700,width=800" )' ><img src='https://lincs-omero.hms.harvard.edu/webgateway/render_thumbnail/{{ record.%s }}/32/' alt='image if available' ></a>
@@ -1663,13 +1659,11 @@ class LibraryMappingTable(PagedTable):
         orderable = True
         attrs = {'class': 'paleblue'}
         
-    def __init__(self, table, show_plate_well=False,*args, **kwargs):
+    def __init__(self, table, *args, **kwargs):
         super(LibraryMappingTable, self).__init__(table)
-        sequence_override = ['facility_salt_batch']
-        
         set_table_column_info(
             self, ['smallmolecule','smallmoleculebatch','librarymapping',''],
-            sequence_override)  
+            sequence_override=['facility_salt_batch'])  
                 
 class LibraryMappingSearchManager(models.Model):
     """
@@ -1765,12 +1759,11 @@ class SmallMoleculeBatchTable(PagedTable):
         orderable = True
         attrs = {'class': 'paleblue'}
 
-    def __init__(self, table, show_plate_well=False,*args, **kwargs):
+    def __init__(self, table, *args, **kwargs):
         super(SmallMoleculeBatchTable, self).__init__(table)
-        sequence_override = ['facility_salt_batch']
         set_table_column_info(
-            self, ['smallmolecule','smallmoleculebatch',''],sequence_override)  
-
+            self, ['smallmolecule','smallmoleculebatch',''],
+            sequence_override=['facility_salt_batch'])  
 
 class CellBatchTable(PagedTable):
     facility_batch = BatchInfoLinkColumn("cell_detail", args=[A('facility_batch')])
@@ -1782,10 +1775,9 @@ class CellBatchTable(PagedTable):
 
     def __init__(self, table, *args, **kwargs):
         super(CellBatchTable, self).__init__(table, *args, **kwargs)
-        sequence_override = ['facility_batch']
         set_table_column_info(
-            self, ['cell','cellbatch',''],sequence_override)  
-
+            self, ['cell','cellbatch',''],
+            sequence_override=['facility_batch'])  
 
 class PrimaryCellBatchTable(PagedTable):
     facility_batch = BatchInfoLinkColumn("primary_cell_detail", args=[A('facility_batch')])
@@ -1797,10 +1789,9 @@ class PrimaryCellBatchTable(PagedTable):
 
     def __init__(self, table, *args, **kwargs):
         super(PrimaryCellBatchTable, self).__init__(table, *args, **kwargs)
-        sequence_override = ['facility_batch']
         set_table_column_info(
-            self, ['primarycell','primarycellbatch',''],sequence_override)  
-
+            self, ['primarycell','primarycellbatch',''],
+            sequence_override=['facility_batch'])  
 
 class AntibodyBatchTable(PagedTable):
     facility_batch = BatchInfoLinkColumn("antibody_detail", args=[A('facility_batch')])
@@ -1812,10 +1803,9 @@ class AntibodyBatchTable(PagedTable):
 
     def __init__(self, table, *args, **kwargs):
         super(AntibodyBatchTable, self).__init__(table, *args, **kwargs)
-        sequence_override = ['facility_batch']
         set_table_column_info(
-            self, ['antibody','antibodybatch',''],sequence_override)  
-
+            self, ['antibody','antibodybatch',''],
+            sequence_override=['facility_batch'])  
 
 class OtherReagentBatchTable(PagedTable):
     facility_batch = BatchInfoLinkColumn("otherreagent_detail", args=[A('facility_batch')])
@@ -1827,10 +1817,9 @@ class OtherReagentBatchTable(PagedTable):
 
     def __init__(self, table, *args, **kwargs):
         super(OtherReagentBatchTable, self).__init__(table, *args, **kwargs)
-        sequence_override = ['facility_batch']
         set_table_column_info(
-            self, ['otherreagent','otherreagentbatch',''],sequence_override)  
-
+            self, ['otherreagent','otherreagentbatch',''],
+            sequence_override=['facility_batch'])  
 
 class SaltTable(PagedTable):
     
@@ -1842,15 +1831,13 @@ class SaltTable(PagedTable):
         attrs = {'class': 'paleblue'}
         
     def __init__(
-            self, queryset, show_plate_well=False,visible_field_overrides=[], 
+            self, queryset, visible_field_overrides=None, 
             *args, **kwargs):
         super(SaltTable, self).__init__(queryset, *args, **kwargs)
-        
-        sequence_override = ['facility_id']
         set_table_column_info(
-            self, ['salt',''],sequence_override, 
+            self, ['salt',''],
+            sequence_override=['facility_id'], 
             visible_field_overrides=visible_field_overrides)  
-        logger.info('init done')
 
 class SmallMoleculeTable(PagedTable):
     facility_salt = tables.LinkColumn("sm_detail", args=[A('facility_salt')], 
@@ -1876,15 +1863,13 @@ class SmallMoleculeTable(PagedTable):
         orderable = True
         attrs = {'class': 'paleblue'}
         
-    def __init__(self, queryset, show_plate_well=False,
-        visible_field_overrides=[], *args, **kwargs):
+    def __init__(
+            self, queryset, visible_field_overrides=None, *args, **kwargs):
         super(SmallMoleculeTable, self).__init__(queryset, *args, **kwargs)
-        
-        sequence_override = ['facility_salt']
         set_table_column_info(
-            self, ['smallmolecule','smallmoleculebatch',''],sequence_override, 
+            self, ['smallmolecule','smallmoleculebatch',''],
+            sequence_override=['facility_salt'], 
             visible_field_overrides=visible_field_overrides)  
-        logger.info('init done')
 
 class DataColumnTable(PagedTable):
     description = DivWrappedColumn(classname='constrained_width_column', visible=True)
@@ -1896,8 +1881,7 @@ class DataColumnTable(PagedTable):
         
     def __init__(self, table,*args, **kwargs):
         super(DataColumnTable, self).__init__(table)
-        sequence_override = []
-        set_table_column_info(self, ['datacolumn',''],sequence_override)  
+        set_table_column_info(self, ['datacolumn',''])  
 
 class QCFileColumn(tables.Column):
     
@@ -1924,9 +1908,7 @@ class QCEventTable(PagedTable):
 
     def __init__(self, table,*args, **kwargs):
         super(QCEventTable, self).__init__(table)
-        sequence_override = []
-        set_table_column_info(self, ['qcevent',''],sequence_override)  
-
+        set_table_column_info(self, ['qcevent',''])  
 
 class AttachedFileTable(PagedTable):
     filename=tables.LinkColumn("download_attached_file", args=[A('id')])
@@ -1938,8 +1920,7 @@ class AttachedFileTable(PagedTable):
         
     def __init__(self, table,*args, **kwargs):
         super(AttachedFileTable, self).__init__(table)
-        sequence_override = []
-        set_table_column_info(self, ['attachedfile',''],sequence_override)  
+        set_table_column_info(self, ['attachedfile',''])  
             
 class SmallMoleculeForm(ModelForm):
     class Meta:
@@ -2099,11 +2080,10 @@ class CellTable(PagedTable):
         orderable = True
         attrs = {'class': 'paleblue'}
  
-    def __init__(self, table,visible_field_overrides=[], *args,**kwargs):
+    def __init__(self, table,visible_field_overrides=None, *args,**kwargs):
         super(CellTable, self).__init__(table,*args,**kwargs)
-        sequence_override = ['facility_id']    
         set_table_column_info(
-            self, ['cell',''], sequence_override, 
+            self, ['cell',''], sequence_override=['facility_id'], 
             visible_field_overrides=visible_field_overrides)  
                         
 class PrimaryCellTable(PagedTable):
@@ -2122,11 +2102,11 @@ class PrimaryCellTable(PagedTable):
         orderable = True
         attrs = {'class': 'paleblue'}
  
-    def __init__(self, table,visible_field_overrides=[], *args,**kwargs):
+    def __init__(self, table,visible_field_overrides=None, *args,**kwargs):
         super(PrimaryCellTable, self).__init__(table,*args,**kwargs)
-        sequence_override = ['facility_id']    
         set_table_column_info(
-            self, ['primarycell',''], sequence_override, 
+            self, ['primarycell',''], 
+            sequence_override=['facility_id'], 
             visible_field_overrides=visible_field_overrides)  
                         
 class ProteinTable(PagedTable):
@@ -2141,13 +2121,11 @@ class ProteinTable(PagedTable):
         model = Protein
         orderable = True
         attrs = {'class': 'paleblue'}
-        #sequence = ('lincs_id', '...')
-        #exclude = ('id')
     
-    def __init__(self, queryset, visible_field_overrides=[], *args, **kwargs):
+    def __init__(self, queryset, visible_field_overrides=None, *args, **kwargs):
         super(ProteinTable, self).__init__(queryset, *args, **kwargs)
-        sequence_override = ['lincs_id']    
-        set_table_column_info(self, ['protein',''],sequence_override, 
+        set_table_column_info(self, ['protein',''],
+            sequence_override=['lincs_id'], 
             visible_field_overrides=visible_field_overrides)  
 
 class AntibodyTable(PagedTable):
@@ -2169,8 +2147,8 @@ class AntibodyTable(PagedTable):
     
     def __init__(self, table):
         super(AntibodyTable, self).__init__(table)
-        sequence_override = ['facility_id']    
-        set_table_column_info(self, ['antibody',''],sequence_override)  
+        set_table_column_info(
+            self, ['antibody',''], sequence_override=['facility_id'])  
                 
 class OtherReagentTable(PagedTable):
     facility_id = tables.LinkColumn("otherreagent_detail", args=[A('facility_id')])
@@ -2186,8 +2164,8 @@ class OtherReagentTable(PagedTable):
     
     def __init__(self, table):
         super(OtherReagentTable, self).__init__(table)
-        sequence_override = ['facility_id']    
-        set_table_column_info(self, ['otherreagent',''],sequence_override)  
+        set_table_column_info(
+            self, ['otherreagent',''],sequence_override=['facility_id'])  
                 
 class LibrarySearchManager(models.Manager):
     
@@ -2243,7 +2221,7 @@ class LibraryTable(PagedTable):
         #exclude = {'rank','snippet','is_restricted'}
     def __init__(self, table):
         super(LibraryTable, self).__init__(table)
-        set_table_column_info(self, ['library',''],[])  
+        set_table_column_info(self, ['library',''])  
     
 class LibraryForm(ModelForm):
     class Meta:
@@ -2939,6 +2917,8 @@ def get_col_key_mapping(cols, fieldinformation_tables=None,
         extra_columns=[]
     if sequence_override is None:
         sequence_override = []
+        
+    extra_columns = set(extra_columns) | set(sequence_override)
     header_row = {}
     fi_map = {}
     for col_name in cols:
@@ -2950,10 +2930,9 @@ def get_col_key_mapping(cols, fieldinformation_tables=None,
                 header_row[col_name] = fi.get_verbose_name()
                 fi_map[col_name] = fi
         except (Exception) as e:
-            logger.exception(
+            logger.info(
                 'no fieldinformation found for field:  %r, tables: %r', 
                     col_name, fieldinformation_tables)
-    logger.info('sequence_override: %r', sequence_override)
     def sort_key(item):
         key = item[0]
         if key in sequence_override:
