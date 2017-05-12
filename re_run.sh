@@ -1432,6 +1432,90 @@ else
   python src/import_dataset2.py -f $DATADIR/Screen20302.xls
   check_errs $? "import dataset fails"
   
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20303_MCF10A_CycIF-1.xls
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20304_MCF10A_CycIF-2.xls
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20305_MCF10A_CycIF-3.xls
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20306_MCF10A_CycIF-4.xls
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20307_MCF10A_CycIF-5.xls
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20308_MCF10A_CycIF-6.xls
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20309_MCF10A-1.xlsx
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20310_MCF10A-2.xlsx
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20311_MCF10A-3.xlsx
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20312_MCF10A-4.xlsx
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20313_MCF10A-5.xlsx
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20314_MCF10A-6.xlsx
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20315_MCF10A-7.xlsx
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20316_MCF10A-8.xlsx
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20317_MCF10A-9.xlsx
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20318_MCF10A-10.xlsx
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20319_MCF10A-11.xlsx
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20320_MCF10A-12.xlsx
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20321_MCF10A-13.xlsx
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20322_MCF10A-14.xlsx
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20323_MCF10A-15.xlsx
+  check_errs $? "import dataset fails"
+  
   # 2015-04-20: removed all attached compound QC files since original reports from vendors will no longer be used and future reports will be attached in the QC Testing Events section of each batch
   
 # if restricted:
