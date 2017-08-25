@@ -675,6 +675,58 @@ class PrimaryCell(Reagent):
         else:
             return None
 
+class DiffCell(Reagent):
+
+    precursor = models.ForeignKey(
+        'PrimaryCellBatch',related_name='dc_descendants', null=True)
+    
+    
+    differentiation_protocol = models.TextField(null=True)
+    cell_type = models.TextField(null=True)
+    cell_type_detail = models.TextField(null=True)
+    mutations_known = models.TextField(null=True)
+    mutation_citations = models.TextField(null=True)
+    molecular_features = models.TextField(null=True)
+    recommended_culture_conditions = models.TextField(null=True)
+    relevant_citations = models.TextField(null=True)
+    related_projects = models.TextField(null=True)
+    cell_markers = models.TextField(null=True)
+    genetic_modification = models.TextField(null=True)
+    
+    @classmethod
+    def get_snippet_def(cls):
+        return FieldInformation.manager.get_snippet_def(cls)
+
+    @property
+    def precursor_cell_name(self):
+        if self.precursor:
+            return self.precursor.reagent.name
+        else:
+            return None
+    
+    @property
+    def precursor_cell_id(self):
+        if self.precursor:
+            return self.precursor.reagent.facility_id
+        else:
+            return None
+        
+    @property
+    def precursor_cell_batch_id(self):
+        if self.precursor:
+            return self.precursor.batch_id
+        else:
+            return None
+        
+    @property
+    def precursor_cell_facility_batch_id(self):
+        'For file download format'
+        if self.precursor:
+            return ('HMSL%s-%s' 
+                % (self.precursor.reagent.facility_id,self.precursor.batch_id))
+        else:
+            return None
+
 class CellBatch(ReagentBatch):
 
     quality_verification = models.TextField(null=True)
@@ -694,6 +746,21 @@ class PrimaryCellBatch(ReagentBatch):
     source_information = models.TextField(null=True)
     culture_conditions = models.TextField(null=True)
     passage_number = models.IntegerField(null=True)
+    date_received = models.TextField(null=True)
+
+    # TODO: test this for batch - update indexer
+    @classmethod
+    def get_snippet_def(cls):
+        return FieldInformation.manager.get_snippet_def(cls)
+    
+class DiffCellBatch(ReagentBatch):
+
+    quality_verification = models.TextField(null=True)
+    transient_modification = models.TextField(null=True)
+    source_information = models.TextField(null=True)
+    culture_conditions = models.TextField(null=True)
+    passage_number = models.IntegerField(null=True)
+    days_post_differentiation = models.IntegerField(null=True)
     date_received = models.TextField(null=True)
 
     # TODO: test this for batch - update indexer
@@ -869,6 +936,7 @@ class DataSet(models.Model):
     small_molecules = models.ManyToManyField('SmallMoleculeBatch')
     cells = models.ManyToManyField('CellBatch')
     primary_cells = models.ManyToManyField('PrimaryCellBatch')
+    diff_cells = models.ManyToManyField('DiffCellBatch')
     antibodies = models.ManyToManyField('AntibodyBatch')
     proteins = models.ManyToManyField('ProteinBatch')
     other_reagents = models.ManyToManyField('OtherReagentBatch')
@@ -896,6 +964,7 @@ class DataSet(models.Model):
 
     def __unicode__(self):
         return u'%s' % self.facility_id
+
 
 class Library(models.Model):
     name = _TEXT(unique=True,**_NOTNULLSTR)

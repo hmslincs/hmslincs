@@ -47,7 +47,7 @@ from db.models import PubchemRequest, SmallMolecule, SmallMoleculeBatch, Cell, \
     DataColumn, get_detail, Antibody, OtherReagent, CellBatch, \
     PrimaryCell, PrimaryCellBatch, QCEvent, \
     QCAttachedFile, AntibodyBatch, Reagent, ReagentBatch, get_listing,\
-    ProteinBatch, OtherReagentBatch
+    ProteinBatch, OtherReagentBatch, DiffCell, DiffCellBatch
 from django_tables2.utils import AttributeDict
 from tempfile import SpooledTemporaryFile
 
@@ -178,6 +178,7 @@ def cellDetail(request, facility_batch, batch_id=None):
         if(cell.is_restricted and not request.user.is_authenticated()):
             return HttpResponse('Log in required.', status=401)
         details = {'object': get_detail(cell, ['cell',''])}
+        details['type_title'] = 'Cell Line'
         
         if cell.precursor:
             details['object']['precursor_cell_name']['value'] = \
@@ -321,6 +322,7 @@ def primaryCellDetail(request, facility_batch, batch_id=None):
         if(cell.is_restricted and not request.user.is_authenticated()):
             return HttpResponse('Log in required.', status=401)
         details = {'object': get_detail(cell, ['primarycell',''])}
+        details['type_title'] = 'Primary Cell'
         
         if cell.precursor:
             details['object']['precursor_cell_name']['value'] = \
@@ -376,6 +378,153 @@ def primaryCellDetail(request, facility_batch, batch_id=None):
     except PrimaryCell.DoesNotExist:
         raise Http404
  
+
+def diffCellIndex(request):
+    search = request.GET.get('search','')
+    logger.debug(str(("is_authenticated:", 
+        request.user.is_authenticated(), 'search: ', search)))
+    search = re.sub(r'[\'"]','',search)
+ 
+    if(search != ''):
+        queryset = DiffCellSearchManager().search(search, 
+            is_authenticated=request.user.is_authenticated())      
+    else:
+        queryset = DiffCell.objects.order_by('facility_id')
+        if not request.user.is_authenticated(): 
+            queryset = queryset.exclude(is_restricted=True)
+ 
+    # PROCESS THE EXTRA FORM    
+    field_hash=FieldInformation.manager.get_field_hash('diffcell')
+    
+    # 1. Override fields: note do this _before_ grabbing all the (bound) fields
+    # for the display matrix below
+    form_field_overrides = {}
+    fieldinformation = \
+        FieldInformation.manager.get_column_fieldinformation_by_priority('dataset_types', '')
+    field_hash['dataset_types'] = fieldinformation
+    form_field_overrides['dataset_types'] = forms.ChoiceField(
+        required=False, choices=DataSet.get_dataset_types(), 
+        label=field_hash['dataset_types'].get_verbose_name(), 
+        help_text=field_hash['dataset_types'].get_column_detail())
+
+    # now bind the form to the request, make a copy of the request, so that we 
+    # can set values back to the client form
+    form = FieldsMetaForm(
+        field_information_array=field_hash.values(), 
+        form_field_overrides=form_field_overrides, data=request.GET.copy())
+    # add a "search" field to make it compatible with the full text search
+    form.fields['search'] = forms.CharField(required=False);
+    form.fields['extra_form_shown'] = forms.BooleanField(required=False);
+    
+    visible_field_overrides = []
+    search_label = ''
+    if form.is_valid():
+        if form.cleaned_data and form.cleaned_data['extra_form_shown']:
+            form.shown = True
+        key = 'dataset_types'
+        show_field = form.cleaned_data.get(key +'_shown', False)
+        field_data = form.cleaned_data.get(key)
+        if show_field or field_data:
+            queryset = DiffCellSearchManager().join_query_to_dataset_type(
+                queryset, dataset_type=field_data)
+            if field_data:
+                search_label += \
+                    "Filtered for " + fieldinformation.get_verbose_name() + ": " + field_data
+            visible_field_overrides.append(key)
+            form.data[key+'_shown'] = True
+    else:
+        logger.info(str(('invalid form', form.errors)))
+
+    table = DiffCellTable(queryset, visible_field_overrides=visible_field_overrides)
+
+    RequestConfig(request, paginate={"per_page": 25}).configure(table)
+    outputType = request.GET.get('output_type','')
+    if(outputType != ''):
+
+        col_key_name_map = get_table_col_key_name_map(
+            table,fieldinformation_tables=['diffcell',''],
+            extra_columns=[
+                'precursor_cell_name','precursor_cell_facility_batch_id'])
+        return send_to_file(
+            outputType, 'diff_cells', queryset, col_key_name_map)
+        
+    return render_list_index(request, table,search,'Differentiated Cell','Differentiated Cells',
+        **{ 'extra_form': form, 'search_label': search_label })
+
+def diffCellDetail(request, facility_batch, batch_id=None):
+    try:
+        _batch_id = None
+        if not batch_id:
+            temp = facility_batch.split('-') 
+            _facility_id = temp[0]
+            if len(temp) > 1:
+                _batch_id = temp[1]
+        else:
+            _facility_id = facility_batch
+            _batch_id = batch_id        
+        
+        cell = DiffCell.objects.get(facility_id=_facility_id) 
+        if(cell.is_restricted and not request.user.is_authenticated()):
+            return HttpResponse('Log in required.', status=401)
+        details = {'object': get_detail(cell, ['diffcell',''])}
+        details['type_title'] = 'Differentiated Cell'
+        
+        if cell.precursor:
+            details['object']['precursor_cell_name']['value'] = \
+                'HMSL%s-%s: %s' % (cell.precursor.reagent.facility_id, 
+                    cell.precursor.batch_id, cell.precursor.reagent.name)
+            details['object']['precursor_cell_name']['link'] = (
+                '/db/primarycells/%s-%s#batchinfo' 
+                % (cell.precursor.reagent.facility_id,cell.precursor.batch_id) )
+
+        details['facility_id'] = cell.facility_id
+        
+        cell_batch = None
+        if(_batch_id):
+            cell_batch = DiffCellBatch.objects.get( 
+                reagent=cell, batch_id=_batch_id) 
+
+        # batch table
+        if not cell_batch:
+            batches = ( DiffCellBatch.objects
+                .filter(reagent=cell, batch_id__gt=0)
+                .order_by('batch_id') )
+            if batches.exists():
+                details['batchTable']=DiffCellBatchTable(batches)
+        else:
+            details['cell_batch']= get_detail(
+                cell_batch,['diffcellbatch',''])
+            details['facility_batch'] = '%s-%s' % (cell.facility_id,cell_batch.batch_id) 
+
+            # 20150413 - proposed "QC Outcome" field on batch info removed per group discussion
+            qcEvents = QCEvent.objects.filter(
+                facility_id_for=cell.facility_id,
+                batch_id_for=cell_batch.batch_id).order_by('-date')
+            if qcEvents:
+                details['qcTable'] = QCEventTable(qcEvents)
+            
+            if(not cell.is_restricted or request.user.is_authenticated()):
+                attachedFiles = get_attached_files(
+                    cell.facility_id,batch_id=cell_batch.batch_id)
+                if(len(attachedFiles)>0):
+                    details['attached_files_batch'] = AttachedFileTable(attachedFiles)        
+                
+        datasets = DataSet.objects.filter(diff_cells__reagent=cell).distinct()
+        if(datasets.exists()):
+            where = []
+            if(not request.user.is_authenticated()): 
+                where.append("(not is_restricted or is_restricted is NULL)")
+            queryset = datasets.extra(
+                    where=where,
+                    order_by=('facility_id',))        
+            details['datasets'] = DataSetTable(queryset)
+
+        return render(request, 'db/cellDetail.html', details)
+    except DiffCell.DoesNotExist:
+        raise Http404
+ 
+
+
 def proteinIndex(request):
     search = request.GET.get('search','')
     search = re.sub(r'[\'"]','',search)
@@ -1127,6 +1276,37 @@ def datasetDetailPrimaryCells(request, facility_id):
     except Http401, e:
         return HttpResponse('Unauthorized', status=401)
     
+def datasetDetailDiffCells(request, facility_id):
+    outputType = request.GET.get('output_type','')
+    if(outputType != ''):
+        try:
+            dataset = DataSet.objects.get(facility_id=facility_id)
+            if(dataset.is_restricted and not request.user.is_authenticated()):
+                raise Http401
+            queryset = dataset.diff_cells.all()
+            # create a combination dict of canonical and batch
+            def make_diff_cell(batch):
+                d = model_to_dict(batch)
+                d.update(model_to_dict(batch.reagent.diffcell))
+                d['facility_batch'] = batch.facility_batch
+                return d
+            queryset = [make_diff_cell(batch) for batch in queryset]
+            col_key_name_map = get_col_key_mapping(
+                queryset[0].keys(),
+                fieldinformation_tables=['diffcell','diffcellbatch',''],
+                sequence_override=['facility_batch'])
+            return send_to_file(
+                outputType, 'diff_cells_for_'+ str(facility_id), 
+                queryset, col_key_name_map )
+        except DataSet.DoesNotExist:
+            raise Http404
+    try:
+        details = datasetDetail2(request,facility_id, 'diff_cells')
+        details.setdefault('heading', 'Differentiated Cells Studied')
+        return render(request,'db/datasetDetailRelated.html', details)
+    except Http401, e:
+        return HttpResponse('Unauthorized', status=401)
+    
 def datasetDetailProteins(request, facility_id):
     outputType = request.GET.get('output_type','')
     if(outputType != ''):
@@ -1530,6 +1710,7 @@ class TypeColumn(tables.Column):
     def render(self, value):
         if value == "cell_detail": return "Cell Line"
         elif value == "primary_cell_detail": return "Primary Cell"
+        elif value == "diff_cell_detail": return "Differentiated Cell"
         elif value == "sm_detail": return "Small Molecule"
         elif value == "dataset_detail": return "Dataset"
         elif value == "protein_detail": return "Protein"
@@ -1793,6 +1974,20 @@ class PrimaryCellBatchTable(PagedTable):
             self, ['primarycell','primarycellbatch',''],
             sequence_override=['facility_batch'])  
 
+class DiffCellBatchTable(PagedTable):
+    facility_batch = BatchInfoLinkColumn("diff_cell_detail", args=[A('facility_batch')])
+    
+    class Meta:
+        model = DiffCellBatch
+        orderable = True
+        attrs = {'class': 'paleblue'}
+
+    def __init__(self, table, *args, **kwargs):
+        super(DiffCellBatchTable, self).__init__(table, *args, **kwargs)
+        set_table_column_info(
+            self, ['diffcell','diffcellbatch',''],
+            sequence_override=['facility_batch'])  
+
 class AntibodyBatchTable(PagedTable):
     facility_batch = BatchInfoLinkColumn("antibody_detail", args=[A('facility_batch')])
     
@@ -1972,6 +2167,28 @@ class PrimaryCellBatchDatasetTable(PagedTable):
             sequence_override=['facility_id'],
             visible_field_overrides=['name'])  
 
+class DiffCellBatchDatasetTable(PagedTable):
+    facility_id = BatchOrCanonicalLinkColumn(
+        "diff_cell_detail", accessor=A('reagent.facility_id'))
+    name = tables.Column(accessor=A('reagent.name'))
+    lincs_id = tables.Column(accessor=A('reagent.lincs_id'))
+    alternative_id = DivWrappedColumn(
+        accessor=A('reagent.alternative_id'),
+        classname='constrained_width_column')
+
+    class Meta:
+        model = DiffCellBatch
+        orderable = True
+        attrs = {'class': 'paleblue'}
+        exclude = ('provider_name','provider_catalog_id','provider_batch_id')
+        
+    def __init__(self, table, *args, **kwargs):
+        super(DiffCellBatchDatasetTable, self).__init__(table, *args, **kwargs)
+        set_table_column_info(
+            self, ['diffcell','diffcellbatch',''],
+            sequence_override=['facility_id'],
+            visible_field_overrides=['name'])  
+
 class AntibodyBatchDatasetTable(PagedTable):
     facility_id = BatchOrCanonicalLinkColumn(
         "antibody_detail", accessor=A('reagent.facility_id'))
@@ -2106,6 +2323,29 @@ class PrimaryCellTable(PagedTable):
         super(PrimaryCellTable, self).__init__(table,*args,**kwargs)
         set_table_column_info(
             self, ['primarycell',''], 
+            sequence_override=['facility_id'], 
+            visible_field_overrides=visible_field_overrides)  
+                        
+class DiffCellTable(PagedTable):
+    facility_id = tables.LinkColumn("diff_cell_detail", args=[A('facility_id')])
+    rank = tables.Column()
+    snippet = DivWrappedColumn(verbose_name='matched text', classname='snippet')
+    id = tables.Column(verbose_name='CLO Id')
+    disease = DivWrappedColumn(classname='constrained_width_column')
+    dataset_types = DivWrappedColumn(classname='constrained_width_column', visible=False)
+    alternative_id = DivWrappedColumn(classname='constrained_width_column')
+    precursor_cell_name = tables.Column(visible=False)
+    precursor_cell_facility_batch_id = tables.Column(visible=False)
+    
+    class Meta:
+        model = DiffCell
+        orderable = True
+        attrs = {'class': 'paleblue'}
+ 
+    def __init__(self, table,visible_field_overrides=None, *args,**kwargs):
+        super(DiffCellTable, self).__init__(table,*args,**kwargs)
+        set_table_column_info(
+            self, ['diffcell',''], 
             sequence_override=['facility_id'], 
             visible_field_overrides=visible_field_overrides)  
                         
@@ -2255,7 +2495,7 @@ class SearchManager(models.Manager):
                 'snippet': "ts_headline(" + snippet_def + ", to_tsquery(%s))",
                 'rank':"ts_rank_cd("+tablename+".search_vector,to_tsquery(%s),32)",
                 }
-        if tablename in ['db_smallmolecule','db_cell','db_primarycell',
+        if tablename in ['db_smallmolecule','db_cell','db_primarycell','db_diffcell',
             'db_antibody','db_protein','db_otherreagent']:
             criteria += ' or db_reagent.search_vector @@ to_tsquery(%s)'
             extra_select['snippet'] += (
@@ -2294,6 +2534,7 @@ class SearchManager(models.Manager):
                     
         if ids:
             if tablename in ['db_smallmolecule','db_cell','db_primarycell',
+                'db_diffcell',
                 'db_antibody','db_protein','db_otherreagent']:
                 criteria += ' or reagent_ptr_id = ANY(%s)'.format(tablename=tablename)
             else:
@@ -2437,6 +2678,68 @@ class PrimaryCellSearchManager(SearchManager):
                     .format(join_table='db_dataset_primary_cells',
                             specific_batch_id='primarycellbatch_id',
                             specific_reagent_table='db_primarycell')
+            })
+        return queryset
+
+
+class DiffCellSearchManager(SearchManager):
+
+    def search(self, searchString, is_authenticated=False):
+        base_query = DiffCell.objects.all()
+        
+        id_fields = []
+        # Note: using simple "contains" search for diffcellbatch specific fields
+        ids = [id for id in
+            DiffCellBatch.objects.all().filter(
+                Q(source_information__icontains=searchString) |
+                Q(transient_modification__icontains=searchString ) |
+                Q(culture_conditions__icontains=searchString ) )
+                .values_list('reagent__id', flat=True)
+                .distinct('reagent__id')]
+
+        # find by precursor (id, name)
+        new_ids = [id for id in
+            DiffCellBatch.objects.all()
+                .filter(reagent__diffcell__precursor__reagent__name__icontains=searchString) 
+                .values_list('reagent__id', flat=True)
+                .distinct('reagent__id')]
+        match = FACILITY_BATCH_PATTERN.match(searchString)
+        if match:
+            query = ( DiffCellBatch.objects.all()
+                .filter(reagent__diffcell__precursor__reagent__facility_id__exact
+                    =match.group(2))) 
+            if match.group(4):
+                query = query.filter(reagent__diffcell__precursor__batch_id__exact
+                    =match.group(4))
+            new_ids = [id for id in 
+                query.values_list('reagent__id', flat=True)
+                    .distinct('reagent__id')]
+        ids.extend(new_ids)
+        
+        
+        query =  super(DiffCellSearchManager, self).search(
+            base_query, 'db_diffcell', searchString, id_fields, 
+            DiffCell.get_snippet_def(), ids=ids)
+        
+        return query
+
+    def join_query_to_dataset_type(self, queryset, dataset_type=None ):
+        if dataset_type:
+            ids = (DataSet.objects
+                .filter(dataset_type=str(dataset_type))
+                .values_list('primary_cells__reagent__id', flat=True)
+                .distinct('primary_cells__reagent__id') )
+            queryset = queryset.filter(id__in=ids)
+        queryset = queryset.extra(select={
+            'dataset_types' : (
+                "(select array_to_string(array_agg(distinct (ds.dataset_type)),', ')"
+                "     from db_dataset ds "
+                " join {join_table} on(ds.id={join_table}.dataset_id) " 
+                " join db_reagentbatch rb on(rb.id={join_table}.{specific_batch_id} ) "
+                " where rb.reagent_id={specific_reagent_table}.reagent_ptr_id)" ) 
+                    .format(join_table='db_dataset_primary_cells',
+                            specific_batch_id='diffcellbatch_id',
+                            specific_reagent_table='db_diffcell')
             })
         return queryset
 
@@ -3180,6 +3483,7 @@ def datasetDetail2(request, facility_id, sub_page):
                 'has_small_molecules':dataset.small_molecules.exists(),
                 'has_cells':dataset.cells.exists(),
                 'has_primary_cells':dataset.primary_cells.exists(),
+                'has_diff_cells':dataset.diff_cells.exists(),
                 'has_proteins':dataset.proteins.exists(),
                 'has_antibodies':dataset.antibodies.exists(),
                 'has_otherreagents':dataset.other_reagents.exists(),
@@ -3222,6 +3526,16 @@ def datasetDetail2(request, facility_id, sub_page):
             table = PrimaryCellBatchDatasetTable(queryset)
             setattr(table.data,'verbose_name_plural','Primary Cells')
             setattr(table.data,'verbose_name','Primary Cells')
+            details['table'] = table
+            RequestConfig(
+                request, paginate={"per_page": items_per_page}).configure(table)
+    elif (sub_page == 'diff_cells'):
+        if dataset.diff_cells.exists():
+            queryset = dataset.diff_cells.all()
+            queryset = queryset.order_by('reagent__facility_id','batch_id')
+            table = DiffCellBatchDatasetTable(queryset)
+            setattr(table.data,'verbose_name_plural','Diff Cells')
+            setattr(table.data,'verbose_name','Diff Cells')
             details['table'] = table
             RequestConfig(
                 request, paginate={"per_page": items_per_page}).configure(table)
@@ -3312,6 +3626,7 @@ class DataSetResultTable2(PagedTable):
         ordered_names = []
         for dc in ordered_datacolumns:
             if dc.data_type in ['small_molecule', 'cell','primary_cell',
+                'diff_cell',
                 'protein','antibody','other_reagent']:
                 ordered_names.append(dc.name + "_name")
             else:
@@ -3339,6 +3654,10 @@ class DataSetResultTable2(PagedTable):
             elif dc.data_type.lower() == 'primary_cell':
                 key_col = col+'_name'
                 self.base_columns[key_col] = tables.LinkColumn('primary_cell_detail',
+                    args=[A(col)], verbose_name=display_name) 
+            elif dc.data_type.lower() == 'diff_cell':
+                key_col = col+'_name'
+                self.base_columns[key_col] = tables.LinkColumn('diff_cell_detail',
                     args=[A(col)], verbose_name=display_name) 
             elif dc.data_type.lower() == 'protein':
                 key_col = col+'_name'
@@ -3411,6 +3730,12 @@ class DataSetManager2():
                 'choices': [ ( item.reagent.facility_id, 
                     '%s:%s'% ( item.reagent.name,item.reagent.facility_id ) ) 
                     for item in self.dataset.primary_cells.all() ] }
+        if self.dataset.diff_cells.exists():
+            entity_id_name_map['diff_cells'] = { 
+                'id_field': 'diffcell_id', 
+                'choices': [ ( item.reagent.facility_id, 
+                    '%s:%s'% ( item.reagent.name,item.reagent.facility_id ) ) 
+                    for item in self.dataset.diff_cells.all() ] }
         if self.dataset.proteins.exists():
             entity_id_name_map['proteins'] = { 
                 'id_field': 'protein_id', 
@@ -3564,6 +3889,7 @@ class DataSetManager2():
                     column_to_select=column_to_select, alias=alias,
                     column_name=column_name,dc_id=dc.id )
             elif dc.data_type in ['small_molecule','cell','primary_cell',
+                'diff_cell',
                 'protein','antibody','other_reagent']:
                 column_to_select = "text_value"
                 reagent_key_columns.append(column_name)
@@ -3686,6 +4012,16 @@ WHERE search_vector @@ {query_number}
             sql += RESTRICTION_SQL        
         sql += " UNION "
         sql += REAGENT_SEARCH_SQL.format(
+            key_id='facility_id',
+            reagent_snippet_def=Reagent.get_snippet_def(),
+            snippet_def=DiffCell.get_snippet_def(),
+            detail_type='diff_cell_detail',
+            table_name='db_diffcell',
+            query_number='query7a')
+        if(not is_authenticated): 
+            sql += RESTRICTION_SQL        
+        sql += " UNION "
+        sql += REAGENT_SEARCH_SQL.format(
             key_id= "facility_id || '-' || salt_id" ,
             reagent_snippet_def=Reagent.get_snippet_def(),
             snippet_def=SmallMolecule.get_snippet_def(),
@@ -3771,6 +4107,9 @@ WHERE search_vector @@ {query_number}
         pcqs = PrimaryCellSearchManager().search(
             queryString, is_authenticated=is_authenticated);
         add_specific_search_matches(pcqs,'primary_cell_detail')
+        pcqs = DiffCellSearchManager().search(
+            queryString, is_authenticated=is_authenticated);
+        add_specific_search_matches(pcqs,'diff_cell_detail')
         pqs = ProteinSearchManager().search(
             queryString, is_authenticated=is_authenticated)
         add_specific_search_matches(pqs,'protein_detail')

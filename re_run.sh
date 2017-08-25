@@ -151,7 +151,7 @@ then
   echo 'import cell line precursor patches ...'
   python src/import_cell.py -f sampledata/sample_cells.xlsx --do_precursors
   check_errs $? "import cell precursors fails"
-  
+
   echo 'import primary cell tables ...'
   python src/import_primary_cell.py -f sampledata/sample_primary_cells.xlsx
   check_errs $? "import primary cell fails"
@@ -163,6 +163,18 @@ then
   echo 'import primary cell precursor patches ...'
   python src/import_primary_cell.py -f sampledata/sample_primary_cells.xlsx --do_precursors
   check_errs $? "import primary cell precursors fails"
+  
+  echo 'import differentiated cell tables ...'
+  python src/import_differentiated_cell.py -f sampledata/sample_differentiated_cells.xlsx
+  check_errs $? "import differentiated cell fails"
+  
+  echo 'import differentiated cell batch tables ...'
+  python src/import_differentiated_cell_batch.py -f sampledata/sample_differentiated_cell_batches.xlsx
+  check_errs $? "import differentiated cell batches fails"
+  
+  echo 'import differentiated cell precursor primary cell batches ...'
+  python src/import_differentiated_cell.py -f sampledata/sample_differentiated_cells.xlsx --do_precursors
+  check_errs $? "import differentiated cell precursors fails"
   
   echo 'import small molecule tables...'
   python src/import_smallmolecule.py -f  sampledata/sample_small_molecules.sdf

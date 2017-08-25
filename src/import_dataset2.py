@@ -15,6 +15,7 @@ from xlrd.book import colname
 from db.models import DataSet, DataColumn, DataRecord, DataPoint, \
         LibraryMapping, AntibodyBatch, OtherReagent, SmallMoleculeBatch, \
         OtherReagentBatch, ProteinBatch, CellBatch, PrimaryCellBatch, \
+        DiffCellBatch,\
         ReagentBatch, camel_case_dwg 
 
 
@@ -47,13 +48,13 @@ default_reagent_columns = {
         'description': 'A Primary Cell reagent',
         'comments': 'A Primary Cell reagent'
     },
-    'Protein': {
-        'display_order': 3,
-        'name': 'protein',
-        'display_name': 'Protein',
-        'data_type': 'protein',
-        'description': 'A Protein reagent',
-        'comments': 'A Protein reagent'
+    'DiffCell': {
+        'display_order': 2,
+        'name': 'diffcell',
+        'display_name': 'Differentiated Cell',
+        'data_type': 'diff_cell',
+        'description': 'A Differentiated Cell reagent',
+        'comments': 'A Differentiated Cell reagent'
     },
     'Antibody': {
         'display_order': 3,
@@ -62,6 +63,14 @@ default_reagent_columns = {
         'data_type': 'antibody',
         'description': 'An Antibody reagent',
         'comments': 'An Antibody reagent'
+    },
+    'Protein': {
+        'display_order': 5,
+        'name': 'protein',
+        'display_name': 'Protein',
+        'data_type': 'protein',
+        'description': 'A Protein reagent',
+        'comments': 'A Protein reagent'
     },
     'OtherReagent': {
         'display_order': 3,
@@ -440,6 +449,9 @@ def read_explicit_reagents(book, dataset):
                 elif hasattr(rb, 'primarycellbatch'):
                     logger.info('primary cell reagent found: %r', rb)
                     dataset.primary_cells.add(rb.primarycellbatch)
+                elif hasattr(rb, 'diffcellbatch'):
+                    logger.info('differentiated cell reagent found: %r', rb)
+                    dataset.diff_cells.add(rb.diffcellbatch)
                 elif hasattr(rb, 'proteinbatch'):
                     logger.info('protein reagent found: %r', rb)
                     dataset.proteins.add(rb.proteinbatch)
@@ -574,7 +586,8 @@ def _create_datapoint(datacolumn, dataset, datarecord, value):
             _read_cell_batch(dataset, datapoint)
         elif datacolumn.data_type == 'primary_cell':
             _read_primary_cell_batch(dataset, datapoint)
-
+        elif datacolumn.data_type == 'diff_cell':
+            _read_diff_cell_batch(dataset, datapoint)
     return datapoint
 
 def _parse_reagent_batch(text_value):
@@ -712,6 +725,27 @@ def _read_primary_cell_batch(dataset, datapoint):
         reagents_read_hash[text_value] = reagentbatch
     except Exception, e:
         logger.exception("Invalid Primary Cell identifier: %r:%r, raw val: %r",
+            facility_id,batch_id,text_value)
+        raise    
+
+def _read_diff_cell_batch(dataset, datapoint):
+
+    try:
+        (facility_id,batch_id,text_value) = (
+            _parse_reagent_batch(datapoint.text_value))
+        datapoint.text_value = text_value
+        if text_value in reagents_read_hash:
+            datapoint.reagent_batch = reagents_read_hash[text_value]
+            logger.debug('reagent already read: %r' % text_value)
+            return
+        reagentbatch = DiffCellBatch.objects.get(
+            reagent__facility_id=facility_id,
+            batch_id=batch_id) 
+        dataset.diff_cells.add(reagentbatch)
+        datapoint.reagent_batch = reagentbatch
+        reagents_read_hash[text_value] = reagentbatch
+    except Exception, e:
+        logger.exception("Invalid Differentiated Cell identifier: %r:%r, raw val: %r",
             facility_id,batch_id,text_value)
         raise    
 

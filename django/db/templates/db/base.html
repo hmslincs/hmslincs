@@ -33,8 +33,12 @@
       <li class='{% selectedTag request "^/db/sm/structuresearch/" %}'><a  href="{% url structureSearch %}">Structure search</a></li>
       <li class='{% selectedTag request "^/db/sm/salt/" %}'><a  href="{% url salt_listing %}">Salt table</a></li>
     </ul>
-    <li class='{% selectedTag request "^/db/cells/" %}'><a " href="{% url listCells %}">Cell Lines</a></li>
-    <li class='{% selectedTag request "^/db/primarycells/" %}'><a " href="{% url listPrimaryCells %}">Primary Cells</a></li>
+    <li class='{% selectedTag request "^/db/cells/" %}'><a " href="{% url listCells %}">Cells</a></li>
+    <ul>
+      <li class='{% selectedTag request "^/db/cells/" %}'><a " href="{% url listCells %}">Cell Lines</a></li>
+      <li class='{% selectedTag request "^/db/primarycells/" %}'><a " href="{% url listPrimaryCells %}">Primary Cells</a></li>
+      <li class='{% selectedTag request "^/db/diffcells/" %}'><a " href="{% url listDiffCells %}">Differentiated Cells</a></li>
+    </ul>
     <li class='{% selectedTag request "^/db/proteins/" %}'><a " href="{% url listProteins %}">Proteins</a></li>
     <li class='{% selectedTag request "^/db/antibodies/" %}'><a " href="{% url listAntibodies %}">Antibodies</a></li>
     <li class='{% selectedTag request "^/db/otherreagents/" %}'><a " href="{% url listOtherReagents %}">Other Reagents</a></li>

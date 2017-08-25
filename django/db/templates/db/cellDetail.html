@@ -5,7 +5,7 @@
 {% endblock %}
 
 {% block content %}
-{% include "db/detailTitle.html" with name=object.name type="Cell Line" id=object.facility_id %}
+{% include "db/detailTitle.html" with name=object.name type=type_title id=object.facility_id %}
  {% include "db/detailListing.html" %}
 
   {% if datasets and not cell_batch %}
