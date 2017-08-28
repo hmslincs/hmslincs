@@ -15,7 +15,7 @@ from xlrd.book import colname
 from db.models import DataSet, DataColumn, DataRecord, DataPoint, \
         LibraryMapping, AntibodyBatch, OtherReagent, SmallMoleculeBatch, \
         OtherReagentBatch, ProteinBatch, CellBatch, PrimaryCellBatch, \
-        DiffCellBatch,\
+        DiffCellBatch, DatasetProperty, \
         ReagentBatch, camel_case_dwg 
 
 
@@ -139,11 +139,35 @@ def main(path):
     logger.info('dataset to save %s' % dataset)
     dataset.save()
     
+    read_dataset_properties(book, 'RNASeq', dataset)
+    
     read_datacolumns_and_data(book, dataset)
     
     read_explicit_reagents(book, dataset)
 
     dataset.save()
+
+def read_dataset_properties(book, sheetname, dataset):
+    
+    try:
+        sheet = book.sheet_by_name(sheetname)
+        properties = []
+        for i in xrange(sheet.nrows-1):
+            row = sheet.row_values(i+1)
+            
+            dsProperty = DatasetProperty.objects.create(
+                dataset=dataset,
+                type='RNASEQ',
+                name=row[0],
+                value=row[1], 
+                ordinal=i )
+            dsProperty.save()
+            logger.debug('created property %r', dsProperty)
+        logger.info('Sheet: %r rows read: %d', sheetname, len(properties))
+        return properties
+    except XLRDError, e:
+        logger.info('no %r sheet found', sheetname)
+        return None
 
 def read_metadata(meta_sheet):
 

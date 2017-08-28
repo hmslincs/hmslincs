@@ -966,6 +966,24 @@ class DataSet(models.Model):
         return u'%s' % self.facility_id
 
 
+class DatasetProperty(models.Model):
+    ''' Store extra properties for the dataset, e.g. RNASeq fields
+    '''
+    
+    dataset = models.ForeignKey('Dataset', related_name='properties')
+    type = models.TextField()
+    name = models.TextField()
+    value = models.TextField()
+    ordinal = models.IntegerField()
+
+    class Meta:
+        db_table = 'db_dataset_property'
+        unique_together = ('dataset', 'type','name',)    
+
+    def __repr__(self):
+        return ('<DatasetProperty(dataset=%r, type=%r, name=%r, value=%r)>' 
+            % (self.dataset, self.type, self.name, self.value ))
+
 class Library(models.Model):
     name = _TEXT(unique=True,**_NOTNULLSTR)
     short_name = _TEXT(unique=True, **_NOTNULLSTR)

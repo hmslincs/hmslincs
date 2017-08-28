@@ -1,0 +1,14 @@
+{% extends "db/datasetDetailBase.html" %}
+{% block datasetContent %}
+	{% if image_location %}
+	{# TODO: window.moveTo not working in chrome #}
+		<img src="{{ STATIC_URL }}{{image_location}}" onclick="w=window.open('{{ STATIC_URL }}{{image_location}}','image','height=400,width=800');w.moveTo(500,400);" />
+	{% endif %}
+	{% include "db/detailListing.html" with object=properties %}
+	{% if attached_files %}
+		<h2 class='entity_detail_title'>Attached Files</h2>
+		{% load render_table from django_tables2 %}
+		{% render_table attached_files %}
+	{% endif %}
+{% endblock %}
+	
