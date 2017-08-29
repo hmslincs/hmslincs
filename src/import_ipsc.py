@@ -7,7 +7,7 @@ import logging
 
 import init_utils as iu
 import import_utils as util
-from db.models import DiffCell, DiffCellBatch, IpscBatch
+from db.models import Ipsc, IpscBatch, PrimaryCellBatch
 from django.db import transaction
 
 __version__ = "$Revision: 24d02504e664 $"
@@ -41,24 +41,25 @@ def main(path):
     column_definitions = {
         'Facility ID':(
             'facility_id',True,None, lambda x: x[x.index('HMSL')+4:]),
-        'DC_Name':('name',True),
-        'DC_LINCS_ID':'lincs_id',
-        'DC_Alternative_Name':'alternative_names',
-        'DC_Alternative_ID': 'alternative_id',
-        'Precursor_IPSC':'precursor_facility_batch_id',
+        'IP_Name':('name',True),
+        'IP_LINCS_ID':'lincs_id',
+        'IP_Alternative_Name':'alternative_names',
+        'IP_Alternative_ID': 'alternative_id',
+
+        'Precursor_Primary_Cell':'precursor_facility_batch_id',
         
-        'DC_Differentiation_Protocol': 'differentiation_protocol',
-        'DC_Cell_Type': 'cell_type',
-        'DC_Cell_Type_Detail': 'cell_type_detail',
-        'DC_Known_Mutations': 'mutations_known',
-        'DC_Mutation_Citations': 'mutation_citations',
-        'DC_Molecular_Features': 'molecular_features',
-        'DC_Recommended_Culture_Conditions': 'recommended_culture_conditions',
-        'DC_Relevant_Citations': 'relevant_citations',
-        'DC_Related_Projects': 'related_projects',
-        'DC_Cell_Markers': 'cell_markers',
-        'DC_Genetic_Modification': 'genetic_modification',
-        
+        'IP_Production_Details': 'production_details',
+        'IP_Known_Mutations': 'mutations_known',
+        'IP_Mutation_Citations': 'mutation_citations',
+        'IP_Molecular_Features': 'molecular_features',
+        'IP_Recommended_Culture_Conditions': 'recommended_culture_conditions',
+        'IP_Related_Projects': 'related_projects',
+        'IP_Cell_Markers': 'cell_markers',
+        'IP_Genetic_Modification': 'genetic_modification',
+        'IP_Passaging_Method': 'passaging_method',
+        'IP_Passage_Last_Karyotyping': (
+            'passage_last_karyotyping',False,None,lambda x:util.convertdata(x,int)),
+    
         'Date Data Received':(
             'date_data_received',False,None,util.date_converter),
         'Date Loaded': ('date_loaded',False,None,util.date_converter),
@@ -75,7 +76,7 @@ def main(path):
             
     rows = 0    
     precursor_map = {}
-    precursor_pattern = re.compile(r'HMSL(7\d{4})-(\d+)')
+    precursor_pattern = re.compile(r'HMSL(6\d{4})-(\d+)')
     for row in sheet:
         r = util.make_row(row)
         initializer = {}
@@ -117,42 +118,45 @@ def main(path):
         
         try:
             logger.info('initializer: %r', initializer)
-            diff_cell = DiffCell(**initializer)
-            diff_cell.save()
-            logger.info(str(('diff_cell created:', diff_cell)))
+            ipsc = Ipsc(**initializer)
+            ipsc.save()
+            logger.info(str(('ipsc created:', ipsc)))
 
             # create a default batch - 0
-            DiffCellBatch.objects.create(reagent=diff_cell,batch_id=0)
+            IpscBatch.objects.create(reagent=ipsc,batch_id=0)
             
         except Exception, e:
             print "Invalid Primary Cell, name: ", r[0]
             raise e
         
         rows += 1
-    print "Differentiated Cells read: ", rows
+    print "Ipsc Cells read: ", rows
     
     for facility_id,(precursor_facility_id,batch_id) in precursor_map.items():
         try:
             logger.info('find precursor for cell: %r, (%r,%r)', 
                 facility_id,precursor_facility_id, batch_id)
-            precursor = IpscBatch.objects.get(
+            precursor = PrimaryCellBatch.objects.get(
                 reagent__facility_id=precursor_facility_id,
                 batch_id=batch_id)
-            diff_cell = DiffCell.objects.get(facility_id=facility_id)
-            diff_cell.precursor = precursor
-            diff_cell.save()
+            ipsc = Ipsc.objects.get(facility_id=facility_id)
+            ipsc.precursor = precursor
+            ipsc.save()
             
         except ObjectDoesNotExist:
             raise Exception('Precursor not found: %r-%r, for %r'
                 % (precursor_facility_id,batch_id,facility_id))
         
-    print 'Differentiated (Ipsc Cell) Precursors found:', len(precursor_map)
+    print 'Ipsc (Primary Cell) Precursor loaded:', len(precursor_map)
     
 
 parser = argparse.ArgumentParser(description='Import file')
 parser.add_argument('-f', action='store', dest='inputFile',
                     metavar='FILE', required=True,
                     help='input file path')
+# parser.add_argument('-p', '--do_precursors', action='store_true',
+#                     dest='do_precursors', required=False,
+#                     help='patch the precursor cell ids')
 parser.add_argument('-v', '--verbose', dest='verbose', action='count',
                 help="Increase verbosity (specify multiple times for more)")    
 

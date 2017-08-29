@@ -16,12 +16,13 @@ from tastypie.resources import ModelResource, Resource
 from tastypie.serializers import Serializer
 from tastypie.utils.urls import trailing_slash
 
-from db.models import SmallMolecule, SmallMoleculeBatch, Cell, \
-    CellBatch, PrimaryCell, PrimaryCellBatch, DiffCell, DiffCellBatch, Protein, \
-    ProteinBatch, Antibody, AntibodyBatch, OtherReagent, OtherReagentBatch, \
-    Library, DataSet, DataRecord, DataColumn, FieldInformation, \
-    get_detail_bundle, get_fieldinformation, get_schema_fieldinformation, \
-    camel_case_dwg, get_listing, get_detail_schema, get_detail
+from db.models import SmallMolecule, SmallMoleculeBatch, Cell,\
+    CellBatch, PrimaryCell, PrimaryCellBatch, DiffCell, DiffCellBatch,\
+    Ipsc, IpscBatch, Protein, ProteinBatch, Antibody, AntibodyBatch,\
+    OtherReagent, OtherReagentBatch, Library, DataSet, DataRecord, DataColumn,\
+    FieldInformation, get_detail_bundle, get_fieldinformation,\
+    get_schema_fieldinformation,camel_case_dwg, get_listing,\
+    get_detail_schema, get_detail
 from db.views import _get_raw_time_string
 from django.db.models.sql.where import OR
 
@@ -181,6 +182,54 @@ class PrimaryCellResource(ModelResource):
             extra_properties=self._meta.extra_properties)
         schema['batch_fields'] = get_detail_schema(
             PrimaryCellBatch(),['primarycellbatch',''])
+        return schema 
+    
+    def prepend_urls(self):
+        return [
+            url(r"^(?P<resource_name>%s)/(?P<facility_id>\d+)/$" 
+                    % self._meta.resource_name, 
+                self.wrap_view('dispatch_detail'), 
+                name="api_dispatch_detail"),
+        ]
+    
+class IpscResource(ModelResource):
+    
+    class Meta:
+        queryset = Ipsc.objects.all().order_by('facility_id')
+        allowed_methods = ['get']
+        excludes = []
+        filtering = {
+            'date_loaded':ALL, 
+            'date_publicly_available':ALL, 
+            'date_data_received':ALL }
+        extra_properties=['precursor_cell_id','precursor_cell_batch_id']
+        
+    def dehydrate(self, bundle):
+        def _filter(field_information):
+            return (not bundle.obj.is_restricted 
+                    or field_information.is_unrestricted )
+
+        bundle.data = get_detail_bundle(
+            bundle.obj, ['ipsc',''], _filter=_filter,
+            extra_properties=self._meta.extra_properties)
+        
+        batches = ( 
+            IpscBatch.objects.filter(reagent=bundle.obj)
+                .exclude(batch_id=0).order_by('batch_id') )
+        bundle.data['batches'] = []
+        for batch in batches:
+            bundle.data['batches'].append(
+                get_detail_bundle(
+                    batch, ['ipscbatch',''], _filter=_filter))
+        return bundle
+    
+    def build_schema(self):
+        schema = super(IpscResource,self).build_schema()
+        schema['fields'] = get_detail_schema(
+            Ipsc(),['ipsc',''],
+            extra_properties=self._meta.extra_properties)
+        schema['batch_fields'] = get_detail_schema(
+            IpscBatch(),['ipscbatch',''])
         return schema 
     
     def prepend_urls(self):
@@ -543,6 +592,10 @@ class DataSetResource2(ModelResource):
                 x.facility_batch for x in 
                     bundle.obj.primary_cells.all().order_by(
                         'reagent__facility_id', 'batch_id')],
+            'ipscs': [
+                x.facility_batch for x in 
+                    bundle.obj.ipscs.all().order_by(
+                        'reagent__facility_id', 'batch_id')],
             'diff_cells': [
                 x.facility_batch for x in 
                     bundle.obj.diff_cells.all().order_by(
@@ -627,6 +680,12 @@ class DataSetDataResource2(Resource):
             "pcLincsID",
             "pcCenterBatchID",
             ],
+        'ipsc': [
+            "ipName",
+            "ipCenterCanonicalID",
+            "ipLincsID",
+            "ipCenterBatchID",
+            ],
         'diff_cell': [
             "dcName",
             "dcCenterCanonicalID",
@@ -690,8 +749,9 @@ class DataSetDataResource2(Resource):
         
         reagent_columns = ( DataColumn.objects.filter(dataset_id=dataset_id)
             .filter(data_type__in=[
-                'small_molecule','cell','primary_cell','diff_cell', 'protein',
-                'antibody','otherreagent']).order_by('display_order') )
+                'small_molecule','cell','primary_cell','diff_cell', 'ipsc', 
+                'protein', 'antibody','otherreagent'])
+            .order_by('display_order') )
         
         dc_ids_to_exclude = [dc.id for dc in timepoint_columns]
         dc_ids_to_exclude.extend([dc.id for dc in reagent_columns])
@@ -784,7 +844,7 @@ class DataSetDataResource2(Resource):
         
         prefixes = { 'small_molecule': 'sm', 'protein': 'pp', 'antibody': 'ab',
             'otherreagent': 'or', 'cell': 'cl', 'primary_cell': 'pc',
-            'diff_cell': 'dc'}
+            'ipsc':'ip', 'diff_cell': 'dc'}
         for dc in reagent_columns:
             prefix = prefixes[dc.data_type]
             if dc.data_type == 'small_molecule':
@@ -913,8 +973,8 @@ class DataSetDataResource2(Resource):
                         base_cols.append('%s_%s' % (name,colname))
                         
             elif dc.data_type in [
-                'small_molecule','cell','primary_cell', 'diff_cell', 'protein',
-                'antibody', 'otherreagent']:
+                'small_molecule','cell','primary_cell', 'diff_cell', 'ipsc', 
+                'protein','antibody', 'otherreagent']:
                 for colname in DataSetDataResource2.datapoint_cols[dc.data_type]:
                     base_cols.append('%s_%s' % (name,colname))
         
@@ -925,8 +985,8 @@ class DataSetDataResource2(Resource):
         
         data_columns = ( DataColumn.objects.filter(dataset_id=dataset_id)
             .exclude(data_type__in=[
-                'small_molecule','cell','primary_cell', 'diff_cell', 'protein',
-                'antibody','otherreagent','omero_image'])
+                'small_molecule','cell','primary_cell', 'diff_cell', 'ipsc', 
+                'protein','antibody','otherreagent','omero_image'])
             .exclude(unit__in=['day','hour','minute','second'])
             .order_by('display_order') )
         
@@ -950,9 +1010,9 @@ class DataSetDataResource2(Resource):
         col_field_info = {}
         table_or_query = [
                 'smallmolecule','protein','cell','primarycell','diffcell',
-                'antibody','otherreagent', 'smallmoleculebatch','proteinbatch',
-                'cellbatch','primarycellbatch', 'diffcellbatch','antibodybatch',
-                'otherreagentbatch']
+                'ipsc', 'antibody','otherreagent', 'smallmoleculebatch',
+                'proteinbatch','cellbatch','primarycellbatch', 'ipscbatch', 
+                'diffcellbatch','antibodybatch','otherreagentbatch']
         for fi in FieldInformation.objects.all().filter(
             Q(table__in=table_or_query) | Q(queryset__in=table_or_query)):
             col_field_info[fi.get_camel_case_dwg_name()] = {
@@ -962,8 +1022,9 @@ class DataSetDataResource2(Resource):
                 }
         data_columns = ( DataColumn.objects.filter(dataset_id=dataset_id)
             .filter(data_type__in=[
-                'small_molecule','cell','primary_cell','diff_cell', 'protein',
-                'antibody','otherreagent']).order_by('display_order') )
+                'small_molecule','cell','primary_cell','diff_cell', 'ipsc',
+                'protein','antibody','otherreagent'])
+            .order_by('display_order') )
         reagent_fields = OrderedDict()
         meta_field_info = get_listing(DataColumn(),['datacolumn'])
         for dc in data_columns.order_by('display_order'):

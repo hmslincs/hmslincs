@@ -21,6 +21,9 @@
 {% if has_primary_cells %}
     <li class='{% selectedTag request "^/db/datasets/\d+/primarycells$" %}'><a  href="{% url dataset_detail_primary_cells   facility_id=facilityId%}">Primary&nbsp;Cells&nbsp;Studied</a></li>
 {% endif %}
+{% if has_ipscs %}
+    <li class='{% selectedTag request "^/db/datasets/\d+/ipscs$" %}'><a  href="{% url dataset_detail_ipscs   facility_id=facilityId%}">IPSCs&nbsp;Studied</a></li>
+{% endif %}
 {% if has_diff_cells %}
     <li class='{% selectedTag request "^/db/datasets/\d+/diffcells$" %}'><a  href="{% url dataset_detail_diff_cells   facility_id=facilityId%}">Differentiated&nbsp;Cells&nbsp;Studied</a></li>
 {% endif %}

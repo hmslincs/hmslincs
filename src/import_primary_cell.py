@@ -17,6 +17,7 @@ __version__ = "$Revision: 24d02504e664 $"
 
 import setparams as _sg
 from import_utils import convertdata
+from django.core.exceptions import ObjectDoesNotExist
 _params = dict(
     VERBOSE = False,
     APPNAME = 'db',
