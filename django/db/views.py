@@ -448,7 +448,7 @@ def ipscIndex(request):
         return send_to_file(
             outputType, 'ipscs', queryset, col_key_name_map)
         
-    return render_list_index(request, table,search,'IPSC','IPSCs',
+    return render_list_index(request, table,search,'iPSC','iPSCs',
         **{ 'extra_form': form, 'search_label': search_label })
 
 def ipscDetail(request, facility_batch, batch_id=None):
@@ -467,7 +467,7 @@ def ipscDetail(request, facility_batch, batch_id=None):
         if(cell.is_restricted and not request.user.is_authenticated()):
             return HttpResponse('Log in required.', status=401)
         details = {'object': get_detail(cell, ['ipsc',''])}
-        details['type_title'] = 'IPSC'
+        details['type_title'] = 'iPSC'
         
         if cell.precursor:
             details['object']['precursor_cell_name']['value'] = \
@@ -618,7 +618,7 @@ def diffCellDetail(request, facility_batch, batch_id=None):
                 'HMSL%s-%s: %s' % (cell.precursor.reagent.facility_id, 
                     cell.precursor.batch_id, cell.precursor.reagent.name)
             details['object']['precursor_cell_name']['link'] = (
-                '/db/primarycells/%s-%s#batchinfo' 
+                '/db/ipscs/%s-%s#batchinfo' 
                 % (cell.precursor.reagent.facility_id,cell.precursor.batch_id) )
 
         details['facility_id'] = cell.facility_id
@@ -1444,7 +1444,7 @@ def datasetDetailIpscs(request, facility_id):
             raise Http404
     try:
         details = datasetDetail2(request,facility_id, 'ipscs')
-        details.setdefault('heading', 'IPSCs Studied')
+        details.setdefault('heading', 'iPSCs Studied')
         return render(request,'db/datasetDetailRelated.html', details)
     except Http401, e:
         return HttpResponse('Unauthorized', status=401)
@@ -1915,7 +1915,7 @@ class TypeColumn(tables.Column):
         if value == "cell_detail": return "Cell Line"
         elif value == "primary_cell_detail": return "Primary Cell"
         elif value == "diff_cell_detail": return "Differentiated Cell"
-        elif value == "ipsc_detail": return "IPSC"
+        elif value == "ipsc_detail": return "iPSC"
         elif value == "sm_detail": return "Small Molecule"
         elif value == "dataset_detail": return "Dataset"
         elif value == "protein_detail": return "Protein"
@@ -3852,8 +3852,8 @@ def datasetDetail2(request, facility_id, sub_page):
             queryset = dataset.ipscs.all()
             queryset = queryset.order_by('reagent__facility_id','batch_id')
             table = IpscBatchDatasetTable(queryset)
-            setattr(table.data,'verbose_name_plural','IPSCs')
-            setattr(table.data,'verbose_name','IPSCs')
+            setattr(table.data,'verbose_name_plural','iPSCs')
+            setattr(table.data,'verbose_name','iPSC')
             details['table'] = table
             RequestConfig(
                 request, paginate={"per_page": items_per_page}).configure(table)
@@ -3862,8 +3862,8 @@ def datasetDetail2(request, facility_id, sub_page):
             queryset = dataset.diff_cells.all()
             queryset = queryset.order_by('reagent__facility_id','batch_id')
             table = DiffCellBatchDatasetTable(queryset)
-            setattr(table.data,'verbose_name_plural','Diff Cells')
-            setattr(table.data,'verbose_name','Diff Cells')
+            setattr(table.data,'verbose_name_plural','Differentiated Cells')
+            setattr(table.data,'verbose_name','Differentiated Cell')
             details['table'] = table
             RequestConfig(
                 request, paginate={"per_page": items_per_page}).configure(table)

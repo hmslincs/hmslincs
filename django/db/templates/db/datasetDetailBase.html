@@ -10,7 +10,7 @@
 	<ul class="basictab">
 		<li class='{% selectedTag request "^/db/datasets/\d+/main$"%}{%selectedTag request "^/db/datasets/\d+/$" %}'><a  href="{% url dataset_detail_main facility_id=facilityId%}">Detail</a></li>
 {% if has_rnaseq %}
-    <li class='{% selectedTag request "^/db/datasets/\d+/rnaseq$" %}'><a  href="{% url dataset_detail_rnaseq  facility_id=facilityId%}">RNASeq</a></li>
+    <li class='{% selectedTag request "^/db/datasets/\d+/rnaseq$" %}'><a  href="{% url dataset_detail_rnaseq  facility_id=facilityId%}">RNASeq&nbsp;Exp't&nbsp;Desc</a></li>
 {% endif %}
 {% if has_small_molecules %}
 		<li class='{% selectedTag request "^/db/datasets/\d+/smallmolecules$" %}'><a  href="{% url dataset_detail_small_molecules   facility_id=facilityId%}">Small&nbsp;Molecules&nbsp;Studied</a></li>
@@ -22,7 +22,7 @@
     <li class='{% selectedTag request "^/db/datasets/\d+/primarycells$" %}'><a  href="{% url dataset_detail_primary_cells   facility_id=facilityId%}">Primary&nbsp;Cells&nbsp;Studied</a></li>
 {% endif %}
 {% if has_ipscs %}
-    <li class='{% selectedTag request "^/db/datasets/\d+/ipscs$" %}'><a  href="{% url dataset_detail_ipscs   facility_id=facilityId%}">IPSCs&nbsp;Studied</a></li>
+    <li class='{% selectedTag request "^/db/datasets/\d+/ipscs$" %}'><a  href="{% url dataset_detail_ipscs   facility_id=facilityId%}">iPSCs&nbsp;Studied</a></li>
 {% endif %}
 {% if has_diff_cells %}
     <li class='{% selectedTag request "^/db/datasets/\d+/diffcells$" %}'><a  href="{% url dataset_detail_diff_cells   facility_id=facilityId%}">Differentiated&nbsp;Cells&nbsp;Studied</a></li>
