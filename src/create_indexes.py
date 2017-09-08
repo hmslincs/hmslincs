@@ -3,7 +3,8 @@ import sys
 import init_utils as iu
 
 from db.models import Cell, DataSet, SmallMolecule, Library, Protein, FieldInformation,\
-    Antibody, OtherReagent, Reagent,ReagentBatch, PrimaryCell
+    Antibody, OtherReagent, Reagent,ReagentBatch, PrimaryCell, Ipsc, Unclassified,\
+    DiffCell
 from django.db import models
 
 # ---------------------------------------------------------------------------
@@ -23,12 +24,15 @@ def main():
     createTableIndex('db_reagentbatch', ReagentBatch)
     createTableIndex('db_cell', Cell)
     createTableIndex('db_primarycell', PrimaryCell)
+    createTableIndex('db_diffcell', DiffCell)
+    createTableIndex('db_ipsc', Ipsc)
     createTableIndex('db_smallmolecule', SmallMolecule)
     createTableIndex('db_dataset', DataSet)
     createTableIndex('db_library', Library)
     createTableIndex('db_protein', Protein)
     createTableIndex('db_antibody', Antibody)
     createTableIndex('db_otherreagent', OtherReagent)
+    createTableIndex('db_unclassified', Unclassified)
 
 def ignore_errors(yn):
     print '\\%s ON_ERROR_STOP' % ('unset' if yn else 'set')

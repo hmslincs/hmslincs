@@ -19,7 +19,8 @@ from tastypie.utils.urls import trailing_slash
 from db.models import SmallMolecule, SmallMoleculeBatch, Cell,\
     CellBatch, PrimaryCell, PrimaryCellBatch, DiffCell, DiffCellBatch,\
     Ipsc, IpscBatch, Protein, ProteinBatch, Antibody, AntibodyBatch,\
-    OtherReagent, OtherReagentBatch, Library, DataSet, DataRecord, DataColumn,\
+    OtherReagent, OtherReagentBatch, Unclassified, UnclassifiedBatch,\
+    Library, DataSet, DataRecord, DataColumn,\
     FieldInformation, get_detail_bundle, get_fieldinformation,\
     get_schema_fieldinformation,camel_case_dwg, get_listing,\
     get_detail_schema, get_detail
@@ -330,6 +331,50 @@ class AntibodyResource(ModelResource):
                 self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
         ]
     
+class UnclassifiedPerturbagenResource(ModelResource):
+    
+    class Meta:
+        queryset = Unclassified.objects.all().order_by('facility_id')
+        allowed_methods = ['get']
+        excludes = []
+        filtering = {
+            'date_loaded':ALL, 
+            'date_publicly_available':ALL, 
+            'date_data_received':ALL }
+        
+    def dehydrate(self, bundle):
+        def _filter(field_information):
+            return (not bundle.obj.is_restricted 
+                    or field_information.is_unrestricted )
+
+        bundle.data = get_detail_bundle(
+            bundle.obj, ['unclassified',''], _filter=_filter)
+
+        batches = ( 
+            UnclassifiedBatch.objects.filter(reagent=bundle.obj)
+                .exclude(batch_id=0).order_by('batch_id') )
+        bundle.data['batches'] = []
+        for batch in batches:
+            bundle.data['batches'].append(
+                get_detail_bundle(
+                    batch, ['unclassifiedbatch',''], _filter=_filter))
+        return bundle
+
+    def build_schema(self):
+        schema = super(UnclassifiedPerturbagenResource,self).build_schema()
+        schema['fields'] = get_detail_schema(
+            Unclassified(),['unclassified',''])
+        schema['batch_fields'] = get_detail_schema(
+            UnclassifiedBatch(),['unclassifiedbatch',''])
+        return schema 
+    
+    def prepend_urls(self):
+        return [
+            url(r"^(?P<resource_name>%s)/(?P<facility_id>\d+)/$" 
+                    % self._meta.resource_name, 
+                self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
+        ]
+    
 class OtherReagentResource(ModelResource):
     
     class Meta:
@@ -588,6 +633,10 @@ class DataSetResource2(ModelResource):
                 x.facility_batch for x in 
                     bundle.obj.other_reagents.all().order_by(
                         'reagent__facility_id', 'batch_id')],
+            'unclassified_perturbagens': [
+                x.facility_batch for x in 
+                    bundle.obj.unclassified_perturbagens.all().order_by(
+                        'reagent__facility_id', 'batch_id')],
             'primary_cells': [
                 x.facility_batch for x in 
                     bundle.obj.primary_cells.all().order_by(
@@ -698,11 +747,17 @@ class DataSetDataResource2(Resource):
             "arLincsID",
             "arCenterBatchID",
             ],
-        'otherreagent': [
+        'other_reagent': [
             "orName",
             "orCenterCanonicalID",
             "orLincsID",
             "orCenterBatchID",
+            ],
+        'unclassified': [
+            "upName",
+            "upCenterCanonicalID",
+            "upLincsID",
+            "upCenterBatchID",
             ]
         }
 
@@ -750,7 +805,7 @@ class DataSetDataResource2(Resource):
         reagent_columns = ( DataColumn.objects.filter(dataset_id=dataset_id)
             .filter(data_type__in=[
                 'small_molecule','cell','primary_cell','diff_cell', 'ipsc', 
-                'protein', 'antibody','otherreagent'])
+                'protein', 'antibody','other_reagent','unclassified'])
             .order_by('display_order') )
         
         dc_ids_to_exclude = [dc.id for dc in timepoint_columns]
@@ -843,8 +898,8 @@ class DataSetDataResource2(Resource):
             )
         
         prefixes = { 'small_molecule': 'sm', 'protein': 'pp', 'antibody': 'ab',
-            'otherreagent': 'or', 'cell': 'cl', 'primary_cell': 'pc',
-            'ipsc':'ip', 'diff_cell': 'dc'}
+            'other_reagent': 'or', 'unclassified': 'up', 'cell': 'cl', 
+            'primary_cell': 'pc', 'ipsc':'ip', 'diff_cell': 'dc'}
         for dc in reagent_columns:
             prefix = prefixes[dc.data_type]
             if dc.data_type == 'small_molecule':
@@ -974,7 +1029,7 @@ class DataSetDataResource2(Resource):
                         
             elif dc.data_type in [
                 'small_molecule','cell','primary_cell', 'diff_cell', 'ipsc', 
-                'protein','antibody', 'otherreagent']:
+                'protein','antibody', 'other_reagent','unclassified']:
                 for colname in DataSetDataResource2.datapoint_cols[dc.data_type]:
                     base_cols.append('%s_%s' % (name,colname))
         
@@ -986,7 +1041,7 @@ class DataSetDataResource2(Resource):
         data_columns = ( DataColumn.objects.filter(dataset_id=dataset_id)
             .exclude(data_type__in=[
                 'small_molecule','cell','primary_cell', 'diff_cell', 'ipsc', 
-                'protein','antibody','otherreagent','omero_image'])
+                'protein','antibody','other_reagent','unclassified', 'omero_image'])
             .exclude(unit__in=['day','hour','minute','second'])
             .order_by('display_order') )
         
@@ -1010,9 +1065,10 @@ class DataSetDataResource2(Resource):
         col_field_info = {}
         table_or_query = [
                 'smallmolecule','protein','cell','primarycell','diffcell',
-                'ipsc', 'antibody','otherreagent', 'smallmoleculebatch',
-                'proteinbatch','cellbatch','primarycellbatch', 'ipscbatch', 
-                'diffcellbatch','antibodybatch','otherreagentbatch']
+                'ipsc', 'antibody','otherreagent', 'unclassified', 
+                'smallmoleculebatch','proteinbatch','cellbatch',
+                'primarycellbatch', 'ipscbatch', 'diffcellbatch',
+                'antibodybatch','otherreagentbatch','unclassifiedbatch']
         for fi in FieldInformation.objects.all().filter(
             Q(table__in=table_or_query) | Q(queryset__in=table_or_query)):
             col_field_info[fi.get_camel_case_dwg_name()] = {
@@ -1023,7 +1079,7 @@ class DataSetDataResource2(Resource):
         data_columns = ( DataColumn.objects.filter(dataset_id=dataset_id)
             .filter(data_type__in=[
                 'small_molecule','cell','primary_cell','diff_cell', 'ipsc',
-                'protein','antibody','otherreagent'])
+                'protein','antibody','other_reagent','unclassified'])
             .order_by('display_order') )
         reagent_fields = OrderedDict()
         meta_field_info = get_listing(DataColumn(),['datacolumn'])

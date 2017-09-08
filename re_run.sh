@@ -222,6 +222,14 @@ then
   python src/import_other_reagent_batch.py -f sampledata/sample_other_reagent_batches.xlsx
   check_errs $? 'import other reagent batches fails'
 
+  echo 'import unclassified perturbagen tables...'
+  python src/import_unclassified_perturbagen.py -f sampledata/sample_unclassified_perturbagens.xlsx
+  check_errs $? 'import unclassified perturbagens fails'
+  
+  echo 'import unclassified perturbagen batches...'
+  python src/import_unclassified_perturbagen_batch.py -f sampledata/sample_unclassified_perturbagen_batches.xlsx
+  check_errs $? 'import unclassified perturbagens batches fails'
+
   echo 'import test_dataset...'
   python src/import_dataset2.py -f sampledata/test_dataset.xls 
   check_errs $? "import dataset fails"

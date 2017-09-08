@@ -973,6 +973,21 @@ class OtherReagentBatch(ReagentBatch):
     def __unicode__(self):
         return ReagentBatch.__unicode__(self)
     
+class Unclassified(Reagent):
+
+    relevant_citations = _TEXT(**_NULLOKSTR) 
+    information_source = _TEXT(**_NULLOKSTR)
+    information_source_id = _TEXT(**_NULLOKSTR) 
+
+    @classmethod
+    def get_snippet_def(cls):
+        return FieldInformation.manager.get_snippet_def(cls)
+
+class UnclassifiedBatch(ReagentBatch):
+    
+    def __unicode__(self):
+        return ReagentBatch.__unicode__(self)
+    
 class DataSet(models.Model):
     facility_id = _TEXT(unique=True, **_NOTNULLSTR)
     title = _TEXT(unique=True, **_NOTNULLSTR)
@@ -1005,6 +1020,7 @@ class DataSet(models.Model):
     antibodies = models.ManyToManyField('AntibodyBatch')
     proteins = models.ManyToManyField('ProteinBatch')
     other_reagents = models.ManyToManyField('OtherReagentBatch')
+    unclassified_perturbagens = models.ManyToManyField('UnclassifiedBatch')
     
     @property
     def lead_screener(self):

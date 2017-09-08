@@ -48,7 +48,7 @@ from db.models import PubchemRequest, SmallMolecule, SmallMoleculeBatch, Cell, \
     PrimaryCell, PrimaryCellBatch, QCEvent, \
     QCAttachedFile, AntibodyBatch, Reagent, ReagentBatch, get_listing,\
     ProteinBatch, OtherReagentBatch, DiffCell, DiffCellBatch,\
-    Ipsc, IpscBatch
+    Ipsc, IpscBatch, Unclassified, UnclassifiedBatch
 from django_tables2.utils import AttributeDict
 from tempfile import SpooledTemporaryFile
 
@@ -862,6 +862,94 @@ def antibodyDetail(request, facility_batch, batch_id=None):
     except Antibody.DoesNotExist:
         raise Http404
      
+def unclassifiedIndex(request):
+    search = request.GET.get('search','')
+    search = re.sub(r'[\'"]','',search)
+    
+    if(search != ''):
+        queryset = UnclassifiedSearchManager().search(
+            search, is_authenticated = request.user.is_authenticated())
+    else:
+        queryset = Unclassified.objects.order_by('facility_id')
+        if not request.user.is_authenticated(): 
+            queryset = queryset.exclude(is_restricted=True)
+    
+    table = UnclassifiedTable(queryset)
+    outputType = request.GET.get('output_type','')
+    if(outputType != ''):
+        col_key_name_map = get_table_col_key_name_map(
+            table,fieldinformation_tables=['unclassified',''],)
+        return send_to_file(
+            outputType, 'unclassified_perturbagens', queryset, col_key_name_map)
+        
+    RequestConfig(request, paginate={"per_page": 25}).configure(table)
+    return render_list_index(request, table,search,'Unclassified Perturbagen',
+        'Unclassified Perturbagens')
+    
+def unclassifiedDetail(request, facility_batch, batch_id=None):
+    try:
+        _batch_id = None
+        if not batch_id:
+            temp = facility_batch.split('-') 
+            logger.info('find unclassified perturbagen for %s' % temp)
+            _facility_id = temp[0]
+            if len(temp) > 1:
+                _batch_id = temp[1]
+        else:
+            _facility_id = facility_batch
+            _batch_id = batch_id        
+        
+        up = Unclassified.objects.get(facility_id=_facility_id) 
+        if(up.is_restricted and not request.user.is_authenticated()):
+            return HttpResponse('Log in required.', status=401)
+        details = {'object': get_detail(up, ['unclassified',''])}
+        
+        details['facility_id'] = up.facility_id
+        up_batch = None
+        if(_batch_id):
+            up_batch = UnclassifiedBatch.objects.get(
+                reagent=up,batch_id=_batch_id) 
+
+        if not up_batch:
+            batches = ( UnclassifiedBatch.objects
+                .filter(reagent=up, batch_id__gt=0)
+                .order_by('batch_id') )
+            if batches.exists():
+                details['batchTable']=UnclassifiedBatchTable(batches)
+        else:
+            details['unclassified_batch']= get_detail(
+                up_batch,['unclassifiedbatch',''])
+            details['facility_batch'] = ( '%s-%s' 
+                % (up.facility_id,up_batch.batch_id) ) 
+
+            qcEvents = QCEvent.objects.filter(
+                facility_id_for=up.facility_id,
+                batch_id_for=up_batch.batch_id).order_by('-date')
+            if qcEvents:
+                details['qcTable'] = QCEventTable(qcEvents)
+            
+            if(not up.is_restricted or request.user.is_authenticated()):
+                attachedFiles = get_attached_files(
+                    up.facility_id,batch_id=up_batch.batch_id)
+                if(len(attachedFiles)>0):
+                    details['attached_files_batch'] = AttachedFileTable(attachedFiles)        
+                
+        datasets = DataSet.objects.filter(
+            unclassified_perturbagens__reagent=up).distinct()
+        if(datasets.exists()):
+            where = []
+            if(not request.user.is_authenticated()): 
+                where.append("(not is_restricted or is_restricted is NULL)")
+            queryset = datasets.extra(
+                    where=where,
+                    order_by=('facility_id',))        
+            details['datasets'] = DataSetTable(queryset)
+
+        return render(request, 'db/unclassifiedDetail.html', details)
+    except Unclassified.DoesNotExist:
+        raise Http404
+
+
 def otherReagentIndex(request):
     search = request.GET.get('search','')
     search = re.sub(r'[\'"]','',search)
@@ -1537,6 +1625,37 @@ def datasetDetailAntibodies(request, facility_id):
     except Http401, e:
         return HttpResponse('Unauthorized', status=401)
           
+def datasetDetailUnclassified(request, facility_id):
+    outputType = request.GET.get('output_type','')
+    if(outputType != ''):
+        try:
+            dataset = DataSet.objects.get(facility_id=facility_id)
+            if(dataset.is_restricted and not request.user.is_authenticated()):
+                raise Http401
+            queryset = dataset.unclassified_perturbagens.all()
+            # create a combination dict of canonical and batch
+            def make_up(batch):
+                d = model_to_dict(batch)
+                d.update(model_to_dict(batch.reagent.unclassified))
+                d['facility_batch'] = batch.facility_batch
+                return d
+            queryset = [make_up(batch) for batch in queryset]
+            col_key_name_map = get_col_key_mapping(
+                queryset[0].keys(),
+                fieldinformation_tables=['unclassified','unclassifiedbatch',''],
+                sequence_override=['facility_batch'])
+            return send_to_file(
+                outputType, 'unclassified_perturbagens_for_'+ str(facility_id), 
+                queryset, col_key_name_map )
+        except DataSet.DoesNotExist:
+            raise Http404
+    try:
+        details = datasetDetail2(request,facility_id,'unclassified')
+        details.setdefault('heading', 'Unclassified Perturbagens Studied')
+        return render(request,'db/datasetDetailRelated.html', details)
+    except Http401, e:
+        return HttpResponse('Unauthorized', status=401)
+    
 def datasetDetailOtherReagents(request, facility_id):
     outputType = request.GET.get('output_type','')
     if(outputType != ''):
@@ -1921,6 +2040,7 @@ class TypeColumn(tables.Column):
         elif value == "protein_detail": return "Protein"
         elif value == "antibody_detail": return "Antibody"
         elif value == "otherreagent_detail": return "Other Reagent"
+        elif value == "unclassified_detail": return "Unclassified Perturbagen"
         else: raise Exception("Unknown type: "+value)
 
 class DivWrappedColumn(tables.Column):
@@ -2235,6 +2355,20 @@ class OtherReagentBatchTable(PagedTable):
             self, ['otherreagent','otherreagentbatch',''],
             sequence_override=['facility_batch'])  
 
+class UnclassifiedBatchTable(PagedTable):
+    facility_batch = BatchInfoLinkColumn("unclassified_detail", args=[A('facility_batch')])
+    
+    class Meta:
+        model = UnclassifiedBatch
+        orderable = True
+        attrs = {'class': 'paleblue'}
+
+    def __init__(self, table, *args, **kwargs):
+        super(UnclassifiedBatchTable, self).__init__(table, *args, **kwargs)
+        set_table_column_info(
+            self, ['unclassified','unclassifiedbatch',''],
+            sequence_override=['facility_batch'])  
+
 class SaltTable(PagedTable):
     
     facility_id = tables.LinkColumn("salt_detail", args=[A('facility_id')])
@@ -2489,6 +2623,31 @@ class OtherReagentBatchDatasetTable(PagedTable):
             sequence_override=['facility_id'],
             visible_field_overrides=['name'])  
 
+class UnclassifiedBatchDatasetTable(PagedTable):
+    facility_id = BatchOrCanonicalLinkColumn(
+        "unclassified_detail", accessor=A('reagent.facility_id'))
+    name = tables.Column(accessor=A('reagent.name'))
+    lincs_id = tables.Column(accessor=A('reagent.lincs_id'))
+    alternative_id = DivWrappedColumn(
+        accessor=A('reagent.alternative_id'),
+        classname='constrained_width_column')
+    alternative_names = DivWrappedColumn(
+        accessor=A('reagent.alternative_names'),
+        classname='constrained_width_column')
+
+    class Meta:
+        model = OtherReagentBatch
+        orderable = True
+        attrs = {'class': 'paleblue'}
+        exclude = ('provider_name','provider_catalog_id','provider_batch_id')
+        
+    def __init__(self, table, *args, **kwargs):
+        super(UnclassifiedBatchDatasetTable, self).__init__(table, *args, **kwargs)
+        set_table_column_info(
+            self, ['unclassified','unclassifiedbatch',''],
+            sequence_override=['facility_id'],
+            visible_field_overrides=['name'])  
+
 class SmallMoleculeBatchDatasetTable(PagedTable):
     facility_id = BatchOrCanonicalLinkColumn(
         "sm_detail", accessor=A('reagent.facility_id')) 
@@ -2669,6 +2828,23 @@ class OtherReagentTable(PagedTable):
         set_table_column_info(
             self, ['otherreagent',''],sequence_override=['facility_id'])  
                 
+class UnclassifiedTable(PagedTable):
+    facility_id = tables.LinkColumn("unclassified_detail", args=[A('facility_id')])
+    rank = tables.Column()
+    snippet = DivWrappedColumn(verbose_name='matched text', classname='snippet')
+    alternative_id = DivWrappedColumn(classname='constrained_width_column')
+    alternative_names = DivWrappedColumn(classname='constrained_width_column')
+
+    class Meta:
+        model = Unclassified
+        orderable = True
+        attrs = {'class': 'paleblue'}
+    
+    def __init__(self, table):
+        super(UnclassifiedTable, self).__init__(table)
+        set_table_column_info(
+            self, ['unclassified',''],sequence_override=['facility_id'])  
+                
 class LibrarySearchManager(models.Manager):
     
     def search(self, query_string, is_authenticated=False):
@@ -2759,7 +2935,7 @@ class SearchManager(models.Manager):
                 }
         if tablename in ['db_smallmolecule','db_cell','db_primarycell',
             'db_diffcell','db_ipsc','db_antibody','db_protein',
-            'db_otherreagent']:
+            'db_otherreagent','db_unclassified']:
             criteria += ' or db_reagent.search_vector @@ to_tsquery(%s)'
             extra_select['snippet'] += (
                 ' || ts_headline(' + Reagent.get_snippet_def() 
@@ -2798,7 +2974,7 @@ class SearchManager(models.Manager):
         if ids:
             if tablename in ['db_smallmolecule','db_cell','db_primarycell',
                 'db_diffcell','db_ipsc','db_antibody','db_protein',
-                'db_otherreagent']:
+                'db_otherreagent', 'db_unclassified']:
                 criteria += ' or reagent_ptr_id = ANY(%s)'.format(tablename=tablename)
             else:
                 criteria += ' or {tablename}.id = ANY(%s)'.format(tablename=tablename)
@@ -3216,6 +3392,35 @@ class OtherReagentSearchManager(SearchManager):
             })
         return queryset
 
+class UnclassifiedSearchManager(SearchManager):
+    
+    def search(self, searchString, is_authenticated=False):
+
+        id_fields = []
+        return super(UnclassifiedSearchManager, self).search(
+            Unclassified.objects.all(), 'db_unclassified', searchString, id_fields, 
+            Unclassified.get_snippet_def())        
+
+    def join_query_to_dataset_type(self, queryset, dataset_type=None ):
+        if dataset_type:
+            ids = (DataSet.objects
+                .filter(dataset_type=str(dataset_type))
+                .values_list('unclassified_perturbagens__reagent__id', flat=True)
+                .distinct('unclassified_perturbagens__reagent__id') )
+            queryset = queryset.filter(id__in=ids)
+        queryset = queryset.extra(select={
+            'dataset_types' : (
+                "(select array_to_string(array_agg(distinct (ds.dataset_type)),', ')"
+                "     from db_dataset ds "
+                " join {join_table} on(ds.id={join_table}.dataset_id) " 
+                " join db_reagentbatch rb on(rb.id={join_table}.{specific_batch_id} ) "
+                " where rb.reagent_id={specific_reagent_table}.reagent_ptr_id)" ) 
+                    .format(join_table='db_dataset_unclassified_perturbagens',
+                            specific_batch_id='unclassifiedbatch_id',
+                            specific_reagent_table='db_unclassified')
+            })
+        return queryset
+
 
 class SiteSearchTable(PagedTable):
     id = tables.Column(visible=False)
@@ -3463,7 +3668,7 @@ def get_cursor_col_key_name_map(cursor, fieldinformation_tables=None,
             for dc in ordered_datacolumns:
                 if ( dc.data_type in 
                     ['small_molecule', 'cell','primary_cell','protein',
-                        'antibody','other_reagent']):
+                        'antibody','other_reagent','unclassified']):
                     if dc.name == col.name:
                         found = True
                         header_row[i] = dc.display_name + ' HMS LINCS ID'
@@ -3804,6 +4009,7 @@ def datasetDetail2(request, facility_id, sub_page):
                 'has_proteins':dataset.proteins.exists(),
                 'has_antibodies':dataset.antibodies.exists(),
                 'has_otherreagents':dataset.other_reagents.exists(),
+                'has_unclassified': dataset.unclassified_perturbagens.exists(),
                 'has_datacolumns': dataset.datacolumn_set.exists(), 
                 'has_rnaseq': dataset.properties.filter(type='RNASEQ').exists() }
 
@@ -3898,6 +4104,16 @@ def datasetDetail2(request, facility_id, sub_page):
             details['table'] = table
             RequestConfig(
                 request, paginate={"per_page": items_per_page}).configure(table)
+    elif (sub_page == 'unclassified'):
+        if dataset.unclassified_perturbagens.exists():
+            queryset = dataset.unclassified_perturbagens.all()
+            queryset = queryset.order_by('reagent__facility_id','batch_id')
+            table = UnclassifiedBatchDatasetTable(queryset)
+            setattr(table.data,'verbose_name_plural','Unclassified Perturbagens')
+            setattr(table.data,'verbose_name','Unclassified Perturbagen')
+            details['table'] = table
+            RequestConfig(
+                request, paginate={"per_page": items_per_page}).configure(table)
     elif (sub_page == 'small_molecules'):
         if dataset.small_molecules.exists():
             queryset = dataset.small_molecules.all()
@@ -3972,7 +4188,8 @@ class DataSetResultTable2(PagedTable):
         ordered_names = []
         for dc in ordered_datacolumns:
             if dc.data_type in ['small_molecule', 'cell','primary_cell',
-                'diff_cell','ipsc','protein','antibody','other_reagent']:
+                'diff_cell','ipsc','protein','antibody','other_reagent',
+                'unclassified']:
                 ordered_names.append(dc.name + "_name")
             else:
                 ordered_names.append(dc.name)
@@ -4019,6 +4236,10 @@ class DataSetResultTable2(PagedTable):
             elif dc.data_type.lower() == 'other_reagent':
                 key_col = col+'_name'
                 self.base_columns[key_col] = tables.LinkColumn('otherreagent_detail',
+                    args=[A(col)], verbose_name=display_name) 
+            elif dc.data_type.lower() == 'unclassified':
+                key_col = col+'_name'
+                self.base_columns[key_col] = tables.LinkColumn('unclassified_detail',
                     args=[A(col)], verbose_name=display_name) 
             else:
                 logger.info('create base col %r' % col)
@@ -4136,6 +4357,15 @@ class DataSetManager2():
                 key=lambda x: x.facility_id)
             entity_id_name_map['other reagents'] = { 
                 'id_field': 'otherreagent_id', 
+                'choices': [(reagent.facility_id, 
+                    '%s:%s' % (reagent.facility_id,reagent.name))
+                    for reagent in items  ] }
+        if self.dataset.unclassified_perturbagens.exists():
+            items = sorted(set(item.reagent 
+                for item in self.dataset.unclassified_perturbagens.all()),
+                key=lambda x: x.facility_id)
+            entity_id_name_map['unclassified'] = { 
+                'id_field': 'unclassified_id', 
                 'choices': [(reagent.facility_id, 
                     '%s:%s' % (reagent.facility_id,reagent.name))
                     for reagent in items  ] }
@@ -4268,7 +4498,8 @@ class DataSetManager2():
                     column_to_select=column_to_select, alias=alias,
                     column_name=column_name,dc_id=dc.id )
             elif dc.data_type in ['small_molecule','cell','primary_cell',
-                'diff_cell','ipsc','protein','antibody','other_reagent']:
+                'diff_cell','ipsc','protein','antibody','other_reagent',
+                'unclassified']:
                 column_to_select = "text_value"
                 reagent_key_columns.append(column_name)
                 query_string += col_query_string.format( 
@@ -4385,7 +4616,7 @@ WHERE search_vector @@ {query_number}
             snippet_def=PrimaryCell.get_snippet_def(),
             detail_type='primary_cell_detail',
             table_name='db_primarycell',
-            query_number='query7')
+            query_number='query2')
         if(not is_authenticated): 
             sql += RESTRICTION_SQL        
         sql += " UNION "
@@ -4395,7 +4626,7 @@ WHERE search_vector @@ {query_number}
             snippet_def=Ipsc.get_snippet_def(),
             detail_type='ipsc_detail',
             table_name='db_ipsc',
-            query_number='query7a')
+            query_number='query3')
         if(not is_authenticated): 
             sql += RESTRICTION_SQL        
         sql += " UNION "
@@ -4405,7 +4636,7 @@ WHERE search_vector @@ {query_number}
             snippet_def=DiffCell.get_snippet_def(),
             detail_type='diff_cell_detail',
             table_name='db_diffcell',
-            query_number='query7b')
+            query_number='query4')
         if(not is_authenticated): 
             sql += RESTRICTION_SQL        
         sql += " UNION "
@@ -4415,7 +4646,7 @@ WHERE search_vector @@ {query_number}
             snippet_def=SmallMolecule.get_snippet_def(),
             detail_type='sm_detail',
             table_name='db_smallmolecule',
-            query_number='query2')
+            query_number='query5')
         if(not is_authenticated): 
             sql += RESTRICTION_SQL
         sql += " UNION "
@@ -4424,7 +4655,7 @@ WHERE search_vector @@ {query_number}
             snippet_def=DataSet.get_snippet_def(),
             detail_type='dataset_detail',
             table_name='db_dataset',
-            query_number='query3')
+            query_number='query6')
         if(not is_authenticated): 
             sql += RESTRICTION_SQL
         sql += " UNION "
@@ -4434,7 +4665,7 @@ WHERE search_vector @@ {query_number}
             snippet_def=Protein.get_snippet_def(),
             detail_type='protein_detail',
             table_name='db_protein',
-            query_number='query4')
+            query_number='query7')
         if(not is_authenticated): 
             sql += RESTRICTION_SQL
         sql += " UNION "
@@ -4444,7 +4675,7 @@ WHERE search_vector @@ {query_number}
             snippet_def=Antibody.get_snippet_def(),
             detail_type='antibody_detail',
             table_name='db_antibody',
-            query_number='query5')
+            query_number='query8')
         if(not is_authenticated): 
             sql += RESTRICTION_SQL
         sql += " UNION "
@@ -4454,7 +4685,17 @@ WHERE search_vector @@ {query_number}
             snippet_def=OtherReagent.get_snippet_def(),
             detail_type='otherreagent_detail',
             table_name='db_otherreagent',
-            query_number='query6')
+            query_number='query9')
+        if(not is_authenticated): 
+            sql += RESTRICTION_SQL
+        sql += " UNION "
+        sql += REAGENT_SEARCH_SQL.format(
+            key_id='facility_id',
+            reagent_snippet_def=Reagent.get_snippet_def(),
+            snippet_def=Unclassified.get_snippet_def(),
+            detail_type='unclassified_detail',
+            table_name='db_unclassified',
+            query_number='query10')
         if(not is_authenticated): 
             sql += RESTRICTION_SQL
         sql += " ORDER by type, rank DESC;"
@@ -4463,7 +4704,8 @@ WHERE search_vector @@ {query_number}
                        [queryStringProcessed,queryStringProcessed,
                         queryStringProcessed,queryStringProcessed,
                         queryStringProcessed,queryStringProcessed,
-                        queryStringProcessed])
+                        queryStringProcessed,queryStringProcessed,
+                        queryStringProcessed,queryStringProcessed])
         _data = dictfetchall(cursor)
 
         # perform (largely redundant) queries using the specific managers:
@@ -4510,5 +4752,8 @@ WHERE search_vector @@ {query_number}
         oqs = OtherReagentSearchManager().search(
             queryString, is_authenticated=is_authenticated)
         add_specific_search_matches(oqs,'otherreagent_detail')
+        ups = UnclassifiedSearchManager().search(
+            queryString, is_authenticated=is_authenticated)
+        add_specific_search_matches(ups,'unclassified_detail')
 
         return _data

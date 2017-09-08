@@ -15,7 +15,7 @@ from xlrd.book import colname
 from db.models import DataSet, DataColumn, DataRecord, DataPoint, \
         LibraryMapping, AntibodyBatch, OtherReagent, SmallMoleculeBatch, \
         OtherReagentBatch, ProteinBatch, CellBatch, PrimaryCellBatch, \
-        DiffCellBatch, IpscBatch, DatasetProperty, \
+        DiffCellBatch, IpscBatch, UnclassifiedBatch, DatasetProperty, \
         ReagentBatch, camel_case_dwg 
 
 
@@ -87,6 +87,14 @@ default_reagent_columns = {
         'data_type': 'other_reagent',
         'description': 'Other reagent',
         'comments': 'Other reagent'
+    },
+    'UnclassifiedPerturbagen': {
+        'display_order': 3,
+        'name': 'unclassifiedPerturbagen',
+        'display_name': 'Unclassified Perturbagen',
+        'data_type': 'unclassified',
+        'description': 'Unclassified Perturbagen',
+        'comments': 'Unclassified Perturbagen'
     }
 }
 
@@ -478,6 +486,9 @@ def read_explicit_reagents(book, dataset):
                 elif hasattr(rb, 'otherreagentbatch'):
                     logger.info('other_reagent reagent found: %r', rb)
                     dataset.other_reagents.add(rb.otherreagentbatch)
+                elif hasattr(rb, 'unclassifiedbatch'):
+                    logger.info('unclassified reagent found: %r', rb)
+                    dataset.unclassified_perturbagens.add(rb.unclassifiedbatch)
                 elif hasattr(rb, 'primarycellbatch'):
                     logger.info('primary cell reagent found: %r', rb)
                     dataset.primary_cells.add(rb.primarycellbatch)
@@ -617,6 +628,8 @@ def _create_datapoint(datacolumn, dataset, datarecord, value):
             _read_antibody(dataset, datapoint)
         elif datacolumn.data_type == 'other_reagent':
             _read_other_reagent(dataset, datapoint)
+        elif datacolumn.data_type == 'unclassified':
+            _read_unclassified(dataset, datapoint)
         elif datacolumn.data_type == 'cell':
             _read_cell_batch(dataset, datapoint)
         elif datacolumn.data_type == 'primary_cell':
@@ -699,6 +712,27 @@ def _read_other_reagent(dataset, datapoint):
         reagents_read_hash[text_value] = reagentbatch
     except Exception, e:
         logger.exception("Invalid Other Reagent identifier: %r:%r, raw val: %r",
+            facility_id,batch_id,text_value)
+        raise    
+
+def _read_unclassified(dataset, datapoint):
+
+    try:
+        (facility_id,batch_id,text_value) = (
+            _parse_reagent_batch(datapoint.text_value))
+        datapoint.text_value = text_value
+        if text_value in reagents_read_hash:
+            datapoint.reagent_batch = reagents_read_hash[text_value]
+            logger.debug('reagent already read: %r' % text_value)
+            return
+        reagentbatch = UnclassifiedBatch.objects.get(
+            reagent__facility_id=facility_id,
+            batch_id=batch_id) 
+        dataset.unclassified_perturbagens.add(reagentbatch)
+        datapoint.reagent_batch = reagentbatch
+        reagents_read_hash[text_value] = reagentbatch
+    except Exception, e:
+        logger.exception("Invalid Unclassified Perturbagen identifier: %r:%r, raw val: %r",
             facility_id,batch_id,text_value)
         raise    
 

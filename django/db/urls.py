@@ -9,6 +9,7 @@ from db.api import DiffCellResource
 from db.api import IpscResource
 from db.api import AntibodyResource
 from db.api import OtherReagentResource
+from db.api import UnclassifiedPerturbagenResource
 from db.api import DataSetResource2
 from db.api import DataSetDataResource2
 from db.api import ProteinResource
@@ -28,6 +29,7 @@ v1_api.register(ProteinResource())
 v1_api.register(LibraryResource())
 v1_api.register(AntibodyResource())
 v1_api.register(OtherReagentResource())
+v1_api.register(UnclassifiedPerturbagenResource())
 
 admin.autodiscover()
 
@@ -66,6 +68,11 @@ urlpatterns = patterns('',
         'db.views.otherReagentDetail', name="otherreagent_detail"),
     url(r'^otherreagents/(?P<facility_batch>\d+)-(?P<batch_id>\d+)/$', 
         'db.views.otherReagentDetail', name="otherreagent_detail2"),    
+    url(r'^unclassified/$','db.views.unclassifiedIndex', name="listUnclassifiedPerturbagens"),
+    url(r'^unclassified/(?P<facility_batch>[\d-]+)/$', 
+        'db.views.unclassifiedDetail', name="unclassified_detail"),
+    url(r'^unclassified/(?P<facility_batch>\d+)-(?P<batch_id>\d+)/$', 
+        'db.views.unclassifiedDetail', name="unclassified_detail2"),    
     url(r'^proteins/$','db.views.proteinIndex', name="listProteins"),
     url(r'^proteins/(?P<lincs_id>\d+)/$', 'db.views.proteinDetail', name="protein_detail"),
     url(r'^libraries/$','db.views.libraryIndex', name="listLibraries"),
@@ -79,6 +86,7 @@ urlpatterns = patterns('',
     url(r'^datasets/(?P<facility_id>\d+)/diffcells$', 'db.views.datasetDetailDiffCells', name="dataset_detail_diff_cells"),
     url(r'^datasets/(?P<facility_id>\d+)/antibodies$', 'db.views.datasetDetailAntibodies', name="dataset_detail_antibodies"),
     url(r'^datasets/(?P<facility_id>\d+)/otherreagents$', 'db.views.datasetDetailOtherReagents', name="dataset_detail_otherreagents"),
+    url(r'^datasets/(?P<facility_id>\d+)/unclassified$', 'db.views.datasetDetailUnclassified', name="dataset_detail_unclassified"),
     url(r'^datasets/(?P<facility_id>\d+)/proteins$', 'db.views.datasetDetailProteins', name="dataset_detail_proteins"),
     url(r'^datasets/(?P<facility_id>\d+)/smallmolecules$', 'db.views.datasetDetailSmallMolecules', name="dataset_detail_small_molecules"),
     url(r'^datasets/(?P<facility_id>\d+)/datapoints$', 'db.views.datasetDetailDataColumns', name="dataset_detail_datapoints"),
