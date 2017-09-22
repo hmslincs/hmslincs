@@ -155,7 +155,7 @@ def main(path):
     logger.info('dataset to save %s' % dataset)
     dataset.save()
     
-    read_dataset_properties(book, 'RNASeq', dataset)
+    read_dataset_properties(book, 'metadata', dataset)
     
     read_datacolumns_and_data(book, dataset)
     
@@ -165,25 +165,30 @@ def main(path):
 
 def read_dataset_properties(book, sheetname, dataset):
     
-    try:
-        sheet = book.sheet_by_name(sheetname)
-        properties = []
-        for i in xrange(sheet.nrows-1):
-            row = sheet.row_values(i+1)
-            
-            dsProperty = DatasetProperty.objects.create(
-                dataset=dataset,
-                type='RNASEQ',
-                name=row[0],
-                value=row[1], 
-                ordinal=i )
-            dsProperty.save()
-            logger.debug('created property %r', dsProperty)
-        logger.info('Sheet: %r rows read: %d', sheetname, len(properties))
-        return properties
-    except XLRDError, e:
-        logger.info('no %r sheet found', sheetname)
+    sheet = None
+    for name in book.sheet_names():
+        if name.lower() == sheetname.lower():
+            sheet = book.sheet_by_name(name)
+            break
+    if sheet is None:
+        logger.warn('No sheet found: %r', sheetname)
         return None
+    
+    properties = []
+    for i in xrange(sheet.nrows-1):
+        row = sheet.row_values(i+1)
+        name = row[0]
+        type = name.split('_')[0]
+        dsProperty = DatasetProperty.objects.create(
+            dataset=dataset,
+            type=type,
+            name=row[0],
+            value=row[1], 
+            ordinal=i )
+        dsProperty.save()
+        logger.debug('created property %r', dsProperty)
+    logger.info('Sheet: %r rows read: %d', sheetname, len(properties))
+    return properties
 
 def read_metadata(meta_sheet):
 

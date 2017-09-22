@@ -1759,33 +1759,30 @@ def datasetDetailDataColumns(request, facility_id):
     except Http401, e:
         return HttpResponse('Unauthorized', status=401)
 
-def datasetDetailRnaSeq(request, facility_id):
+def datasetDetailMetadata(request, facility_id):
     outputType = request.GET.get('output_type','')
     if(outputType != ''):
         try:
             dataset = DataSet.objects.get(facility_id=facility_id)
             if(dataset.is_restricted and not request.user.is_authenticated()):
                 raise Http401
-            queryset = dataset.properties.all().filter(
-                type='RNASEQ').order_by('ordinal')
+            queryset = dataset.properties.all().order_by('ordinal')
             output_data = []
             for prop in queryset:
                 output_data.append({
-                    'facility_id': dataset.facility_id,
                     'name': prop.name,
                     'value': prop.value })    
             col_key_name_map = {
-                'facility_id': 'facility_id',
                 'name': 'name',
                 'value': 'value'}
             return send_to_file(
-                outputType, 'rnaseq_data_for_'+ str(facility_id),
+                outputType, 'experimental_metadata_data_for_'+ str(facility_id),
                 output_data, col_key_name_map)
         except DataSet.DoesNotExist:
             raise Http404
     try:
-        details = datasetDetail2(request,facility_id,'rnaseq')
-        details.setdefault('heading', 'RNASeq')
+        details = datasetDetail2(request,facility_id,'metadata')
+        details.setdefault('heading', 'Experimental Metadata')
         return render(request,'db/datasetDetailProperties.html', details)
     except Http401, e:
         return HttpResponse('Unauthorized', status=401)
@@ -4011,7 +4008,7 @@ def datasetDetail2(request, facility_id, sub_page):
                 'has_otherreagents':dataset.other_reagents.exists(),
                 'has_unclassified': dataset.unclassified_perturbagens.exists(),
                 'has_datacolumns': dataset.datacolumn_set.exists(), 
-                'has_rnaseq': dataset.properties.filter(type='RNASEQ').exists() }
+                'has_metadata': dataset.properties.exists() }
 
     items_per_page = 25
     form = PaginationForm(request.GET)
@@ -4132,23 +4129,29 @@ def datasetDetail2(request, facility_id, sub_page):
         details['table'] = table
         RequestConfig(
             request, paginate={"per_page": items_per_page}).configure(table)
-    elif sub_page == 'rnaseq':
-        # Convert into the data structure for the detailListing template
-        properties = OrderedDict()
-        for property in (dataset.properties.all().filter(type='RNASEQ')
-                 .order_by('ordinal')):
+    elif sub_page == 'metadata':
+        propertyListing = OrderedDict()
+        for property in dataset.properties.all().order_by('ordinal'):
             _dict = {}
+            logger.info('property: %r, %r, %r',
+                property.type, property.name, property.value)
+            type = property.type
             name = property.name.replace('_',' ')
-            name = name.lower().replace('rnaseq','')
+            name = name.lower().replace(type.lower(),'')
             name = name.title()
             _dict['fieldinformation'] = { 
                 'get_column_detail': property.name,
                 'get_verbose_name': name 
             }
             _dict['value'] = property.value
+            if type in propertyListing:
+                properties = propertyListing[type]
+            else:
+                properties = OrderedDict()
+                propertyListing[type] = properties
             properties[property.name] = _dict
         
-        details['properties'] = properties
+        details['propertyListing'] = propertyListing
         
     elif sub_page != 'main':
         raise Exception(str(('Unknown sub_page for datasedetail', sub_page)))

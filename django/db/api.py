@@ -659,6 +659,12 @@ class DataSetResource2(ModelResource):
                         'reagent__facility_id', 'reagent__salt_id', 'batch_id')]
         }
         
+        if bundle.obj.properties.exists():
+            bundle.data['experimental_metadata'] = {
+                property.name:property.value for property
+                    in bundle.obj.properties.all().order_by('ordinal')
+                }
+        
         
         return bundle
     

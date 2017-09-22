@@ -9,8 +9,8 @@
         {% include "db/detailTitle.html" with name=object.title type="Dataset" id=object.facility_id %}
 	<ul class="basictab">
 		<li class='{% selectedTag request "^/db/datasets/\d+/main$"%}{%selectedTag request "^/db/datasets/\d+/$" %}'><a  href="{% url dataset_detail_main facility_id=facilityId%}">Detail</a></li>
-{% if has_rnaseq %}
-    <li class='{% selectedTag request "^/db/datasets/\d+/rnaseq$" %}'><a  href="{% url dataset_detail_rnaseq  facility_id=facilityId%}">RNASeq&nbsp;Exp't&nbsp;Desc</a></li>
+{% if has_metadata %}
+    <li class='{% selectedTag request "^/db/datasets/\d+/metadata$" %}'><a  href="{% url dataset_detail_metadata  facility_id=facilityId%}">Experimental&nbsp;Metadata</a></li>
 {% endif %}
 {% if has_small_molecules %}
 		<li class='{% selectedTag request "^/db/datasets/\d+/smallmolecules$" %}'><a  href="{% url dataset_detail_small_molecules   facility_id=facilityId%}">Small&nbsp;Molecules&nbsp;Studied</a></li>
