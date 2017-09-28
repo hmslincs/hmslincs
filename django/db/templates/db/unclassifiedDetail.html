@@ -5,7 +5,7 @@
 {% endblock %}
 
 {% block content %}
-{% include "db/detailTitle.html" with name=object.name type="Unclassified Pertubagen" id=object.facility_id %}
+{% include "db/detailTitle.html" with name=object.name type="Unclassified Perturbagen" id=object.facility_id %}
  {% include "db/detailListing.html" %}
   {% if datasets and not unclassified_batch %}
     {% load render_table from django_tables2 %}
