@@ -164,6 +164,24 @@ then
   python src/import_primary_cell.py -f sampledata/sample_primary_cells.xlsx --do_precursors
   check_errs $? "import primary cell precursors fails"
   
+  echo 'import ipsc cell tables ...'
+  python src/import_ipsc.py -f sampledata/sample_ipscs.xlsx
+  check_errs $? "import ipscs fails"
+  
+  echo 'import ipsc cell batch tables ...'
+  python src/import_ipsc_batch.py -f sampledata/sample_ipsc_batches.xlsx
+  check_errs $? "import ipsc cell batches fails"
+  
+  # Note: if differentiated cells reference precursor IPSC batch cells, make
+  # sure these are loaded before this.
+  echo 'import differentiated cell tables ...'
+  python src/import_differentiated_cell.py -f sampledata/sample_differentiated_cells.xlsx
+  check_errs $? "import differentiated cell fails"
+  
+  echo 'import differentiated cell batch tables ...'
+  python src/import_differentiated_cell_batch.py -f sampledata/sample_differentiated_cell_batches.xlsx
+  check_errs $? "import differentiated cell batches fails"
+  
   echo 'import small molecule tables...'
   python src/import_smallmolecule.py -f  sampledata/sample_small_molecules.sdf
   check_errs $? "import sdf fails"
@@ -262,6 +280,24 @@ else
   python src/import_primary_cell.py -f $DATADIR/primary_cells.xlsx --do_precursors
   check_errs $? "import primary cell precursors fails"
   
+  echo 'import ipsc cell tables ...'
+  python src/import_ipsc.py -f $DATADIR/ipscs.xlsx
+  check_errs $? "import ipscs fails"
+  
+  echo 'import ipsc cell batch tables ...'
+  python src/import_ipsc_batch.py -f $DATADIR/ipsc_batches.xlsx
+  check_errs $? "import ipsc cell batches fails"
+  
+  # Note: if differentiated cells reference precursor IPSC batch cells, make
+  # sure these are loaded before this.
+  echo 'import differentiated cell tables ...'
+  python src/import_differentiated_cell.py -f $DATADIR/differentiated_cells.xlsx
+  check_errs $? "import differentiated cell fails"
+  
+  echo 'import differentiated cell batch tables ...'
+  python src/import_differentiated_cell_batch.py -f $DATADIR/differentiated_cell_batches.xlsx
+  check_errs $? "import differentiated cell batches fails"
+  
   echo 'import small molecule tables...'
   python src/import_smallmolecule.py -f $DATADIR/HMS-LINCS_complete.sdf
   check_errs $? "import sdf fails"
@@ -301,6 +337,14 @@ else
   echo 'import other reagent batches...'
   python src/import_other_reagent_batch.py -f $DATADIR/other_reagent_batches.xlsx
   check_errs $? 'import other reagent batches fails'
+  
+  echo 'import unclassified perturbagen tables...'
+  python src/import_unclassified_perturbagen.py -f $DATADIR/unclassified_perturbagens.xlsx
+  check_errs $? 'import unclassified perturbagens fails'
+  
+  echo 'import unclassified perturbagen batches...'
+  python src/import_unclassified_perturbagen_batch.py -f $DATADIR/unclassified_perturbagen_batches.xlsx
+  check_errs $? 'import unclassified perturbagens batches fails'
   
   echo 'import screen results...'
   python src/import_dataset2.py -f $DATADIR/Study20000_NominalTargets_forLoading.xls 
@@ -1514,6 +1558,54 @@ else
   
   echo 'import screen results...'
   python src/import_dataset2.py -f $DATADIR/Screen20323_MCF10A-15.xlsx
+  check_errs $? "import dataset fails"
+   
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/kinomescan/Screen20326_HMSL10201_kinomescan.xls
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/kinomescan/Screen20327_HMSL10423_kinomescan.xls
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/kinomescan/Screen20328_HMSL10345_kinomescan.xls
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/kinomescan/Screen20329_HMSL10394_kinomescan.xls
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/kinomescan/Screen20330_HMSL10395_kinomescan.xls
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/kinomescan/Screen20331_HMSL10419_kinomescan.xls
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/kinomescan/Screen20332_HMSL10427_kinomescan.xls
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/kinomescan/Screen20333_HMSL10442_kinomescan.xls
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/kinomescan/Screen20334_HMSL10429_kinomescan.xls
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/kinomescan/Screen20335_HMSL10477_kinomescan.xls
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/kinomescan/Screen20336_HMSL10432_kinomescan.xls
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/kinomescan/Screen20337_HMSL10522_kinomescan.xls
   check_errs $? "import dataset fails"
   
   # 2015-04-20: removed all attached compound QC files since original reports from vendors will no longer be used and future reports will be attached in the QC Testing Events section of each batch
