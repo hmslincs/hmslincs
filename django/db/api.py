@@ -4,6 +4,7 @@ import csv
 import json
 import logging
 
+from collections import defaultdict
 from django.conf.urls.defaults import url
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import connection, DatabaseError
@@ -660,11 +661,10 @@ class DataSetResource2(ModelResource):
         }
         
         if bundle.obj.properties.exists():
-            bundle.data['experimental_metadata'] = {
-                property.name:property.value for property
-                    in bundle.obj.properties.all().order_by('ordinal')
-                }
-        
+            property_map = defaultdict(dict)
+            for property in bundle.obj.properties.all().order_by('type','ordinal'):
+                property_map[property.type][property.name] = property.value
+            bundle.data['experimental_metadata'] = property_map
         
         return bundle
     
