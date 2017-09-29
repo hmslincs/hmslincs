@@ -1,0 +1,13 @@
+{% extends "db/datasetDetailBase.html" %}
+{% block datasetContent %}
+  {% for type,properties in propertyListing.items %}
+    {% if forloop.counter0 == 0 %}
+      <h2 style='float: left;'>{{ type }}</h2>
+      {% include "db/searchExportBox.html" %}
+    {% else %}
+      <h2 >{{ type }}</h2>
+    {% endif %}
+    {% include "db/detailListing.html" with object=properties %}
+  {% endfor %}
+{% endblock %}
+	

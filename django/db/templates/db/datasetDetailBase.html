@@ -9,26 +9,38 @@
         {% include "db/detailTitle.html" with name=object.title type="Dataset" id=object.facility_id %}
 	<ul class="basictab">
 		<li class='{% selectedTag request "^/db/datasets/\d+/main$"%}{%selectedTag request "^/db/datasets/\d+/$" %}'><a  href="{% url dataset_detail_main facility_id=facilityId%}">Detail</a></li>
+{% if has_metadata %}
+    <li class='{% selectedTag request "^/db/datasets/\d+/metadata$" %}'><a  href="{% url dataset_detail_metadata  facility_id=facilityId%}">Experimental&nbsp;Metadata</a></li>
+{% endif %}
 {% if has_small_molecules %}
-		<li class='{% selectedTag request "^/db/datasets/\d+/smallmolecules$" %}'><a  href="{% url dataset_detail_small_molecules   facility_id=facilityId%}">Small Molecules Studied</a></li>
+		<li class='{% selectedTag request "^/db/datasets/\d+/smallmolecules$" %}'><a  href="{% url dataset_detail_small_molecules   facility_id=facilityId%}">Small&nbsp;Molecules&nbsp;Studied</a></li>
 {% endif %}
 {% if has_cells %}
-    <li class='{% selectedTag request "^/db/datasets/\d+/cells$" %}'><a  href="{% url dataset_detail_cells   facility_id=facilityId%}">Cell Lines Studied</a></li>
+    <li class='{% selectedTag request "^/db/datasets/\d+/cells$" %}'><a  href="{% url dataset_detail_cells   facility_id=facilityId%}">Cell&nbsp;Lines&nbsp;Studied</a></li>
 {% endif %}
 {% if has_primary_cells %}
-    <li class='{% selectedTag request "^/db/datasets/\d+/primarycells$" %}'><a  href="{% url dataset_detail_primary_cells   facility_id=facilityId%}">Primary Cells Studied</a></li>
+    <li class='{% selectedTag request "^/db/datasets/\d+/primarycells$" %}'><a  href="{% url dataset_detail_primary_cells   facility_id=facilityId%}">Primary&nbsp;Cells&nbsp;Studied</a></li>
+{% endif %}
+{% if has_ipscs %}
+    <li class='{% selectedTag request "^/db/datasets/\d+/ipscs$" %}'><a  href="{% url dataset_detail_ipscs   facility_id=facilityId%}">iPSCs&nbsp;Studied</a></li>
+{% endif %}
+{% if has_diff_cells %}
+    <li class='{% selectedTag request "^/db/datasets/\d+/diffcells$" %}'><a  href="{% url dataset_detail_diff_cells   facility_id=facilityId%}">Differentiated&nbsp;Cells&nbsp;Studied</a></li>
 {% endif %}
 {% if has_proteins %}
-        <li class='{% selectedTag request "^/db/datasets/\d+/proteins$" %}'><a  href="{% url dataset_detail_proteins   facility_id=facilityId%}">Proteins Studied</a></li>
+        <li class='{% selectedTag request "^/db/datasets/\d+/proteins$" %}'><a  href="{% url dataset_detail_proteins   facility_id=facilityId%}">Proteins&nbsp;Studied</a></li>
 {% endif %}
 {% if has_antibodies %}
-        <li class='{% selectedTag request "^/db/datasets/\d+/antibodies$" %}'><a  href="{% url dataset_detail_antibodies   facility_id=facilityId%}">Antibodies Studied</a></li>
+        <li class='{% selectedTag request "^/db/datasets/\d+/antibodies$" %}'><a  href="{% url dataset_detail_antibodies   facility_id=facilityId%}">Antibodies&nbsp;Studied</a></li>
 {% endif %}
 {% if has_otherreagents %}
-        <li class='{% selectedTag request "^/db/datasets/\d+/otherreagents$" %}'><a  href="{% url dataset_detail_otherreagents   facility_id=facilityId%}">Other Reagents Studied</a></li>
+        <li class='{% selectedTag request "^/db/datasets/\d+/otherreagents$" %}'><a  href="{% url dataset_detail_otherreagents   facility_id=facilityId%}">Other&nbsp;Reagents&nbsp;Studied</a></li>
+{% endif %}
+{% if has_unclassified %}
+        <li class='{% selectedTag request "^/db/datasets/\d+/unclassified$" %}'><a  href="{% url dataset_detail_unclassified   facility_id=facilityId%}">Unclassified&nbsp;Perturbagens&nbsp;Studied</a></li>
 {% endif %}
 {% if has_datacolumns %}
-		<li class='{% selectedTag request "^/db/datasets/\d+/datacolumns$" %}'><a  href="{% url dataset_detail_datacolumns  facility_id=facilityId%}">Data Columns</a></li>
+    <li class='{% selectedTag request "^/db/datasets/\d+/datacolumns$" %}'><a  href="{% url dataset_detail_datacolumns  facility_id=facilityId%}">Data&nbsp;Columns</a></li>
 {% endif %}
 <li class='{% selectedTag request "^/db/datasets/\d+/results$" %}'><a  href="{% url dataset_detail_results  facility_id=facilityId%}">Results</a></li>
 

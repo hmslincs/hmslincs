@@ -151,7 +151,7 @@ then
   echo 'import cell line precursor patches ...'
   python src/import_cell.py -f sampledata/sample_cells.xlsx --do_precursors
   check_errs $? "import cell precursors fails"
-  
+
   echo 'import primary cell tables ...'
   python src/import_primary_cell.py -f sampledata/sample_primary_cells.xlsx
   check_errs $? "import primary cell fails"
@@ -163,6 +163,24 @@ then
   echo 'import primary cell precursor patches ...'
   python src/import_primary_cell.py -f sampledata/sample_primary_cells.xlsx --do_precursors
   check_errs $? "import primary cell precursors fails"
+  
+  echo 'import ipsc cell tables ...'
+  python src/import_ipsc.py -f sampledata/sample_ipscs.xlsx
+  check_errs $? "import ipscs fails"
+  
+  echo 'import ipsc cell batch tables ...'
+  python src/import_ipsc_batch.py -f sampledata/sample_ipsc_batches.xlsx
+  check_errs $? "import ipsc cell batches fails"
+  
+  # Note: if differentiated cells reference precursor IPSC batch cells, make
+  # sure these are loaded before this.
+  echo 'import differentiated cell tables ...'
+  python src/import_differentiated_cell.py -f sampledata/sample_differentiated_cells.xlsx
+  check_errs $? "import differentiated cell fails"
+  
+  echo 'import differentiated cell batch tables ...'
+  python src/import_differentiated_cell_batch.py -f sampledata/sample_differentiated_cell_batches.xlsx
+  check_errs $? "import differentiated cell batches fails"
   
   echo 'import small molecule tables...'
   python src/import_smallmolecule.py -f  sampledata/sample_small_molecules.sdf
@@ -203,6 +221,14 @@ then
   echo 'import other reagent batches...'
   python src/import_other_reagent_batch.py -f sampledata/sample_other_reagent_batches.xlsx
   check_errs $? 'import other reagent batches fails'
+
+  echo 'import unclassified perturbagen tables...'
+  python src/import_unclassified_perturbagen.py -f sampledata/sample_unclassified_perturbagens.xlsx
+  check_errs $? 'import unclassified perturbagens fails'
+  
+  echo 'import unclassified perturbagen batches...'
+  python src/import_unclassified_perturbagen_batch.py -f sampledata/sample_unclassified_perturbagen_batches.xlsx
+  check_errs $? 'import unclassified perturbagens batches fails'
 
   echo 'import test_dataset...'
   python src/import_dataset2.py -f sampledata/test_dataset.xls 

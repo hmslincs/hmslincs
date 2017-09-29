@@ -15,6 +15,7 @@ from xlrd.book import colname
 from db.models import DataSet, DataColumn, DataRecord, DataPoint, \
         LibraryMapping, AntibodyBatch, OtherReagent, SmallMoleculeBatch, \
         OtherReagentBatch, ProteinBatch, CellBatch, PrimaryCellBatch, \
+        DiffCellBatch, IpscBatch, UnclassifiedBatch, DatasetProperty, \
         ReagentBatch, camel_case_dwg 
 
 
@@ -47,13 +48,21 @@ default_reagent_columns = {
         'description': 'A Primary Cell reagent',
         'comments': 'A Primary Cell reagent'
     },
-    'Protein': {
-        'display_order': 3,
-        'name': 'protein',
-        'display_name': 'Protein',
-        'data_type': 'protein',
-        'description': 'A Protein reagent',
-        'comments': 'A Protein reagent'
+    'IPSC': {
+        'display_order': 2,
+        'name': 'ipsc',
+        'display_name': 'IPSC',
+        'data_type': 'ipsc',
+        'description': 'An induced pluripotent stem cell reagent',
+        'comments': 'An induced pluripotent stem cell reagent'
+    },
+    'DiffCell': {
+        'display_order': 2,
+        'name': 'diffcell',
+        'display_name': 'Differentiated Cell',
+        'data_type': 'diff_cell',
+        'description': 'A Differentiated Cell reagent',
+        'comments': 'A Differentiated Cell reagent'
     },
     'Antibody': {
         'display_order': 3,
@@ -63,6 +72,14 @@ default_reagent_columns = {
         'description': 'An Antibody reagent',
         'comments': 'An Antibody reagent'
     },
+    'Protein': {
+        'display_order': 5,
+        'name': 'protein',
+        'display_name': 'Protein',
+        'data_type': 'protein',
+        'description': 'A Protein reagent',
+        'comments': 'A Protein reagent'
+    },
     'OtherReagent': {
         'display_order': 3,
         'name': 'otherReagent',
@@ -70,6 +87,14 @@ default_reagent_columns = {
         'data_type': 'other_reagent',
         'description': 'Other reagent',
         'comments': 'Other reagent'
+    },
+    'UnclassifiedPerturbagen': {
+        'display_order': 3,
+        'name': 'unclassifiedPerturbagen',
+        'display_name': 'Unclassified Perturbagen',
+        'data_type': 'unclassified',
+        'description': 'Unclassified Perturbagen',
+        'comments': 'Unclassified Perturbagen'
     }
 }
 
@@ -130,11 +155,40 @@ def main(path):
     logger.info('dataset to save %s' % dataset)
     dataset.save()
     
+    read_dataset_properties(book, 'metadata', dataset)
+    
     read_datacolumns_and_data(book, dataset)
     
     read_explicit_reagents(book, dataset)
 
     dataset.save()
+
+def read_dataset_properties(book, sheetname, dataset):
+    
+    sheet = None
+    for name in book.sheet_names():
+        if name.lower() == sheetname.lower():
+            sheet = book.sheet_by_name(name)
+            break
+    if sheet is None:
+        logger.warn('No sheet found: %r', sheetname)
+        return None
+    
+    properties = []
+    for i in xrange(sheet.nrows-1):
+        row = sheet.row_values(i+1)
+        name = row[0]
+        type = name.split('_')[0]
+        dsProperty = DatasetProperty.objects.create(
+            dataset=dataset,
+            type=type,
+            name=row[0],
+            value=row[1], 
+            ordinal=i )
+        dsProperty.save()
+        logger.debug('created property %r', dsProperty)
+    logger.info('Sheet: %r rows read: %d', sheetname, len(properties))
+    return properties
 
 def read_metadata(meta_sheet):
 
@@ -437,9 +491,18 @@ def read_explicit_reagents(book, dataset):
                 elif hasattr(rb, 'otherreagentbatch'):
                     logger.info('other_reagent reagent found: %r', rb)
                     dataset.other_reagents.add(rb.otherreagentbatch)
+                elif hasattr(rb, 'unclassifiedbatch'):
+                    logger.info('unclassified reagent found: %r', rb)
+                    dataset.unclassified_perturbagens.add(rb.unclassifiedbatch)
                 elif hasattr(rb, 'primarycellbatch'):
                     logger.info('primary cell reagent found: %r', rb)
                     dataset.primary_cells.add(rb.primarycellbatch)
+                elif hasattr(rb, 'diffcellbatch'):
+                    logger.info('differentiated cell reagent found: %r', rb)
+                    dataset.diff_cells.add(rb.diffcellbatch)
+                elif hasattr(rb, 'ipscbatch'):
+                    logger.info('ipsc reagent found: %r', rb)
+                    dataset.ipscs.add(rb.ipscbatch)
                 elif hasattr(rb, 'proteinbatch'):
                     logger.info('protein reagent found: %r', rb)
                     dataset.proteins.add(rb.proteinbatch)
@@ -570,11 +633,16 @@ def _create_datapoint(datacolumn, dataset, datarecord, value):
             _read_antibody(dataset, datapoint)
         elif datacolumn.data_type == 'other_reagent':
             _read_other_reagent(dataset, datapoint)
+        elif datacolumn.data_type == 'unclassified':
+            _read_unclassified(dataset, datapoint)
         elif datacolumn.data_type == 'cell':
             _read_cell_batch(dataset, datapoint)
         elif datacolumn.data_type == 'primary_cell':
             _read_primary_cell_batch(dataset, datapoint)
-
+        elif datacolumn.data_type == 'diff_cell':
+            _read_diff_cell_batch(dataset, datapoint)
+        elif datacolumn.data_type == 'ipsc':
+            _read_ipsc_batch(dataset, datapoint)
     return datapoint
 
 def _parse_reagent_batch(text_value):
@@ -652,6 +720,27 @@ def _read_other_reagent(dataset, datapoint):
             facility_id,batch_id,text_value)
         raise    
 
+def _read_unclassified(dataset, datapoint):
+
+    try:
+        (facility_id,batch_id,text_value) = (
+            _parse_reagent_batch(datapoint.text_value))
+        datapoint.text_value = text_value
+        if text_value in reagents_read_hash:
+            datapoint.reagent_batch = reagents_read_hash[text_value]
+            logger.debug('reagent already read: %r' % text_value)
+            return
+        reagentbatch = UnclassifiedBatch.objects.get(
+            reagent__facility_id=facility_id,
+            batch_id=batch_id) 
+        dataset.unclassified_perturbagens.add(reagentbatch)
+        datapoint.reagent_batch = reagentbatch
+        reagents_read_hash[text_value] = reagentbatch
+    except Exception, e:
+        logger.exception("Invalid Unclassified Perturbagen identifier: %r:%r, raw val: %r",
+            facility_id,batch_id,text_value)
+        raise    
+
 def _read_antibody(dataset, datapoint):
 
     try:
@@ -712,6 +801,48 @@ def _read_primary_cell_batch(dataset, datapoint):
         reagents_read_hash[text_value] = reagentbatch
     except Exception, e:
         logger.exception("Invalid Primary Cell identifier: %r:%r, raw val: %r",
+            facility_id,batch_id,text_value)
+        raise    
+
+def _read_ipsc_batch(dataset, datapoint):
+
+    try:
+        (facility_id,batch_id,text_value) = (
+            _parse_reagent_batch(datapoint.text_value))
+        datapoint.text_value = text_value
+        if text_value in reagents_read_hash:
+            datapoint.reagent_batch = reagents_read_hash[text_value]
+            logger.debug('reagent already read: %r' % text_value)
+            return
+        reagentbatch = IpscBatch.objects.get(
+            reagent__facility_id=facility_id,
+            batch_id=batch_id) 
+        dataset.ipscs.add(reagentbatch)
+        datapoint.reagent_batch = reagentbatch
+        reagents_read_hash[text_value] = reagentbatch
+    except Exception, e:
+        logger.exception("Invalid IPSC identifier: %r:%r, raw val: %r",
+            facility_id,batch_id,text_value)
+        raise    
+
+def _read_diff_cell_batch(dataset, datapoint):
+
+    try:
+        (facility_id,batch_id,text_value) = (
+            _parse_reagent_batch(datapoint.text_value))
+        datapoint.text_value = text_value
+        if text_value in reagents_read_hash:
+            datapoint.reagent_batch = reagents_read_hash[text_value]
+            logger.debug('reagent already read: %r' % text_value)
+            return
+        reagentbatch = DiffCellBatch.objects.get(
+            reagent__facility_id=facility_id,
+            batch_id=batch_id) 
+        dataset.diff_cells.add(reagentbatch)
+        datapoint.reagent_batch = reagentbatch
+        reagents_read_hash[text_value] = reagentbatch
+    except Exception, e:
+        logger.exception("Invalid Differentiated Cell identifier: %r:%r, raw val: %r",
             facility_id,batch_id,text_value)
         raise    
 
