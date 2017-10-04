@@ -2418,6 +2418,7 @@ class SmallMoleculeTable(PagedTable):
 
 class DataColumnTable(PagedTable):
     description = DivWrappedColumn(classname='constrained_width_column', visible=True)
+    comments = DivWrappedColumn(classname='comment_column', visible=False)
     
     class Meta:
         model = DataColumn

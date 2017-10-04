@@ -161,6 +161,12 @@ div.constrained_width_column_300 {
   white-space: normal;
   max-width: 300px;
 }
+div.comment_column {
+  white-space: normal;
+  max-width: 300px;
+  min-width: 200px;
+  word-wrap: break-word;
+}
 div.snippet {
   white-space: normal;
   max-width: 450px;
