@@ -395,12 +395,18 @@ class ReagentBatch(models.Model):
     @property
     def facility_batch(self):
         "Returns the 'facilty_id-batch_id'"
-        return '%s-%s' % (self.reagent.facility_id, self.batch_id)
+        if self.batch_id == '0':
+            return self.reagent.facility_id
+        else:
+            return '%s-%s' % (self.reagent.facility_id, self.batch_id)
 
     @property
     def facility_salt_batch(self):
         "Returns the 'facilty_id-salt_id'"
-        return '%s-%s' % (self.reagent.facility_salt, self.batch_id)
+        if self.batch_id == '0':
+            return self.reagent.facility_salt
+        else:
+            return '%s-%s' % (self.reagent.facility_salt, self.batch_id)
 
     @classmethod
     def get_snippet_def(cls):
