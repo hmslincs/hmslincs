@@ -67,7 +67,9 @@ def main(path):
         'Date Publicly Available': (
             'date_publicly_available',False,None,util.date_converter),
         'Most Recent Update': ('date_updated',False,None,util.date_converter),
-        'Is Restricted':('is_restricted',False,False,util.bool_converter)}
+        'Is Restricted':('is_restricted',False,False,util.bool_converter),
+        'Comments': 'comments',
+    }
               
     column_definitions = util.fill_in_column_definitions(properties,column_definitions)
     

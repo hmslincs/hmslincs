@@ -58,6 +58,7 @@ def main(path):
             x:util.convertdata(x,int)),
         'DC_Transient_Modification': 'transient_modification',
         
+        'Comments': 'comments',
         'Date Data Received':(
             'date_data_received',False,None,util.date_converter),
         'Date Loaded': ('date_loaded',False,None,util.date_converter),

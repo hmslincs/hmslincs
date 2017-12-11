@@ -56,6 +56,7 @@ def main(path):
         # FIXME: should warn the user if no unit is provided when 
         # aqueous_solubility is provided
         'aqueous_solubility_unit':'aqueous_solubility_unit',    
+        'Comments': 'comments',
         'Date Data Received':(
             'date_data_received',False,None,util.date_converter),
         'Date Loaded': ('date_loaded',False,None,util.date_converter),

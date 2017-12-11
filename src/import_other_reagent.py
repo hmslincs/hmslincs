@@ -44,6 +44,7 @@ def main(path):
               'OR_Name': ('name',True),
               'OR_Alternative_Name': 'alternative_names',
               'OR_Relevant_Citations': 'relevant_citations',                          
+              'Comments': 'comments',
               'Date Data Received':('date_data_received',False,None,util.date_converter),
               'Date Loaded': ('date_loaded',False,None,util.date_converter),
               'Date Publicly Available': ('date_publicly_available',False,None,util.date_converter),

@@ -79,6 +79,7 @@ def main(path, do_precursors_only):
         'PC_Gonosome_Code': 'gonosome_code',
         'PC_Cell_Markers': 'cell_markers',
 
+        'Comments': 'comments',
         'Date Data Received':(
             'date_data_received',False,None,util.date_converter),
         'Date Loaded': ('date_loaded',False,None,util.date_converter),

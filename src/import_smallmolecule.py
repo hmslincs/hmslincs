@@ -56,6 +56,7 @@ def main(path):
         'relevant_citations': '_relevant_citations',
         'molecular_formula':'_molecular_formula',
         'software':'software',
+        'comments': 'comments',
         'date_data_received':('date_data_received',False,None,
                               util.date_converter),
         'date_loaded': ('date_loaded',False,None,util.date_converter),

@@ -60,6 +60,7 @@ def main(path):
         'IP_Passage_Last_Karyotyping': (
             'passage_last_karyotyping',False,None,lambda x:util.convertdata(x,int)),
     
+        'Comments': 'comments',
         'Date Data Received':(
             'date_data_received',False,None,util.date_converter),
         'Date Loaded': ('date_loaded',False,None,util.date_converter),

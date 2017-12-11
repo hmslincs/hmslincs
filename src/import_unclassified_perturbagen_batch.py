@@ -44,6 +44,7 @@ def main(path):
         'provider': ('provider_name',False),
         'provider_catalog_id':'provider_catalog_id',
         'provider_sample_id':'provider_batch_id',
+        'Comments': 'comments',
         'Date Data Received':(
             'date_data_received',False,None,util.date_converter),
         'Date Loaded': ('date_loaded',False,None,util.date_converter),
