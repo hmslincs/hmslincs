@@ -352,6 +352,7 @@ class Reagent(models.Model):
     date_loaded = models.DateField(null=True,blank=True)
     date_publicly_available = models.DateField(null=True,blank=True)
     date_updated = models.DateField(null=True,blank=True)
+    comments = models.TextField(null=True)
 
     class Meta:
         unique_together = ('facility_id', 'salt_id')    
@@ -391,6 +392,7 @@ class ReagentBatch(models.Model):
     date_loaded = models.DateField(null=True,blank=True)
     date_publicly_available = models.DateField(null=True,blank=True)
     date_updated = models.DateField(null=True,blank=True)
+    comments = models.TextField(null=True)
 
     @property
     def facility_batch(self):
@@ -817,7 +819,7 @@ class IpscBatch(ReagentBatch):
     culture_conditions = models.TextField(null=True)
     passage_number = models.IntegerField(null=True)
     transient_modification = models.TextField(null=True)
-    comments = models.TextField(null=True)
+#     comments = models.TextField(null=True)
 
     @classmethod
     def get_snippet_def(cls):

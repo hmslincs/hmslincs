@@ -59,6 +59,7 @@ def main(path):
         'DC_Cell_Markers': 'cell_markers',
         'DC_Genetic_Modification': 'genetic_modification',
         
+        'Comments': 'comments',
         'Date Data Received':(
             'date_data_received',False,None,util.date_converter),
         'Date Loaded': ('date_loaded',False,None,util.date_converter),

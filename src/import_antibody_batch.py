@@ -50,6 +50,7 @@ def main(path):
               'Date Loaded': ('date_loaded',False,None,util.date_converter),
               'Date Publicly Available': ('date_publicly_available',False,None,util.date_converter),
               'Most Recent Update': ('date_updated',False,None,util.date_converter),
+              'Comments': 'comments',
               }
               
     # convert the labels to fleshed out dict's, with strategies for optional, default and converter

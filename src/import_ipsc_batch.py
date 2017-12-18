@@ -54,8 +54,8 @@ def main(path):
         'IP_Passage_Number': (
             'passage_number',False,None,lambda x:util.convertdata(x,int)),
         'IP_Transient_Modification': 'transient_modification',
-        'IP_Comments': 'comments',
 
+        'Comments': 'comments',
         'Date Data Received':(
             'date_data_received',False,None,util.date_converter),
         'Date Loaded': ('date_loaded',False,None,util.date_converter),

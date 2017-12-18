@@ -50,6 +50,7 @@ def main(path):
               'PC_Culture_Conditions': 'culture_conditions',
               'PC_Passage_Number': ('passage_number',False,None,lambda x:util.convertdata(x,int)),
               'PC_Transient_Modification': 'transient_modification',
+              'Comments': 'comments',
               'Date Data Received':('date_data_received',False,None,util.date_converter),
               'Date Loaded': ('date_loaded',False,None,util.date_converter),
               'Date Publicly Available': ('date_publicly_available',False,None,util.date_converter),

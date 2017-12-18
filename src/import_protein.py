@@ -57,6 +57,7 @@ def main(path):
             'PP_Protein_Type':'protein_type', 
             'PP_Source_Organism':'source_organism', 
             'PP_Reference':'reference',
+            'Comments': 'comments',
             'Date Data Received':('date_data_received',False,None,
                                   util.date_converter),
             'Date Loaded': ('date_loaded',False,None,util.date_converter),

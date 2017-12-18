@@ -47,6 +47,7 @@ def main(path):
               'UP_Information_Source': 'information_source',
               'UP_Information_Source_ID': 'information_source_id',
 
+              'Comments': 'comments',
               'Date Data Received':(
                   'date_data_received',False,None,util.date_converter),
               'Date Loaded': ('date_loaded',False,None,util.date_converter),
