@@ -265,15 +265,15 @@ else
   #============ Here is where the "real" imports go ============================
 
   echo 'import cell tables ...'
-  python src/import_cell.py -f $DATADIR/LINCS_Cells_forLoading.xls
+  python src/import_cell.py -f $DATADIR/cells.xlsx
   check_errs $? "import cell fails"
   
   echo 'import cell batch tables ...'
-  python src/import_cell_batch.py -f $DATADIR/cell_line_batch.xlsx
+  python src/import_cell_batch.py -f $DATADIR/cells_batch.xlsx
   check_errs $? "import cell fails"
   
   echo 'import cell line precursor patches ...'
-  python src/import_cell.py -f $DATADIR/LINCS_Cells_forLoading.xls --do_precursors
+  python src/import_cell.py -f $DATADIR/cells.xlsx --do_precursors
   check_errs $? "import cell precursors fails"
   
   echo 'import primary cell tables ...'
@@ -281,7 +281,7 @@ else
   check_errs $? "import primary cell fails"
   
   echo 'import primary cell line batch tables ...'
-  python src/import_primary_cell_batch.py -f $DATADIR/primary_cell_batch.xlsx
+  python src/import_primary_cell_batch.py -f $DATADIR/primary_cells_batch.xlsx
   check_errs $? "import cell fails"
   
   echo 'import primary cell precursor patches ...'
@@ -289,11 +289,11 @@ else
   check_errs $? "import primary cell precursors fails"
   
   echo 'import ipsc cell tables ...'
-  python src/import_ipsc.py -f $DATADIR/ipscs.xlsx
+  python src/import_ipsc.py -f $DATADIR/ipsc.xlsx
   check_errs $? "import ipscs fails"
   
   echo 'import ipsc cell batch tables ...'
-  python src/import_ipsc_batch.py -f $DATADIR/ipsc_batches.xlsx
+  python src/import_ipsc_batch.py -f $DATADIR/ipsc_batch.xlsx
   check_errs $? "import ipsc cell batches fails"
   
   # Note: if differentiated cells reference precursor IPSC batch cells, make
@@ -303,19 +303,19 @@ else
   check_errs $? "import differentiated cell fails"
   
   echo 'import differentiated cell batch tables ...'
-  python src/import_differentiated_cell_batch.py -f $DATADIR/differentiated_cell_batches.xlsx
+  python src/import_differentiated_cell_batch.py -f $DATADIR/differentiated_cells_batch.xlsx
   check_errs $? "import differentiated cell batches fails"
   
   echo 'import small molecule tables...'
-  python src/import_smallmolecule.py -f $DATADIR/HMS-LINCS_complete.sdf
+  python src/import_smallmolecule.py -f $DATADIR/small_molecules.sdf
   check_errs $? "import sdf fails"
 
   echo 'import salt table...'
-  python src/import_smallmolecule.py -f  $DATADIR/HMS-LINCS_salts.sdf
+  python src/import_smallmolecule.py -f  $DATADIR/salts.sdf
   check_errs $? "import sdf fails"
 
   echo 'import small molecule batch tables...'
-  python src/import_smallmolecule_batch.py -f $DATADIR/small_molecule_batch-HMS_LINCS-1.xls
+  python src/import_smallmolecule_batch.py -f $DATADIR/small_molecules_batch.xlsx
   check_errs $? "import smallmolecule batch fails"
   
   echo 'import small molecule batch qc reports...'
@@ -323,27 +323,27 @@ else
   check_errs $? "import_qc_events_batch fails"
   
   echo 'import library mapping tables...'
-  python src/import_libraries.py -f $DATADIR/libraries.xls
+  python src/import_libraries.py -f $DATADIR/libraries.xlsx
   check_errs $? "import library fails"
   
   echo 'import kinase tables...'
-  python src/import_protein.py -f $DATADIR/HMS-LINCS_ProteinMetadata_forLoading.xls
+  python src/import_protein.py -f $DATADIR/proteins.xlsx
   check_errs $? 'import kinases fails'
   
   echo 'import antibody tables...'
-  python src/import_antibody.py -f $DATADIR/HMS-LINCS_antibodies.xlsx
+  python src/import_antibody.py -f $DATADIR/antibodies.xlsx
   check_errs $? 'import antibodies fails'
   
   echo 'import antibody batches...'
-  python src/import_antibody_batch.py -f $DATADIR/HMS-LINCS_antibodies_batches.xlsx
+  python src/import_antibody_batch.py -f $DATADIR/antibodies_batch.xlsx
   check_errs $? 'import antibody batches fails'
   
   echo 'import other reagent tables...'
-  python src/import_other_reagent.py -f $DATADIR/HMS-LINCS_other_reagents.xls
+  python src/import_other_reagent.py -f $DATADIR/other_reagents.xlsx
   check_errs $? 'import other reagents fails'
   
   echo 'import other reagent batches...'
-  python src/import_other_reagent_batch.py -f $DATADIR/other_reagent_batches.xlsx
+  python src/import_other_reagent_batch.py -f $DATADIR/other_reagents_batch.xlsx
   check_errs $? 'import other reagent batches fails'
   
   echo 'import unclassified perturbagen tables...'
@@ -351,7 +351,7 @@ else
   check_errs $? 'import unclassified perturbagens fails'
   
   echo 'import unclassified perturbagen batches...'
-  python src/import_unclassified_perturbagen_batch.py -f $DATADIR/unclassified_perturbagen_batches.xlsx
+  python src/import_unclassified_perturbagen_batch.py -f $DATADIR/unclassified_perturbagens_batch.xlsx
   check_errs $? 'import unclassified perturbagens batches fails'
   
   echo 'import screen results...'
