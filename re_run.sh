@@ -1616,6 +1616,26 @@ else
   python src/import_dataset2.py -f $DATADIR/kinomescan/Screen20337_HMSL10522_kinomescan.xls
   check_errs $? "import dataset fails"
   
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/kinomescan/Screen20338_HMSL10390_kinomescan.xls
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/kinomescan/Screen20339_HMSL10071_kinomescan.xls
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/kinomescan/Screen20340_HMSL10077_kinomescan.xls
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/kinomescan/Screen20341_HMSL10240_kinomescan.xls
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/kinomescan/Screen20342_HMSL10350_kinomescan.xls
+  check_errs $? "import dataset fails"
+  
   # 2015-04-20: removed all attached compound QC files since original reports from vendors will no longer be used and future reports will be attached in the QC Testing Events section of each batch
   
 # if restricted:
