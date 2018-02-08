@@ -661,9 +661,9 @@ class DataSetResource2(ModelResource):
         }
         
         if bundle.obj.properties.exists():
-            property_map = defaultdict(dict)
+            property_map = defaultdict(list)
             for property in bundle.obj.properties.all().order_by('type','ordinal'):
-                property_map[property.type][property.name] = property.value
+                property_map[property.type].append((property.name, property.value))
             bundle.data['experimental_metadata'] = property_map
         
         return bundle

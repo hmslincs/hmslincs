@@ -4150,7 +4150,7 @@ def datasetDetail2(request, facility_id, sub_page):
             else:
                 properties = OrderedDict()
                 propertyListing[type] = properties
-            properties[property.name] = _dict
+            properties[property.ordinal] = _dict
         
         details['propertyListing'] = propertyListing
         
