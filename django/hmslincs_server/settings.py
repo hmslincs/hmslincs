@@ -5,6 +5,7 @@ _djangopath = op.abspath(op.dirname(op.dirname(__file__)))
 _sqlite3dbpath = op.join(_djangopath, 'hmslincs.db')
 
 # Django settings for hmslincs_server project.
+PROJECT_ROOT = op.dirname(op.abspath(__file__))
 
 DEBUG = not op.abspath(__file__).startswith('/www/')
 TEMPLATE_DEBUG = DEBUG

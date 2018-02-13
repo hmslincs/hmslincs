@@ -175,7 +175,7 @@ def read_dataset_properties(book, sheetname, dataset):
         return None
     
     properties = []
-    for i in xrange(sheet.nrows-1):
+    for i in xrange(sheet.nrows):
         row = sheet.row_values(i)
         name = row[0]
         type = name.split('_')[0]
