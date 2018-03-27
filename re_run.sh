@@ -1567,6 +1567,14 @@ else
   echo 'import screen results...'
   python src/import_dataset2.py -f $DATADIR/Screen20323_MCF10A-15.xlsx
   check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20324_Cardiotoxicity.xlsx
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20325_Cardiotoxicity_qPCR.xlsx
+  check_errs $? "import dataset fails"
    
   echo 'import screen results...'
   python src/import_dataset2.py -f $DATADIR/kinomescan/Screen20326_HMSL10201_kinomescan.xls
@@ -1634,6 +1642,14 @@ else
   
   echo 'import screen results...'
   python src/import_dataset2.py -f $DATADIR/kinomescan/Screen20342_HMSL10350_kinomescan.xls
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20343_DrugSensitivity1.xlsx
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20344_DrugSensitivity2.xlsx
   check_errs $? "import dataset fails"
   
   # 2015-04-20: removed all attached compound QC files since original reports from vendors will no longer be used and future reports will be attached in the QC Testing Events section of each batch
