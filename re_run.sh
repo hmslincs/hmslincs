@@ -12,7 +12,7 @@ check_errs()
 
 DATADIR=
 
-DIR=/groups/lincs/
+DIR=/n/groups/lincs/
 
 if [[ $# -lt 1 ]]
 then 
@@ -110,7 +110,7 @@ if [[ -z "${VIRTUAL_ENV}" ]]
 then
   if [[ -z "${VENV}" ]]
   then
-    VENV="$(dirname $0)/../virtualenv/"
+    VENV="$(dirname $0)/../virtualenv_o2/"
   fi
   if [[ ! -e $VENV ]]
   then
@@ -118,6 +118,8 @@ then
     exit 1
   fi
   echo "using virtualenv at \"${VENV}\" "
+  module load gcc/6.2.0
+  module load python/2.7.12
   source $VENV/bin/activate
   check_errs $? "failed to activate virtualenv: $VENV"
 else

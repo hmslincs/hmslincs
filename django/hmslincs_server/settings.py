@@ -43,11 +43,13 @@ elif 'OSHERNATPROD_PGSQL_DB' in environ:
 elif socket.getfqdn().endswith('.orchestra'):
     # otherwise (no explicit db config in env vars), if we are running on
     # orchestra we will try and set up the db config by convention
-    if op.abspath(__file__).startswith('/www/dev.lincs'):
+    if op.abspath(__file__).startswith('/www/dev.lincs') \
+        or op.abspath(__file__).startswith('/n/www/dev.lincs'):
         # running from the dev site dir, so set up for the dev db
         _dbdefault['NAME'] = 'devlincs'
         _dbdefault['HOST'] = 'dev.pgsql.orchestra'
-    elif op.abspath(__file__).startswith('/www/'):
+    elif op.abspath(__file__).startswith('/www/') \
+        or op.abspath(__file__).startswith('/n/www/'):
         # running from the live site dir, so set up for the live db
         _dbdefault['NAME'] = 'lincs'
         _dbdefault['HOST'] = 'pgsql.orchestra'
@@ -91,10 +93,6 @@ else:
 
     # Additional locations of static files
     STATICFILES_DIRS = (
-        # Put strings here, like "/home/html/static" or "C:/www/django/static".
-        # Always use forward slashes, even on Windows.
-        # Don't forget to use absolute paths, not relative paths.
-        '/home/sde4/docs/work/LINCS/data/images/',
         op.join(_djangopath, '..', 'sampledata', 'images' ),
     )   
 
