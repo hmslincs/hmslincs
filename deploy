@@ -40,7 +40,7 @@ SAVEPATH="$SCRIPTPATH.save"
 PROG=$(basename $SCRIPTPATH)
 BASEDIR=${BASEDIR:-"$(dirname $SCRIPTPATH)"}
 SUPPORTDIR=${SUPPORTDIR-"$(dirname $BASEDIR)"}
-VENV=${VENV:-${SUPPORTDIR:+"$SUPPORTDIR/virtualenv"}}
+VENV=${VENV:-${SUPPORTDIR:+"$SUPPORTDIR/virtualenv_o2"}}
 if [[ -z $VENV ]]; then
   error 'no virtualenv available'
 fi
@@ -171,7 +171,7 @@ function main {
 
   if [[ -z $SITE ]]; then
     case "$BASEDIR" in
-      /www/lincs.*) SITE="$PRODSITE" ;;
+      /n/www/lincs.*) SITE="$PRODSITE" ;;
                  *) SITE="$DEVSITE" ;;
     esac
   fi
@@ -243,6 +243,9 @@ function maybe_activate_virtualenv {
   VENV="$($REALPATH $VENV)"
 
   if invenv; then return; fi
+
+  module load gcc/6.2.0
+  module load python/2.7.12
 
   source "$VENV/bin/activate" || error "failed to activate virtualenv: $?"
 
@@ -376,7 +379,9 @@ deployed by $USER ($UID) connected from $ssh_client
 EOF
 
   maybe_activate_virtualenv
-  gitpull && runpip && builddb && collectstatic && killfcgi
+  # 20180327 pip must be run separately in the o2 & webserver environments
+  #  gitpull && runpip && builddb && collectstatic && killfcgi
+  gitpull && builddb && collectstatic && killfcgi
 
   STATUS=$SUCCESS
   echo done

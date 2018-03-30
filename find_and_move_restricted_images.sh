@@ -65,7 +65,7 @@ function move_restricted {
     DB=${DB:-devoshernatprod}
     DBUSER=${DBUSER:-devoshernatprodweb}
     DBHOST=${DBHOST:-dev.pgsql.orchestra}
-  elif [[ $SCRIPTDIR =~ /www/lincs.*support/hmslincs ]]; then
+  elif [[ $SCRIPTDIR =~ /n/www/lincs.*support/hmslincs ]]; then
     DB=${DB:-lincs}
     DBUSER=${DBUSER:-lincsweb}
     DBHOST=${DBHOST:-pgsql.orchestra}
