@@ -175,15 +175,20 @@ def read_dataset_properties(book, sheetname, dataset):
         return None
     
     properties = []
-    for i in xrange(sheet.nrows-1):
-        row = sheet.row_values(i+1)
+    for i in xrange(sheet.nrows):
+        row = sheet.row_values(i)
         name = row[0]
         type = name.split('_')[0]
+        value = row[1]
+        if isinstance(value, (int, float)):
+            if float(int(value)) == float(value):
+                value = int(value)
+        
         dsProperty = DatasetProperty.objects.create(
             dataset=dataset,
             type=type,
             name=row[0],
-            value=row[1], 
+            value=value, 
             ordinal=i )
         dsProperty.save()
         logger.debug('created property %r', dsProperty)

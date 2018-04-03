@@ -1,0 +1,297 @@
+{
+    "$schema": "http://json-schema.org/draft-06/schema#",
+    "id": "http://lincs.hms.harvard.edu/db/Iccbl_Imaging_Schema_v0.1",
+    "title": "Imaging",
+    "description": "Imaging Schema",
+    "type": "object",
+    "properties": {
+      "Settings_Group": {
+        "type": "object",
+        "properties": {
+          "Imaging_Microscope_Type": {
+            "description": "Type of microscope used",
+            "type": "string",
+            "maxLength": 250
+          },
+          "Imaging_Detector_Type": {
+            "description": "Type of detector used",
+            "type": "string",
+            "maxLength": 250
+          },
+          "Imaging_Detector_Bit_Depth": {
+            "description": "Native bit depth of detector",
+            "type": "number",
+            "enum": [1, 2, 4, 8, 16, 24, 32]
+          },
+          "Imaging_Detector_Binning": {
+            "description": "Binning setting",
+            "type": "string",
+            "maxLength": 250,
+            "enum": ["1x1", "2x2", "4x4", "8x8"]
+          },
+          "Imaging_Light_Source": {
+            "description": "Type of light source used",
+            "type": "string",
+            "maxLength": 250
+          },
+          "Imaging_Lens_Immersion_Type": {
+            "description": "Objective immersion type used",
+            "type": "string",
+            "maxLength": 250,
+            "enum": ["air", "oil", "water", "silicon oil", "glycerol", "other"]
+          },
+          "Imaging_Lens_Numerical_Aperture": {
+            "description": "Objective numerical aperture used",
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 2.0
+          },
+          "Imaging_Lens_Optical_Correction": {
+            "description": "Objective correction used",
+            "type": ["number","null"],
+            "minimum": 0.0,
+            "maximum": 10.0
+          },
+          "Imaging_Magnification": {
+            "description": "Objective magnification",
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 150.0
+          },
+          "Imaging_Pixelsize": {
+            "description": "Pixelsize (in micron/pixel)",
+            "type": "number",
+            "units": "nm",
+            "minimum": 0.0
+          },
+          "Imaging_Z_Dimension": {
+            "description": "Number of Z slices",
+            "type": "number",
+            "minimum": 1
+          },
+          "Imaging_Z_Stepsize": {
+            "description": "Z step size in micrometers",
+            "type": "number",
+            "units": "nm",
+            "minimum": 0.0
+          }
+        }
+      },
+      "Design_Group": {
+        "type": "object",
+        "properties": {
+          "Imaging_Plate_Format": {
+            "description": "Plate format description",
+            "type": "string",
+            "maxLength": 250,
+            "source": "http://www.bioassayontology.org/bao#BAO_000512"
+          },
+          "Imaging_Replication_Type": {
+            "description": "Replication type",
+            "type": "string",
+            "maxLength": 250
+          },
+          "Imaging_Replication_Count": {
+            "description": "Number of replication cycles",
+            "type": "number"
+          },
+          "Imaging_Type": {
+            "description": "Imaging experiment type (live, fixed, etc.)",
+            "type": "string",
+            "maxLength": 250
+          },
+          "Imaging_Fixative": {
+            "description": "Fixative used",
+            "type": "string",
+            "maxLength": 250,
+            "source": "http://www.ebi.ac.uk/chebi"
+          },
+          "Imaging_Permeabilization_Agent": {
+            "description": "Permeabilization agent used",
+            "type": "string",
+            "maxLength": 250,
+            "source": "http://www.ebi.ac.uk/chebi"
+          },
+          "Imaging_Blocking_Agent": {
+            "description": "Blocking agent used",
+            "type": "string",
+            "maxLength": 250,
+            "source": "http://www.ebi.ac.uk/chebi"
+          }
+        }
+      },
+      "Incubation_Group": {
+        "type": "object",
+        "properties": {
+          "Imaging_Incubator": {
+            "description": "Imaging Incubator used",
+            "type": "boolean"
+          },
+          "Imaging_Incubator_Temp": {
+            "description": "Incubator temperature (in C)",
+            "type": "number",
+            "units": "celsius"
+          },
+          "Imaging_Incubator_CO2": {
+            "description": "Incubator CO2 (in percent)",
+            "type": "number",
+            "units": "%",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "Imaging_Incubator_O2": {
+            "description": "Incubator O2 (in percent)",
+            "type": ["number","null"],
+            "units": "%",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "Imaging_Incubator_Humidity": {
+            "description": "Incubator humidity (in percent)",
+            "type": ["number","null"],
+            "units": "%",
+            "minimum": 0,
+            "maximum": 100
+          }
+        }
+      },
+      "Time_Group": {
+        "type": "object",
+        "properties": {
+          "Imaging_Live": {
+            "description": "Time lapse imaging experiment",
+            "type": "boolean"
+          },
+          "Imaging_Total_Time": {
+            "description": "Total imaging time",
+            "type": "number",
+            "units": "s",
+            "minimum": 0
+          },
+          "Imaging_Time_Interval": {
+            "description": "Time point interval",
+            "type": "number",
+            "units": "ms",
+            "minimum": 0
+          },
+          "Imaging_Total_Number": {
+            "description": "Number of time points",
+            "type": "number",
+            "minimum": 0
+          }
+        }
+      },
+      "Imaging_Acquisition_Group_Rounds": {
+        "type": "integer",
+        "description": "Imaging_Detection_Rounds"
+      },
+      "Acquisition_Groups": {
+        "type": "array",
+        "items": [
+        {
+          "type": "object",
+          "name": "Acquisition_Group",
+          "properties": {
+            "Imaging_Acquisition_Name": {
+              "description": "Name of Acquisition_Group",
+              "type": "string",
+              "maxLength": 250
+            },
+            "Imaging_Channel_Method": {
+              "description": "Channel acquisition method (sequential or simultaneous)",
+              "type": "string",
+              "maxLength": 250,
+              "enum": ["sequential", "simultaneous", "other"]
+            },
+            "Imaging_Channel_Count": {
+              "description": "Imaging_Channel_Count",
+              "type": "integer"
+            },
+            "Imaging_Channels": {
+              "type": "array",
+              "items": [{
+                "type": "object",
+                "properties": {
+                  "Imaging_Channel_Name": {
+                    "description": "Name of channel",
+                    "type": "string",
+                    "maxLength": 250
+                  },
+                  "Imaging_Method": {
+                    "description": "Imaging contrast method (fluorescence, brightfield, phase, etc.)",
+                    "type": "string",
+                    "maxLength": 250,
+                    "source": "http://www.bioassayontology.org/bao#BAO_000452"
+                  },
+                  "Imaging_Excitation_Wavelength": {
+                    "description": "Excitation wavelength (in nm)",
+                    "type": "number",
+                    "units": "nm",
+                    "minimum": 300,
+                    "maximum": 1200
+                  },
+                  "Imaging_Excitation_Power": {
+                    "description": "Excitation power (in percent)",
+                    "type": "number",
+                    "units": "%",
+                    "minimum": 0,
+                    "maximum": 100
+                  },
+                  "Imaging_Excitation_Filter": {
+                    "description": "Excitation filter range (tuple of values in nm)",
+                    "type": "array",
+                    "units": "nm",
+                    "minimum": 300,
+                    "maximum": 1200
+                  },
+                  "Imaging_Dichroic_Filter": {
+                    "description": "Dichroic mirror wavelength cutoff (in nm)",
+                    "type": "number",
+                    "units": "nm",
+                    "minimum": 300,
+                    "maximum": 1200
+                  },
+                  "Imaging_Emission_Filter": {
+                    "description": "Emission filter range (tuple of values in nm)",
+                    "type": "array",
+                    "units": "nm",
+                    "minimum": 300,
+                    "maximum": 1200
+                  },
+                  "Imaging_Exposure_Time": {
+                    "description": "Exposure time (in ms)",
+                    "type": "number",
+                    "units": "ms",
+                    "minimum": 0
+                  },
+                  "Imaging_Detector_Gain": {
+                    "description": "Detector gain",
+                    "type": "number",
+                    "units": "",
+                    "minimum": 0
+                  },
+                  "Imaging_Marker_Intrinsic": {
+                    "description": "Intrinsic marker",
+                    "type": "boolean"
+                  },
+                  "Imaging_Marker_Antibodies": {
+                    "description": "Antibody marker",
+                    "type": "boolean"
+                  },
+                  "Imaging_Marker_Compounds": {
+                    "description": "Chemical marker",
+                    "type": "boolean"
+                  },
+                  "Imaging_Marker_Sample_Specification": {
+                    "type": "string",
+                    "maxLength": 250,
+                    "source": "to be determined"
+                  }
+                }
+              }]
+            }
+          }
+       }]
+    }
+  }
+}

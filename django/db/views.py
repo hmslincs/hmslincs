@@ -51,6 +51,7 @@ from db.models import PubchemRequest, SmallMolecule, SmallMoleculeBatch, Cell, \
     Ipsc, IpscBatch, Unclassified, UnclassifiedBatch
 from django_tables2.utils import AttributeDict
 from tempfile import SpooledTemporaryFile
+from db.api import DataSetResource2, _get_raw_time_string
 
 
 logger = logging.getLogger(__name__)
@@ -1783,7 +1784,7 @@ def datasetDetailMetadata(request, facility_id):
     try:
         details = datasetDetail2(request,facility_id,'metadata')
         details.setdefault('heading', 'Experimental Metadata')
-        return render(request,'db/datasetDetailProperties.html', details)
+        return render(request,'db/datasetDetailPropertiesJson.html', details)
     except Http401, e:
         return HttpResponse('Unauthorized', status=401)
 
@@ -3618,9 +3619,6 @@ def _download_file(request, file_obj):
         logger.warn(msg)
         raise Http404(msg)
 
-def _get_raw_time_string():
-  return timezone.now().strftime("%Y%m%d%H%M%S")
-
 def send_to_file1(outputType, name, table_name, ordered_datacolumns, cursor, 
                   is_authenticated=False):
     """
@@ -4131,29 +4129,15 @@ def datasetDetail2(request, facility_id, sub_page):
         RequestConfig(
             request, paginate={"per_page": items_per_page}).configure(table)
     elif sub_page == 'metadata':
-        propertyListing = OrderedDict()
-        for property in dataset.properties.all().order_by('ordinal'):
-            _dict = {}
-            logger.info('property: %r, %r, %r',
-                property.type, property.name, property.value)
-            type = property.type
-            name = property.name.replace('_',' ')
-            name = name.lower().replace(type.lower(),'')
-            name = name.title()
-            _dict['fieldinformation'] = { 
-                'get_column_detail': property.name,
-                'get_verbose_name': name 
-            }
-            _dict['value'] = property.value
-            if type in propertyListing:
-                properties = propertyListing[type]
-            else:
-                properties = OrderedDict()
-                propertyListing[type] = properties
-            properties[property.name] = _dict
-        
-        details['propertyListing'] = propertyListing
-        
+        # Use the API to generate a JSON compatible mapping of the properties
+        property_map = DataSetResource2().build_metadata(dataset)
+        prop_string = json.dumps(property_map, sort_keys=False, indent=2)
+        # Do a minimalist conversion of the JSON structure to a indented list
+        prop_string = re.sub(r'[{},"\[\]]','',prop_string)
+        # Remove empty lines in the indented list
+        prop_string = re.sub(r'^\s+\n','', prop_string, flags=re.MULTILINE )
+        # Send the indented list directly to the template
+        details['jsonProperties'] = prop_string
     elif sub_page != 'main':
         raise Exception(str(('Unknown sub_page for datasedetail', sub_page)))
     

@@ -1067,11 +1067,11 @@ class DatasetProperty(models.Model):
 
     class Meta:
         db_table = 'db_dataset_property'
-        unique_together = ('dataset', 'type','name',)    
+        unique_together = ('dataset', 'ordinal',)    
 
     def __repr__(self):
-        return ('<DatasetProperty(dataset=%r, type=%r, name=%r, value=%r)>' 
-            % (self.dataset, self.type, self.name, self.value ))
+        return ('<DatasetProperty(dataset=%r, ordinal=%r, type=%r, name=%r, value=%r)>' 
+            % (self.dataset, self.ordinal, self.type, self.name, self.value ))
 
 class Library(models.Model):
     name = _TEXT(unique=True,**_NOTNULLSTR)
