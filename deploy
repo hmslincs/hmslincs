@@ -51,6 +51,7 @@ LOGFILE=${LOGFILE:-${PROGDIR:+"$PROGDIR/log"}}
 LOCKFILE=${LOCKFILE:-${PROGDIR:+"$PROGDIR/lock"}}
 ADMINDIR=${ADMINDIR:-${SUPPORTDIR:+"$($REALPATH $SUPPORTDIR/..)/docroot/admin/deploy"}}
 INFOFILE=
+WSGIFILE=${WSGIFILE:-${SUPPORTDIR:+"$SUPPORTDIR/wsgi/app.wsgi"}}
 
 UMASK=002
 
@@ -184,22 +185,13 @@ function main {
     fi
   fi
 
-  if [[ $SITE = $PRODSITE ]]; then
-    KILLFCGI=$(printf "$URLTEMPLATE" "")
-  elif [[ $SITE = $DEVSITE ]]; then
-    KILLFCGI=$(printf "$URLTEMPLATE" dev.)
-  else
-    KILLFCGI=
-    echo "$SITE is not a supported site: will not run cleanup.cgi"
-  fi
-
   if $DEBUG; then
     cat <<EOF
 params:
 SITE: $SITE
 REMOTE: $REMOTE
 BRANCH: $BRANCH
-KILLFCGI: $KILLFCGI
+WSGIFILE: $WSGIFILE
 EOF
 
   fi
@@ -320,6 +312,13 @@ function killfcgi {
   _debug 'done'
 }
 
+function touchwsgi {
+  if [[ -e $WSGIFILE ]]; then
+    touch $WSGIFILE
+    _debug "wsgi file: $WSGIFILE touched" 
+  fi
+}
+
 function _mkdir {
   if [[ ! -e $1 ]]; then
     (umask $UMASK && mkdir -p "$1") || error "could not create $1: $?"
@@ -381,7 +380,7 @@ EOF
   maybe_activate_virtualenv
   # 20180327 pip must be run separately in the o2 & webserver environments
   #  gitpull && runpip && builddb && collectstatic && killfcgi
-  gitpull && builddb && collectstatic && killfcgi
+  gitpull && builddb && collectstatic && touchwsgi
 
   STATUS=$SUCCESS
   echo done
