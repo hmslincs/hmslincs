@@ -7,6 +7,7 @@ from db.api import CellResource
 from db.api import PrimaryCellResource
 from db.api import DiffCellResource
 from db.api import IpscResource
+from db.api import EsCellResource
 from db.api import AntibodyResource
 from db.api import OtherReagentResource
 from db.api import UnclassifiedPerturbagenResource
@@ -23,6 +24,7 @@ v1_api.register(CellResource())
 v1_api.register(PrimaryCellResource())
 v1_api.register(DiffCellResource())
 v1_api.register(IpscResource())
+v1_api.register(EsCellResource())
 v1_api.register(DataSetResource2())
 v1_api.register(DataSetDataResource2())
 v1_api.register(ProteinResource())
@@ -54,7 +56,10 @@ urlpatterns = patterns('',
     url(r'^primarycells/(?P<facility_batch>\d+)-(?P<batch_id>\d+)/$', 'db.views.primaryCellDetail', name="primary_cell_detail2"),    
     url(r'^ipscs/$','db.views.ipscIndex', name="listIpscs"),
     url(r'^ipscs/(?P<facility_batch>[0-9\-]+)/$', 'db.views.ipscDetail', name="ipsc_detail"),
-    url(r'^ipscs/(?P<facility_batch>\d+)-(?P<batch_id>\d+)/$', 'db.views.ipscDetail', name="ipsc_detail2"),    
+    url(r'^ipscs/(?P<facility_batch>\d+)-(?P<batch_id>\d+)/$', 'db.views.ipscDetail', name="ipsc_detail2"),
+    url(r'^escells/$','db.views.esCellIndex', name="listEsCells"),
+    url(r'^escells/(?P<facility_batch>[0-9\-]+)/$', 'db.views.esCellDetail', name="es_cell_detail"),
+    url(r'^escells/(?P<facility_batch>\d+)-(?P<batch_id>\d+)/$', 'db.views.esCellDetail', name="es_cell_detail2"),    
     url(r'^diffcells/$','db.views.diffCellIndex', name="listDiffCells"),
     url(r'^diffcells/(?P<facility_batch>[0-9\-]+)/$', 'db.views.diffCellDetail', name="diff_cell_detail"),
     url(r'^diffcells/(?P<facility_batch>\d+)-(?P<batch_id>\d+)/$', 'db.views.diffCellDetail', name="diff_cell_detail2"),    
@@ -83,6 +88,7 @@ urlpatterns = patterns('',
     url(r'^datasets/(?P<facility_id>\d+)/cells$', 'db.views.datasetDetailCells', name="dataset_detail_cells"),
     url(r'^datasets/(?P<facility_id>\d+)/primarycells$', 'db.views.datasetDetailPrimaryCells', name="dataset_detail_primary_cells"),
     url(r'^datasets/(?P<facility_id>\d+)/ipscs$', 'db.views.datasetDetailIpscs', name="dataset_detail_ipscs"),
+    url(r'^datasets/(?P<facility_id>\d+)/escells$', 'db.views.datasetDetailEsCells', name="dataset_detail_es_cells"),
     url(r'^datasets/(?P<facility_id>\d+)/diffcells$', 'db.views.datasetDetailDiffCells', name="dataset_detail_diff_cells"),
     url(r'^datasets/(?P<facility_id>\d+)/antibodies$', 'db.views.datasetDetailAntibodies', name="dataset_detail_antibodies"),
     url(r'^datasets/(?P<facility_id>\d+)/otherreagents$', 'db.views.datasetDetailOtherReagents', name="dataset_detail_otherreagents"),

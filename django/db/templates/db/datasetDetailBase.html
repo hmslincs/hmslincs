@@ -24,6 +24,9 @@
 {% if has_ipscs %}
     <li class='{% selectedTag request "^/db/datasets/\d+/ipscs$" %}'><a  href="{% url dataset_detail_ipscs   facility_id=facilityId%}">iPSCs&nbsp;Studied</a></li>
 {% endif %}
+{% if has_es_cells %}
+    <li class='{% selectedTag request "^/db/datasets/\d+/escells$" %}'><a  href="{% url dataset_detail_es_cells   facility_id=facilityId%}">Embryonic Stem Cells&nbsp;Studied</a></li>
+{% endif %}
 {% if has_diff_cells %}
     <li class='{% selectedTag request "^/db/datasets/\d+/diffcells$" %}'><a  href="{% url dataset_detail_diff_cells   facility_id=facilityId%}">Differentiated&nbsp;Cells&nbsp;Studied</a></li>
 {% endif %}

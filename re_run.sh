@@ -166,6 +166,8 @@ then
   python src/import_primary_cell.py -f sampledata/sample_primary_cells.xlsx --do_precursors
   check_errs $? "import primary cell precursors fails"
   
+  # Note: if ipsc cells reference precursor primary batch cells, make
+  # sure these are loaded before this.
   echo 'import ipsc cell tables ...'
   python src/import_ipsc.py -f sampledata/sample_ipscs.xlsx
   check_errs $? "import ipscs fails"
@@ -173,6 +175,16 @@ then
   echo 'import ipsc cell batch tables ...'
   python src/import_ipsc_batch.py -f sampledata/sample_ipsc_batches.xlsx
   check_errs $? "import ipsc cell batches fails"
+  
+  # Note: if embryonic cells reference precursor primary batch cells, make
+  # sure these are loaded before this.
+  echo 'import embryonic cell tables ...'
+  python src/import_es_cell.py -f sampledata/sample_escell.xlsx
+  check_errs $? "import embryonic cells fails"
+  
+  echo 'import embryonic cell batch tables ...'
+  python src/import_es_cell_batch.py -f sampledata/sample_escell_batch.xlsx
+  check_errs $? "import embryonic cell batches fails"
   
   # Note: if differentiated cells reference precursor IPSC batch cells, make
   # sure these are loaded before this.
