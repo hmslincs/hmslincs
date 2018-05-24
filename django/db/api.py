@@ -764,7 +764,8 @@ class DataSetResource2(ModelResource):
             dataset.properties.all().order_by('type','ordinal')]
         (image_props, non_imaging_properties) = \
             build_image_properties(all_properties)
-        property_map['Imaging'] = image_props
+        if image_props:
+            property_map['Imaging'] = image_props
         for property in non_imaging_properties:
             property_map[property.type][property.name] = property.value
         
