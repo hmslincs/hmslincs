@@ -28,14 +28,27 @@ jQuery(document).ready(
               // Prevent the default download event, and
               // send the download to a hidden frame.
               e.preventDefault();
-              var downloadIframe = document.getElementById('tempdownloadframe');
-              if (!downloadIframe){
-                downloadIframe = document.createElement('iframe');
-                downloadIframe.id = 'tempdownloadframe';
-                downloadIframe.style.display = 'none';
-                document.getElementById('innercontent').appendChild(downloadIframe);
+
+              function parseUrl(link){
+                var a = document.createElement('a');
+                a.href = link;
+                return a;
+              };
+              function isSameOrigin(link1, link2) {
+                  return (parseUrl(link1).hostname === parseUrl(link2).hostname);
+              };              
+              if ( !isSameOrigin(window.location, e.target.href)){
+                window.open(e.target.href);
+              } else {
+                var downloadIframe = document.getElementById('tempdownloadframe');
+                if (!downloadIframe){
+                  downloadIframe = document.createElement('iframe');
+                  downloadIframe.id = 'tempdownloadframe';
+                  downloadIframe.style.display = 'none';
+                  document.getElementById('innercontent').appendChild(downloadIframe);
+                }
+                downloadIframe.src = e.target.href;
               }
-              downloadIframe.src = e.target.href;
               testSurveyCookie();
             });
         }
