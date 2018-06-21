@@ -310,6 +310,16 @@ else
   python src/import_ipsc_batch.py -f $DATADIR/ipsc_batch.xlsx
   check_errs $? "import ipsc cell batches fails"
   
+  # Note: if embryonic cells reference precursor primary batch cells, make
+  # sure these are loaded before this.
+  echo 'import embryonic cell tables ...'
+  python src/import_es_cell.py -f $DATADIR/esc.xlsx
+  check_errs $? "import embryonic cells fails"
+  
+  echo 'import embryonic cell batch tables ...'
+  python src/import_es_cell_batch.py -f $DATADIR/esc_batch.xlsx
+  check_errs $? "import embryonic cell batches fails"
+  
   # Note: if differentiated cells reference precursor IPSC batch cells, make
   # sure these are loaded before this.
   echo 'import differentiated cell tables ...'
@@ -1665,6 +1675,19 @@ else
   echo 'import screen results...'
   python src/import_dataset2.py -f $DATADIR/Screen20344_DrugSensitivity2.xlsx
   check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20345_Proteomics1.xlsx
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20346_Proteomics2.xlsx
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20347_Proteomics3.xlsx
+  check_errs $? "import dataset fails"
+    
   
   # 2015-04-20: removed all attached compound QC files since original reports from vendors will no longer be used and future reports will be attached in the QC Testing Events section of each batch
   
