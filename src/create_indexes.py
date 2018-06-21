@@ -4,7 +4,7 @@ import init_utils as iu
 
 from db.models import Cell, DataSet, SmallMolecule, Library, Protein, FieldInformation,\
     Antibody, OtherReagent, Reagent,ReagentBatch, PrimaryCell, Ipsc, Unclassified,\
-    DiffCell
+    DiffCell, EsCell
 from django.db import models
 
 # ---------------------------------------------------------------------------
@@ -26,6 +26,7 @@ def main():
     createTableIndex('db_primarycell', PrimaryCell)
     createTableIndex('db_diffcell', DiffCell)
     createTableIndex('db_ipsc', Ipsc)
+    createTableIndex('db_escell', EsCell)
     createTableIndex('db_smallmolecule', SmallMolecule)
     createTableIndex('db_dataset', DataSet)
     createTableIndex('db_library', Library)

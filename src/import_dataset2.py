@@ -15,7 +15,7 @@ from xlrd.book import colname
 from db.models import DataSet, DataColumn, DataRecord, DataPoint, \
         LibraryMapping, AntibodyBatch, OtherReagent, SmallMoleculeBatch, \
         OtherReagentBatch, ProteinBatch, CellBatch, PrimaryCellBatch, \
-        DiffCellBatch, IpscBatch, UnclassifiedBatch, DatasetProperty, \
+        DiffCellBatch, IpscBatch, EsCellBatch, UnclassifiedBatch, DatasetProperty, \
         ReagentBatch, camel_case_dwg 
 
 
@@ -55,6 +55,14 @@ default_reagent_columns = {
         'data_type': 'ipsc',
         'description': 'An induced pluripotent stem cell reagent',
         'comments': 'An induced pluripotent stem cell reagent'
+    },
+    'EsCell': {
+        'display_order': 2,
+        'name': 'escell',
+        'display_name': 'Embryonic Stem Cell',
+        'data_type': 'es_cell',
+        'description': 'An embryonic stem cell reagent',
+        'comments': 'An embryonic stem cell reagent'
     },
     'DiffCell': {
         'display_order': 2,
@@ -508,6 +516,9 @@ def read_explicit_reagents(book, dataset):
                 elif hasattr(rb, 'ipscbatch'):
                     logger.info('ipsc reagent found: %r', rb)
                     dataset.ipscs.add(rb.ipscbatch)
+                elif hasattr(rb, 'escellbatch'):
+                    logger.info('embryonic stem cell reagent found: %r', rb)
+                    dataset.es_cells.add(rb.escellbatch)
                 elif hasattr(rb, 'proteinbatch'):
                     logger.info('protein reagent found: %r', rb)
                     dataset.proteins.add(rb.proteinbatch)
@@ -648,6 +659,8 @@ def _create_datapoint(datacolumn, dataset, datarecord, value):
             _read_diff_cell_batch(dataset, datapoint)
         elif datacolumn.data_type == 'ipsc':
             _read_ipsc_batch(dataset, datapoint)
+        elif datacolumn.data_type == 'es_cell':
+            _read_es_cell_batch(dataset, datapoint)
     return datapoint
 
 def _parse_reagent_batch(text_value):
@@ -827,6 +840,27 @@ def _read_ipsc_batch(dataset, datapoint):
         reagents_read_hash[text_value] = reagentbatch
     except Exception, e:
         logger.exception("Invalid IPSC identifier: %r:%r, raw val: %r",
+            facility_id,batch_id,text_value)
+        raise    
+
+def _read_es_cell_batch(dataset, datapoint):
+
+    try:
+        (facility_id,batch_id,text_value) = (
+            _parse_reagent_batch(datapoint.text_value))
+        datapoint.text_value = text_value
+        if text_value in reagents_read_hash:
+            datapoint.reagent_batch = reagents_read_hash[text_value]
+            logger.debug('reagent already read: %r' % text_value)
+            return
+        reagentbatch = EsCellBatch.objects.get(
+            reagent__facility_id=facility_id,
+            batch_id=batch_id) 
+        dataset.es_cells.add(reagentbatch)
+        datapoint.reagent_batch = reagentbatch
+        reagents_read_hash[text_value] = reagentbatch
+    except Exception, e:
+        logger.exception("Invalid Embryonic Cell identifier: %r:%r, raw val: %r",
             facility_id,batch_id,text_value)
         raise    
 
