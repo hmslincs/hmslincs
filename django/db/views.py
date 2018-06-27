@@ -5019,7 +5019,8 @@ WHERE search_vector @@ {query_number}
                         queryStringProcessed,queryStringProcessed,
                         queryStringProcessed,queryStringProcessed,
                         queryStringProcessed,queryStringProcessed,
-                        queryStringProcessed,queryStringProcessed])
+                        queryStringProcessed,queryStringProcessed,
+                        queryStringProcessed])
         _data = dictfetchall(cursor)
 
         # perform (largely redundant) queries using the specific managers:
