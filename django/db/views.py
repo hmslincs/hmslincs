@@ -1397,31 +1397,55 @@ def smallMoleculeDetail(request, facility_salt_id):
                 where=where, order_by=('facility_id',))        
             details['datasets'] = DataSetTable(queryset)
         
-        # nominal target dataset results information
+        # Target Affinity Spectrum data
         try:
-            dataset = DataSet.objects.get(dataset_type='Nominal Targets')
-            metaWhereClause=[
-                '''"smallMolecule" ~ '^%s' ''' % sm.facility_salt,
-                '''"isNominal" = '1' '''] 
-            ntable = DataSetManager2(dataset).get_table(
-                metaWhereClause=metaWhereClause,
-                column_exclusion_overrides=['isNominal'])
-            logger.info(str(('ntable',ntable.data, len(ntable.data))))
+            dataset = DataSet.objects.get(facility_id='20000')
+
+            sql =  '''
+                select
+                classmin,
+                array_to_string(array_agg(gene),', ') as genes
+                from (
+                select 
+                dp2.int_value as classmin,
+                dp1.text_value as gene
+                from 
+                (select dp.datarecord_id 
+                    from db_datapoint dp
+                    join db_datacolumn dc on(dp.datacolumn_id=dc.id) 
+                    join db_dataset ds on (dp.dataset_id = ds.id) 
+                    where ds.facility_id = '20000'
+                    and dc.name = 'hmsid'
+                    and dp.text_value = '%s'
+                ) as dr
+                join db_datapoint dp1 on (dp1.datarecord_id = dr.datarecord_id)
+                join db_datacolumn dc1 on (dp1.datacolumn_id = dc1.id)
+                join db_datapoint dp2 on (dp2.datarecord_id = dr.datarecord_id)
+                join db_datacolumn dc2 on (dp2.datacolumn_id = dc2.id)
+                where dc1.name = 'approvedSymbol'
+                and dc2.name = 'classmin'
+                order by classmin, gene ) a
+                group by classmin;                
+                '''            
             
-            if ntable.data: 
-                details['nominal_targets_table']=ntable
+            cursor = connection.cursor()
+            cursor.execute(sql % sm.facility_salt)
+            v = dictfetchall(cursor)
+
+            class TargetTable(PagedTable):
+                classmin = tables.Column(
+                    verbose_name='Target Affinity Spectrum Value')
+                genes = DivWrappedColumn(
+                    verbose_name="HUGO Gene Name",
+                    classname='wide_width_column')
+                class Meta:
+                    orderable = True
+                    attrs = {'class': 'paleblue'}
             
-            metaWhereClause=[
-                '''"smallMolecule" ~ '^%s' ''' % sm.facility_salt,
-                '''"isNominal" != '1' '''] 
-            otable = DataSetManager2(dataset).get_table(
-                metaWhereClause=metaWhereClause,
-                column_exclusion_overrides=[
-                    'isNominal'])
-            logger.debug(str(('otable',ntable.data, len(otable.data))))
-            if(len(otable.data)>0): details['other_targets_table']=otable
+            details['target_affinity_table']=TargetTable(v)
+            
         except DataSet.DoesNotExist:
-            logger.warn('Nominal Targets dataset does not exist')
+            logger.warn('Target Affinity dataset does not exist')
         
         image_location = ( COMPOUND_IMAGE_LOCATION + '/HMSL%s-%s.png' 
             % (sm.facility_id,sm.salt_id) )

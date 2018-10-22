@@ -22,6 +22,7 @@ from db.models import DataSet, DataColumn, DataRecord, DataPoint, \
 logger = logging.getLogger(__name__)
 
 reagents_read_hash = {}
+sm_reagents_hash = {}
 
 default_reagent_columns = {
     'Small Molecule Batch': {
@@ -351,7 +352,7 @@ def read_datacolumns_and_data(book, dataset):
         else:
             logger.debug(
                 'unrecognized label in "Data Columns" sheet %r' % label_read)
-    
+    logger.info('dc_definitions: %r', dc_definitions)
     for dc_dict in dc_definitions:
         for label in required_labels:
             if label not in dc_dict:
@@ -365,7 +366,6 @@ def read_datacolumns_and_data(book, dataset):
     dc_definitions_found = []
     data_labels_found = []
     for i,data_label in enumerate(data_sheet_labels):
-        
         if not data_label or not data_label.strip():
             logger.info('break on data sheet col %d, blank' % i)
             break
@@ -528,13 +528,15 @@ def read_explicit_reagents(book, dataset):
     except XLRDError, e:
         logger.info('no "Reagents" sheet found')
 
+
 def read_data(book, col_to_dc_map, first_small_molecule_column, dataset):
 
     datarecord_batch = []
     save_interval = 1000
 
-    logger.debug('read the Data sheet')
+    logger.info('read the Data sheet...')
     data_sheet = book.sheet_by_name('Data')
+    
     
     for i,label in enumerate(data_sheet.row_values(0)):
         logger.debug('find datasheet label %r:%r' % (colname(i), label))
@@ -545,14 +547,63 @@ def read_data(book, col_to_dc_map, first_small_molecule_column, dataset):
     logger.debug('meta_columns: %s, datacolumnList: %s' 
         % (meta_columns, col_to_dc_map) )
     logger.debug('read the data sheet, save_interval: %d' % save_interval)
+
     loopStart = time.time()
     pointsSaved = 0
-    rows_read = 0
-    for i in xrange(data_sheet.nrows-1):
-        current_row = i + 2
-        row = data_sheet.row_values(i+1)    
+    rows_created = 0
+    
+    # find 'small_molecule_no_salt' if any
+    sm_hmsl_no_salt_col = None
+    for i, dc in col_to_dc_map.items():
+        if dc.data_type == 'small_molecule_no_salt':
+            sm_hmsl_no_salt_col = i
+            dc.data_type = 'small_molecule'
+            dc.save()
+            logger.info('Converting column to small_molecule (with salt) %r', dc)
+            # only supports one
+            break
+            
+    def sheet_rows(workbook_sheet):
+        for row in xrange(workbook_sheet.nrows):
+            yield util.make_row(workbook_sheet.row_values(row))
+    
+    # Create a generator to insert extra rows for all of the salt versions of the SM
+    def sheet_no_salt_rows(_gen, hmsl_column):
+        
+        for i,row in enumerate(_gen):
+            if i == 0:
+                yield row
+            else:
+                facility_id = row[hmsl_column]
+    
+                if facility_id in sm_reagents_hash:
+                    sm_reagents = sm_reagents_hash[facility_id]
+                else:
+                    query = SmallMoleculeBatch.objects.filter(
+                        reagent__facility_id=facility_id, batch_id=0)
+                    logger.debug('Found Small Molecules for: %r, %d', facility_id, query.count())
+                    if not query.exists():
+                        raise ObjectDoesNotExist('Small Molecule for %r not found' % facility_id)
+                    else:
+                        sm_reagents = [rb for rb in query.all()]
+                        sm_reagents_hash[facility_id] = sm_reagents
+                for reagentbatch in sm_reagents:
+                    
+                    facility_salt = facility_id + '-' + reagentbatch.reagent.salt_id
+                    
+                    new_row = row[:]
+                    new_row[hmsl_column] = facility_salt
+                    yield new_row
+                
+    _gen = sheet_rows(data_sheet)
+    if sm_hmsl_no_salt_col is not None:
+        _gen = sheet_no_salt_rows(_gen, sm_hmsl_no_salt_col)
+        
+    for i, r in enumerate(_gen):
+        if i == 0:
+            # Header row
+            continue
 
-        r = util.make_row(row)
         datarecord = DataRecord(dataset=dataset)
         
         if meta_columns['Control Type'] > -1: 
@@ -560,7 +611,7 @@ def read_data(book, col_to_dc_map, first_small_molecule_column, dataset):
                 r[meta_columns['Control Type']])
 
         datapoint_batch = []
-        small_molecule_datapoint = None 
+        small_molecule_datapoint = None
         for i,dc in col_to_dc_map.items():
             value = r[i]
             logger.debug(
@@ -577,34 +628,32 @@ def read_data(book, col_to_dc_map, first_small_molecule_column, dataset):
                 
         if meta_columns['Plate'] > -1:
             _read_plate_well(
-                meta_columns['Plate'], r, current_row, datarecord,
+                meta_columns['Plate'], r, i, datarecord,
                 first_small_molecule_column,small_molecule_datapoint,
                 datapoint_batch)
         
         
         datarecord_batch.append((datarecord, datapoint_batch))
-        rows_read += 1
+        rows_created += 1
         
-        if (rows_read % save_interval == 0):
+        if (rows_created % save_interval == 0):
             bulk_create_datarecords(datarecord_batch)
             logger.debug(
-                'datarecord batch created, rows_read: %d , time (ms): %d'
-                    % (rows_read, time.time()-loopStart ) )
+                'datarecord batch created, rows_created: %d , time (s): %d'
+                    % (rows_created, time.time()-loopStart ) )
             count = bulk_create_datapoints(datarecord_batch)
-            logger.debug('datapoints created in batch: %d ' % count)
             datarecord_batch=[]
 
     bulk_create_datarecords(datarecord_batch)
     et = time.time()-loopStart
     logger.debug(
-        'final datarecord batch created, rows_read: %d, time (ms): %d' 
-            % (rows_read, et))
+        'final datarecord batch created, rows_created: %d, time (ms): %d' 
+            % (rows_created, et))
 
     count = bulk_create_datapoints(datarecord_batch)
-    logger.debug('created dps %d' % count )
 
-    print 'Finished reading, rows_read: ', rows_read, ', points Saved: ', pointsSaved
-    print 'elapsed: ', et , 'avg: ', et/rows_read
+    print 'Finished reading, rows created: ', rows_created, ', points Saved: ', pointsSaved
+    print 'elapsed: ', et , 'avg: ', et/rows_created
     
     cleanup_unused_datacolumns(dataset)
 
@@ -617,7 +666,6 @@ def cleanup_unused_datacolumns(dataset):
 def _create_datapoint(datacolumn, dataset, datarecord, value):
     
     datapoint = None
-    
     if datacolumn.data_type == 'Numeric': 
         if datacolumn.precision != 0: 
             datapoint = DataPoint(datacolumn = datacolumn,

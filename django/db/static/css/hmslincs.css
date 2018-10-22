@@ -161,6 +161,9 @@ div.constrained_width_column_300 {
   white-space: normal;
   max-width: 300px;
 }
+div.wide_width_column {
+  white-space: normal;
+}
 div.comment_column {
   white-space: normal;
   max-width: 300px;
