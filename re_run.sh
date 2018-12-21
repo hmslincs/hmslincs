@@ -1703,7 +1703,15 @@ else
   echo 'import screen results...'
   python src/import_dataset2.py -f $DATADIR/Screen20351_DUBInhibitor2.xlsx
   check_errs $? "import dataset fails"
-      
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20352_BCP_Proteomics1.xlsx
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20353_BCP_Proteomics2.xlsx
+  check_errs $? "import dataset fails"
+       
   # 2015-04-20: removed all attached compound QC files since original reports from vendors will no longer be used and future reports will be attached in the QC Testing Events section of each batch
   
 # if restricted:
