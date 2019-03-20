@@ -182,6 +182,24 @@ jQuery(document).ready(
             document.cookie = ( 
                 COOKIE_NAME + "=" + cookieVal + "; expires=" + EXPIRES_ON);
         }
+
+        
+        /** 
+         * Utility function: provide a javascript text toggle.
+         * - Included here for convenience.
+         * - see the smallMoleculeDetail.html template for example usage.
+         */
+        (function collapsible_text_toggle() {
+          $('.toggle_text_collapsed').click(function(e){
+            $('.toggle_text_collapsed').toggle();
+            $('.toggle_text_expanded').toggle();
+          });
+          $('.toggle_text_expanded').click(function(){
+            $('.toggle_text_collapsed').toggle();
+            $('.toggle_text_expanded').toggle();
+          });
+        })();
+        
     }
 );
 

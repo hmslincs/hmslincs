@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 '''
 Main view class for the DB project
 '''
@@ -1431,10 +1432,32 @@ def smallMoleculeDetail(request, facility_salt_id):
             cursor = connection.cursor()
             cursor.execute(sql % sm.facility_salt)
             v = dictfetchall(cursor)
+            
+            field_lookup = {
+                1: '<b>1</b><br/>(Kd <100 nM)',
+                2: '<b>2</b><br/>(equivalent to 100 nM ≤ Kd < 1µM)',
+                3: '<b>3</b><br/>(equivalent to 1µM ≤ Kd < 10 µM)',
+                10: '<b>10</b><br/>(confirmed non-binding)'
+            }
+            
+            for tas_value in v:
+                classmin = tas_value['classmin']
+                tas_value['classmin'] = field_lookup.get(classmin, classmin)
+                
+                # Hide the non-binding genes by default (classmin==10)
+                if classmin == 10:
+                    genes = tas_value['genes']
+                    collapsible_text = \
+                        '<a class="toggle_text_collapsed" >(click here)</a>'\
+                        '<span class="toggle_text_expanded" style="display: none;">'
+                    collapsible_text += genes
+                    collapsible_text += '</span>'
+                    tas_value['genes'] = collapsible_text
 
             class TargetTable(PagedTable):
-                classmin = tables.Column(
-                    verbose_name='Target Affinity Spectrum Value')
+                classmin = DivWrappedColumn(
+                    verbose_name='Target Affinity Spectrum Value',
+                    classname='comment_column')
                 genes = DivWrappedColumn(
                     verbose_name="HUGO Gene Name",
                     classname='wide_width_column')
@@ -4000,7 +4023,7 @@ def get_cursor_col_key_name_map(cursor, fieldinformation_tables=None,
                         col.name,fieldinformation_tables)
                 header_row[i] = fi.get_verbose_name()
             except (Exception) as e:
-                logger.warn(
+                logger.info(
                     'no fieldinformation found for field: %r', col.name)
          
     return OrderedDict(sorted(header_row.items(),key=lambda x: x[0]))
@@ -4036,7 +4059,7 @@ def get_table_col_key_name_map(table, fieldinformation_tables=None,
             if(fi.show_in_detail or field in extra_columns):
                 col_fi_map[field]=fi
         except (Exception) as e:
-            logger.warn('no fieldinformation found for field: %r', field)        
+            logger.info('no fieldinformation found for field: %r', field)        
     return OrderedDict(
         [(x[0],x[1].get_verbose_name()) 
             for x in sorted(
