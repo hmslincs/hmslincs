@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 '''
 Main view class for the DB project
 '''
@@ -1397,31 +1398,71 @@ def smallMoleculeDetail(request, facility_salt_id):
                 where=where, order_by=('facility_id',))        
             details['datasets'] = DataSetTable(queryset)
         
-        # nominal target dataset results information
-        try:
-            dataset = DataSet.objects.get(dataset_type='Nominal Targets')
-            metaWhereClause=[
-                '''"smallMolecule" ~ '^%s' ''' % sm.facility_salt,
-                '''"isNominal" = '1' '''] 
-            ntable = DataSetManager2(dataset).get_table(
-                metaWhereClause=metaWhereClause,
-                column_exclusion_overrides=['isNominal'])
-            logger.info(str(('ntable',ntable.data, len(ntable.data))))
+        # Target Affinity Spectrum table
+        
+        sql =  '''
+            select
+            classmin,
+            array_to_string(array_agg(gene),', ') as genes
+            from (
+            select 
+            dp2.int_value as classmin,
+            dp1.text_value as gene
+            from 
+            (select dp.datarecord_id 
+                from db_datapoint dp
+                join db_datacolumn dc on(dp.datacolumn_id=dc.id) 
+                join db_dataset ds on (dp.dataset_id = ds.id) 
+                where ds.facility_id = '20000'
+                and dc.name = 'hmsid'
+                and dp.text_value = '%s'
+            ) as dr
+            join db_datapoint dp1 on (dp1.datarecord_id = dr.datarecord_id)
+            join db_datacolumn dc1 on (dp1.datacolumn_id = dc1.id)
+            join db_datapoint dp2 on (dp2.datarecord_id = dr.datarecord_id)
+            join db_datacolumn dc2 on (dp2.datacolumn_id = dc2.id)
+            where dc1.name = 'approvedSymbol'
+            and dc2.name = 'classmin'
+            order by classmin, gene ) a
+            group by classmin;                
+            '''            
+        
+        cursor = connection.cursor()
+        cursor.execute(sql % sm.facility_salt)
+        v = dictfetchall(cursor)
+        if v:
+            field_lookup = {
+                1: '<b>1</b><br/>(Kd <100 nM)',
+                2: '<b>2</b><br/>(equivalent to 100 nM ≤ Kd < 1µM)',
+                3: '<b>3</b><br/>(equivalent to 1µM ≤ Kd < 10 µM)',
+                10: '<b>10</b><br/>(confirmed non-binding)'
+            }
             
-            if ntable.data: 
-                details['nominal_targets_table']=ntable
-            
-            metaWhereClause=[
-                '''"smallMolecule" ~ '^%s' ''' % sm.facility_salt,
-                '''"isNominal" != '1' '''] 
-            otable = DataSetManager2(dataset).get_table(
-                metaWhereClause=metaWhereClause,
-                column_exclusion_overrides=[
-                    'isNominal'])
-            logger.debug(str(('otable',ntable.data, len(otable.data))))
-            if(len(otable.data)>0): details['other_targets_table']=otable
-        except DataSet.DoesNotExist:
-            logger.warn('Nominal Targets dataset does not exist')
+            for tas_value in v:
+                classmin = tas_value['classmin']
+                tas_value['classmin'] = field_lookup.get(classmin, classmin)
+                
+                # Hide the non-binding genes by default (classmin==10)
+                if classmin == 10:
+                    collapsible_text = \
+                        '<a class="toggle_text_collapsed" >(Click to show)</a>'\
+                        '<span class="toggle_text_expanded" style="display: none;">'
+                    collapsible_text += tas_value['genes']
+                    collapsible_text += '</span>'
+                    tas_value['genes'] = collapsible_text
+    
+            class TargetTable(PagedTable):
+                classmin = DivWrappedColumn(
+                    verbose_name='Target Affinity Spectrum Value',
+                    classname='comment_column')
+                genes = DivWrappedColumn(
+                    verbose_name="HUGO Gene Name",
+                    classname='wide_width_column')
+                class Meta:
+                    orderable = True
+                    attrs = {'class': 'paleblue'}
+
+            details['target_affinity_table']=TargetTable(v)
         
         image_location = ( COMPOUND_IMAGE_LOCATION + '/HMSL%s-%s.png' 
             % (sm.facility_id,sm.salt_id) )
@@ -3976,7 +4017,7 @@ def get_cursor_col_key_name_map(cursor, fieldinformation_tables=None,
                         col.name,fieldinformation_tables)
                 header_row[i] = fi.get_verbose_name()
             except (Exception) as e:
-                logger.warn(
+                logger.info(
                     'no fieldinformation found for field: %r', col.name)
          
     return OrderedDict(sorted(header_row.items(),key=lambda x: x[0]))
@@ -4012,7 +4053,7 @@ def get_table_col_key_name_map(table, fieldinformation_tables=None,
             if(fi.show_in_detail or field in extra_columns):
                 col_fi_map[field]=fi
         except (Exception) as e:
-            logger.warn('no fieldinformation found for field: %r', field)        
+            logger.info('no fieldinformation found for field: %r', field)        
     return OrderedDict(
         [(x[0],x[1].get_verbose_name()) 
             for x in sorted(
