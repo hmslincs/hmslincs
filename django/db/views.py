@@ -1398,41 +1398,39 @@ def smallMoleculeDetail(request, facility_salt_id):
                 where=where, order_by=('facility_id',))        
             details['datasets'] = DataSetTable(queryset)
         
-        # Target Affinity Spectrum data
-        try:
-            dataset = DataSet.objects.get(facility_id='20000')
-
-            sql =  '''
-                select
-                classmin,
-                array_to_string(array_agg(gene),', ') as genes
-                from (
-                select 
-                dp2.int_value as classmin,
-                dp1.text_value as gene
-                from 
-                (select dp.datarecord_id 
-                    from db_datapoint dp
-                    join db_datacolumn dc on(dp.datacolumn_id=dc.id) 
-                    join db_dataset ds on (dp.dataset_id = ds.id) 
-                    where ds.facility_id = '20000'
-                    and dc.name = 'hmsid'
-                    and dp.text_value = '%s'
-                ) as dr
-                join db_datapoint dp1 on (dp1.datarecord_id = dr.datarecord_id)
-                join db_datacolumn dc1 on (dp1.datacolumn_id = dc1.id)
-                join db_datapoint dp2 on (dp2.datarecord_id = dr.datarecord_id)
-                join db_datacolumn dc2 on (dp2.datacolumn_id = dc2.id)
-                where dc1.name = 'approvedSymbol'
-                and dc2.name = 'classmin'
-                order by classmin, gene ) a
-                group by classmin;                
-                '''            
-            
-            cursor = connection.cursor()
-            cursor.execute(sql % sm.facility_salt)
-            v = dictfetchall(cursor)
-            
+        # Target Affinity Spectrum table
+        
+        sql =  '''
+            select
+            classmin,
+            array_to_string(array_agg(gene),', ') as genes
+            from (
+            select 
+            dp2.int_value as classmin,
+            dp1.text_value as gene
+            from 
+            (select dp.datarecord_id 
+                from db_datapoint dp
+                join db_datacolumn dc on(dp.datacolumn_id=dc.id) 
+                join db_dataset ds on (dp.dataset_id = ds.id) 
+                where ds.facility_id = '20000'
+                and dc.name = 'hmsid'
+                and dp.text_value = '%s'
+            ) as dr
+            join db_datapoint dp1 on (dp1.datarecord_id = dr.datarecord_id)
+            join db_datacolumn dc1 on (dp1.datacolumn_id = dc1.id)
+            join db_datapoint dp2 on (dp2.datarecord_id = dr.datarecord_id)
+            join db_datacolumn dc2 on (dp2.datacolumn_id = dc2.id)
+            where dc1.name = 'approvedSymbol'
+            and dc2.name = 'classmin'
+            order by classmin, gene ) a
+            group by classmin;                
+            '''            
+        
+        cursor = connection.cursor()
+        cursor.execute(sql % sm.facility_salt)
+        v = dictfetchall(cursor)
+        if v:
             field_lookup = {
                 1: '<b>1</b><br/>(Kd <100 nM)',
                 2: '<b>2</b><br/>(equivalent to 100 nM ≤ Kd < 1µM)',
@@ -1446,14 +1444,13 @@ def smallMoleculeDetail(request, facility_salt_id):
                 
                 # Hide the non-binding genes by default (classmin==10)
                 if classmin == 10:
-                    genes = tas_value['genes']
                     collapsible_text = \
-                        '<a class="toggle_text_collapsed" >(click here)</a>'\
+                        '<a class="toggle_text_collapsed" >(Click to show)</a>'\
                         '<span class="toggle_text_expanded" style="display: none;">'
-                    collapsible_text += genes
+                    collapsible_text += tas_value['genes']
                     collapsible_text += '</span>'
                     tas_value['genes'] = collapsible_text
-
+    
             class TargetTable(PagedTable):
                 classmin = DivWrappedColumn(
                     verbose_name='Target Affinity Spectrum Value',
@@ -1464,11 +1461,8 @@ def smallMoleculeDetail(request, facility_salt_id):
                 class Meta:
                     orderable = True
                     attrs = {'class': 'paleblue'}
-            
+
             details['target_affinity_table']=TargetTable(v)
-            
-        except DataSet.DoesNotExist:
-            logger.warn('Target Affinity dataset does not exist')
         
         image_location = ( COMPOUND_IMAGE_LOCATION + '/HMSL%s-%s.png' 
             % (sm.facility_id,sm.salt_id) )
