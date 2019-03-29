@@ -194,10 +194,6 @@ jQuery(document).ready(
             $('.toggle_text_collapsed').toggle();
             $('.toggle_text_expanded').toggle();
           });
-          $('.toggle_text_expanded').click(function(){
-            $('.toggle_text_collapsed').toggle();
-            $('.toggle_text_expanded').toggle();
-          });
         })();
         
     }
