@@ -378,6 +378,11 @@ else
   python src/import_unclassified_perturbagen_batch.py -f $DATADIR/unclassified_perturbagens_batch.xlsx
   check_errs $? 'import unclassified perturbagens batches fails'
   
+  # 20190118 - sde - change to the new TAS nominal target study from Nienke
+  #echo 'import screen results...'
+  #python src/import_dataset2.py -f $DATADIR/Study20000_NominalTargets_forLoading.xls 
+  #check_errs $? "import dataset fails"
+
   echo 'import screen results...'
   python src/import_dataset2.py -f $DATADIR/Study20000_NominalTargets_forLoading.xls 
   check_errs $? "import dataset fails"
@@ -1711,7 +1716,40 @@ else
   echo 'import screen results...'
   python src/import_dataset2.py -f $DATADIR/Screen20353_BCP_Proteomics2.xlsx
   check_errs $? "import dataset fails"
-       
+
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20354_BrCaDrugSensitivity2-1.xlsx
+  check_errs $? "import dataset fails"
+
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20355_BrCaDrugSensitivity2-2.xlsx
+  check_errs $? "import dataset fails"
+
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20358_MCF10A_SciA2019_GRvalues.xlsx
+  check_errs $? "import dataset fails"
+
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20359_MCF10A_SciB2019_GRvalues.xlsx
+  check_errs $? "import dataset fails"
+
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20360_MCF10A_SciC2019_GRvalues.xlsx
+  check_errs $? "import dataset fails"
+
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20361_MCF10A_SciA2019_GRmetrics.xlsx
+  check_errs $? "import dataset fails"
+
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20362_MCF10A_SciB2019_GRmetrics.xlsx
+  check_errs $? "import dataset fails"
+
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20363_MCF10A_SciC2019_GRmetrics.xlsx
+  check_errs $? "import dataset fails"
+
+
   # 2015-04-20: removed all attached compound QC files since original reports from vendors will no longer be used and future reports will be attached in the QC Testing Events section of each batch
   
 # if restricted:
