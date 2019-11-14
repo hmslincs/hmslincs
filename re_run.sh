@@ -1748,6 +1748,30 @@ else
   echo 'import screen results...'
   python src/import_dataset2.py -f $DATADIR/Screen20363_MCF10A_SciC2019_GRmetrics.xlsx
   check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20364_PI3K_DrugSensitivity_TNBC_GRvalues.xlsx
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20365_PI3K_DrugSensitivity_TNBC_GRmetrics.xlsx
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20366_Torin2_GRvalues.xlsx
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20367_Torin2_GRmetrics.xlsx
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20368_Torin2_TargetedMetabolomics.xlsx
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20369_AffinityMeasurements.xlsx
+  check_errs $? "import dataset fails"
 
 
   # 2015-04-20: removed all attached compound QC files since original reports from vendors will no longer be used and future reports will be attached in the QC Testing Events section of each batch
