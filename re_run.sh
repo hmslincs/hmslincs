@@ -1772,7 +1772,22 @@ else
   echo 'import screen results...'
   python src/import_dataset2.py -f $DATADIR/Screen20369_AffinityMeasurements.xlsx
   check_errs $? "import dataset fails"
-
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20370_BreastCancerProfiling.xlsx
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20371_CDK46_phosphoproteome.xlsx
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20372_CDK46_mRNAseq.xlsx
+  check_errs $? "import dataset fails"
+  
+  echo 'import screen results...'
+  python src/import_dataset2.py -f $DATADIR/Screen20373_CDK46_DGEseq.xlsx
+  check_errs $? "import dataset fails"
 
   # 2015-04-20: removed all attached compound QC files since original reports from vendors will no longer be used and future reports will be attached in the QC Testing Events section of each batch
   
