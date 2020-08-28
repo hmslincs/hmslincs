@@ -213,7 +213,7 @@ TEMPLATE_DIRS = (
 WEBTEMPLATES_HOST = (
     'lincs.hms.harvard.edu' if _djangopath.startswith('/www/lincs.') else
     'dev.lincs.hms.harvard.edu')
-WEBTEMPLATES_BASE = 'http://%s/templates/' % WEBTEMPLATES_HOST
+WEBTEMPLATES_BASE = 'https://%s/templates/' % WEBTEMPLATES_HOST
 WEBTEMPLATES = [
     (WEBTEMPLATES_BASE + 'base/', 'wordpress_base.html'),
 ]
